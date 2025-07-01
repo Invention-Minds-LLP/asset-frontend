@@ -1,0 +1,30 @@
+*{
+    font-family: Biryani;
+}
+html {
+    --table-row-border: #C3C3C3;
+  }
+  
+:root {
+    --text-color: #1F1F1F;
+    --surface-ground: #ffffff;
+    --menu-color: #2C64BB;
+    --toggle-bg:#F5F6F6;
+    --toggle-color:#1F1F1F;
+    --toggle-btn:#FFFFFF;
+    --toggle-active-color:#1F1F1F;
+    --table-border-color:#cbd5e1;
+    --form-text-color:#C3C3C3;
+  }
+  .app-dark {
+    --text-color: #E8E8E8;
+    --surface-ground: #1e1e1e;
+    --menu-color: #F28729;
+    --toggle-bg:#18202F;
+    --toggle-color:#FFFFFF;
+    --toggle-btn:#293751;
+    --toggle-active-color:#B4B4B4;
+    --table-border-color:#52525b;
+    --form-text-color:#E8E8E8;
+  }
+

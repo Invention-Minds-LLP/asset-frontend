@@ -1,0 +1,158 @@
+.assets-form-container {
+  font-family: "Biryani", sans-serif;
+}
+
+.assets-form-container h2 {
+  color: var(--text-color);
+  font-family: Biryani;
+  font-size: 26px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  margin: 0;
+  text-align: center;
+}
+
+.assets-form-container .subtitle {
+  text-align: center;
+  color: #696969;
+  font-family: Biryani;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  margin: 0;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--surface-border, #e0e0e0);
+  margin: 1.5rem 0;
+  width: 80%;
+}
+
+.divider-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.form-content {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.form-fields {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: var(--form-text-color);
+}
+
+.two-columns .half-width {
+  flex: 1;
+  min-width: 0;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.asset-image {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid #eee;
+}
+
+.asset-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.edit-icon {
+  position: absolute;
+  bottom: 0px;
+  left: 48%;
+  padding: 0.4rem;
+  font-size: 1rem;
+  cursor: pointer;
+  color: blue;
+}
+.edit-bg{
+    bottom: -8px;
+    left: 33%;
+    position: absolute;
+}
+
+.status-field {
+  width: 100%;
+}
+
+.save-btn {
+  width: 100%;
+  background-color: #3EAF3F;
+  color: white;
+  font-weight: 600;
+}
+
+.clear-btn {
+  width: 100%;
+}
+.p-inputtext,
+.p-select {
+  width: 100%;
+  height: 50px;
+  border-radius: 8px;
+  border: 1px solid var(--table-border-color);
+  /* color: var(--form-text-color); */
+}   
+
+.p-select,
+.p-calendar {
+  flex: 1 1 auto;
+  width: 100%;
+}
+::ng-deep .p-datepicker {
+  height: 42px;
+  width: 100%;
+  flex: 1 1 auto;
+}
+::ng-deep .p-datepicker {
+  max-width: 100%;
+}
+.error-message {
+    color: #d93025;         /* Classic red error color */
+    font-size: 0.85rem;     /* Slightly smaller text */
+    margin-top: 4px;        /* A little space from the field */
+    display: block;         /* Ensures it takes full width under the input */
+    font-weight: 500;       /* Makes it easier to read */
+  }
+  
+  .invalid input,
+  .invalid .p-inputtext,
+  .invalid .p-select {
+    border-color: #d93025 !important;  /* Highlight invalid inputs in red */
+    box-shadow: none;                  /* Avoid ugly red glow */
+  }
+  
