@@ -11,7 +11,7 @@
             <div class="form-fields">
                 <div class="field-row">
                     <p-floatlabel variant="on" class="full-width">
-                        <input pInputText name="name" [(ngModel)]="asset.name" required pattern="^[A-Za-z ]+$"
+                        <input pInputText name="name" [(ngModel)]="asset.assetName" required pattern="^[A-Za-z ]+$"
                             #nameCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(nameCtrl)}" id="name"
                             autocomplete="off" class="custom-placeholder" class="ng-invalid ng-dirty" />
                         <label for="name">Name</label>
@@ -22,14 +22,14 @@
 
                 <div class="field-row two-columns">
                     <p-floatlabel variant="on" class="half-width">
-                        <p-select id="type" name="type" [(ngModel)]="asset.type" required #typeCtrl="ngModel"
+                        <p-select id="type" name="type" [(ngModel)]="asset.assetType" required #typeCtrl="ngModel"
                             [ngClass]="{'ng-invalid': invalid(typeCtrl)}" autocomplete="off" class="custom-placeholder"
                             class="ng-invalid ng-dirty" [options]="types" optionLabel="label" optionValue="value"></p-select>
                         <label for="type">Type</label>
                         <div class="error-message" *ngIf="showError(typeCtrl)">Type is required.</div>
                     </p-floatlabel>
                     <p-floatlabel variant="on" class="half-width">
-                        <p-select id="category" name="category" [(ngModel)]="asset.category" required
+                        <p-select id="category" name="category" [(ngModel)]="asset.assetCategoryId" required
                             #categoryCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(categoryCtrl)}" autocomplete="off"
                             class="custom-placeholder" [options]="categories" optionLabel="label" optionValue="value"
                             class="ng-invalid ng-dirty"></p-select>
@@ -57,9 +57,9 @@
 
                 <div class="field-row">
                     <p-floatlabel variant="on" class="full-width">
-                        <input pInputText id="vendorName" name="vendorName" [(ngModel)]="asset.vendorName" required
+                        <p-select pInputText id="vendorName" name="vendorName" [(ngModel)]="asset.vendorId" required
                             #vendorCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(vendorCtrl)}" autocomplete="off"
-                            class="custom-placeholder" class="ng-invalid ng-dirty" />
+                            class="custom-placeholder" class="ng-invalid ng-dirty" [options]="vendorOptions" (onChange)="onVendorChange()"                            />
                         <label for="vendorName">Vendor Name</label>
                         <div class="error-message" *ngIf="showError(vendorCtrl)">Vendor Name is required.</div>
                     </p-floatlabel>
@@ -68,7 +68,7 @@
                 <div class="field-row two-columns">
                     <p-floatlabel variant="on" class="half-width">
                         <input pInputText id="vendorPhnNumber" name="vendorPhnNumber"
-                            [(ngModel)]="asset.vendorPhnNumber" required #vendorPhnCtrl="ngModel"
+                            [(ngModel)]="editingVendor.contact" required #vendorPhnCtrl="ngModel"
                             pattern="^\d{10}$"    
                             [ngClass]="{'ng-invalid': invalid(vendorPhnCtrl)}" autocomplete="nope"
                             class="custom-placeholder" class="ng-invalid ng-dirty" />
@@ -79,7 +79,7 @@
                           </div>
                     </p-floatlabel>
                     <p-floatlabel variant="on" class="half-width">
-                        <input pInputText id="vendorEmail" name="vendorEmail"   type="email"   [(ngModel)]="asset.vendorEmail" required
+                        <input pInputText id="vendorEmail" name="vendorEmail"   type="email"   [(ngModel)]="editingVendor.email" required
                             #vendorEmailCtrl="ngModel" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$"  [ngClass]="{'ng-invalid': invalid(vendorEmailCtrl)}"
                             autocomplete="nope" class="custom-placeholder" class="ng-invalid ng-dirty" />
                         <label for="vendorEmail">Vendor Email</label>
@@ -92,7 +92,7 @@
 
                 <div class="field-row two-columns">
                     <p-floatlabel variant="on" class="half-width">
-                        <p-select pInputText id="department" name="department" [(ngModel)]="asset.department" required
+                        <p-select pInputText id="department" name="department" [(ngModel)]="asset.departmentId" required
                             #departmentCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(departmentCtrl)}"
                             autocomplete="off" class="custom-placeholder" [options]="departments" optionLabel="label" optionValue="value" class="ng-invalid ng-dirty" />
                         <label for="department">Department</label>
@@ -100,7 +100,7 @@
                     </p-floatlabel>
 
                     <p-floatlabel variant="on" class="half-width">
-                        <p-select pInputText id="allotedTo" name="allotedTo" [(ngModel)]="asset.allotedTo" required
+                        <p-select pInputText id="allotedTo" name="allotedTo" [(ngModel)]="asset.allottedToId" required
                             #allotedToCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(allotedToCtrl)}"
                             autocomplete="off" class="custom-placeholder" [options]="users" optionLabel="label" optionValue="value" class="ng-invalid ng-dirty" />
                         <label for="allotedTo">Alloted To</label>
@@ -110,14 +110,14 @@
 
                 <div class="field-row two-columns">
                     <p-floatlabel variant="on" class="half-width">
-                        <input pInputText id="rfid" name="rfid" [(ngModel)]="asset.rfid" required #rfidCtrl="ngModel"
+                        <input pInputText id="rfid" name="rfid" [(ngModel)]="asset.rfidCode" required #rfidCtrl="ngModel"
                             [ngClass]="{'ng-invalid': invalid(rfidCtrl)}" autocomplete="off" class="custom-placeholder"
                             class="ng-invalid ng-dirty" />
                         <label for="rfid">RFID</label>
                         <div class="error-message" *ngIf="showError(rfidCtrl)">RFID is required.</div>
                     </p-floatlabel>
                     <p-floatlabel variant="on" class="half-width">
-                        <input pInputText id="location" name="location" [(ngModel)]="asset.location" required
+                        <input pInputText id="location" name="location" [(ngModel)]="asset.currentLocation" required
                             #locationCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(locationCtrl)}" autocomplete="off"
                             class="custom-placeholder" class="ng-invalid ng-dirty" />
                         <label for="location">Location</label>

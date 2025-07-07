@@ -1,0 +1,257 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Biryani';
+    overflow-x: hidden;
+  }
+.container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+  }
+  
+  /* Left panel */
+  .left-panel {
+    background-color: #e9f0ff; /* Light blue */
+    flex: 2;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    padding: 20px;
+    flex-direction: column;
+  }
+  
+  .login-card {
+
+    width: 100%;
+    max-width: 600px;
+  }
+  
+  .login-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .logo{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    font-family: 'Aldrich';
+    margin-bottom: 40px;
+  }
+
+  .logo-text{
+    font-family: 'Aldrich';
+    font-weight: 500;
+  }
+  
+  .login-header h1 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  
+  .login-header p {
+    color: #616161;
+    text-align: center;
+    font-family: Biryani;
+    font-size: 12.8px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  
+  .login-form .form-group {
+    margin-bottom: 20px;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .login-form label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+  
+  .login-form input {
+    width: 80%;
+    padding: 10px 12px;
+    border: 1px solid #9E9E9E;
+    font-size: 14px;
+    background: transparent;
+    color: #616161;
+  }
+  
+  .form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    font-size: 14px;
+  }
+  
+  .remember-me input {
+    margin-right: 5px;
+  }
+  
+  .forgot-password {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .forgot-password:hover {
+    text-decoration: underline;
+  }
+  
+  .login-button {
+    width: 80%;
+    background-color: #2563eb; /* blue */
+    color: #FFF;
+    text-align: center;
+    font-family: Biryani;
+    font-size: 12.8px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 22.53px; /* 176.016% */
+    border: none;
+    padding: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .login-button:hover {
+    background-color: #1d4ed8; /* darker blue */
+  }
+  .password-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+  }
+  
+  
+  .password-wrapper .toggle-icon {
+    position: absolute;
+    right: 70px;       /* distance from right edge */
+    top: 50%;          /* vertical center */
+    transform: translateY(-50%);
+    cursor: pointer;
+  }
+  
+  
+  .footer-text {
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    margin-top: 20px;
+  }
+
+  .footer{
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  /* Right panel */
+  .right-panel {
+    flex: 0.7;
+    background: url('/illustration.svg') no-repeat center center;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .carousel {
+    position: relative;
+    width: 550px;
+    height: 500px;
+    overflow: hidden;
+    margin-bottom: 30px;
+    left: 33%;
+  }
+  
+  .slides {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    will-change: transform; /* performance hint */
+  }
+  
+  .carousel-img {
+    width: 200px;
+    flex-shrink: 0;
+  }
+  
+  .pagination-dots {
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+  .dot {
+    height: 8px;
+    width: 8px;
+    margin: 0 4px;
+    background-color: #555;
+    border-radius: 50%;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .dot.active {
+    background-color: #fff;
+  }
+  
+  .quote {
+    color: #EEE;
+    font-family: Roboto;
+    font-size: 14px;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 19.53px;
+    max-width: 300px;
+    text-align: center;
+  }
+  
+  
+  .author {
+    text-align: right;
+    width: 100%;
+    margin-top: 15px;
+  }
+  
+  ::ng-deep .p-carousel-indicator-list{
+    position: relative;
+    right: 23%;
+  }
+  ::ng-deep .p-carousel-indicator-button{
+    border-radius: 50% !important;
+    width: var(--p-carousel-indicator-width);
+    height: var(--p-carousel-indicator-height);
+    
+  }
+  .my-carousel {
+    --p-carousel-indicator-width: 10px;
+    --p-carousel-indicator-height: 10px;
+    --p-carousel-border-radius: 50% !important;
+  }
+  /* Responsive: on small screens, hide right panel */
+  @media (max-width: 768px) {
+    .container {
+      flex-direction: column;
+    }
+  
+    .right-panel {
+      display: none;
+    }
+  }

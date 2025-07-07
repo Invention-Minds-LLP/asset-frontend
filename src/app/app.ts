@@ -6,17 +6,24 @@ import { CommonModule } from '@angular/common';
 import { Sidebar } from "./sidebar/sidebar";
 import { AssetsTable } from "./assets/assets-table/assets-table";
 import { AssetsForm } from "./assets/assets-form/assets-form";
+import { Login } from "./login/login";
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule, InputSwitchModule, Sidebar, AssetsTable, AssetsForm],
+  imports: [CommonModule, FormsModule, InputSwitchModule, Sidebar, AssetsTable, AssetsForm, Login, RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
+
+  constructor(private router: Router) {}
   dark = false;
 
   toggleTheme() {
     document.documentElement.classList.toggle('app-dark', this.dark);
+  }
+  isLoginRoute(): boolean {
+    return this.router.url === '/login'; // Adjust this if your login route is different
   }
 }

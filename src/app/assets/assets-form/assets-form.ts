@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { DatePickerModule } from 'primeng/datepicker';
 import { FormsModule, NgForm, NgModel } from '@angular/forms';
+import { Assets } from '../../services/assets/assets';
 
 @Component({
   selector: 'app-assets-form',
@@ -16,43 +17,63 @@ import { FormsModule, NgForm, NgModel } from '@angular/forms';
 })
 export class AssetsForm {
   asset = {
-    name: '',
-    type: '',
-    category: '',
+    assetName: '',
+    assetType: '',
+    assetCategoryId: null,
     serialNumber: '',
     purchaseDate: null,
-    vendorName: '',
-    vendorPhnNumber: '',
-    vendorEmail: '',
-    department: '',
-    allotedTo: '',
-    rfid: '',
-    location: '',
-    status: ''
+    vendorId: null,
+    departmentId: null,
+    allottedToId: null,
+    rfidCode: '',
+    currentLocation: '',
+    status: 'active'
   };
-
+  
   types = [
-    { label: 'Laptop', value: 'laptop' },
-    { label: 'Monitor', value: 'monitor' },
-    { label: 'Keyboard', value: 'keyboard' },
+    { label: 'Fixed', value: 'fixed' },
+    { label: 'Movable', value: 'movable' },
   ];
 
-  categories = [
-    { label: 'Hardware', value: 'hardware' },
-    { label: 'Software', value: 'software' },
-  ];
+  categories:any[] = [];
+  departments:any[]  = [];
+  users:any[]  = [];
+  vendors: any[] = [];
+  vendorOptions: { label: string; value: number }[] = [];
+  selectedVendor: any = null;
+  editingVendor: any = {};
 
-  departments = [
-    { label: 'IT', value: 'it' },
-    { label: 'HR', value: 'hr' },
-    { label: 'Finance', value: 'finance' },
-  ];
+  constructor( private assetService: Assets) { }
+  
 
-  users = [
-    { label: 'Alice', value: 'alice' },
-    { label: 'Bob', value: 'bob' },
-    { label: 'Carol', value: 'carol' },
-  ];
+  ngOnInit() {
+    this.assetService.getCategories().subscribe((categories) => {
+      this.categories = categories.map(c => ({ label: c.name, value: c.id }));
+    });
+  
+    this.assetService.getDepartments().subscribe((depts) => {
+      this.departments = depts.map(d => ({ label: d.name, value: d.id }));
+    });
+  
+    this.assetService.getEmployees().subscribe((emps) => {
+      this.users = emps.map(e => ({ label: e.name, value: e.id }));
+    });
+  
+    this.assetService.getVendors().subscribe((vendors) => {
+      this.vendors = vendors;
+      this.vendorOptions = vendors.map(v => ({ label: v.name, value: v.id }));
+    });
+  }
+  
+  onVendorChange() {
+    this.selectedVendor = this.vendors.find(v => v.id === this.asset.vendorId) || null;
+    if (this.selectedVendor) {
+      this.editingVendor = { ...this.selectedVendor };
+    } else {
+      this.editingVendor = {};
+    }
+  }
+  
 
   invalid(control: NgModel) {
     return control.invalid && (control.dirty || control.touched);
@@ -65,9 +86,16 @@ export class AssetsForm {
   onSubmit(form: NgForm) {
     if (form.valid) {
       console.log('Asset saved:', this.asset);
-      // TODO: Call API to persist asset
+      this.assetService.createAsset(this.asset).subscribe({
+        next: (response) => {
+          console.log('Asset created successfully:', response);
+        form.resetForm()
+        },
+        error: (error) => {
+          console.error('Error creating asset:', error);
+        }
+      });
       alert('Asset saved successfully!');
-      form.resetForm();
     } else {
       console.error('Form invalid');
     }
@@ -75,20 +103,19 @@ export class AssetsForm {
 
   onClear() {
     this.asset = {
-      name: '',
-      type: '',
-      category: '',
+      assetName: '',
+      assetType: '',
+      assetCategoryId: null,
       serialNumber: '',
       purchaseDate: null,
-      vendorName: '',
-      vendorPhnNumber: '',
-      vendorEmail: '',
-      department: '',
-      allotedTo: '',
-      rfid: '',
-      location: '',
+      vendorId: null,
+      departmentId: null,
+      allottedToId: null,
+      rfidCode: '',
+      currentLocation: '',
       status: ''
     };
+    
   }
   ngOnDestroy(){
     this.onClear()

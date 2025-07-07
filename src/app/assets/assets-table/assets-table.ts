@@ -7,6 +7,8 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
+import { Assets } from '../../services/assets/assets';
+import { ChangeDetectorRef } from '@angular/core';
 
 type FilterField = 'name' | 'id' | 'type' | 'category' | 'allotted';
 
@@ -24,8 +26,11 @@ export class AssetsTable {
   selectedFilter: FilterField = 'name';
   searchTerm: string = '';
   filteredActive:boolean = false;
+  assets:any[] = [];
+  assetsLoaded = false; 
 
-  constructor(private elementRef: ElementRef) { }
+  constructor(private assetService: Assets, private cdr: ChangeDetectorRef) { }
+
   @ViewChild('filterContainer') filterContainerRef!: ElementRef;
   @HostListener('document:click', ['$event'])
   onClickOutside(event: Event) {
@@ -48,65 +53,29 @@ export class AssetsTable {
     return Math.ceil(this.filteredAssets.length / this.rowsPerPage) || 1;
   }
 
-  assets = [
-    {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Movable', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Fixed', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    }, {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Movable', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Movable', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    {
-      no: '01', id: 'IM0012', name: 'Panasonic 550', type: 'Fixed', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Movable', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Movable', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Movable', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Movable', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Movable', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Movable', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Movable', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Movable', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    {
-      no: '01', id: 'IM0012', name: 'Sony 550 Camera', type: 'Movable', category: 'Electronic',
-      allotted: 'IM007 - Nithish M.K', photo: 'camera.png', status: 'green'
-    },
-    // ... more data
-  ];
+  ngOnInit() {
+    this.assetService.getAllAssets().subscribe((assets) => {
+      setTimeout(() => {  // ✅ defer update after Angular’s first check
+        this.assets = assets;
+        console.log(this.assets);
+        this.cdr.detectChanges(); // ✅ trigger change detection manually
+        this.assetsLoaded = true;
+      });
+    });
+  }
+  
+  get filteredAssets() {
+    if (!this.searchTerm) {
+      return this.assets;
+    }
 
+    const term = this.searchTerm.toLowerCase();
+
+    return this.assets.filter(asset => {
+      const fieldValue = asset[this.selectedFilter]?.toString().toLowerCase() || '';
+      return fieldValue.includes(term);
+    });
+  }
   refresh() {
     console.log("Refreshing data...");
   }
@@ -136,18 +105,6 @@ export class AssetsTable {
     this.dropdownVisible = !this.dropdownVisible;
   }
 
-  get filteredAssets() {
-    if (!this.searchTerm) {
-      return this.assets;
-    }
-
-    const term = this.searchTerm.toLowerCase();
-
-    return this.assets.filter(asset => {
-      const fieldValue = asset[this.selectedFilter]?.toString().toLowerCase() || '';
-      return fieldValue.includes(term);
-    });
-  }
   applyFilter() {
     this.currentPage = 1;
   }

@@ -1,8 +1,11 @@
 *{
     font-family: Biryani;
+    margin: 0;
+    padding: 0;
 }
 html {
     --table-row-border: #C3C3C3;
+    --p-carousel-indicator-width: 10px;
   }
   
 :root {

@@ -74,11 +74,11 @@
           <td>
             {{ (currentPage - 1) * rowsPerPage + i + 1 }}
           </td>
-          <td>{{ asset.id }}</td>
-          <td>{{ asset.name }}</td>
-          <td>{{ asset.type }}</td>
-          <td>{{ asset.category }}</td>
-          <td>{{ asset.allotted }}</td>
+          <td>{{ asset.assetId }}</td>
+          <td>{{ asset.assetName }}</td>
+          <td>{{ asset.assetType }}</td>
+          <td>{{ asset.assetCategory.name }}</td>
+          <td>{{ asset.allottedTo.name }}</td>
           <td style="text-align: center;">
             <img [src]="'/' + asset.photo" class="asset-photo" />
           </td>
@@ -88,5 +88,6 @@
         </tr>
       </ng-template>
     </p-table>
+    
   </div>
 </div>
