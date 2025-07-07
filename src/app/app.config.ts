@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors , withFetch } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { providePrimeNG } from 'primeng/config';
+import { MessageService } from 'primeng/api';
 import Lara from '@primeng/themes/lara';
 import { AuthInterceptor } from './auth.interceptor';
 
@@ -19,6 +20,7 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([AuthInterceptor])
     ),
     provideAnimations(),
+    MessageService,
     providePrimeNG({
       theme: {
         preset: Lara,

@@ -6,6 +6,6 @@ import { AssetsForm } from './assets/assets-form/assets-form';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
-  { path: 'assets', component: AssetsTable},
+  { path: 'assets', component: AssetsForm},
   { path: '**', redirectTo: 'login', pathMatch: 'full' }
 ];
