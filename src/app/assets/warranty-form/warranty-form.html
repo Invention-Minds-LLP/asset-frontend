@@ -1,0 +1,138 @@
+<div class="warranty-form-container">
+    <div class="header-part">
+        <h1>Warranty & Annual Maintenance Contract Form</h1>
+        <p>The analysis list here shows all users</p>
+        <hr class="underline">
+    </div>
+
+    <div class="notification">
+        <i class="pi pi-bell"></i>
+    </div>
+
+    <form #warrantyForm='ngForm' (ngSubmit)="onSubmit(warrantyForm)">
+        <div class="form-content">
+            <div class="form-part">
+                <div class="column-one">
+                    <p-floatlabel variant="on" class="half-width">
+                        <p-select [(ngModel)]="warranty.isunderwarranty" #underwarrantyCtrl="ngModel"
+                            [ngClass]="{'ng-invalid': invaild(underwarrantyCtrl)}" required name="isunderwarranty"
+                            [options]="isunderwarranty" optionLabel="name" placeholder="Is Under Warranty"
+                            class="w-full md:w-56"></p-select>
+                        <div class="error-msg" *ngIf="showError(underwarrantyCtrl)">IsunderWarranty is required</div>
+                    </p-floatlabel>
+                    <p-floatlabel variant="on" class="half-width">
+                        <p-select [(ngModel)]="warranty.amcactive" #amcactiveCtrl="ngModel"
+                            [ngClass]="{'ng-invalid': invaild(amcactiveCtrl)}" required name="amcactive"
+                            [options]="amcactive" optionLabel="name" placeholder="AMC Active"
+                            class="w-full md:w-56"></p-select>
+                        <div class="error-msg" *ngIf="showError(amcactiveCtrl)">AMC Active is required</div>
+                    </p-floatlabel>
+                </div>
+
+                <div class="column-one" *ngIf="warranty.isunderwarranty?.value === true">
+                    <p-floatlabel variant="on" class="half-width">
+                        <p-datepicker dateFormat="dd/mm/yy" name="warrantystartdate"
+                            [(ngModel)]="warranty.warrantystartdate" #warrantystartdateCtrl="ngModel" required
+                            [ngClass]="{'ng-invalid': invaild(warrantystartdateCtrl)}" [showIcon]="true" />
+                        <label for="on_label">Warranty Start Date</label>
+                        <div class="error-msg" *ngIf="showError(warrantystartdateCtrl)">Warranty Start Date is required
+                        </div>
+                    </p-floatlabel>
+                    <p-floatlabel variant="on" class="half-width">
+                        <p-datepicker dateFormat="dd/mm/yy" name="warrantyenddate"
+                            [(ngModel)]="warranty.warrantyenddate" required #warrantyenddateCtrl="ngModel"
+                            [ngClass]="{'ng-invalid': invaild(warrantyenddateCtrl)}" [showIcon]="true" />
+                        <label for="on_label">Warranty End Date</label>
+                        <div class="error-msg" *ngIf="showError(warrantyenddateCtrl)">Warranty End Date is required
+                        </div>
+                    </p-floatlabel>
+                </div>
+
+                <ng-container *ngIf="warranty.amcactive?.value === true">
+                    <div class="">
+                        <p-floatlabel variant="on" class="full-width">
+                            <input pInputText id="on_label" name="vendername" [(ngModel)]="warranty.vendername" required
+                                #vendernameCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(vendernameCtrl)}"
+                                autocomplete="off" />
+                            <label for="on_label">Annual Maintenance Contract Vendor Name</label>
+                            <div class="error-msg" *ngIf="showError(vendernameCtrl)">AMC Vendor Name is required</div>
+                        </p-floatlabel>
+                    </div>
+
+                    <div class="column-one">
+                        <p-floatlabel variant="on" class="half-width">
+                            <p-datepicker dateFormat="dd/mm/yy" name="amcstartdate" [(ngModel)]="warranty.amcstartdate"
+                                required #amcstartdateCtrl="ngModel"
+                                [ngClass]="{'ng-invalid': invaild(amcstartdateCtrl)}" [showIcon]="true" />
+                            <label for="on_label">AMC Start Date</label>
+                            <div class="error-msg" *ngIf="showError(amcstartdateCtrl)">AMC Start Date is required</div>
+                        </p-floatlabel>
+                        <p-floatlabel variant="on" class="half-width">
+                            <p-datepicker dateFormat="dd/mm/yy" name="amcenddate" [(ngModel)]="warranty.amcenddate"
+                                required #amcenddateCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(amcenddateCtrl)}"
+                                [showIcon]="true" />
+                            <label for="on_label">AMC End Date</label>
+                            <div class="error-msg" *ngIf="showError(amcenddateCtrl)">AMC End Date is required</div>
+                        </p-floatlabel>
+                    </div>
+
+                    <div class="column-one">
+                        <p-floatlabel variant="on" class="half-width">
+                            <p-datepicker dateFormat="dd/mm/yy" name="amcvisitedue" [(ngModel)]="warranty.amcvisitedue"
+                                required #amcvisitedueCtrl="ngModel"
+                                [ngClass]="{'ng-invalid': invaild(amcvisitedueCtrl)}" [showIcon]="true" />
+                            <label for="on_label">AMC Visits Due</label>
+                            <div class="error-msg" *ngIf="showError(amcvisitedueCtrl)">AMC Visits Due is required</div>
+                        </p-floatlabel>
+                        <p-floatlabel variant="on" class="half-width">
+                            <p-datepicker dateFormat="dd/mm/yy" name="lastservicedate"
+                                [(ngModel)]="warranty.lastservicedate" required #lastservicedateCtrl="ngModel"
+                                [ngClass]="{'ng-invalid': invaild(lastservicedateCtrl)}" [showIcon]="true" />
+                            <label for="on_label">Last Service Date</label>
+                            <div class="error-msg" *ngIf="showError(lastservicedateCtrl)">Last Service Date is required
+                            </div>
+                        </p-floatlabel>
+                    </div>
+
+                    <div class="one-column">
+                        <p-floatlabel variant="on" class="half-width">
+                            <p-datepicker dateFormat="dd/mm/yy" name="nextvisitedue"
+                                [(ngModel)]="warranty.nextvisitedue" required #nextvisitedueCtrl="ngModel"
+                                [ngClass]="{'ng-invalid':invaild(nextvisitedueCtrl)}" [showIcon]="true" />
+                            <label for="on_label">Next Visits Due</label>
+                            <div class="error-msg" *ngIf="showError(nextvisitedueCtrl)">Next Visits Due is required
+                            </div>
+                        </p-floatlabel>
+                    </div>
+
+                    <div>
+                        <app-drag-and-drop></app-drag-and-drop>
+                    </div>
+
+                </ng-container>
+
+
+            </div>
+
+            <div class="form-profile">
+                <div class="profile">
+                    <div class="profile-img">
+                        <img src="/laptop.jpeg" alt="">
+
+                    </div>
+                    <div class="">
+                        <p-floatlabel variant="on" class="half-width">
+                            <input pInputText id="on_label" autocomplete="off" />
+                            <label for="on_label">Status</label>
+                        </p-floatlabel>
+                    </div>
+                </div>
+                <div class="btns">
+                    <button pButton label="Save" class="save-btn"></button>
+                    <button pButton label="Clear" class="clear-btn" severity="danger" outlined
+                        (click)="onClear()"></button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
