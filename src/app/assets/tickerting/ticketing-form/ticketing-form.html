@@ -1,0 +1,99 @@
+<div class="tickerting-container">
+    <div class="header-part">
+        <h1>Warranty & AMC Tracker Form</h1>
+        <p>The analysis list here shows all users</p>
+        <hr class="underline">
+    </div>
+
+    <div class="notification">
+        <i class="pi pi-bell"></i>
+    </div>
+
+    <form #ticketForm='ngForm' (ngSubmit)="onSubmit(ticketForm)">
+        <div class="form-content">
+            <div class="form-part">
+                <div class="column-one">
+                    <!-- <p-floatlabel variant="on" class="half-width">
+                        <input pInputText id="ticketId" name="ticketId" autocomplete="off" [(ngModel)]="ticket.ticketId"
+                            required #ticketIdCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(ticketIdCtrl)}" />
+                        <label for="ticketId">Ticket ID (Auto)</label>
+                        <div class="error-msg" *ngIf="showError(ticketIdCtrl)">Ticket ID is required</div>
+                    </p-floatlabel> -->
+
+                    <p-floatlabel variant="on" class="half-width">
+                        <input pInputText id="raisedBy" name="raisedBy" autocomplete="off" [(ngModel)]="ticket.raisedBy"
+                            required #raisedByCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(raisedByCtrl)}"   readonly/>
+                        <label for="raisedBy">Raised By ( Id & Name )</label>
+                        <div class="error-msg" *ngIf="showError(raisedByCtrl)">Id & Name is required</div>
+                    </p-floatlabel>
+                </div>
+
+                <div class="column-one">
+                    <p-floatlabel class="half-width" variant="on">
+                        <input pInputText id="department" [(ngModel)]="ticket.department" autocomplete="off"
+                            name="department" required #departmentCtrl="ngModel"
+                            [ngClass]="{'ng-invalid': invaild(departmentCtrl)}" />
+                        <label for="department">Department</label>
+                        <div class="error-msg" *ngIf="showError(departmentCtrl)">Department is required</div>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on" class="half-width">
+                        <p-select inputId="assetId" optionLabel="label" optionValue="id" [options]="assets" name="assetId" [(ngModel)]="ticket.assetId" autocomplete="off"
+                            required #assetIdCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(assetIdCtrl)}" (ngModelChange)="issueChange()" />
+                        <label for="assetId">Asset ID</label>
+                        <div class="error-msg" *ngIf="showError(assetIdCtrl)">Asset ID is required</div>
+                    </p-floatlabel>
+                </div>
+                <div class="column-one">
+                    <p-floatlabel variant="on" class="half-width">
+                        <p-select [(ngModel)]="ticket.issueType" inputId="issueType" name="issueType"
+                            [options]="issueType" required #issueTypeCtrl="ngModel"
+                            [ngClass]="{'ng-invalid': invaild(issueTypeCtrl)}" optionLabel="name" optionValue="value"  (ngModelChange)="issueChange()"/>
+                        <label for="issueType">Issue Type</label>
+                        <div class="error-msg" *ngIf="showError(issueTypeCtrl)">Issue Type is required</div>
+                    </p-floatlabel>
+
+                    <p-floatlabel class="half-width" variant="on">
+                        <p-select [(ngModel)]="ticket.priority" inputId="priority" name="priority" [options]="priority"
+                            required #priorityCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(priorityCtrl)}"
+                            optionLabel="name" optionValue="value" (ngModelChange)="issueChange()" />
+                        <label for="priority">Priority</label>
+                        <div class="error-msg" *ngIf="showError(priorityCtrl)">Priority is required</div>
+                    </p-floatlabel>
+
+                </div>
+                <div class="">
+                    <p-floatlabel variant="on">
+                        <textarea pTextarea id="description" rows="5" cols="30" style="resize: none" class="h-full"
+                            maxlength="500" name="description" [(ngModel)]="ticket.detailedDesc" required
+                            #detailedDescCtrl="ngModel"
+                            [ngClass]="{'ng-invalid': invaild(detailedDescCtrl)}" (ngModelChange)="issueChange()"></textarea>
+                        <label for="description" class="label">Detailed Description ( up to 500 characters )</label>
+                        <div class="error-msg" *ngIf="showError(detailedDescCtrl)">Description is required</div>
+                    </p-floatlabel>
+                </div>
+
+                <div class="">
+                    <p-floatlabel variant="on">
+                        <input pInputText id="building" name="building" autocomplete="off" [(ngModel)]="ticket.location"
+                            required #locationCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(locationCtrl)}" (ngModelChange)="locationChange($event)" />
+                        <label for="building">Location</label>
+                        <div class="error-msg" *ngIf="showError(locationCtrl)">Location is required</div>
+                    </p-floatlabel>
+                </div>
+
+                <!-- <app-drag-and-drop (fileSelected)="onFilesSelected($event)"></app-drag-and-drop> -->
+            </div>
+
+            <div class="">
+                <div class="profile">
+                    <div class="btns">
+                        <button pButton label="Save" type="submit" class="save-btn"></button>
+                        <button pButton label="Clear" class="clear-btn" severity="danger" outlined
+                            (click)="onClear()"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
