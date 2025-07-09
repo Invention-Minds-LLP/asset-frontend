@@ -1,0 +1,140 @@
+.teckerting-container {
+    font-family: Biryani;
+}
+
+.header-part {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.header-part h1 {
+    color: var(--text-color);
+    font-size: 26px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+.header-part p {
+    color: #696969;
+    font-family: Biryani;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.underline {
+    border-top: 1px solid #C3C3C3;
+    width: 880px;
+    height: 0px;
+    flex-shrink: 0;
+    margin-top: 20px;
+}
+
+.notification {
+    display: flex;
+    width: 42px;
+    height: 42px;
+    padding: 8px 10px;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+    border-radius: 28px;
+    border: 2px solid #C3C3C3;
+    position: absolute;
+    right: 50px;
+    top: 50px;
+    transform: rotate(40deg);
+    cursor: pointer;
+}
+
+.form-content {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    padding: 0px 10%;
+}
+
+.form-part {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+}
+
+.column-one {
+    display: flex;
+    gap: 30px;
+}
+
+
+.column-one,
+.half-width {
+    flex: 1;
+    min-width: 0;
+}
+
+.p-inputtext,
+.p-select {
+    width: 100%;
+    height: 45px;
+    border-radius: 8px;
+    border: 1px solid var(--table-border-color);
+    /* color: var(--form-text-color); */
+}
+
+.p-textarea {
+    width: 100%;
+    align-items: center;
+    flex-shrink: 0;
+    border-radius: 8px;
+    border: 1px solid var(--table-border-color);
+}
+
+.label{
+    padding-top: 10px;
+}
+
+.btns {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+    padding: 1% 10% 5%;
+}
+
+.save-btn {
+    width: 30%;
+    background-color: #3EAF3F;
+    color: white;
+    font-weight: 600;
+}
+
+.clear-btn {
+    width: 30%;
+    border: 1px solid red;
+}
+
+.error-msg {
+    color: #d93025;
+    /* Classic red error color */
+    font-size: 0.85rem;
+    /* Slightly smaller text */
+    margin-top: 4px;
+    /* A little space from the field */
+    display: block;
+    /* Ensures it takes full width under the input */
+    font-weight: 500;
+    /* Makes it easier to read */
+}
+
+.invalid input,
+.invalid .p-inputtext,
+.invalid .p-select {
+    border-color: #d93025 !important;
+    /* Highlight invalid inputs in red */
+    box-shadow: none;
+}

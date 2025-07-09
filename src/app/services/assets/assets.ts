@@ -84,8 +84,8 @@ export class Assets {
       map((response: { url: string }) => response.url)
     );
   }
-  getDepartmentNameByEmployeeID(employeeID: string): Observable<{ departmentName: string }> {
-    return this.http.get<{ departmentName: string }>(`${environment.apiUrl}/employees/${employeeID}/department`);
+  getDepartmentNameByEmployeeID(employeeID: string): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/employees/${employeeID}/department`);
   }
   
   
