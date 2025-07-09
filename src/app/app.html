@@ -1,11 +1,12 @@
 <div *ngIf="!isLoginRoute(); else loginTemplate" class="app-container">
   <app-sidebar></app-sidebar>
-  <div style="flex-grow: 1; padding: 2rem;">
+  <!-- <div style="flex-grow: 1; padding: 2rem;">
     <router-outlet></router-outlet>
-     <!-- <app-warranty-table></app-warranty-table> -->
-      <!-- <app-warranty-form> </app-warranty-form> -->
-       <!-- <app-drag-and-drop></app-drag-and-drop> -->
+  </div> -->
+  <div class="content-area">
+    <router-outlet></router-outlet>
   </div>
+
 </div>
 <ng-template #loginTemplate>
   <app-login></app-login>

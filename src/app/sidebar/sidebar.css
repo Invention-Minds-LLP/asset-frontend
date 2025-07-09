@@ -1,6 +1,6 @@
 .sidebar {
   width: 260px;
-  height: 95vh;
+  height: 100vh;
   max-height: 100vh;
   background: var(--surface-ground);
   display: flex;
@@ -66,6 +66,7 @@
   color: #00a23d !important;
   border: none;
   font-weight: 500;
+  border-radius: 8px 8px 0 0;
 }
 
 .menu-btn.active-menu i {
@@ -311,4 +312,65 @@
 
 .theme-toggle-wrapper.collapsed .toggleContainer div span {
   display: none;
+}
+
+.dropdown {
+  display: flex;
+  flex-direction: column;
+  background-color: #dfffef; /* soft green */
+  border-radius: 0px 0px 8px 8px;
+  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
+  overflow: hidden;
+  margin-top: -1rem;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  pointer-events: none;
+  padding: 0 12px; 
+}
+
+.dropdown.open {
+  max-height: 500px; /* enough to show all items */
+  opacity: 1;
+  pointer-events: auto;
+  padding: 8px 12px; /* adds vertical padding when open */
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  padding: 6px 8px;
+  font-size: 14px;
+  color: green;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: rgba(0, 128, 0, 0.1);
+}
+
+.dropdown-item.active-submenu {
+  color: var(--menu-color);
+  font-weight: 700;
+}
+.rotated {
+  transform: rotate(180deg);
+  transition: transform 0.3s;
+}
+.dot{
+  width: 8px;
+  height: 8px;
+  background-color:#00a23d; /* green color */
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+}
+.dot.active {
+  background-color: var(--menu-color); /* active green color */
 }

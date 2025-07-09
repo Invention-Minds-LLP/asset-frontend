@@ -28,7 +28,7 @@ export class Login  {
     const token = localStorage.getItem('authToken');
     if (token) {
       console.log('User already logged in');
-      this.router.navigate(['/assets']);
+      this.router.navigate(['/assets/view']);
     }
   }
   }
@@ -60,7 +60,7 @@ export class Login  {
         localStorage.setItem('user', JSON.stringify(response.user));
         this.employeeId = '';
         this.password = '';
-        this.router.navigate(['/assets']);
+        this.router.navigate(['/assets/view']);
         alert('Login successful!');
       },
       error: (error) => {

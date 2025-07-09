@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
@@ -23,20 +23,34 @@ import { MessageService } from 'primeng/api';
     providers: [MessageService]
 })
 export class DragAndDrop {
+    @Output() fileSelected = new EventEmitter<File[]>();
     totalSize: number = 0;
     totalSizePercent: number = 0;
+    selectedFiles: File[] = [];
 
     constructor(private messageService: MessageService) { }
 
     onSelectedFiles(event: any) {
-        this.totalSize = 0;
-        for (let file of event.files) {
-            this.totalSize += file.size || 0;
+        const files: File[] = Array.from(event.files || event.originalEvent?.target?.files || []);
+      
+        if (!files.length) {
+          console.warn('No files found in onSelect event:', event);
+          return;
         }
+      
+        this.selectedFiles = files;
+        this.fileSelected.emit(files);
+      
+        this.totalSize = files.reduce((sum:any, file:any) => sum + file.size, 0);
         this.totalSizePercent = (this.totalSize / 1000000) * 100;
-        this.messageService.add({ severity: 'info', summary: 'Files Selected', detail: `${event.files.length} files chosen.` });
-    }
-
+      
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Files Selected',
+          detail: `${files.length} file(s) chosen.`
+        });
+      }
+      
     // MODIFIED: onTemplatedUpload to provide specific message
     onTemplatedUpload(event: any) {
         this.totalSize = 0;
@@ -81,18 +95,21 @@ export class DragAndDrop {
         uploadCallback();
     }
 
-    onRemoveTemplatingFile(event: any, file?: any, removeFileCallback?: Function, index?: number) {
-        let removedFile = file || event.file;
-
-        if (removedFile) {
-            if (removeFileCallback && index !== undefined) {
-                removeFileCallback(index);
-            }
-            this.totalSize -= removedFile.size || 0;
-            this.totalSizePercent = (this.totalSize / 1000000) * 100;
-            this.messageService.add({ severity: 'warn', summary: 'File Removed', detail: `${removedFile.name} removed from pending.` });
+    onRemoveTemplatingFile(event: any, file: File, removeFileCallback: Function) {
+        if (!Array.isArray(this.selectedFiles)) {
+          console.error('selectedFiles is not an array:', this.selectedFiles);
+          return;
         }
-    }
+      
+        const index = this.selectedFiles.findIndex(f => f.name === file.name && f.size === file.size);
+        if (index !== -1) {
+          this.selectedFiles.splice(index, 1);
+          removeFileCallback(index); // Remove from PrimeNG file list
+          this.fileSelected.emit(this.selectedFiles); // Emit updated list to parent
+        }
+      }
+      
+      
 
     onRemoveUploadedFile(event: any, file: any, removeUploadedFileCallback: Function, index: number) {
         removeUploadedFileCallback(index);

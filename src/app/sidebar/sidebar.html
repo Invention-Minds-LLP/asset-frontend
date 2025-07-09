@@ -25,12 +25,28 @@
     <!-- Menu -->
     <div class="menu-section">
         <ng-container *ngFor="let item of menuItems">
-            <button class="menu-btn" [ngClass]="{ 'active-menu': activeMenu === item.label }"
+            <button class="menu-btn" [ngClass]="{ 'active-menu': activeMenu === item.label || isActiveMainRoute(item.path || '') }"
                 (click)="activeMenu = item.label" (click)="navigate(item)">
                 <i [class]="item.icon"></i>
                 <span class="label" *ngIf="!isCollapsed">{{ item.label }}</span>
-                <i *ngIf="!isCollapsed && item.hasDropdown" class="pi pi-chevron-down" style="margin-left:auto;"></i>
+                <i *ngIf="!isCollapsed && item.hasDropdown"
+                class="pi pi-chevron-down"
+                [ngClass]="{'rotated': activeMenu === item.label}"
+                style="margin-left:auto;"
+                (click)="toggleDropdown(item, $event)">
+             </i>
             </button>
+            <div class="dropdown" [ngClass]="{'open': activeMenu === item.label && item.hasDropdown}">
+                <button *ngFor="let sub of item.dropdownItems"
+                        class="dropdown-item"
+                        [ngClass]="{ 'active-submenu': isActiveRoute(sub.route) }"
+                        (click)="navigate(sub)">
+                  <span class="dot" [ngClass]="{'active': isActiveRoute(sub.route) }"></span>
+                  {{ sub.label }}
+                </button>
+              </div>
+              
+
         </ng-container>
     </div>
 
@@ -39,43 +55,39 @@
     <!-- Bottom: Theme & User -->
     <div class="bottom-section">
         <div class="footer-links">
-            <button  class="menu-btn">
+            <button class="menu-btn">
                 <i class="pi pi-cog"></i>
                 <span class="label" *ngIf="!isCollapsed">Settings</span>
             </button>
-            <button  class="menu-btn">
+            <button class="menu-btn">
                 <i class="pi pi-file"></i>
                 <span class="label" *ngIf="!isCollapsed">Report</span>
             </button>
-            <button  class="menu-btn">
+            <button class="menu-btn">
                 <i class="pi pi-question-circle"></i>
                 <span class="label" *ngIf="!isCollapsed">Support</span>
             </button>
         </div>
         <div class="theme-toggle-wrapper" [ngClass]="{ collapsed: isCollapsed }">
-            <input
-              type="checkbox"
-              id="darkModeToggle"
-              class="toggleCheckbox"
-              [(ngModel)]="isDarkMode"
-              (change)="toggleDarkMode()" />
-          
-            <label for="darkModeToggle" class="toggleContainer">
-              <div class="toggle-btn"><i class="pi pi-sun"></i><span>Light</span></div>
-              <div class="toggle-btn"><i class="pi pi-moon"></i><span>Dark</span></div>
-            </label>
-          </div>
-          
-          
-          <hr class="menu-separator-1" />
+            <input type="checkbox" id="darkModeToggle" class="toggleCheckbox" [(ngModel)]="isDarkMode"
+                (change)="toggleDarkMode()" />
 
-          <div class="user-info" [ngClass]="{ collapsed: isCollapsed }">
+            <label for="darkModeToggle" class="toggleContainer">
+                <div class="toggle-btn"><i class="pi pi-sun"></i><span>Light</span></div>
+                <div class="toggle-btn"><i class="pi pi-moon"></i><span>Dark</span></div>
+            </label>
+        </div>
+
+
+        <hr class="menu-separator-1" />
+
+        <div class="user-info" [ngClass]="{ collapsed: isCollapsed }">
             <img src="/dm-logo.svg" alt="DocMinds Logo" class="user-logo" />
             <div class="user-details" *ngIf="!isCollapsed">
-              <div class="user-name">DocMinds</div>
-              <div class="user-email">Docminds&#64;gmail.com</div>
+                <div class="user-name">DocMinds</div>
+                <div class="user-email">Docminds&#64;gmail.com</div>
             </div>
-          </div>
-          
+        </div>
+
     </div>
 </div>

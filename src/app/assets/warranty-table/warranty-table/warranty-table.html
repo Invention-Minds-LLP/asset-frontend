@@ -9,7 +9,7 @@
             <div class="notification-part">
                 <div class="active-box">
                     <div class=""></div>
-                    <span>099 Active Asset</span>
+                    <span>{{activeWarranties}} Active Warranties</span>
                 </div>
                 <div class="notification">
                     <i class="pi pi-bell"></i>
@@ -80,19 +80,19 @@
             <ng-template pTemplate="body" let-warranty let-i="rowIndex">
                 <tr>
                     <td>
-                        <span class="dot" [ngStyle]="{'background-color':warranty.status}"></span>
+                        <span class="dot" [ngStyle]="{ 'background-color': getWarrantyStatus(warranty) }"></span>
                     </td>
                     <td>
                         {{(currentPage-1) * rowsPerPage + i + 1 }}
                     </td>
-                    <td>{{ warranty.id }}</td>
-                    <td>{{ warranty.name }}</td>
-                    <td>{{ warranty.wsd }}</td>
-                    <td>{{ warranty.wed }}</td>
-                    <td>{{ warranty.amcstart }}</td>
-                    <td>{{ warranty.amcend }}</td>
+                    <td>{{ warranty.asset.assetId }}</td>
+                    <td>{{ warranty.asset.assetName }}</td>
+                    <td>{{ warranty.warrantyStart | date:'dd-MM-yyyy' }}</td>
+                    <td>{{ warranty.warrantyEnd  | date:'dd-MM-yyyy'}}</td>
+                    <td>{{ warranty.amcStart  | date:'dd-MM-yyyy' }}</td>
+                    <td>{{ warranty.amcEnd  | date:'dd-MM-yyyy'}}</td>
                     <td>
-                        <button pButton type="button" label="view" class="view-btn"></button>
+                        <button pButton type="button" label="View" class="view-btn" (click)="viewWarranty(warranty.asset.assetId)"></button>
                     </td>
                 </tr>
             </ng-template>

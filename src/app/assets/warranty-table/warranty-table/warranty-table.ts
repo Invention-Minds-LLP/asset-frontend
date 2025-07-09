@@ -6,8 +6,10 @@ import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
-
-type FilterField = 'id' | 'name' | 'wsd' | 'wed' | 'amcstart' | 'amcend';
+import { Warranty } from '../../../services/warranty/warranty';
+import { Router } from '@angular/router';
+import { ChangeDetectorRef } from '@angular/core';
+type FilterField = 'assetId' | 'assetName' | 'wsd' | 'wed' | 'amcstart' | 'amcend';
 
 @Component({
   selector: 'app-warranty-table',
@@ -19,73 +21,39 @@ export class WarrantyTable {
   currentPage = 1;
   rowsPerPage = 10;
   searchTerm: string = '';
-  selectedFilter: FilterField = "name";
+  selectedFilter: FilterField = "assetName";
   filterActive: boolean = false;
+  warranty: any[] = [];
+  warrantyStatus: string = '';
+  activeWarranties: number = 0;
+
+  constructor( private warrantyService: Warranty, private router: Router, private cdr: ChangeDetectorRef) { 
+  }
 
 
+  ngOnInit() {
+    this.warrantyService.getAllWarranties().subscribe({
+      next: (response) => {
+        this.warranty = response;
+        const statusSummary = this.getWarrantyStatusSummary();
+        this.activeWarranties = statusSummary.active;
+        this.cdr.detectChanges(); // Ensure the view is updated after data load
+        console.log('Warranties loaded:', this.warranty);
+      },
+      error: (error) => {
+        console.error('Error loading warranties:', error);
+      }
+    });
 
-  warranty = [
-    {
-      no:"01", id:"IM00012", name:"Sony 550 Camera", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"green" 
-    },
-    {
-      no:"02", id:"IM02003", name:"I Phone 13 Pro", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"red" 
-    },
-    {
-      no:"03", id:"IM02330", name:"Rolling Chair", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"green" 
-    },
-    {
-      no:"04", id:"IM02243", name:"Sony 550 Camera", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"orange" 
-    },
-    {
-      no:"05", id:"IM00012", name:"Dell 5500 Laptop", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"red" 
-    },
-    {
-      no:"06", id:"IM02330", name:"Dell 5500 Laptop", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"yellow" 
-    },
-    {
-      no:"07", id:"IM02243", name:"Sony 550 Camera", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"green" 
-    },
-    {
-      no:"08", id:"IM00012", name:"Dell 5500 Laptop", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"green" 
-    },
-    {
-      no:"09", id:"IM02330", name:"Sony 550 Camera", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"green" 
-    },
-    {
-      no:"10", id:"IM02243", name:"Rolling Chair", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"red" 
-    },
-    {
-      no:"11", id:"IM02330", name:"Sony 550 Camera", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"orange" 
-    },
-    {
-      no:"12", id:"IM00012", name:"I Phone 13 Pro", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"green" 
-    },
-    {
-      no:"13", id:"IM02243", name:"Dell 5500 Laptop", wsd:"12/06/2025", wed:"10/06/2028", amcstart:"12/06/2025", amcend:"10/06/2028", 
-      status:"green" 
-    },
-  ]
+  }
 
   refresh() {
     console.log("Refreshing data...");
   }
 
   filterOption = [
-    { label:"Asset ID", value :"id"},
-    { label:"Asset Name", value :"name"}
+    { label:"Asset ID", value :"assetId"},
+    { label:"Asset Name", value :"assetName"}
   ]
 
   prevPage(){
@@ -112,16 +80,32 @@ export class WarrantyTable {
 
   //search 
   get FilteredWarranty() {
-  if (!this.searchTerm) {
-    return this.warranty; 
+    const term = this.searchTerm?.toLowerCase() || '';
+  
+    return this.warranty
+      .filter(item => {
+        if (!term) return true;
+  
+        let value = '';
+  
+        // Handle known filters manually
+        switch (this.selectedFilter) {
+          case 'assetId':
+            value = item.asset?.assetId?.toLowerCase() || '';
+            break;
+          case 'assetName':
+            value = item.asset?.assetName?.toLowerCase() || '';
+            break;
+          default:
+            value = '';
+        }
+  
+        return value.includes(term);
+      });
   }
-
-  const term = this.searchTerm.toLowerCase();
-
-  return this.warranty.filter(item => {
-    const value = item[this.selectedFilter]?.toString().toLowerCase() || '';
-    return value.includes(term);
-  });
+  
+ getNestedValue(obj: any, path: string): any {
+  return path.split('.').reduce((acc, part) => acc?.[part], obj);
 }
 
 applyFilter(){
@@ -149,8 +133,59 @@ applyFilter(){
    clearFilter() {
     this.searchTerm = '';
     this.currentPage = 1;
-    this.selectedFilter = 'name';
+    this.selectedFilter = 'assetName';
     this.filterActive = false;
     console.log('Filter cleared.');
   }
+  viewWarranty(asset: any) {
+    console.log('Navigating to edit asset:', asset);
+    this.router.navigate(['/warranty/edit', asset]);
+  }
+  getWarrantyStatus(warranty: any): string {
+    if (!warranty.isUnderWarranty || !warranty.warrantyEnd) return 'gray';
+  
+    const end = new Date(warranty.warrantyEnd);
+    const today = new Date();
+    const diffDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  
+    if (diffDays < 0) return 'red';              // Expired
+    if (diffDays <= 15) return 'orange';         // Expiring Soon
+    return 'green';                              // Active
+  }
+  getWarrantyStatusSummary() {
+    const summary = {
+      active: 0,
+      expiringSoon: 0,
+      expired: 0,
+      noWarranty: 0,
+      unknown: 0
+    };
+  
+    this.warranty.forEach(w => {
+      const color = this.getWarrantyStatus(w);
+  
+      switch (color) {
+        case 'green':
+          summary.active++;
+          break;
+        case 'orange':
+          summary.expiringSoon++;
+          break;
+        case 'red':
+          summary.expired++;
+          break;
+        case 'gray':
+          summary.noWarranty++;
+          break;
+        default:
+          summary.unknown++;
+          break;
+      }
+    });
+  
+    return summary;
+  }
+  
+
+
 }

@@ -110,7 +110,7 @@
     align-items: center;
     border-radius: 8px;
     border: 1px solid var(--table-border-color);
-    background: #FFF;
+    /* background: #FFF; */
     font-size: 14px;
     font-weight: 600;
     color: #8F8F8F;
@@ -212,7 +212,7 @@
 .menu-list {
     position: absolute;
     top: 27%;
-    left: 302px;
+    left: 282px;
     min-width: 160px;
     background: var(--surface-ground);
     border-radius: 8px;

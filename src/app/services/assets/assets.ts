@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../environment/environment.prod';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 
 
@@ -23,6 +24,10 @@ export class Assets {
     return this.http.get<any>(`${this.assetsUrl}/${id}`);
   }
 
+  getAssetByAssetId(assetId: string): Observable<any> {
+    return this.http.get<any>(`${this.assetsUrl}/${assetId}`);
+  }
+
   /** POST create new asset */
   createAsset(assetData: any): Observable<any> {
     return this.http.post<any>(`${this.assetsUrl}`, assetData);
@@ -42,15 +47,46 @@ export class Assets {
     return this.http.get<{ id: number; name: string }[]>(` ${environment.apiUrl}/categories`);
   }
 
+  createCategory(data: { name: string }): Observable<any> {
+    return this.http.post<any>(` ${environment.apiUrl}/categories`, data);
+  }
+  
   getDepartments() {
     return this.http.get<{ id: number; name: string }[]>(`${environment.apiUrl}/departments`);
   }
+  
+  createDepartment(data: { name: string }): Observable<any> {
+    return this.http.post<any>(` ${environment.apiUrl}/departments`, data);
+  }
+  
 
   getEmployees() {
-    return this.http.get<{ id: number; name: string; employeeID: string }[]>(`${environment.apiUrl}/employees`);
+    return this.http.get<{ id: number; name: string; employeeID: string, departmentId:any }[]>(`${environment.apiUrl}/employees`);
   }
 
   getVendors() {
     return this.http.get<{ id: number; name: string }[]>(`${environment.apiUrl}/vendors`);
   }
+
+  createVendor(data: { name: string; contact: string; email: string }): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/vendors`, data);
+  }
+
+  updateVendor(id: number, data: { name?: string; contact?: string; email?: string }): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/vendors/${id}`, data);
+  }
+
+  uploadAssetImage(file: File, assetId: string): Observable<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+  
+    return this.http.post<{ url: string }>(`${this.assetsUrl}/${assetId}/upload-image`, formData).pipe(
+      map((response: { url: string }) => response.url)
+    );
+  }
+  getDepartmentNameByEmployeeID(employeeID: string): Observable<{ departmentName: string }> {
+    return this.http.get<{ departmentName: string }>(`${environment.apiUrl}/employees/${employeeID}/department`);
+  }
+  
+  
 }

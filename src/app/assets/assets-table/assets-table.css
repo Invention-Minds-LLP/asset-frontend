@@ -204,3 +204,36 @@ margin: 0;
   border-radius: 8px;
   cursor: pointer;
 }
+.header-part {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.notification {
+  display: flex;
+  width: 42px;
+  height: 42px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: 28px;
+  border: 2px solid var(--table-border-color);
+  transform: rotate(40deg);
+}
+.notification-part {
+display: flex;
+align-items: center;
+gap: 20px;
+}
+
+.active-box {
+padding: 4px 20px;
+align-items: center;
+border-radius: 8px;
+border: 1px solid var(--table-border-color);
+color: var(--form-text-color);
+font-size: 14px;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+}

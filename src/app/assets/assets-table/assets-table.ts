@@ -9,8 +9,10 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { Assets } from '../../services/assets/assets';
 import { ChangeDetectorRef } from '@angular/core';
+import { AssetEditService } from '../../services/assets/assets-edit';
+import { Router } from '@angular/router';
 
-type FilterField = 'name' | 'id' | 'type' | 'category' | 'allotted';
+type FilterField = 'assetName' | 'assetId' | 'assetType' | 'category' | 'allotted';
 
 @Component({
   selector: 'app-assets-table',
@@ -23,13 +25,14 @@ export class AssetsTable {
   darkMode = false;
   currentPage = 1;
   rowsPerPage = 10;
-  selectedFilter: FilterField = 'name';
+  selectedFilter: FilterField = 'assetName';
   searchTerm: string = '';
   filteredActive:boolean = false;
   assets:any[] = [];
   assetsLoaded = false; 
+  activeAssets: number = 0;
 
-  constructor(private assetService: Assets, private cdr: ChangeDetectorRef) { }
+  constructor(private assetService: Assets, private cdr: ChangeDetectorRef, private assetEditService: AssetEditService, private router: Router) { }
 
   @ViewChild('filterContainer') filterContainerRef!: ElementRef;
   @HostListener('document:click', ['$event'])
@@ -58,6 +61,8 @@ export class AssetsTable {
       setTimeout(() => {  // ✅ defer update after Angular’s first check
         this.assets = assets;
         console.log(this.assets);
+        const statusSummary = this.getAssetStatusSummary();
+        this.activeAssets = statusSummary.active || 0;
         this.cdr.detectChanges(); // ✅ trigger change detection manually
         this.assetsLoaded = true;
       });
@@ -70,6 +75,8 @@ export class AssetsTable {
     }
 
     const term = this.searchTerm.toLowerCase();
+
+    console.log(`Filtering assets by term: "${term}" on field: "${this.selectedFilter}"`);
 
     return this.assets.filter(asset => {
       const fieldValue = asset[this.selectedFilter]?.toString().toLowerCase() || '';
@@ -92,9 +99,9 @@ export class AssetsTable {
     }
   }
   filterOptions = [
-    { label: 'Asset Name', value: 'name' },
-    { label: 'Asset ID', value: 'id' },
-    { label: 'Asset Type', value: 'type' }
+    { label: 'Asset Name', value: 'assetName' },
+    { label: 'Asset ID', value: 'assetId' },
+    { label: 'Asset Type', value: 'assetType' }
   ];
 
 
@@ -122,9 +129,47 @@ export class AssetsTable {
   clearFilter() {
     this.searchTerm = '';
     this.currentPage = 1;
-    this.selectedFilter = 'name';
+    this.selectedFilter = 'assetName';
     this.filteredActive = false;
     console.log('Filter cleared.');
   }
     
+  viewAsset(asset: any) {
+    console.log('Navigating to edit asset:', asset);
+    this.router.navigate(['/assets/edit', asset]);
+  }
+  getAssetStatusSummary() {
+    const summary = {
+      'active': 0,
+      'under Repair': 0,
+      'warranty Expiring Soon': 0,
+      'warranty Expired': 0,
+      'retired': 0,
+      'no Warranty': 0,
+      'unknown': 0
+    };
+  
+    this.assets.forEach(asset => {
+      const status = asset.status as keyof typeof summary;
+      // summary[status]++;
+      
+      if (summary[status] !== undefined) {
+        summary[status]++;
+      }
+    });
+  
+    return summary;
+  }
+  getStatusColor(status: string): string {
+    switch (status) {
+      case 'active': return 'green';
+      case 'under Repair': return 'orange';
+      case 'warranty Expiring Soon': return 'gold';
+      case 'warranty Expired': return 'red';
+      case 'retired': return 'gray';
+      case 'no Warranty': return 'lightgray';
+      default: return 'transparent';
+    }
+  }
+  
 }

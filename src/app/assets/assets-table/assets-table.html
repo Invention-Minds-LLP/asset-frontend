@@ -1,7 +1,21 @@
 <div class="table-wrapper">
   <div class="header">
-    <h2>Assets Master Table</h2>
-    <p>The analysis list here shows all users</p>
+  <div class="header-part">
+    <div>
+      <h2>Assets Master Table</h2>
+      <p>The analysis list here shows all users</p>
+    </div>
+
+    <div class="notification-part">
+        <div class="active-box">
+            <div class=""></div>
+            <span>{{activeAssets}} Active Assets</span>
+        </div>
+        <div class="notification">
+            <i class="pi pi-bell"></i>
+        </div>
+    </div>
+</div>
     <div class="header-actions">
       <!-- <div class="actions">
         <div class="filter"><i class="pi pi-filter"></i></div>
@@ -69,7 +83,7 @@
       <ng-template pTemplate="body" let-asset let-i="rowIndex">
         <tr>
           <td>
-            <span class="dot" [ngStyle]="{ 'background-color': asset.status }"></span>
+            <span class="dot"  [ngStyle]="{ 'background-color': getStatusColor(asset.status) }"></span>
           </td>
           <td>
             {{ (currentPage - 1) * rowsPerPage + i + 1 }}
@@ -80,10 +94,10 @@
           <td>{{ asset.assetCategory.name }}</td>
           <td>{{ asset.allottedTo.name }}</td>
           <td style="text-align: center;">
-            <img [src]="'/' + asset.photo" class="asset-photo" />
+            <img [src]="asset.assetPhoto" class="asset-photo" />
           </td>
           <td>
-            <button pButton type="button" label="view" class="view-btn"></button>
+            <button pButton type="button" label="view" class="view-btn" (click)="viewAsset(asset.assetId)"></button>
           </td>
         </tr>
       </ng-template>
