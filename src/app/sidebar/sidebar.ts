@@ -39,7 +39,12 @@ export class Sidebar {
         { label: 'View', route: '/warranty/view' },
         { label: 'New', route: '/warranty/new' },
       ] },
-    { icon: 'pi pi-wrench', label: 'Tracking for Repair', path:'/repair', route: '/repair', hasDropdown: true },
+    { icon: 'pi pi-wrench', label: 'Ticket for Repair', path:'/ticket', hasDropdown: true,
+      dropdownItems: [
+        { label: 'View', route: '/ticket/view' },
+        { label: 'New', route: '/ticket/new' },
+      ] 
+     },
   ];
   activeItem = this.menuItems[0];
 

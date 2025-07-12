@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder } from '@angular/forms';
 import { CalendarModule } from 'primeng/calendar'; // Changed from DatePicker to CalendarModule
 import { SelectModule } from 'primeng/select';
-import { DragAndDrop } from "../drag-and-drop/drag-and-drop"; // Changed from Select to SelectModule
+import { DragAndDrop } from '../../drag-and-drop/drag-and-drop';
 import { ActivatedRoute } from '@angular/router';
 import { Warranty } from '../../services/warranty/warranty';
 import { ChangeDetectorRef } from '@angular/core';

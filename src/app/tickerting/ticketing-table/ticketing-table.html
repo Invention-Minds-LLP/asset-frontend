@@ -62,7 +62,7 @@
     </div>
 
     <div class="table-container">
-        <p-table [value]="tickets" [rows]="rowsPerPage">
+        <p-table [value]="ticketingAssets" [rows]="rowsPerPage">
             <ng-template pTemplate="header">
                 <tr>
                     <th></th>
@@ -91,7 +91,7 @@
                     <td>{{ ticketing.department.name }}</td>
                     <td>{{ ticketing.priority }}</td>
                     <td>
-                        <button pButton type="button" label="view" class="view-btn"></button>
+                        <button pButton type="button" label="view" class="view-btn" (click)="viewWarranty(ticketing.ticketId)"></button>
                     </td>
                 </tr>
             </ng-template>

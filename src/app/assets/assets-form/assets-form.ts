@@ -13,10 +13,11 @@ import { AssetEditService } from '../../services/assets/assets-edit';
 import { ActivatedRoute } from '@angular/router';
 import { ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
+import { Skeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-assets-form',
-  imports: [InputTextModule, DropdownModule, ButtonModule, SelectModule, CommonModule, FloatLabelModule, DatePickerModule, FormsModule],
+  imports: [InputTextModule, DropdownModule, ButtonModule, SelectModule, CommonModule, FloatLabelModule, DatePickerModule, FormsModule, Skeleton],
   templateUrl: './assets-form.html',
   styleUrl: './assets-form.css'
 })
@@ -61,6 +62,8 @@ export class AssetsForm {
   isEditMode: boolean = false;
   pendingAssetImageFile: File | null = null;
   imagePreviewUrl: string | null = null;
+  isLoading: boolean = true; 
+  formSkeletonRows = Array(6);
 
 
 
@@ -113,6 +116,7 @@ export class AssetsForm {
       next: (data) => {
         console.log('Loaded asset data:', data);
         this.asset = { ...data };  // autofill form
+        this.isLoading = false;
         console.log('Asset loaded:', this.asset);
         this.editingVendor = this.vendors.find((v: any) => v.id === this.asset.vendorId) || null;
         if (this.asset.purchaseDate) {
@@ -175,7 +179,11 @@ export class AssetsForm {
       },
       error: (error) => {
         console.error('Error creating vendor:', error);
-        alert('Failed to create vendor. Please try again.');
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Vendor Creation Failed',
+          detail: `Failed to create vendor`
+        });
       }
     });
   }
@@ -191,17 +199,13 @@ export class AssetsForm {
 
   onSubmit(form: NgForm) {
     if (form.valid) {
-      console.log('Asset saved:', this.asset);
       if (this.editingVendor?.id) {
-        console.log('Updating vendor details before saving asset...');
         this.assetService.updateVendor(this.editingVendor.id, this.editingVendor).subscribe({
           next: (updatedVendor) => {
-            console.log('Vendor updated:', updatedVendor);
             this.saveAsset(form);
           },
           error: (error) => {
             console.error('Error updating vendor:', error);
-            alert('Failed to update vendor details.');
           }
         });
       } else {
@@ -217,63 +221,89 @@ export class AssetsForm {
       const { id, ...payload } = this.asset;
       this.assetService.updateAsset(this.asset.id, payload).subscribe({
         next: (response) => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Asset Updated',
+            detail: `Asset '${this.asset.assetName}' updated successfully`
+          });
+          form.resetForm();
           if (this.pendingAssetImageFile && this.asset.assetId !== null) {
             this.assetService.uploadAssetImage(this.pendingAssetImageFile, this.asset.assetId).subscribe({
               next: (imageUrl) => {
                 console.log('Asset image uploaded, URL:', imageUrl);
                 this.asset.assetPhoto = imageUrl;
-                this.pendingAssetImageFile = null; // clear pending file
+                this.pendingAssetImageFile = null; 
+                this.messageService.add({
+                  severity: 'success',
+                  summary: 'Image Uploaded',
+                  detail: `Image for asset '${this.asset.assetName}' uploaded successfully`
+                });
               },
               error: (error) => {
                 console.error('Asset image upload failed:', error);
-                alert('Failed to upload asset image. Please try again.');
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Image Upload Failed',
+                  detail: `Failed to upload image for asset '${this.asset.assetName}'`
+                });
               }
             });
-          } else {
-            this.saveAsset(form);  // ✅ no image upload needed
           }
-
-          console.log('Asset updated successfully:', response);
-          alert('Asset updated successfully!');
-          form.resetForm();
         },
         error: (error) => {
           console.error('Error updating asset:', error);
-          alert('Error updating asset. Please try again.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Update Failed',
+            detail: `Failed to update asset '${this.asset.assetName}'`
+          });
         }
       });
     } else {  // ✅ create new asset
       const { id, ...payload } = this.asset;
       this.assetService.createAsset(payload).subscribe({
         next: (response) => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Asset Created',
+            detail: `Asset '${this.asset.assetName}' created successfully`
+          });
+          form.resetForm();
           if (this.pendingAssetImageFile) {
             this.assetService.uploadAssetImage(this.pendingAssetImageFile, response.assetId).subscribe({
               next: (imageUrl) => {
                 console.log('Asset image uploaded, URL:', imageUrl);
                 this.asset.assetPhoto = imageUrl;
-                this.pendingAssetImageFile = null; // clear pending file
+                this.pendingAssetImageFile = null; 
+                this.messageService.add({
+                  severity: 'success',
+                  summary: 'Image Uploaded',
+                  detail: `Image for asset '${this.asset.assetName}' uploaded successfully`
+                });
                 const hasWarranty = confirm('Does this product have warranty or AMC?');
                 if (hasWarranty) {
                   console.log(response.assetId, 'Asset ID for warranty:', response.assetId);
                   this.router.navigate(['/warranty/new'], { queryParams: { assetId: response.assetId } });
-                } else {
-                  alert('Asset created without warranty.');
                 }
               },
               error: (error) => {
                 console.error('Asset image upload failed:', error);
-                alert('Failed to upload asset image. Please try again.');
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Image Upload Failed',
+                  detail: `Failed to upload image for asset '${this.asset.assetName}'`
+                });
               }
             });
           }
-
-          console.log('Asset created successfully:', response);
-          alert('Asset saved successfully!');
-          form.resetForm();
         },
         error: (error) => {
           console.error('Error creating asset:', error);
-          alert('Error saving asset. Please try again.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Creation Failed',
+            detail: `Failed to create asset '${this.asset.assetName}'`
+          });
         }
       });
     }

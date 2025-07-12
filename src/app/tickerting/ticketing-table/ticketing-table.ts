@@ -6,7 +6,8 @@ import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
-import { Ticketing } from '../../../services/tickerting/ticketing';
+import { Ticketing } from '../../services/tickerting/ticketing';
+import { Router } from '@angular/router';
 
 type FilterField = 'id' | 'name' | 'ticketid' | 'raisedby' | 'department' | 'priority';
 
@@ -25,7 +26,7 @@ export class TicketingTable {
   filterActive: boolean = false;
   tickets:any[]=[]
 
-  constructor(private ticketservice : Ticketing) {}
+  constructor(private ticketService : Ticketing, private router: Router) {}
     //search 
   get FilteredWarranty() {
   if (!this.searchTerm) {
@@ -42,7 +43,7 @@ export class TicketingTable {
 }
 
 ngOnInit(){
-        this.ticketservice.getAllTickets().subscribe({
+        this.ticketService.getAllTickets().subscribe({
         next: (response) => {
           this.tickets = response
           console.log('Ticket called successfully:', response);
@@ -113,5 +114,9 @@ ngOnInit(){
     this.selectedFilter = 'name';
     this.filterActive = false;
     console.log('Filter cleared.');
+  }
+  viewWarranty(asset: any) {
+    console.log('Navigating to edit asset:', asset);
+    this.router.navigate(['/ticket/edit', asset]);
   }
 }

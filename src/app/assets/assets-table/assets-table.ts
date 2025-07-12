@@ -11,12 +11,14 @@ import { Assets } from '../../services/assets/assets';
 import { ChangeDetectorRef } from '@angular/core';
 import { AssetEditService } from '../../services/assets/assets-edit';
 import { Router } from '@angular/router';
+import { Skeleton } from 'primeng/skeleton';
+
 
 type FilterField = 'assetName' | 'assetId' | 'assetType' | 'category' | 'allotted';
 
 @Component({
   selector: 'app-assets-table',
-  imports: [TableModule, ButtonModule, InputTextModule, DropdownModule, FormsModule, CommonModule, IconFieldModule, InputIconModule],
+  imports: [TableModule, ButtonModule, InputTextModule, DropdownModule, FormsModule, CommonModule, IconFieldModule, InputIconModule, Skeleton],
   templateUrl: './assets-table.html',
   styleUrl: './assets-table.css'
 })
@@ -31,6 +33,7 @@ export class AssetsTable {
   assets:any[] = [];
   assetsLoaded = false; 
   activeAssets: number = 0;
+  isLoading: boolean = true; // Flag to track loading state
 
   constructor(private assetService: Assets, private cdr: ChangeDetectorRef, private assetEditService: AssetEditService, private router: Router) { }
 
@@ -60,10 +63,11 @@ export class AssetsTable {
     this.assetService.getAllAssets().subscribe((assets) => {
       setTimeout(() => {  // ✅ defer update after Angular’s first check
         this.assets = assets;
+        this.isLoading = false; // 
         console.log(this.assets);
         const statusSummary = this.getAssetStatusSummary();
         this.activeAssets = statusSummary.active || 0;
-        this.cdr.detectChanges(); // ✅ trigger change detection manually
+        this.cdr.detectChanges();
         this.assetsLoaded = true;
       });
     });

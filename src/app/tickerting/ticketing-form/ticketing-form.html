@@ -13,12 +13,12 @@
         <div class="form-content">
             <div class="form-part">
                 <div class="column-one">
-                    <!-- <p-floatlabel variant="on" class="half-width">
+                    <p-floatlabel variant="on" class="half-width" *ngIf="ticket.ticketId !== ''">
                         <input pInputText id="ticketId" name="ticketId" autocomplete="off" [(ngModel)]="ticket.ticketId"
-                            required #ticketIdCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(ticketIdCtrl)}" />
+                            required #ticketIdCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(ticketIdCtrl)}" disabled />
                         <label for="ticketId">Ticket ID (Auto)</label>
                         <div class="error-msg" *ngIf="showError(ticketIdCtrl)">Ticket ID is required</div>
-                    </p-floatlabel> -->
+                    </p-floatlabel>
 
                     <p-floatlabel variant="on" class="half-width">
                         <input pInputText id="raisedBy" name="raisedBy" autocomplete="off" [(ngModel)]="ticket.raisedBy"
@@ -48,7 +48,7 @@
                     <p-floatlabel variant="on" class="half-width">
                         <p-select [(ngModel)]="ticket.issueType" inputId="issueType" name="issueType"
                             [options]="issueType" required #issueTypeCtrl="ngModel"
-                            [ngClass]="{'ng-invalid': invaild(issueTypeCtrl)}" optionLabel="name" optionValue="value"  (ngModelChange)="issueChange()"/>
+                            [ngClass]="{'ng-invalid': invaild(issueTypeCtrl)}" optionLabel="name" optionValue="value"/>
                         <label for="issueType">Issue Type</label>
                         <div class="error-msg" *ngIf="showError(issueTypeCtrl)">Issue Type is required</div>
                     </p-floatlabel>
@@ -56,7 +56,7 @@
                     <p-floatlabel class="half-width" variant="on">
                         <p-select [(ngModel)]="ticket.priority" inputId="priority" name="priority" [options]="priority"
                             required #priorityCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(priorityCtrl)}"
-                            optionLabel="name" optionValue="value" (ngModelChange)="issueChange()" />
+                            optionLabel="name" optionValue="value"/>
                         <label for="priority">Priority</label>
                         <div class="error-msg" *ngIf="showError(priorityCtrl)">Priority is required</div>
                     </p-floatlabel>
@@ -73,16 +73,34 @@
                     </p-floatlabel>
                 </div>
 
-                <div class="">
-                    <p-floatlabel variant="on">
+                <div class="column-one">
+                    <p-floatlabel variant="on" class="half-width">
                         <input pInputText id="building" name="building" autocomplete="off" [(ngModel)]="ticket.location"
                             required #locationCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(locationCtrl)}" (ngModelChange)="locationChange($event)" />
                         <label for="building">Location</label>
                         <div class="error-msg" *ngIf="showError(locationCtrl)">Location is required</div>
                     </p-floatlabel>
+                    <p-floatlabel variant="on" class="half-width">
+                        <p-select [(ngModel)]="ticket.status" inputId="status" name="status"
+                            [options]="status" required #statusCtrl="ngModel"
+                            [ngClass]="{'ng-invalid': invaild(statusCtrl)}" optionLabel="name" optionValue="value"/>
+                        <label for="status">Status</label>
+                        <div class="error-msg" *ngIf="showError(statusCtrl)">Status is required</div>
+                    </p-floatlabel>
                 </div>
 
-                <!-- <app-drag-and-drop (fileSelected)="onFilesSelected($event)"></app-drag-and-drop> -->
+                <div *ngIf="ticket.photoOfIssue === ''">
+                    <app-drag-and-drop (fileSelected)="onFilesSelected($event)"></app-drag-and-drop>
+                </div>
+                <div>
+                    <div class="file-upload" *ngIf="ticket.photoOfIssue !== ''">
+                        <div>
+                            Uploaded Image:
+                        </div>
+                        <img [src]="ticket.photoOfIssue" alt="Uploaded Image" class="uploaded-image">
+                        <!-- <button pButton icon="pi pi-times" class="remove-btn" (click)="removeImage()"></button> -->
+                    </div>
+                </div>
             </div>
 
             <div class="">

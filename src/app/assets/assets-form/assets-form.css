@@ -155,3 +155,59 @@
     border-color: #d93025 !important;  /* Highlight invalid inputs in red */
     box-shadow: none;                  /* Avoid ugly red glow */
   }
+  .ticket-form-skeleton {
+    padding: 2rem;
+    max-width: 1000px;
+    margin: auto;
+  }
+  
+  .header-skeleton {
+    margin-bottom: 0.5rem;
+  }
+  
+  .subtitle-skeleton {
+    margin-bottom: 2rem;
+  }
+  
+  .form-body {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+  
+  .form-fields-skeleton {
+    flex: 1;
+  }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .description-skeleton {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .form-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .image-skeleton {
+    margin-bottom: 1rem;
+  }
+  
+  .button-skeleton {
+    border-radius: 6px;
+  }
+  
+  .button-skeleton.red {
+    background-color: #fdd;
+  }
+  
+  

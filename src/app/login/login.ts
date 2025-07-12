@@ -8,6 +8,7 @@ import { CarouselModule } from 'primeng/carousel';
 import { Auth } from '../services/auth/auth';
 import { FormsModule, NgForm, NgModel } from '@angular/forms';
 import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-login',
@@ -17,7 +18,7 @@ import { Router } from '@angular/router';
 })
 export class Login  {
 
-  constructor(private authService: Auth, private router : Router) { 
+  constructor(private authService: Auth, private router : Router, private messageService: MessageService) { 
     // Initialize any required services or state
     
   }
@@ -50,6 +51,7 @@ export class Login  {
   onSubmit(): void {
     if (!this.employeeId || !this.password) {
       alert('Please enter Employee ID and Password');
+      this.messageService.add({severity:'error', summary:'Error', detail:'Please enter Employee ID and Password'});
       return;
     }
   
@@ -61,11 +63,11 @@ export class Login  {
         this.employeeId = '';
         this.password = '';
         this.router.navigate(['/assets/view']);
-        alert('Login successful!');
+        this.messageService.add({severity:'success', summary:'Login Successful', detail:'Welcome back!'});
       },
       error: (error) => {
         console.error('Login failed:', error);
-        alert(error.error?.message || 'Login failed');
+        this.messageService.add({severity:'error', summary:'Login Failed', detail:'Invalid Employee ID or Password'});
       },
     });
   }

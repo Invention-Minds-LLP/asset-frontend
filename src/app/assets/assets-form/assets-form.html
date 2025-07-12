@@ -1,11 +1,11 @@
 <div class="assets-form-container">
-    <h2>Assets Form</h2>
-    <p class="subtitle">The Form to create/edit assets</p>
-    <div class="divider-container">
+    <h2 >Assets Form</h2>
+    <p  class="subtitle">The Form to create/edit assets</p>
+    <div  class="divider-container">
         <hr class="divider" />
     </div>
 
-    <form #assetForm="ngForm" (ngSubmit)="onSubmit(assetForm)">
+    <form *ngIf="!isLoading || !isEditMode" #assetForm="ngForm" (ngSubmit)="onSubmit(assetForm)">
         <div class="form-content">
             <!-- Left side: Form fields -->
             <div class="form-fields">
@@ -206,4 +206,32 @@
             </div>
         </div>
     </form>
+    <div *ngIf="isLoading && isEditMode" class="ticket-form-skeleton">
+      
+        <div class="form-body">
+          <!-- Left: Form Fields -->
+          <div class="form-fields-skeleton">
+            <div class="form-row" *ngFor="let row of formSkeletonRows">
+              <p-skeleton width="100%" height="40px"></p-skeleton>
+              <p-skeleton width="100%" height="40px"></p-skeleton>
+            </div>
+      
+            <!-- Description -->
+            <!-- <p-skeleton width="100%" height="80px" class="description-skeleton"></p-skeleton> -->
+      
+            <!-- Bottom field -->
+            <p-skeleton width="100%" height="40px"></p-skeleton>
+          </div>
+      
+          <!-- Right: Image + Buttons -->
+          <div class="form-side">
+            <p-skeleton shape="circle" size="100px" class="image-skeleton"></p-skeleton>
+            
+            <p-skeleton width="100px" height="40px" class="button-skeleton"></p-skeleton>
+            <p-skeleton width="100px" height="40px" class="button-skeleton red"></p-skeleton>
+          </div>
+        </div>
+      </div>
+      
+  
 </div>
