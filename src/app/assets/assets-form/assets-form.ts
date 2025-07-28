@@ -36,13 +36,31 @@ export class AssetsForm {
     rfidCode: '',
     currentLocation: '',
     status: 'active',
-    assetPhoto: ''
+    assetPhoto: '',
+    slaExpectedValue: null,
+    slaExpectedUnit: null,
+    expectedLifetime: null,
+    expectedLifetimeUnit: null,
   };
 
   types = [
     { label: 'Fixed', value: 'fixed' },
     { label: 'Movable', value: 'movable' },
   ];
+
+  slaUnits = [
+    { label: 'Hours', value: 'HOURS' },
+    { label: 'Days', value: 'DAYS' },
+    { label: 'Weeks', value: 'WEEKS' },
+    { label: 'Months', value: 'MONTHS' },
+  ];
+
+  lifetimeUnitOptions = [
+    { label: 'Days', value: 'DAYS' },
+    { label: 'Months', value: 'MONTHS' },
+    { label: 'Years', value: 'YEARS' },
+  ];
+
 
   categories: any[] = [];
   departments: any[] = [];
@@ -324,8 +342,13 @@ export class AssetsForm {
       rfidCode: '',
       currentLocation: '',
       status: '',
-      assetPhoto: ''
+      assetPhoto: '',
+      slaExpectedValue: null,
+      slaExpectedUnit: null,
+      expectedLifetime: null,
+      expectedLifetimeUnit: null,
     };
+
 
   }
   ngOnDestroy() {

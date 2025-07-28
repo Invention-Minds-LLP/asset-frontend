@@ -11,15 +11,15 @@ import { TicketingForm } from './tickerting/ticketing-form/ticketing-form';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
-  { path: 'assets/view', component: AssetsTable },
-  { path: 'assets/new', component: AssetsForm },
+  { path: 'assets/view', component: AssetsTable,canActivate: [authGuard] },
+  { path: 'assets/new', component: AssetsForm , canActivate: [authGuard]},
   { path: 'assets/edit/:id', component: AssetsForm, canActivate: [authGuard] }, 
-  { path: 'warranty/view', component: WarrantyTable},
-  { path: 'warranty/new', component: WarrantyForm },
-  { path: 'warranty/edit/:id', component: WarrantyForm}, 
-  { path: 'dashboard', component: DragAndDrop},
-  { path: 'ticket/view', component: TicketingTable},
-  { path: 'ticket/new', component: TicketingForm},
-  { path: 'ticket/edit/:id', component: TicketingForm}, 
+  { path: 'warranty/view', component: WarrantyTable, canActivate: [authGuard] },
+  { path: 'warranty/new', component: WarrantyForm, canActivate: [authGuard] },
+  { path: 'warranty/edit/:id', component: WarrantyForm, canActivate: [authGuard] }, 
+  { path: 'dashboard', component: DragAndDrop, canActivate: [authGuard] },
+  { path: 'ticket/view', component: TicketingTable, canActivate: [authGuard] },
+  { path: 'ticket/new', component: TicketingForm, canActivate: [authGuard] },
+  { path: 'ticket/edit/:id', component: TicketingForm, canActivate: [authGuard] }, 
   { path: '**', redirectTo: 'login', pathMatch: 'full' }
 ];

@@ -90,9 +90,15 @@ export class WarrantyForm {
       if (assetId) {
          console.log('Edit mode detected for asset:', assetId);
          this.loadAsset(assetId);
-         this.warrantyService.getMaintenanceHistory(assetId).subscribe(data => {
-            this.maintenanceHistoryList = data;
-            console.log('Maintenance history loaded:', this.maintenanceHistoryList);
+         this.warrantyService.getMaintenanceHistory(assetId).subscribe({
+            next: (data) => {
+               console.log('Loaded maintenance history:', data);
+               this.maintenanceHistoryList = data;
+            },
+            error: (err) => console.error('Failed to load maintenance history:', err),
+            complete: () => {
+               this.cdr.detectChanges();
+         }
          });
          this.isEditMode = true;
       } else {

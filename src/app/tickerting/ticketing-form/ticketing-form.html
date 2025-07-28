@@ -82,8 +82,13 @@
                     </p-floatlabel>
                     <p-floatlabel variant="on" class="half-width">
                         <p-select [(ngModel)]="ticket.status" inputId="status" name="status"
-                            [options]="status" required #statusCtrl="ngModel"
+                            [options]="getFilteredStatusOptions()" required #statusCtrl="ngModel"
                             [ngClass]="{'ng-invalid': invaild(statusCtrl)}" optionLabel="name" optionValue="value"/>
+                            <!-- <ng-template let-option pTemplate="item">
+                                <span [class.disabled-option]="isOptionDisabled(option.value)">
+                                  {{ option.name }}
+                                </span>
+                              </ng-template> -->
                         <label for="status">Status</label>
                         <div class="error-msg" *ngIf="showError(statusCtrl)">Status is required</div>
                     </p-floatlabel>

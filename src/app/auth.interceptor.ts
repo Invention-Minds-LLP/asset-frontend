@@ -13,8 +13,6 @@ export const AuthInterceptor: HttpInterceptorFn = (
   if (typeof window !== 'undefined' && localStorage) {
     const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
 
-    console.log(token)
-
     let authReq = req;
     if (token) {
       authReq = req.clone({
@@ -28,6 +26,12 @@ export const AuthInterceptor: HttpInterceptorFn = (
       catchError((error: HttpErrorResponse) => {
         if (error.status === 403) {
           console.warn('403 error encountered. Redirecting to login page...');
+          localStorage.removeItem('authToken');
+          sessionStorage.removeItem('authToken');
+          router.navigate(['/login']);
+        }
+        if( error.status === 401) {
+          console.warn('401 error encountered. Redirecting to login page...');
           localStorage.removeItem('authToken');
           sessionStorage.removeItem('authToken');
           router.navigate(['/login']);

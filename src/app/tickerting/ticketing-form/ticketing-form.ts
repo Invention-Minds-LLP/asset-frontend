@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 import { Ticketing } from '../../services/tickerting/ticketing';
 import { Assets } from '../../services/assets/assets';
 import { ActivatedRoute } from '@angular/router';
+import { ChangeDetectorRef } from '@angular/core';
 
 
 
@@ -43,7 +44,8 @@ export class TicketingForm {
     departmentId: null as number | null,
     id: null as number | null ,
     asset:null as any[] | null,
-    photoOfIssue: ''
+    photoOfIssue: '',
+    updatedBy: null as string | null,
   }
 
   employee:any ='';
@@ -51,7 +53,8 @@ export class TicketingForm {
   assets: any[] = [];
   departmentName: string = '';
   isEditMode: boolean = false;
-  ticketImage: any
+  ticketImage: any;
+  oldTicket:any = null;
 
   issueType: SelectOption[] = [
     {name:'Hardware', value:'hardware'},
@@ -74,9 +77,19 @@ export class TicketingForm {
     { name: 'Resolved', value: 'resolved' },
     { name: 'Closed', value: 'closed' },
   ];
+
+  statusOrder: string[] = [
+    'open',
+    'acknowledged',
+    'assigned',
+    'under_repair',
+    'resolved',
+    'closed'
+  ];
+  
   
 
-  constructor (private ticketService : Ticketing, private assetService: Assets, private route: ActivatedRoute){}
+  constructor (private ticketService : Ticketing, private assetService: Assets, private route: ActivatedRoute, private cdr: ChangeDetectorRef){}
 
  ngOnInit() {
   const ticketId = this.route.snapshot.paramMap.get('id');
@@ -84,6 +97,7 @@ export class TicketingForm {
     this.ticketService.getTicketById(ticketId).subscribe({
       next: (data) => {
         this.ticket = { ...data };
+        this.oldTicket = { ...data }; 
         this.ticket.assetId = data.asset.id; 
         this.assets = [
           {
@@ -103,7 +117,12 @@ export class TicketingForm {
       },
       error: (err) => {
         console.error('Failed to fetch ticket data', err);
+      },
+      complete: () => {
+        this.cdr.detectChanges();
+        console.log('Ticket fetching completed successfully');
       }
+
     });
      console.log('Edit mode detected for asset:', ticketId);
      this.isEditMode = true;
@@ -166,8 +185,13 @@ locationChange(event : string){
   if (form.valid) {
     console.log(this.ticket)
     if(this.isEditMode){
+      if (typeof window !== 'undefined' && localStorage) {
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        console.log(user);
+        this.ticket.updatedBy = `${user.employeeID} - ${user.username}`;
+      }
       if(this.ticket.id){
-        const { id, department,asset, ...rest } = this.ticket;
+        const { id, department,asset,departmentId,assetId, ...rest } = this.ticket;
         this.ticketService.updateTicket(id, rest).subscribe({
           next: (response: any) => {
             console.log('Ticket updated:', response);
@@ -240,7 +264,14 @@ locationChange(event : string){
       this.selectedReportFiles = files;
       console.log('Selected files:', files);
       this.ticketImage = files[0]
-
-      // this.ticket.photoOfIssue = files[0] // If you want to bind the first file
    }
+  getFilteredStatusOptions() {
+    const currentIndex = this.statusOrder.indexOf(this.oldTicket?.status ?? '');
+    return this.status.map(s => ({
+      ...s,
+      disabled: this.statusOrder.indexOf(s.value) < currentIndex
+    }));
+  }
+  
+  
 }

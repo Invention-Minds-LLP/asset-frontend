@@ -76,7 +76,6 @@ export class Sidebar {
   }
 
   isActiveMainRoute(route: string): boolean {
-    console.log(route, this.router.url.startsWith(route)); // Debugging line to check the current route
     return this.router.url.startsWith(route);
   }
   

@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { Ticketing } from '../../services/tickerting/ticketing';
 import { Router } from '@angular/router';
+import { ChangeDetectorRef } from '@angular/core';
 
 type FilterField = 'id' | 'name' | 'ticketid' | 'raisedby' | 'department' | 'priority';
 
@@ -26,7 +27,7 @@ export class TicketingTable {
   filterActive: boolean = false;
   tickets:any[]=[]
 
-  constructor(private ticketService : Ticketing, private router: Router) {}
+  constructor(private ticketService : Ticketing, private router: Router, private cdr: ChangeDetectorRef) {}
     //search 
   get FilteredWarranty() {
   if (!this.searchTerm) {
@@ -50,6 +51,10 @@ ngOnInit(){
         },
         error: (error) => {
           console.error('Error creating asset:', error);
+        },
+        complete: () => {
+          console.log('Ticket fetching completed');
+          this.cdr.detectChanges(); 
         }
       });
   
