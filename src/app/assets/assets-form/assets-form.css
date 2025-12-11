@@ -1,8 +1,11 @@
-.assets-form-container {
-  font-family: "Biryani", sans-serif;
+/* ============= MAIN LAYOUT ============= */
+
+.asset-form-container {
+  padding: 20px;
+  width: 100%;
 }
 
-.assets-form-container h2 {
+.asset-form-container h2 {
   color: var(--text-color);
   font-family: Biryani;
   font-size: 26px;
@@ -13,7 +16,7 @@
   text-align: center;
 }
 
-.assets-form-container .subtitle {
+.asset-form-container .subtitle {
   text-align: center;
   color: #696969;
   font-family: Biryani;
@@ -36,45 +39,112 @@
   justify-content: center;
   align-items: center;
 }
-
-.form-content {
-  display: flex;
-  justify-content: space-between;
-  gap: 2rem;
-  flex-wrap: wrap;
+.basic-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 30px;
+  align-items: flex-start;
 }
 
-.form-fields {
-  flex: 3;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+/* LEFT COLUMN (FORM AREA) */
+.left-column {
+  /* background: #ffffff; */
+  padding: 25px;
+  /* border-radius: 12px; */
+  /* box-shadow: 0 1px 4px rgba(0,0,0,0.08); */
 }
 
-.form-right {
-  flex: 1;
+/* RIGHT COLUMN (PHOTO + ACTION BUTTONS) */
+.right-column {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 15px;
 }
 
-.field-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  color: var(--form-text-color);
-}
+/* ==================== FLOAT LABEL FIXES ==================== */
 
-.two-columns .half-width {
-  flex: 1;
-  min-width: 0;
-}
-
-.full-width {
+.p-float-label {
+  display: block;
   width: 100%;
 }
 
+.full-field {
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+/* TWO COLUMN ROWS */
+.two-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+/* ================= INPUT BOX FIXES ================= */
+
+input[pInputText],
+.p-inputtext,
+.p-select,
+.p-dropdown,
+.p-datepicker,
+.p-textarea {
+  width: 100% !important;
+  min-height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+
+/* PRIME NG FLOAT LABEL FIX */
+.p-float-label > label {
+  top: -12px !important;
+  font-size: 13px !important;
+  background: white;
+  padding: 0 4px;
+  left: 10px;
+}
+
+/* ================= SECTION TITLES ================= */
+
+.section-title {
+  font-weight: 600;
+  color: #1e3a8a;
+  margin: 25px 0 10px;
+}
+
+/* ================= PHOTO BLOCK ================= */
+
+.photo-wrapper {
+  width: 260px;
+  height: 260px;
+  border-radius: 12px;
+  border: 2px dashed #cbd5e1;
+  overflow: hidden;
+  position: relative;
+  background: #f8fafc;
+}
+
+.asset-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.edit-photo {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  background: #1e3a8a;
+  color: white;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.edit-photo i {
+  font-size: 15px;
+}
 .asset-image {
   width: 250px;
   height: 250px;
@@ -99,10 +169,10 @@
   cursor: pointer;
   color: blue;
 }
-.edit-bg{
-    bottom: -8px;
-    left: 33%;
-    position: absolute;
+.edit-bg {
+  bottom: -8px;
+  left: 33%;
+  position: absolute;
 }
 
 .status-field {
@@ -111,103 +181,88 @@
 
 .save-btn {
   width: 100%;
-  background-color: #3EAF3F;
+  border-radius: 8px;
+  background: #3eaf3f;
   color: white;
   font-weight: 600;
+  width: 239px;
+  height: 46px;
 }
 
 .clear-btn {
   width: 100%;
-}
-.p-inputtext,
-.p-select {
-  width: 100%;
-  height: 50px;
+  width: 239px;
+  height: 46px;
   border-radius: 8px;
-  border: 1px solid var(--table-border-color);
-  /* color: var(--form-text-color); */
-}   
+  border: 1px solid #ff2f00;
+  background-color: transparent !important;
+  color: #FF2F00;
+font-family: Biryani;
+font-size: 14px;
+font-style: normal;
+font-weight: 600;
+line-height: normal;
+}
+/* ================= CONDITIONAL SECTIONS ================= */
 
-.p-select,
-.p-calendar {
-  flex: 1 1 auto;
+.conditional-card {
+  background: #f8fafc;
+  border-left: 4px solid #2563eb;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.conditional-card h4 {
+  margin: 0 0 10px;
+  color: #1e3a8a;
+  font-weight: 600;
+}
+.btn-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
+  gap: 20px;
 }
-::ng-deep .p-datepicker {
-  height: 42px;
-  width: 100%;
-  flex: 1 1 auto;
+
+/* FIX: Checkbox label hidden because float-label CSS affects all labels */
+.transfer-modal .p-checkbox-label {
+  position: relative !important;
+  top: 0 !important;
+  font-size: 14px !important;
+  background: transparent !important;
+  padding-left: 6px !important;
 }
-::ng-deep .p-datepicker {
-  max-width: 100%;
+.transfer-modal .p-checkbox label {
+  top: auto !important;
+  background: none !important;
 }
-.error-message {
-    color: #d93025;         /* Classic red error color */
-    font-size: 0.85rem;     /* Slightly smaller text */
-    margin-top: 4px;        /* A little space from the field */
-    display: block;         /* Ensures it takes full width under the input */
-    font-weight: 500;       /* Makes it easier to read */
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -5px;
+}
+
+.checkbox-row .p-checkbox-label {
+  font-size: 14px;
+  color: #475569;
+  cursor: pointer;
+}
+
+.expires-container {
+  margin-top: 20px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 992px) {
+  .basic-grid {
+    grid-template-columns: 1fr;
   }
-  
-  .invalid input,
-  .invalid .p-inputtext,
-  .invalid .p-select {
-    border-color: #d93025 !important;  /* Highlight invalid inputs in red */
-    box-shadow: none;                  /* Avoid ugly red glow */
-  }
-  .ticket-form-skeleton {
-    padding: 2rem;
-    max-width: 1000px;
-    margin: auto;
-  }
-  
-  .header-skeleton {
-    margin-bottom: 0.5rem;
-  }
-  
-  .subtitle-skeleton {
-    margin-bottom: 2rem;
-  }
-  
-  .form-body {
-    display: flex;
-    gap: 2rem;
+  .right-column {
     align-items: flex-start;
   }
-  
-  .form-fields-skeleton {
-    flex: 1;
-  }
-  
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  
-  .description-skeleton {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-  }
-  
-  .form-side {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-  
-  .image-skeleton {
-    margin-bottom: 1rem;
-  }
-  
-  .button-skeleton {
-    border-radius: 6px;
-  }
-  
-  .button-skeleton.red {
-    background-color: #fdd;
-  }
-  
-  
+}

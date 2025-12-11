@@ -24,4 +24,21 @@ export class Auth {
     return typeof window !== 'undefined' && localStorage.getItem('authToken') !== null;; // Return false if localStorage is not available
   
   }
+  // Save token and user details
+  saveAuth(token: string, user: any) {
+    localStorage.setItem("token", token);
+    localStorage.setItem("role", user.role);
+  }
+
+  getRole(): string {
+    return localStorage.getItem("role") || "";
+  }
+
+  getToken(): string {
+    return localStorage.getItem("token") || "";
+  }
+
+  logout() {
+    localStorage.clear();
+  }
 }

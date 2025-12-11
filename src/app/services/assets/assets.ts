@@ -87,6 +87,18 @@ export class Assets {
   getDepartmentNameByEmployeeID(employeeID: string): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/employees/${employeeID}/department`);
   }
+   // ------------------------------
+  // INSURANCE DOCUMENT UPLOAD
+  // ------------------------------
+  uploadInsuranceDocument(insuranceId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append("document", file);
+
+    return this.http.post(
+      `${environment.apiUrl}/insurance/${insuranceId}/upload`,
+      formData
+    );
+  }
   
   
 }

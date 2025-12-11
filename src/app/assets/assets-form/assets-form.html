@@ -1,227 +1,352 @@
-<div class="assets-form-container">
+<div class="asset-form-container">
+
+    
     <h2>Assets Form</h2>
     <p class="subtitle">The Form to create/edit assets</p>
     <div class="divider-container">
         <hr class="divider" />
     </div>
 
-    <form *ngIf="!isLoading || !isEditMode" #assetForm="ngForm" (ngSubmit)="onSubmit(assetForm)">
-        <div class="form-content">
-            <!-- Left side: Form fields -->
-            <div class="form-fields">
-                <div class="field-row two-columns" *ngIf="asset.assetId">
 
-                    <p-floatlabel variant="on" class="half-width" *ngIf="asset.assetId">
-                        <input pInputText name="assetId" [(ngModel)]="asset.assetId" disabled id="assetId"
-                            autocomplete="off" class="custom-placeholder" />
-                        <label for="assetId">Asset ID</label>
-                    </p-floatlabel>
-                    <p-floatlabel variant="on" class="half-width">
-                        <input pInputText name="name" [(ngModel)]="asset.assetName" required pattern="^[A-Za-z ]+$"
-                            #nameCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(nameCtrl)}" id="name"
-                            autocomplete="off" class="custom-placeholder" class="ng-invalid ng-dirty" />
-                        <label for="name">Name</label>
-                    </p-floatlabel>
-                    <div class="error-message" *ngIf="showError(nameCtrl)">Name is required and should contain only
-                        letters.</div>
+    <!-- ============================= -->
+    <!-- TABS HEADER (PILL STYLE) -->
+    <!-- ============================= -->
+    <p-tabView [(activeIndex)]="activeTab" class="custom-tabs">
 
-                </div>
-                <div class="field-row" *ngIf="!asset.assetId">
-                    <p-floatlabel variant="on" class="full-width">
-                        <input pInputText name="name" [(ngModel)]="asset.assetName" required pattern="^[A-Za-z ]+$"
-                            #nameCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(nameCtrl)}" id="name"
-                            autocomplete="off" class="custom-placeholder" class="ng-invalid ng-dirty" />
-                        <label for="name">Name</label>
-                    </p-floatlabel>
-                    <div class="error-message" *ngIf="showError(nameCtrl)">Name is required and should contain only
-                        letters.</div>
-                </div>
+        <!-- ========================================================= -->
+        <!-- TAB 1 — PHASE 1 BASIC DETAILS                             -->
+        <!-- ========================================================= -->
+        <p-tabPanel header="Basic Details" leftIcon="pi pi-box">
 
-                <div class="field-row two-columns">
-                    <p-floatlabel variant="on" class="half-width">
-                        <p-select id="type" name="type" [(ngModel)]="asset.assetType" required #typeCtrl="ngModel"
-                            [ngClass]="{'ng-invalid': invalid(typeCtrl)}" autocomplete="off" class="custom-placeholder"
-                            class="ng-invalid ng-dirty" [options]="types" optionLabel="label"
-                            optionValue="value"></p-select>
-                        <label for="type">Type</label>
-                        <div class="error-message" *ngIf="showError(typeCtrl)">Type is required.</div>
-                    </p-floatlabel>
-                    <p-floatlabel variant="on" class="half-width">
-                        <p-select id="category" name="category" [(ngModel)]="asset.assetCategoryId" required
-                            #categoryCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(categoryCtrl)}" autocomplete="off"
-                            class="custom-placeholder" [options]="originalCategories" optionLabel="label"
-                            optionValue="value" filter showClear [virtualScroll]="true" [virtualScrollItemSize]="30"
-                            appendTo="body" (onFilter)="onFilter($event)" (onChange)="onCategorySelect($event.value)">
+            <div class="basic-grid">
 
-                            <ng-template #footer>
-                                <div class="p-2 border-t border-gray-300 flex justify-center">
-                                    <button pButton label="Add New Category" icon="pi pi-plus"
-                                        class="p-button-text p-button-sm"
-                                        (click)="createNewCategory(lastFilterValue)"></button>
-                                </div>
-                            </ng-template>
+                <!-- LEFT SIDE -->
+                <div class="left-column">
 
-                        </p-select>
-                        <label for="category">Category</label>
-                        <div class="error-message" *ngIf="showError(categoryCtrl)">Category is required.</div>
-                    </p-floatlabel>
+                    <form #basicForm="ngForm">
 
-                </div>
+                        <!-- ASSET NAME -->
+                        <p-floatlabel variant="on" class="full-field">
+                            <input pInputText name="assetName" [(ngModel)]="asset.assetName" required />
+                            <label>Asset Name *</label>
+                        </p-floatlabel>
 
-                <div class="field-row two-columns">
-                    <p-floatlabel variant="on" class="half-width">
-                        <input pInputText id="serialNumber" name="serialNumber" [(ngModel)]="asset.serialNumber"
-                            required #serialCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(serialCtrl)}"
-                            autocomplete="off" class="custom-placeholder" class="ng-invalid ng-dirty" />
-                        <label for="serialNumber">Serial Number</label>
-                        <div class="error-message" *ngIf="showError(serialCtrl)">Serial Number is required.</div>
-                    </p-floatlabel>
-                    <p-floatlabel variant="on" class="half-width">
-                        <p-datepicker dateFormat="dd.mm.yy" name="purchaseDate" [(ngModel)]="asset.purchaseDate"
-                            required #purchaseDateCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(purchaseDateCtrl)}"
-                            class="ng-invalid ng-dirty" />
-                        <label for="purchaseDate">Purchase Date</label>
-                        <div class="error-message" *ngIf="showError(purchaseDateCtrl)">Purchase Date is required.</div>
-                    </p-floatlabel>
-                </div>
+                        <!-- TYPE + CATEGORY -->
+                        <div class="two-fields">
+                            <p-floatlabel variant="on">
+                                <p-select 
+                                    [options]="assetTypes"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    name="assetType"
+                                    [(ngModel)]="asset.assetType"
+                                    required>
+                                </p-select>
+                                <label>Asset Type *</label>
+                            </p-floatlabel>
 
-                <div class="field-row">
-                    <p-select id="vendorName" name="vendorName" [(ngModel)]="asset.vendorId" required
-                        #vendorCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(vendorCtrl)}" autocomplete="off"
-                        class="custom-placeholder" [options]="vendorOptions" optionLabel="label" optionValue="value"
-                        filter showClear appendTo="body" placeholder="Select Vendor" (onFilter)="onVendorFilter($event)"
-                        (onChange)="onVendorSelect($event.value)">
-                        <ng-template #footer>
-                            <div class="p-2 border-t border-gray-300 flex justify-center">
-                                <button pButton label="Add New Vendor" icon="pi pi-plus"
-                                    class="p-button-text p-button-sm"
-                                    (click)="createNewVendor(lastVendorFilterValue)"></button>
+                            <p-floatlabel variant="on">
+                                <p-select
+                                    [options]="categories"
+                                    optionLabel="name"
+                                    optionValue="id"
+                                    name="assetCategoryId"
+                                    [(ngModel)]="asset.assetCategoryId"
+                                    required>
+                                </p-select>
+                                <label>Category *</label>
+                            </p-floatlabel>
+                        </div>
+
+                        <!-- SERIAL NUMBER -->
+                        <p-floatlabel variant="on" class="full-field">
+                            <input pInputText name="serialNumber" [(ngModel)]="asset.serialNumber" required />
+                            <label>Serial Number *</label>
+                        </p-floatlabel>
+
+                        <!-- PROCUREMENT MODE -->
+                        <p-floatlabel variant="on" class="full-field">
+                            <p-select 
+                                [options]="procurementModes"
+                                optionLabel="label"
+                                optionValue="value"
+                                name="modeOfProcurement"
+                                [(ngModel)]="asset.modeOfProcurement"
+                                required>
+                            </p-select>
+                            <label>Mode of Procurement *</label>
+                        </p-floatlabel>
+
+
+                        <!-- ===================== -->
+                        <!-- PURCHASE CONDITIONAL -->
+                        <!-- ===================== -->
+                        <div *ngIf="asset.modeOfProcurement === 'PURCHASE'" class="conditional-card">
+
+                            <h4>Purchase Details</h4>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <input pInputText name="invoiceNumber"
+                                        [(ngModel)]="asset.invoiceNumber" required />
+                                    <label>Invoice Number *</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on">
+                                    <p-datepicker name="purchaseDate"
+                                        [(ngModel)]="asset.purchaseDate" required></p-datepicker>
+                                    <label>Purchase Date *</label>
+                                </p-floatlabel>
                             </div>
-                        </ng-template>
-                    </p-select>
 
-                </div>
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <input pInputText name="purchaseOrderNo"
+                                        [(ngModel)]="asset.purchaseOrderNo" />
+                                    <label>PO Number</label>
+                                </p-floatlabel>
 
-                <div class="field-row two-columns">
-                    <p-floatlabel variant="on" class="half-width">
-                        <input pInputText id="vendorPhnNumber" name="vendorPhnNumber"
-                            [(ngModel)]="editingVendor.contact" required #vendorPhnCtrl="ngModel" pattern="^\d{10}$"
-                            [ngClass]="{'ng-invalid': invalid(vendorPhnCtrl)}" autocomplete="nope"
-                            class="custom-placeholder" class="ng-invalid ng-dirty" />
-                        <label for="vendorPhnNumber">Vendor Phone Number</label>
-                        <div class="error-message"
-                            *ngIf="vendorPhnCtrl.invalid && (vendorPhnCtrl.dirty || vendorPhnCtrl.touched)">
-                            <span *ngIf="vendorPhnCtrl.errors?.['required']">Vendor Phone Number is required.</span>
-                            <span *ngIf="vendorPhnCtrl.errors?.['pattern']">Vendor Phone Number must be exactly 10
-                                digits.</span>
+                                <p-floatlabel variant="on">
+                                    <p-datepicker name="purchaseOrderDate"
+                                        [(ngModel)]="asset.purchaseOrderDate"></p-datepicker>
+                                    <label>PO Date</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <input pInputText type="number"
+                                    name="purchaseCost"
+                                    [(ngModel)]="asset.purchaseCost"
+                                    required />
+                                <label>Purchase Cost *</label>
+                            </p-floatlabel>
+
+                            <!-- Vendor -->
+                            <p-floatlabel variant="on" class="full-field">
+                                <p-select 
+                                    [options]="vendors"
+                                    optionLabel="name"
+                                    optionValue="id"
+                                    [(ngModel)]="asset.vendorId"
+                                    name="vendorId"
+                                    required></p-select>
+                                <label>Vendor *</label>
+                            </p-floatlabel>
+
+                            <!-- Warranty -->
+                            <!-- <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.warrantyStart" name="warrantyStart"></p-datepicker>
+                                    <label>Warranty Start</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.warrantyEnd" name="warrantyEnd"></p-datepicker>
+                                    <label>Warranty End</label>
+                                </p-floatlabel>
+                            </div> -->
+
+                            <!-- AMC details -->
+                            <!-- <textarea pInputTextarea rows="2"
+                                [(ngModel)]="asset.amcDetails"
+                                placeholder="AMC Details" name="amcDetails"></textarea> -->
+
                         </div>
-                    </p-floatlabel>
-                    <p-floatlabel variant="on" class="half-width">
-                        <input pInputText id="vendorEmail" name="vendorEmail" type="email"
-                            [(ngModel)]="editingVendor.email" required #vendorEmailCtrl="ngModel"
-                            pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$"
-                            [ngClass]="{'ng-invalid': invalid(vendorEmailCtrl)}" autocomplete="nope"
-                            class="custom-placeholder" class="ng-invalid ng-dirty" />
-                        <label for="vendorEmail">Vendor Email</label>
-                        <div class="error-message"
-                            *ngIf="vendorEmailCtrl.invalid && (vendorEmailCtrl.dirty || vendorEmailCtrl.touched)">
-                            <span *ngIf="vendorEmailCtrl.errors?.['required']">Vendor Email is required.</span>
-                            <span *ngIf="vendorEmailCtrl.errors?.['pattern']">Vendor Email format is invalid.</span>
+
+
+                        <!-- ===================== -->
+                        <!-- DONATION CONDITIONAL -->
+                        <!-- ===================== -->
+                        <div *ngIf="asset.modeOfProcurement === 'DONATION'" class="conditional-card">
+
+                            <h4>Donation Details</h4>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <input pInputText [(ngModel)]="asset.donorName" name="donorName" required />
+                                <label>Donor Name *</label>
+                            </p-floatlabel>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <p-datepicker [(ngModel)]="asset.donationDate" name="donationDate" required></p-datepicker>
+                                <label>Donation Date *</label>
+                            </p-floatlabel>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <p-select 
+                                    [options]="donationConditions"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    [(ngModel)]="asset.assetCondition"
+                                    name="assetCondition"
+                                    required></p-select>
+                                <label>Condition *</label>
+                            </p-floatlabel>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <input pInputText type="number" name="estimatedValue" [(ngModel)]="asset.estimatedValue" />
+                                <label>Estimated Value</label>
+                            </p-floatlabel>
                         </div>
-                    </p-floatlabel>
+
+
+                        <!-- ===================== -->
+                        <!-- LEASE CONDITIONAL -->
+                        <!-- ===================== -->
+                        <div *ngIf="asset.modeOfProcurement === 'LEASE'" class="conditional-card">
+
+                            <h4>Lease Details</h4>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <p-select 
+                                    [options]="vendors"
+                                    optionLabel="name"
+                                    optionValue="id"
+                                    [(ngModel)]="asset.vendorId"
+                                    name="vendorId"
+                                    required></p-select>
+                                <label>Vendor *</label>
+                            </p-floatlabel>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.leaseStartDate" name="leaseStartDate" required></p-datepicker>
+                                    <label>Start Date *</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.leaseEndDate" name="leaseEndDate" required></p-datepicker>
+                                    <label>End Date *</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <input pInputText type="number" name="leaseAmount" [(ngModel)]="asset.leaseAmount" />
+                                <label>Lease Amount</label>
+                            </p-floatlabel>
+                        </div>
+
+
+
+                        <!-- ===================== -->
+                        <!-- RENTAL CONDITIONAL -->
+                        <!-- ===================== -->
+                        <div *ngIf="asset.modeOfProcurement === 'RENTAL'" class="conditional-card">
+
+                            <h4>Rental Details</h4>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <p-select 
+                                    [options]="vendors"
+                                    optionLabel="name"
+                                    optionValue="id"
+                                    [(ngModel)]="asset.vendorId"
+                                    name="vendorId"
+                                    required></p-select>
+                                <label>Vendor *</label>
+                            </p-floatlabel>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.rentalStartDate" name="rentalStartDate" required></p-datepicker>
+                                    <label>Start Date *</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.rentalEndDate" name="rentalEndDate" required></p-datepicker>
+                                    <label>End Date *</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <p-floatlabel variant="on">
+                                <input pInputText type="number" [(ngModel)]="asset.rentalAmount" name="rentalAmount" />
+                                <label>Rent Amount</label>
+                            </p-floatlabel>
+                        </div>
+
+
+                        <!-- ============= GRN ============== -->
+                        <h3 class="section-title">GRN Details</h3>
+
+                        <div class="two-fields">
+                            <p-floatlabel variant="on">
+                                <input pInputText [(ngModel)]="asset.grnNumber" name="grnNumber"/>
+                                <label>GRN Number</label>
+                            </p-floatlabel>
+
+                            <p-floatlabel variant="on">
+                                <p-datepicker [(ngModel)]="asset.grnDate" name="grnDate"></p-datepicker>
+                                <label>GRN Date</label>
+                            </p-floatlabel>
+                        </div>
+
+                        <p-floatlabel variant="on" class="full-field">
+                            <input pInputText type="number" name="grnValue" [(ngModel)]="asset.grnValue" />
+                            <label>GRN Value</label>
+                        </p-floatlabel>
+
+                        <p-floatlabel variant="on" class="full-field">
+                            <p-select 
+                                [options]="inspectionStatuses"
+                                optionLabel="label"
+                                optionValue="value"
+                                [(ngModel)]="asset.inspectionStatus"
+                                name="inspectionStatus"
+                                required></p-select>
+                            <label>Inspection Status *</label>
+                        </p-floatlabel>
+
+                        <textarea pInputTextarea rows="2"
+                            [(ngModel)]="asset.inspectionRemarks"
+                            placeholder="Inspection Remarks" name="inspectionRemarks"></textarea>
+
+                        <!-- ====================== -->
+                        <!-- DEPARTMENT ASSIGNMENT -->
+                        <!-- ====================== -->
+
+                        <h3 class="section-title">Department Assignment</h3>
+
+                        <p-floatlabel variant="on" class="full-field">
+                            <p-select 
+                                [options]="departments"
+                                optionLabel="name"
+                                optionValue="id"
+                                name="departmentId"
+                                [(ngModel)]="asset.departmentId"
+                                required></p-select>
+                            <label>Assigned Department *</label>
+                        </p-floatlabel>
+
+                        <p-floatlabel variant="on" class="full-field">
+                            <p-select
+                                [options]="assignmentTypes"
+                                optionLabel="label"
+                                optionValue="value"
+                                name="assignmentType"
+                                [(ngModel)]="asset.assignmentType">
+                            </p-select>
+                            <label>Assignment Type</label>
+                        </p-floatlabel>
+
+                    </form>
+
                 </div>
 
-                <div class="field-row two-columns">
-                    <p-floatlabel variant="on" class="half-width">
-                        <p-select id="department" name="department" [(ngModel)]="asset.departmentId" required
-                            #departmentCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(departmentCtrl)}"
-                            autocomplete="off" class="custom-placeholder" [options]="originalDepartments"
-                            optionLabel="label" optionValue="value" filter showClear appendTo="body"
-                            (onFilter)="onDepartmentFilter($event)" (onChange)="onDepartmentSelect($event.value)">
-                            <ng-template #footer>
-                                <div class="p-2 border-t border-gray-300 flex justify-center">
-                                    <button pButton label="Add New Department" icon="pi pi-plus"
-                                        class="p-button-text p-button-sm"
-                                        (click)="createNewDepartment(lastDepartmentFilterValue)"></button>
-                                </div>
-                            </ng-template>
-                        </p-select>
-                        <label for="department">Department</label>
-                        <div class="error-message" *ngIf="showError(departmentCtrl)">Department is required.</div>
-                    </p-floatlabel>
+                <!-- ===================== -->
+                <!-- RIGHT SIDE (IMAGE) -->
+                <!-- ===================== -->
+                <div class="right-column">
 
+                    <!-- <div class="photo-wrapper">
+                        <img [src]="asset.assetPhoto || 'assets/no-image.png'" class="asset-photo" />
 
-                    <p-floatlabel variant="on" class="half-width">
-                        <p-select id="allotedTo" name="allotedTo" [(ngModel)]="asset.allottedToId" required
-                            #allotedToCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(allotedToCtrl)}"
-                            autocomplete="off" class="custom-placeholder" [options]="users" optionLabel="label"
-                            optionValue="value" filter showClear appendTo="body">
-                        </p-select>
-                        <label for="allotedTo">Allotted To</label>
-                        <div class="error-message" *ngIf="showError(allotedToCtrl)">Alloted To is required.</div>
-                    </p-floatlabel>
-
-                </div>
-
-                <div class="field-row two-columns">
-                    <p-floatlabel variant="on" class="half-width">
-                        <input pInputText id="rfid" name="rfid" [(ngModel)]="asset.rfidCode" required
-                            #rfidCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(rfidCtrl)}" autocomplete="off"
-                            class="custom-placeholder" class="ng-invalid ng-dirty" />
-                        <label for="rfid">RFID</label>
-                        <div class="error-message" *ngIf="showError(rfidCtrl)">RFID is required.</div>
-                    </p-floatlabel>
-                    <p-floatlabel variant="on" class="half-width">
-                        <input pInputText id="location" name="location" [(ngModel)]="asset.currentLocation" required
-                            #locationCtrl="ngModel" [ngClass]="{'ng-invalid': invalid(locationCtrl)}" autocomplete="off"
-                            class="custom-placeholder" class="ng-invalid ng-dirty" />
-                        <label for="location">Location</label>
-                        <div class="error-message" *ngIf="showError(locationCtrl)">Location is required.</div>
-                    </p-floatlabel>
-                </div>
-
-                <div class="field-row two-columns">
-                    <!-- SLA Value Input -->
-                    <p-floatlabel variant="on" class="half-width">
-                        <input id="slaExpectedValue" type="number" pInputText min="1"
-                            [(ngModel)]="asset.slaExpectedValue" name="slaExpectedValue" />
-                            <label for="slaExpectedValue">SLA Value</label>
-                    </p-floatlabel>
-
-                    <!-- SLA Unit Dropdown -->
-                    <p-floatlabel variant="on" class="half-width">
-
-                        <p-select [options]="slaUnits" [(ngModel)]="asset.slaExpectedUnit" optionLabel="label"
-                            optionValue="value"  name="slaExpectedUnit"
-                            inputId="slaExpectedUnit"></p-select>
-                            <label for="slaExpectedUnit">SLA Unit</label>
-                    </p-floatlabel>
-
-                </div>
-                <div class="field-row two-columns">
-                    <!-- SLA Value Input -->
-                    <p-floatlabel variant="on" class="half-width">
-                        <input id="expectedLifetime" type="number" pInputText min="1"
-                            [(ngModel)]="asset.expectedLifetime" name="expectedLifetime" />
-                            <label for="expectedLifetime">Retired Value</label>
-                    </p-floatlabel>
-
-                    <!-- SLA Unit Dropdown -->
-                    <p-floatlabel variant="on" class="half-width">
-
-                        <p-select [options]="lifetimeUnitOptions" [(ngModel)]="asset.expectedLifetimeUnit" optionLabel="label"
-                            optionValue="value"  name="expectedLifetimeUnit"
-                            inputId="expectedLifetimeUnit"></p-select>
-                            <label for="expectedLifetimeUnit">Retired Unit</label>
-                    </p-floatlabel>
-
-                </div>
-            </div>
-
-            <!-- Right side: Image + buttons -->
-            <div class="form-right">
+                        <label class="edit-photo">
+                            <i class="pi pi-pencil"></i>
+                            <input type="file" hidden (change)="handlePhotoUpload($event)" />
+                        </label>
+                    </div> -->
+                    
                 <div class="asset-image">
-                    <img [src]="imagePreviewUrl || asset.assetPhoto || '/placeholder.jpg'" alt="Asset" />
+                    <img [src]=" asset.assetPhoto || '/placeholder.jpg'" alt="Asset" />
                     <svg xmlns="http://www.w3.org/2000/svg" class="edit-bg" width="100" height="40" viewBox="0 0 100 40"
                         fill="none">
                         <circle cx="50" cy="50" r="49.5" fill="#D9D9D9" stroke="#C3C3C3" />
@@ -233,43 +358,353 @@
                             fill="#2C64BB" />
                     </svg>
                     <input type="file" #fileInput accept="image/*" style="display: none;"
-                        (change)="onFileSelected($event)" />
+                        (change)="handlePhotoUpload($event)" />
                 </div>
 
-                <input pInputText placeholder="Status" [(ngModel)]="asset.status" name="status"
-                    class="status-field custom-placeholder" />
 
-                <button pButton label="Save" class="save-btn"></button>
-                <button pButton label="Clear" class="clear-btn" severity="danger" outlined></button>
-            </div>
-        </div>
-    </form>
-    <div *ngIf="isLoading && isEditMode" class="ticket-form-skeleton">
+                    <button pButton label="Save" class="save-btn" (click)="saveBasicDetails(basicForm)"></button>
+                    <button  label="Clear" class="clear-btn" (click)="clearForm()">Clear</button>
 
-        <div class="form-body">
-            <!-- Left: Form Fields -->
-            <div class="form-fields-skeleton">
-                <div class="form-row" *ngFor="let row of formSkeletonRows">
-                    <p-skeleton width="100%" height="40px"></p-skeleton>
-                    <p-skeleton width="100%" height="40px"></p-skeleton>
                 </div>
 
-                <!-- Description -->
-                <!-- <p-skeleton width="100%" height="80px" class="description-skeleton"></p-skeleton> -->
-
-                <!-- Bottom field -->
-                <p-skeleton width="100%" height="40px"></p-skeleton>
             </div>
 
-            <!-- Right: Image + Buttons -->
-            <div class="form-side">
-                <p-skeleton shape="circle" size="100px" class="image-skeleton"></p-skeleton>
+        </p-tabPanel>
 
-                <p-skeleton width="100px" height="40px" class="button-skeleton"></p-skeleton>
-                <p-skeleton width="100px" height="40px" class="button-skeleton red"></p-skeleton>
+
+        <!-- ========================================================= -->
+        <!-- TAB 2 — PROCUREMENT / FINANCIAL -->
+        <!-- ========================================================= -->
+        <!-- <p-tabPanel header="Procurement & Financial">
+            <div class="tab-section">
+                <h3>Procurement Updates</h3>
++
+                <button pButton label="Update Procurement" (click)="saveProcurement()"></button>
             </div>
-        </div>
-    </div>
+        </p-tabPanel> -->
+
+
+        <!-- TAB 3 – DEPRECIATION -->
+        <p-tabPanel header="Depreciation">
+
+            <div class="tab-section">
+
+                <h3>Depreciation Setup</h3>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <p-select [options]="depreciationMethods"
+                            optionLabel="label"
+                            optionValue="value"
+                            name="depreciationMethods"
+                            [(ngModel)]="asset.depreciationMethod"></p-select>
+                        <label>Method *</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <input type="number" name="depreciationRate" pInputText [(ngModel)]="asset.depreciationRate" />
+                        <label>Rate (%) *</label>
+                    </p-floatlabel>
+                </div>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <input type="number" pInputText name="expectedLifeYears" [(ngModel)]="asset.expectedLifeYears" />
+                        <label>Expected Life (Years) *</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <p-datepicker [(ngModel)]="asset.depreciationStartDate" name="depreciationStartDate"></p-datepicker>
+                        <label>Depreciation Start Date</label>
+                    </p-floatlabel>
+                </div>
+
+                <p-floatlabel variant="on">
+                    <input type="number" pInputText [(ngModel)]="asset.salvageValue" name="salvageValue"/>
+                    <label>Salvage Value</label>
+                </p-floatlabel>
+
+                <button pButton label="Save Depreciation" style="margin-top: 10px;" (click)="saveDepreciation()"></button>
+
+            </div>
+
+        </p-tabPanel>
+
+
+        <!-- TAB 4 – INSURANCE -->
+        <p-tabPanel header="Insurance Info">
+
+            <div class="tab-section">
+
+                <h3>Insurance Details</h3>
+
+                <p-floatlabel variant="on" class="full-field">
+                    <input pInputText [(ngModel)]="asset.insuranceProvider" name="insuranceProvider"/>
+                    <label>Provider</label>
+                </p-floatlabel>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <input pInputText [(ngModel)]="asset.policyNumber" name="policyNumber" />
+                        <label>Policy Number</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <input pInputText type="number" [(ngModel)]="asset.coverageAmount" name="coverageAmount"/>
+                        <label>Coverage Amount</label>
+                    </p-floatlabel>
+                </div>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on" class="">
+                        <p-datepicker [(ngModel)]="asset.insuranceStartDate" name="insuranceStartDate"></p-datepicker>
+                        <label>Insurance Start Date</label>
+                    </p-floatlabel>
+                    <p-floatlabel variant="on" class="">
+                        <p-datepicker [(ngModel)]="asset.insuranceEndDate" name="insuranceEndDate"></p-datepicker>
+                        <label>Insurance End Date</label>
+                    </p-floatlabel>
+                </div>
+
+                <textarea pInputTextarea rows="3" [(ngModel)]="asset.notes" name="notes"></textarea>
+
+                <button pButton label="Save Insurance" (click)="saveInsurance()"></button>
+
+            </div>
+
+        </p-tabPanel>
+
+
+        <!-- TAB 5 – SLA -->
+        <p-tabPanel header="SLA & Lifetime Info">
+
+            <div class="tab-section">
+
+                <h3>SLA Config</h3>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <input type="number" pInputText [(ngModel)]="asset.slaExpectedValue" name="slaExpectedValue" />
+                        <label>SLA Value</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <p-select [options]="slaUnits"
+                            optionLabel="label"
+                            optionValue="value"
+                            name="slaExpectedUnit"
+                            [(ngModel)]="asset.slaExpectedUnit"></p-select>
+                        <label>SLA Unit</label>
+                    </p-floatlabel>
+                </div>
+
+                <h3>Lifetime</h3>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <input type="number" pInputText name="expectedLifetime" [(ngModel)]="asset.expectedLifetime" />
+                        <label>Lifetime</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <p-select [options]="slaUnits"
+                            optionLabel="label"
+                            optionValue="value"
+                            name="expectedLifetimeUnit"
+                            [(ngModel)]="asset.expectedLifetimeUnit"></p-select>
+                        <label>Lifetime Unit</label>
+                    </p-floatlabel>
+                </div>
+
+                <textarea pInputTextarea rows="2"
+                    [(ngModel)]="asset.slaDetails"
+                    name="slaDetails"
+                    placeholder="SLA Notes"></textarea>
+
+                <button pButton label="Save SLA" (click)="saveSLA()" style="margin-top: 20px;"></button>
+
+            </div>
+
+        </p-tabPanel>
+
+
+        <!-- TAB 6 – LOCATION & ALLOCATION -->
+        <p-tabPanel header="Location & Allocation">
+
+            <div class="tab-section">
+
+                <h3>Asset Location</h3>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <p-select 
+                            [options]="branches"
+                            optionLabel="name"
+                            optionValue="id"
+                            name="branchId"
+                            [(ngModel)]="asset.branchId"></p-select>
+                        <label>Branch *</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <input pInputText name="block" [(ngModel)]="asset.block" />
+                        <label>Block</label>
+                    </p-floatlabel>
+                </div>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <input pInputText name="floor" [(ngModel)]="asset.floor" />
+                        <label>Floor</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <input pInputText name="room" [(ngModel)]="asset.room" />
+                        <label>Room</label>
+                    </p-floatlabel>
+                </div>
+
+                <p-floatlabel variant="on" class="full-field">
+                    <p-select 
+                        [options]="employees"
+                        optionLabel="name"
+                        optionValue="id"
+                        name="employeeResponsibleId"
+                        [(ngModel)]="asset.employeeResponsibleId"></p-select>
+                    <label>Employee Responsible</label>
+                </p-floatlabel>
+
+                <p-floatlabel variant="on" class="full-field">
+                    <input pInputText [(ngModel)]="asset.rfidCode" name="rfidCode"/>
+                    <label>RFID</label>
+                </p-floatlabel>
+
+                <button pButton label="Update Location" (click)="saveLocation()"></button>
+
+                <!-- LOCATION HISTORY -->
+                <h3>Location History</h3>
+                <p-table [value]="locationHistory">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Branch</th>
+                            <th>Block</th>
+                            <th>Floor</th>
+                            <th>Room</th>
+                            <th>Date</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>{{ row.branch?.name }}</td>
+                            <td>{{ row.block }}</td>
+                            <td>{{ row.floor }}</td>
+                            <td>{{ row.room }}</td>
+                            <td>{{ row.createdAt | date }}</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+
+            </div>
+
+        </p-tabPanel>
+
+
+        <!-- TAB 7 – TRANSFER -->
+        <p-tabPanel header="Transfer">
+
+            <div class="tab-section">
+                <button pButton label="Transfer Asset" icon="pi pi-send" (click)="showTransferModal = true"></button>
+
+                <h3>Transfer History</h3>
+
+                <p-table [value]="transferHistory">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Type</th>
+                            <th>Expires</th>
+                            <th>Approved By</th>
+                            <th>Date</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-row>
+                        <tr>
+                            <td>{{ row.fromBranch?.name || '-' }}</td>
+                            <td>{{ row.toBranch?.name }}</td>
+                            <td>{{ row.temporary ? 'Temporary' : 'Permanent' }}</td>
+                            <td>{{ row.expiresAt | date }}</td>
+                            <td>{{ row.approvedBy }}</td>
+                            <td>{{ row.transferDate | date }}</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+
+            </div>
+
+        </p-tabPanel>
+
+    </p-tabView>
+
+
+    <!-- =============================== -->
+    <!-- TRANSFER MODAL -->
+    <!-- =============================== -->
+    <p-dialog header="Transfer Asset"
+    [(visible)]="showTransferModal"
+    modal="true"
+    [style]="{width: '500px'}"
+    [modal]="true"
+    styleClass="transfer-modal">
+
+<div class="modal-body">
+
+  <p-floatlabel variant="on" class="full-field">
+      <p-select 
+          [options]="branches"
+          optionLabel="name"
+          optionValue="id"
+          name="toBranchId"
+          [(ngModel)]="transfer.toBranchId"></p-select>
+      <label>Transfer To</label>
+  </p-floatlabel>
+  <div class="checkbox-row">
+    <p-checkbox 
+        binary="true"
+        inputId="temp"
+        [(ngModel)]="transfer.temporary">
+    </p-checkbox>
+    <label class="p-checkbox-label" for="temp">Temporary</label>
+  </div>
+  
+  
+
+  <div class="expires-container" *ngIf="transfer.temporary">
+      <p-floatlabel variant="on" class="full-field">
+          <p-datepicker 
+              name="expiresAt" 
+              [(ngModel)]="transfer.expiresAt"
+              appendTo="body">
+          </p-datepicker>
+          <label>Expires At</label>
+      </p-floatlabel>
+  </div>
+
+  <p-floatlabel variant="on" class="full-field" style="margin-top: 10px">
+      <input pInputText name="approvedBy" [(ngModel)]="transfer.approvedBy" />
+      <label>Approved By</label>
+  </p-floatlabel>
+
+  <div class="btn-row">
+      <button pButton label="Transfer" class="green-btn success" (click)="submitTransfer()"></button>
+      <button pButton label="Cancel" class="red-btn danger" (click)="showTransferModal = false"></button>
+  </div>
+
+</div>
+
+</p-dialog>
 
 
 </div>
