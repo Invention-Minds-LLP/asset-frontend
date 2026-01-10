@@ -11,11 +11,16 @@ export class Transferr {
 
   constructor(private http: HttpClient) {}
 
-  makeTransfer(assetId: number, payload: any): Observable<any> {
-    return this.http.post(`${this.api}/${assetId}`, payload);
+  makeTransfer(payload: any): Observable<any> {
+    return this.http.post(
+      `${this.api}/assets/transfer`,
+      payload
+    );
   }
 
   getHistory(assetId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.api}/${assetId}`);
+    return this.http.get<any[]>(
+      `${this.api}/assets/${assetId}/transfer-history`
+    );
   }
 }

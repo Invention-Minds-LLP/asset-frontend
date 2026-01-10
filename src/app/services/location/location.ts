@@ -10,14 +10,26 @@ export class Location {
   private api = "http://localhost:3001/api/location";
 
   constructor(private http: HttpClient) {}
-
-  // History
   getHistory(assetId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.api}/${assetId}`);
+    return this.http.get<any[]>(
+      `${this.api}/assets/${assetId}/location/history`
+    );
   }
 
-  // Update
-  updateLocation(assetId: number, payload: any): Observable<any> {
-    return this.http.post(`${this.api}/${assetId}`, payload);
+  getCurrentLocation(assetId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.api}/assets/${assetId}/location/current`
+    );
+  }
+
+  addLocation(payload: any): Observable<any> {
+    return this.http.post<any>(this.api, payload);
+  }
+
+  updateLocation(locationId: number, payload: any): Observable<any> {
+    return this.http.put<any>(
+      `${this.api}/${locationId}`,
+      payload
+    );
   }
 }

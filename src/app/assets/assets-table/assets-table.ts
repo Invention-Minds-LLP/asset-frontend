@@ -172,6 +172,7 @@ export class AssetsTable {
       case 'warranty Expired': return 'red';
       case 'retired': return 'gray';
       case 'no Warranty': return 'lightgray';
+      case 'PENDING_COMPLETION': return 'yellow';
       default: return 'transparent';
     }
   }

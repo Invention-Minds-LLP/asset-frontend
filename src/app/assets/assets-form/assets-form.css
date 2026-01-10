@@ -88,8 +88,13 @@ input[pInputText],
 .p-inputtext,
 .p-select,
 .p-dropdown,
-.p-datepicker,
-.p-textarea {
+.p-datepicker{
+  width: 100% !important;
+  height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+.p-textarea{
   width: 100% !important;
   min-height: 42px !important;
   font-size: 14px !important;
@@ -254,6 +259,69 @@ line-height: normal;
 
 .expires-container {
   margin-top: 20px;
+}
+
+::ng-deep .custom-tabs .p-tabview-nav {
+  display: flex !important;
+  justify-content: center;
+  gap: 14px !important;
+  border: none !important;
+  background: transparent !important;
+  margin-bottom: 20px !important;
+}
+
+::ng-deep .custom-tabs .p-tab li {
+  border: none !important;
+  background: #f2f3f5 !important;
+  border-radius: 25px !important;
+  padding: 8px 22px !important;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+::ng-deep .custom-tabs .p-tabview-nav li .p-tabview-nav-link {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #555 !important;
+  font-size: 14px;
+  padding: 0 !important;
+}
+
+/* ACTIVE TAB */
+::ng-deep .custom-tabs .p-tabview-nav li.p-highlight {
+  background: #ccffe0 !important;      /* mint pill */
+}
+
+::ng-deep .custom-tabs .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  color: #0ca854 !important;           /* green text */
+  font-weight: 600 !important;
+}
+::ng-deep .p-tab{
+   border: none !important;
+   border-radius: 40px !important;
+}
+::ng-deep .p-tab-active {
+  background: #DBFFE8 !important;
+  border:none !important;
+  border-color: none !important;
+  color: #00A23D !important;
+  border-radius: 40px !important;
+}
+::ng-deep .p-tablist-tab-list{
+  gap: 20px !important;
+}
+/* Remove PrimeNG underline animation */
+::ng-deep .custom-tabs .p-tabview-nav:before {
+  display: none !important;
+}
+::ng-deep .p-datepicker {
+  height: 42px;
+  width: 100%;
+  flex: 1 1 auto;
+}
+::ng-deep .p-datepicker {
+  max-width: 100%;
 }
 
 /* ================= RESPONSIVE ================= */

@@ -37,7 +37,7 @@ export class Sidebar {
       path: '/warranty',
       dropdownItems: [
         { label: 'View', route: '/warranty/view' },
-        { label: 'New', route: '/warranty/new' },
+        // { label: 'New', route: '/warranty/new' },
       ] },
     { icon: 'pi pi-wrench', label: 'Ticket for Repair', path:'/ticket', hasDropdown: true,
       dropdownItems: [

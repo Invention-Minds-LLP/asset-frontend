@@ -95,10 +95,54 @@ export class Assets {
     formData.append("document", file);
 
     return this.http.post(
-      `${environment.apiUrl}/insurance/${insuranceId}/upload`,
+      `${environment.apiUrl}//insurance/insurance/${insuranceId}/upload`,
       formData
     );
   }
-  
+  // ------------------------------
+// DEPRECIATION API
+// ------------------------------
+addDepreciation(assetId: number, data: any): Observable<any> {
+  return this.http.post(`${environment.apiUrl}/depreciation/assets/${assetId}/depreciation`, data);
+}
+
+updateDepreciation(id: number, data: any): Observable<any> {
+  return this.http.put(`${environment.apiUrl}/depreciation/depreciation/${id}`, data);
+}
+
+calculateDepreciation(assetId: number): Observable<any> {
+  return this.http.get(`${environment.apiUrl}/depreciation/assets/${assetId}/depreciation/calc`);
+}
+
+runAnnualDepreciation(): Observable<any> {
+  return this.http.post(`${environment.apiUrl}/depreciation/depreciation/run-batch`, {});
+}
+// ------------------------------
+// INSURANCE API
+// ------------------------------
+addInsurance(data: any): Observable<any> {
+  return this.http.post(`${environment.apiUrl}/insurance/insurance`, data);
+}
+
+updateInsurance(id: number, data: any): Observable<any> {
+  return this.http.put(`${environment.apiUrl}/insurance/insurance/${id}`, data);
+}
+
+getInsuranceHistory(assetId: number): Observable<any> {
+  return this.http.get(`${environment.apiUrl}/insurance/insurance/history/${assetId}`);
+}
+
+markInsuranceExpired(): Observable<any> {
+  return this.http.post(`${environment.apiUrl}/insurance/insurance/expire`, {});
+}
+
+updateAssignment(assetId: number, payload: any) {
+  return this.http.patch(
+    `${environment.apiUrl}/assets/${assetId}/assignment`,
+    payload
+  );
+}
+
+
   
 }

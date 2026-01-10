@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule, NgForm, NgModel } from '@angular/forms';
 import { FloatLabel } from 'primeng/floatlabel';
@@ -51,12 +51,14 @@ export class WarrantyForm {
    isEditMode: boolean = false;
    selectedIsUnderWarranty: SelectOption | null = null;
    selectedAmcActive: SelectOption | null = null;
-   assetDetails: any = null;
+   @Input() assetDetails: any = null;
    isLoading = false;
    oldData: any = null;
    maintenanceHistoryList: any[] = [];
    warrantyStatus: string = '';
    warrantyStatusClass: string = '';
+
+   @Input() assetId!: string;          // ✅ REQUIRED
 
 
 
@@ -80,34 +82,54 @@ export class WarrantyForm {
       });
    }
 
+   // ngOnInit() {
+   //    const assetIdParam = this.route.snapshot.queryParamMap.get('assetId');
+   //    this.warranty.assetId = assetIdParam;
+   //    console.log('Warranty form opened for asset ID:', this.warranty.assetId);
+
+   //    const assetId = this.route.snapshot.paramMap.get('id');
+   //    console.log('Asset ID from route:', assetId);
+   //    if (assetId) {
+   //       console.log('Edit mode detected for asset:', assetId);
+   //       this.loadAsset(assetId);
+   //       this.warrantyService.getMaintenanceHistory(assetId).subscribe({
+   //          next: (data) => {
+   //             console.log('Loaded maintenance history:', data);
+   //             this.maintenanceHistoryList = data;
+   //          },
+   //          error: (err) => console.error('Failed to load maintenance history:', err),
+   //          complete: () => {
+   //             this.cdr.detectChanges();
+   //       }
+   //       });
+   //       this.isEditMode = true;
+   //    } else {
+   //       console.log('New asset mode');
+   //    }
+
+
+
+   // }
    ngOnInit() {
-      const assetIdParam = this.route.snapshot.queryParamMap.get('assetId');
-      this.warranty.assetId = assetIdParam;
-      console.log('Warranty form opened for asset ID:', this.warranty.assetId);
-
-      const assetId = this.route.snapshot.paramMap.get('id');
-      console.log('Asset ID from route:', assetId);
-      if (assetId) {
-         console.log('Edit mode detected for asset:', assetId);
-         this.loadAsset(assetId);
-         this.warrantyService.getMaintenanceHistory(assetId).subscribe({
-            next: (data) => {
-               console.log('Loaded maintenance history:', data);
-               this.maintenanceHistoryList = data;
-            },
-            error: (err) => console.error('Failed to load maintenance history:', err),
-            complete: () => {
-               this.cdr.detectChanges();
-         }
-         });
-         this.isEditMode = true;
-      } else {
-         console.log('New asset mode');
+      if (!this.assetId) {
+        console.warn("WarrantyForm loaded without assetId");
+        return;
       }
-
-
-
-   }
+  
+      console.log("Warranty loaded for assetId:", this.assetId);
+        // ✅ THIS LINE IS MISSING
+  this.warranty.assetId = this.assetId;
+      this.loadWarranty(this.assetId);
+    }
+    loadWarranty(assetId: string) {
+      this.warrantyService.getWarrantyByAssetId(assetId).subscribe({
+        next: (data) => {
+         this.mapWarrantyData(data);
+         this.isEditMode = true;
+         this.cdr.detectChanges();
+        }
+      });
+    }
    loadAsset(assetId: string) {
       this.warrantyService.getWarrantyByAssetId(assetId).subscribe({
          next: (data) => {
@@ -135,6 +157,39 @@ export class WarrantyForm {
          error: (err) => console.error('Failed to load asset:', err),
       });
    }
+
+   mapWarrantyData(data: any) {
+      this.warranty = {
+        id: data.id,
+        assetId: data.asset?.assetId ?? null,
+    
+        isUnderWarranty: data.isUnderWarranty,
+        amcActive: data.amcActive,
+    
+        warrantyStart: data.warrantyStart ? new Date(data.warrantyStart) : null,
+        warrantyEnd: data.warrantyEnd ? new Date(data.warrantyEnd) : null,
+    
+        amcVendor: data.amcVendor || '',
+        amcStart: data.amcStart ? new Date(data.amcStart) : null,
+        amcEnd: data.amcEnd ? new Date(data.amcEnd) : null,
+    
+        amcVisitsDue: data.amcVisitsDue,
+        lastServiceDate: data.lastServiceDate ? new Date(data.lastServiceDate) : null,
+        nextVisitDue: data.nextVisitDue ? new Date(data.nextVisitDue) : null
+      };
+    
+      this.selectedIsUnderWarranty =
+        this.isunderwarranty.find(o => o.value === data.isUnderWarranty) || null;
+    
+      this.selectedAmcActive =
+        this.amcactive.find(o => o.value === data.amcActive) || null;
+    
+      this.assetDetails = data.asset;
+    
+      this.warrantyStatus = this.getWarrantyStatus();
+      this.warrantyStatusClass = this.getWarrantyStatusClass();
+    }
+    
 
    getWarrantyStatus(): string {
       const { isUnderWarranty, warrantyEnd } = this.warranty;
