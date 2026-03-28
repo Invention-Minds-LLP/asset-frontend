@@ -33,7 +33,7 @@
 
 .header-card,
 .card {
-  background: #fff;
+  background: var(--surface-ground);
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);

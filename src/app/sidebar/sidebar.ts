@@ -7,11 +7,12 @@ import { FormsModule } from '@angular/forms';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { Router, RouterLink } from '@angular/router';
 import { ModuleAccessService } from '../services/module-access/module-access';
+import { TableModule } from "primeng/table";
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, ButtonModule, InputSwitchModule, PanelMenuModule, FormsModule, SelectButtonModule, RouterLink],
+  imports: [CommonModule, ButtonModule, InputSwitchModule, PanelMenuModule, FormsModule, SelectButtonModule, RouterLink, TableModule],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css'
 })
