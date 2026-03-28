@@ -1,0 +1,189 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Gate Pass Management</h2>
+      <p>Issue and track returnable / non-returnable gate passes.</p>
+    </div>
+    <p-button [label]="showForm ? 'Cancel' : 'New Gate Pass'" [icon]="showForm ? 'pi pi-times' : 'pi pi-plus'"
+      (onClick)="showForm ? reset() : (showForm = true)" />
+  </div>
+
+  <!-- Form -->
+  <div class="form-card" *ngIf="showForm">
+    <h3>{{ editingId ? 'Edit Gate Pass' : 'New Gate Pass' }}</h3>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="typeOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.type" name="type" appendTo="body" />
+          <label>Type *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="assetOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.assetId" name="assetId" appendTo="body" [filter]="true"
+             [showClear]="true" />
+          <label>Asset (optional)</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.issuedTo" name="issuedTo" />
+          <label>Issued To *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.purpose" name="purpose" />
+          <label>Purpose *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.quantity" name="quantity" />
+          <label>Quantity</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field" *ngIf="form.type === 'RETURNABLE'">
+        <p-floatlabel variant="on">
+          <input pInputText type="date" [(ngModel)]="form.expectedReturnDate" name="expectedReturnDate" />
+          <label>Expected Return Date</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.approvedBy" name="approvedBy" />
+          <label>Approved By</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.issuedBy" name="issuedBy" />
+          <label>Issued By</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.vehicleNo" name="vehicleNo" />
+          <label>Vehicle No</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.courierDetails" name="courierDetails" />
+          <label>Courier Details</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <textarea pTextarea [(ngModel)]="form.description" name="description" rows="2"></textarea>
+          <label>Description</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <textarea pTextarea [(ngModel)]="form.reason" name="reason" rows="2"></textarea>
+          <label>Reason</label>
+        </p-floatlabel>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="reset()" />
+      <p-button [label]="editingId ? 'Update' : 'Create'" icon="pi pi-save" (onClick)="save()" />
+    </div>
+  </div>
+
+  <p-tabView class="custom-tabs">
+
+    <!-- All Gate Passes -->
+    <p-tabPanel header="All Gate Passes">
+      <p-table [value]="rows" [loading]="loading" [paginator]="true" [rows]="10"
+        responsiveLayout="scroll" styleClass="p-datatable-sm" [globalFilterFields]="['gatePassNo','issuedTo','purpose']">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Gate Pass No</th>
+            <th>Type</th>
+            <th>Issued To</th>
+            <th>Purpose</th>
+            <th>Asset</th>
+            <th>Expected Return</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td><strong>{{ row.gatePassNo }}</strong></td>
+            <td><p-tag [value]="row.type" /></td>
+            <td>{{ row.issuedTo }}</td>
+            <td>{{ row.purpose }}</td>
+            <td>{{ row.asset?.assetName || '—' }}</td>
+            <td>{{ row.expectedReturnDate ? (row.expectedReturnDate | date:'dd MMM yyyy') : '—' }}</td>
+            <td><p-tag [value]="row.status" [severity]="getStatusSeverity(row.status)" /></td>
+            <td>
+              <div class="action-buttons">
+                <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="edit(row)" pTooltip="Edit" />
+                <p-button *ngIf="row.status === 'ISSUED'" icon="pi pi-undo" size="small" severity="success"
+                  (onClick)="updateStatus(row, 'RETURNED')" pTooltip="Mark Returned" />
+                <p-button *ngIf="row.status === 'ISSUED'" icon="pi pi-times-circle" size="small" severity="warn"
+                  (onClick)="updateStatus(row, 'CANCELLED')" pTooltip="Cancel" />
+                <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="delete(row)" pTooltip="Delete" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="8" class="text-center">No gate passes found</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+    <!-- Overdue -->
+    <p-tabPanel [header]="'Overdue (' + overdueRows.length + ')'">
+      <p-table [value]="overdueRows" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Gate Pass No</th>
+            <th>Issued To</th>
+            <th>Purpose</th>
+            <th>Expected Return</th>
+            <th>Asset</th>
+            <th>Action</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr class="overdue-row">
+            <td><strong>{{ row.gatePassNo }}</strong></td>
+            <td>{{ row.issuedTo }}</td>
+            <td>{{ row.purpose }}</td>
+            <td class="text-danger">{{ row.expectedReturnDate | date:'dd MMM yyyy' }}</td>
+            <td>{{ row.asset?.assetName || '—' }}</td>
+            <td>
+              <p-button label="Mark Returned" size="small" severity="success"
+                (onClick)="updateStatus(row, 'RETURNED')" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="text-center">No overdue gate passes</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+  </p-tabView>
+</div>

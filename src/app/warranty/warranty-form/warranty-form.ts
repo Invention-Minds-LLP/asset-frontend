@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { InputTextModule } from 'primeng/inputtext';
-import { FormsModule, NgForm, NgModel } from '@angular/forms';
+import { FormsModule, NgForm, NgModel, Validators } from '@angular/forms';
 import { FloatLabel } from 'primeng/floatlabel';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -17,6 +17,13 @@ import { MessageService } from 'primeng/api'; // Import MessageService for notif
 import { ToastModule } from 'primeng/toast';
 import { DividerModule } from 'primeng/divider';
 import { TableModule } from 'primeng/table';
+import { ServiceContract } from '../../services/service-contract/service-contract';
+import { MaintenanceHistory } from '../../services/maintenance-history/maintenance-history';
+import { TabViewModule } from 'primeng/tabview';
+import { MessageModule } from 'primeng/message';
+import { TextareaModule } from 'primeng/textarea';
+import { SimpleChanges } from '@angular/core';
+import { Assets } from '../../services/assets/assets';
 
 
 interface SelectOption {
@@ -28,376 +35,557 @@ interface SelectOption {
 @Component({
    selector: 'app-warranty-form',
    imports: [FormsModule, InputTextModule, FloatLabel, ReactiveFormsModule, ButtonModule, DatePicker, CommonModule,
-      CalendarModule, SelectModule, ToastModule, DragAndDrop, DividerModule, TableModule],
+      CalendarModule, SelectModule, ToastModule, DragAndDrop, DividerModule, TableModule, TabViewModule, MessageModule,
+      TextareaModule,],
    templateUrl: './warranty-form.html',
    styleUrl: './warranty-form.css'
 })
 export class WarrantyForm {
-   form: FormGroup;
-   warranty = {
-      id: null as number | null, // Ensure id is a string or null
-      isUnderWarranty: null as boolean | null,
-      amcActive: null as boolean | null,
-      warrantyStart: null as Date | null,
-      warrantyEnd: null as Date | null,
-      amcVendor: '',
-      amcStart: null as Date | null,
-      amcEnd: null as Date | null,
-      amcVisitsDue: null as number | null,
-      lastServiceDate: null as Date | null,
-      nextVisitDue: null as Date | null,
-      assetId: '' as string | null
-   };
-   isEditMode: boolean = false;
-   selectedIsUnderWarranty: SelectOption | null = null;
-   selectedAmcActive: SelectOption | null = null;
-   @Input() assetDetails: any = null;
+   @Input() assetId!: string; // ✅ alphanumeric Asset.assetId from parent
+
    isLoading = false;
-   oldData: any = null;
-   maintenanceHistoryList: any[] = [];
-   warrantyStatus: string = '';
-   warrantyStatusClass: string = '';
 
-   @Input() assetId!: string;          // ✅ REQUIRED
-
-
-
-   isunderwarranty: SelectOption[] = [
-      { name: 'Yes', value: true },
-      { name: 'No', value: false }
+   yesNoOptions = [
+      { label: 'Yes', value: true },
+      { label: 'No', value: false },
    ];
 
-   amcactive: SelectOption[] = [
-      { name: 'Active', value: true },
-      { name: 'Inactive', value: false }
+   contractTypeOptions = [
+      { label: 'AMC', value: 'AMC' },
+      { label: 'CMC', value: 'CMC' },
    ];
 
+   warranty: any = {
+      id: null,
+      isUnderWarranty: null,
+      warrantyStart: null,
+      warrantyEnd: null,
+      warrantyType: null,
+      warrantyProvider: '',
+      vendorId: null,
+      warrantyReference: '',
+      coverageDetails: '',
+      exclusions: '',
+      supportContact: '',
+      supportEmail: '',
+      termsUrl: '',
+      remarks: '',
+   };
 
-   constructor(private route: ActivatedRoute, private warrantyService: Warranty, private cdr: ChangeDetectorRef, private messageService: MessageService, private fb: FormBuilder) {
-      this.form = this.fb.group({
-         serviceDate: [null],
-         performedBy: [''],
-         remarks: [''],
-         reportFile: [null]
-      });
+   warrantyStatus = '';
+
+   contracts: any[] = [];
+   warrantyHistory: any[] = [];
+   contractForm: any = {
+      id: null,
+      contractType: null,
+      startDate: null,
+      endDate: null,
+      vendorId: null,
+      contractNumber: '',
+      visitsPerYear: null,
+      cost: null,
+      currency: 'INR',
+      terms: '',
+      includesParts: false,
+      includesLabor: true,
+      document: null,
+   };
+   contractFile: File | null = null;
+
+   vendors: any[] = [];
+   vendorOptions: { label: string; value: number }[] = [];
+
+   maintenanceHistory: any[] = [];
+   serviceForm!: FormGroup;
+   selectedFile: File | null = null;
+
+   contractSelectOptions: { label: string; value: number }[] = [];
+   performedByTypeOptions = [
+      { label: 'Vendor', value: 'VENDOR' },
+      { label: 'Internal Staff', value: 'INTERNAL' },
+   ];
+   yesNoTriOptions = [
+      { label: 'Yes', value: true },
+      { label: 'No', value: false },
+   ];
+
+   warrantyTypeOptions = [
+      { label: 'REPLACEMENT', value: 'REPLACEMENT' },
+      { label: 'SERVICE', value: 'SERVICE' },
+   ];
+   isRenewMode = false;
+
+   constructor(
+      private fb: FormBuilder,
+      private msg: MessageService,
+      private warrantyApi: Warranty,
+      private contractApi: ServiceContract,
+      private maintenanceApi: MaintenanceHistory,
+      private assetApi: Assets,
+      private cdr: ChangeDetectorRef
+   ) { }
+
+   ngOnChanges(changes: SimpleChanges): void {
+      if (changes['assetId']?.currentValue) {
+         this.loadAll();
+      }
    }
 
-   // ngOnInit() {
-   //    const assetIdParam = this.route.snapshot.queryParamMap.get('assetId');
-   //    this.warranty.assetId = assetIdParam;
-   //    console.log('Warranty form opened for asset ID:', this.warranty.assetId);
+   ngOnInit(): void {
+      if (!this.assetId) return;
 
-   //    const assetId = this.route.snapshot.paramMap.get('id');
-   //    console.log('Asset ID from route:', assetId);
-   //    if (assetId) {
-   //       console.log('Edit mode detected for asset:', assetId);
-   //       this.loadAsset(assetId);
-   //       this.warrantyService.getMaintenanceHistory(assetId).subscribe({
-   //          next: (data) => {
-   //             console.log('Loaded maintenance history:', data);
-   //             this.maintenanceHistoryList = data;
-   //          },
-   //          error: (err) => console.error('Failed to load maintenance history:', err),
-   //          complete: () => {
-   //             this.cdr.detectChanges();
-   //       }
-   //       });
-   //       this.isEditMode = true;
-   //    } else {
-   //       console.log('New asset mode');
-   //    }
-
-
-
-   // }
-   ngOnInit() {
-      if (!this.assetId) {
-        console.warn("WarrantyForm loaded without assetId");
-        return;
-      }
-  
-      console.log("Warranty loaded for assetId:", this.assetId);
-        // ✅ THIS LINE IS MISSING
-  this.warranty.assetId = this.assetId;
-      this.loadWarranty(this.assetId);
-    }
-    loadWarranty(assetId: string) {
-      this.warrantyService.getWarrantyByAssetId(assetId).subscribe({
-        next: (data) => {
-         this.mapWarrantyData(data);
-         this.isEditMode = true;
-         this.cdr.detectChanges();
-        }
+      this.serviceForm = this.fb.group({
+         scheduledDue: [null],
+         actualDoneAt: [null, Validators.required],
+         performedByType: ['VENDOR', Validators.required],
+         performedById: [null],
+         performedByName: [''],
+         notes: [''],
+         serviceContractId: [null], // optional 
       });
-    }
-   loadAsset(assetId: string) {
-      this.warrantyService.getWarrantyByAssetId(assetId).subscribe({
-         next: (data) => {
-            console.log('Loaded asset data:', data);
-            this.warranty = { ...data, assetId: assetId };
-            this.oldData = data
-            this.selectedIsUnderWarranty = this.isunderwarranty.find(opt => opt.value === this.warranty.isUnderWarranty) || null;
-            this.selectedAmcActive = this.amcactive.find(opt => opt.value === this.warranty.amcActive) || null;
-            this.warranty.amcVendor = this.warranty.amcVendor || '';
-            this.warranty.amcStart = this.warranty.amcStart ? new Date(this.warranty.amcStart) : new Date();
-            this.warranty.amcEnd = this.warranty.amcEnd ? new Date(this.warranty.amcEnd) : new Date();
-            this.warranty.amcVisitsDue = this.warranty.amcVisitsDue ?? null;
-            this.warranty.lastServiceDate = this.warranty.lastServiceDate ? new Date(this.warranty.lastServiceDate) : new Date();
-            this.warranty.nextVisitDue = this.warranty.nextVisitDue ? new Date(this.warranty.nextVisitDue) : new Date();
-            this.warranty.warrantyStart = this.warranty.warrantyStart ? new Date(this.warranty.warrantyStart) : new Date();
-            this.warranty.warrantyEnd = this.warranty.warrantyEnd ? new Date(this.warranty.warrantyEnd) : new Date();
-            this.assetDetails = data.asset || null;
-            this.warrantyStatus = this.getWarrantyStatus();
-            this.warrantyStatusClass = this.getWarrantyStatusClass();
-            console.log('Asset details loaded:', this.assetDetails);
-            // console.log('Warranty data after loading:', this.warranty, this.selectedAmcActive, this.selectedIsUnderWarranty);
-            this.cdr.detectChanges();
 
+      // this.loadAll();
+   }
+
+   loadVendors() {
+      this.assetApi.getVendors().subscribe({
+         next: (list) => {
+            this.vendors = list || [];
+            this.vendorOptions = this.vendors.map(v => ({
+               label: v.name,
+               value: v.id
+            }));
          },
-         error: (err) => console.error('Failed to load asset:', err),
+         error: () => {
+            this.vendors = [];
+            this.vendorOptions = [];
+         }
       });
    }
 
-   mapWarrantyData(data: any) {
-      this.warranty = {
-        id: data.id,
-        assetId: data.asset?.assetId ?? null,
-    
-        isUnderWarranty: data.isUnderWarranty,
-        amcActive: data.amcActive,
-    
-        warrantyStart: data.warrantyStart ? new Date(data.warrantyStart) : null,
-        warrantyEnd: data.warrantyEnd ? new Date(data.warrantyEnd) : null,
-    
-        amcVendor: data.amcVendor || '',
-        amcStart: data.amcStart ? new Date(data.amcStart) : null,
-        amcEnd: data.amcEnd ? new Date(data.amcEnd) : null,
-    
-        amcVisitsDue: data.amcVisitsDue,
-        lastServiceDate: data.lastServiceDate ? new Date(data.lastServiceDate) : null,
-        nextVisitDue: data.nextVisitDue ? new Date(data.nextVisitDue) : null
-      };
-    
-      this.selectedIsUnderWarranty =
-        this.isunderwarranty.find(o => o.value === data.isUnderWarranty) || null;
-    
-      this.selectedAmcActive =
-        this.amcactive.find(o => o.value === data.amcActive) || null;
-    
-      this.assetDetails = data.asset;
-    
-      this.warrantyStatus = this.getWarrantyStatus();
-      this.warrantyStatusClass = this.getWarrantyStatusClass();
-    }
-    
+   async loadAll() {
+      this.loadWarranty();
+      this.loadWarrantyHistory();
+      this.loadContracts();
+      this.loadMaintenance();
+      this.loadVendors();
 
-   getWarrantyStatus(): string {
-      const { isUnderWarranty, warrantyEnd } = this.warranty;
-    
-      if (!isUnderWarranty) {
-        return 'No Warranty';
-      }
-    
-      if (!warrantyEnd) {
-        return 'Unknown';
-      }
-    
+
+   }
+   fmt(d: any) {
+      return d ? new Date(d).toLocaleDateString() : '-';
+   }
+
+   loadWarranty() {
+      this.warrantyApi.getWarrantyByAssetId(this.assetId).subscribe({
+         next: (w) => {
+            setTimeout(() => {
+               this.warranty = {
+                  id: w.id,
+                  isUnderWarranty: w.isUnderWarranty === true || w.isUnderWarranty === 'true' || w.isUnderWarranty === 1,
+                  warrantyStart: w.warrantyStart ? new Date(w.warrantyStart) : null,
+                  warrantyEnd: w.warrantyEnd ? new Date(w.warrantyEnd) : null,
+                  warrantyType: w.warrantyType || null,
+                  warrantyProvider: w.warrantyProvider || '',
+                  vendorId: w.vendorId ?? null,
+                  warrantyReference: w.warrantyReference || '',
+                  coverageDetails: w.coverageDetails || '',
+                  exclusions: w.exclusions || '',
+                  supportContact: w.supportContact || '',
+                  supportEmail: w.supportEmail || '',
+                  termsUrl: w.termsUrl || '',
+                  remarks: w.remarks || '',
+               };
+               this.warrantyStatus = this.computeWarrantyStatus();
+               this.cdr.detectChanges();
+            });
+         },
+         error: () => {
+            this.warrantyStatus = '';
+         }
+      });
+   }
+
+   computeWarrantyStatus(): string {
+      if (!this.warranty.isUnderWarranty) return 'No Warranty';
+
+      if (!this.warranty.warrantyEnd) return 'Unknown';
+
       const today = new Date();
-      const endDate = new Date(warrantyEnd);
-      const diffInTime = endDate.getTime() - today.getTime();
-      const diffInDays = Math.ceil(diffInTime / (1000 * 3600 * 24));
-    
-      if (diffInDays < 0) {
-        return 'Expired';
-      } else if (diffInDays <= 15) {
-        return 'Expiring Soon';
-      } else {
-        return 'Active';
-      }
-    }
+      const end = new Date(this.warranty.warrantyEnd);
+      const diffDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 3600 * 24));
 
-    getWarrantyStatusClass(): string {
-      const status = this.getWarrantyStatus(); // From previous response
-    
-      switch (status) {
-        case 'Active':
-          return 'border-active';
-        case 'Expiring Soon':
-          return 'border-expiring';
-        case 'Expired':
-          return 'border-expired';
-        default:
-          return 'border-none';
-      }
-    }
-    
-
-   onSubmit(form: NgForm) {
-      if (form.valid) {
-         this.isLoading = true; // Set loading state to true
-         const maintenanceData = this.form.value;
-         const isMaintenanceFilled =
-            maintenanceData.serviceDate ||
-            maintenanceData.performedBy?.trim() ||
-            maintenanceData.remarks?.trim() ||
-            maintenanceData.reportFile;
-
-         const saveMaintenance = () => {
-            if (isMaintenanceFilled) {
-               maintenanceData.assetId = this.warranty.assetId;
-               this.saveMaintenanceHistory();
-            }
-         };
-         if (this.isEditMode) {
-            const { id, ...warrantyData } = this.warranty; // Destructure to get id and rest of the data
-            if (id !== null && id !== undefined) {
-               this.warrantyService.updateWarranty(id, warrantyData).subscribe({
-                  next: (response) => {
-                     saveMaintenance()
-                     console.log('Warranty updated:', response);
-                     alert('Warranty updated successfully!');
-                  },
-                  error: (error) => {
-                     console.error('Failed to update warranty:', error);
-                     alert('Failed to update warranty.');
-                  },
-
-                  complete: () => {
-                     this.isLoading = false;
-                     this.cdr.detectChanges();
-                  }
-               });
-            } else {
-               this.isLoading = false; // Reset loading state
-               console.error('Cannot update: Warranty ID is null or undefined.');
-               alert('Invalid warranty ID. Cannot update.');
-            }
-         }
-         else {
-            console.log('Form submitted:', this.warranty);
-            this.warranty.isUnderWarranty = this.selectedIsUnderWarranty?.value ?? null;
-            this.warranty.amcActive = this.selectedAmcActive?.value ?? null;
-
-            console.log('Form payload to send:', this.warranty);
-            this.warrantyService.createWarranty(this.warranty).subscribe({
-               next: (response) => {
-                  console.log('Warranty saved:', response);
-                  saveMaintenance();
-                  alert('Warranty & AMC saved successfully!');
-                  form.resetForm();
-               },
-               error: (error) => {
-                  console.error('Failed to save warranty:', error);
-                  alert('Failed to save warranty.');
-               },
-
-               complete: () => {
-                  this.isLoading = false;
-                  this.cdr.detectChanges();
-               }
-            });
-         }
-      }
+      if (diffDays < 0) return 'Expired';
+      if (diffDays <= 15) return 'Expiring Soon';
+      return 'Active';
    }
+   saveWarranty(form: any) {
+      if (!form.valid) return;
 
+      const payload = {
+         assetId: this.assetId,
+         isUnderWarranty: this.warranty.isUnderWarranty,
+         warrantyStart: this.warranty.isUnderWarranty ? this.warranty.warrantyStart : null,
+         warrantyEnd: this.warranty.isUnderWarranty ? this.warranty.warrantyEnd : null,
 
-   invaild(control: NgModel) {
-      return control.invalid && (control.dirty || control.touched);
-   }
-
-   showError(control: NgModel) {
-      return this.invaild(control);
-   }
-
-   onClear() {
-      this.warranty = {
-         id: null,
-         isUnderWarranty: null,
-         amcActive: null,
-         warrantyStart: null,
-         warrantyEnd: null,
-         amcVendor: '',
-         amcStart: null,
-         amcEnd: null,
-         amcVisitsDue: null,
-         lastServiceDate: null,
-         nextVisitDue: null,
-         assetId: null
-      }
-   }
-
-   calculateNextVisitDue(): void {
-      console.log('Calculating next visit due date...', this.warranty.lastServiceDate, this.warranty.amcVisitsDue);
-      if (this.form.value.serviceDate && this.warranty.amcVisitsDue) {
-         const last = new Date(this.form.value.serviceDate);
-         const next = new Date(last.setMonth(last.getMonth() + this.warranty.amcVisitsDue));
-         console.log('Calculated next visit due date:', next);
-         this.warranty.nextVisitDue = next;
-         // Check if next visit exceeds AMC End
-         if (this.warranty.amcEnd && new Date(this.warranty.amcEnd) < next) {
-            this.messageService.add({
-               severity: 'warn',
-               summary: 'Warning',
-               detail: 'Next visit due exceeds AMC End Date!',
-               life: 4000
-            });
-         }
-      } else {
-         this.warranty.nextVisitDue = null;
-      }
-   }
-   saveMaintenanceHistory() {
-      const scheduledDue = this.oldData.nextVisitDue;
-      const actualDoneAt = this.form.value.serviceDate;
-
-      // ✅ Determine if it's late
-      const wasLate = actualDoneAt && scheduledDue && new Date(actualDoneAt) > new Date(scheduledDue);
-
-      const formData = new FormData();
-      formData.append('assetId', this.assetDetails.id ?? '');
-      formData.append('scheduledDue', new Date(scheduledDue ?? new Date()).toISOString());
-      formData.append('actualDoneAt', new Date(actualDoneAt).toISOString());
-      formData.append('wasLate', wasLate.toString());
-      formData.append('performedBy', this.form.value.performedBy);
-      formData.append('notes', this.form.value.remarks || '');
-
-      if (this.selectedReportFiles && this.selectedReportFiles.length > 0) {
-         formData.append('file', this.selectedReportFiles[0]);
-      }
+         warrantyType: this.warranty.warrantyType || null,
+         warrantyProvider: this.warranty.warrantyProvider || null,
+         vendorId: this.warranty.vendorId ? Number(this.warranty.vendorId) : null,
+         warrantyReference: this.warranty.warrantyReference || null,
+         coverageDetails: this.warranty.coverageDetails || null,
+         exclusions: this.warranty.exclusions || null,
+         supportContact: this.warranty.supportContact || null,
+         supportEmail: this.warranty.supportEmail || null,
+         termsUrl: this.warranty.termsUrl || null,
+         remarks: this.warranty.remarks || null,
+      };
 
       this.isLoading = true;
 
-      this.warrantyService.saveMaintenanceHistoryWithFile(formData).subscribe({
+      const obs = this.warranty.id
+         ? this.warrantyApi.updateWarranty(this.warranty.id, payload)
+         : this.warrantyApi.createWarranty(payload);
+
+      obs.subscribe({
          next: () => {
-            this.messageService.add({
-               severity: 'success',
-               summary: 'Success',
-               detail: 'Maintenance history saved'
-            });
-            this.form.reset();
-            this.selectedReportFiles = [];
+            this.msg.add({ severity: 'success', summary: 'Saved', detail: 'Warranty saved' });
+            this.loadWarranty();
+            this.isLoading = false;
          },
          error: (err) => {
-            console.error('Error saving maintenance:', err);
-            this.messageService.add({
+            this.msg.add({ severity: 'error', summary: 'Failed', detail: err?.error?.message || 'Warranty save failed' });
+            this.isLoading = false;
+         },
+         complete: () => (this.isLoading = false),
+      });
+   }
+
+   loadContracts() {
+      this.contractApi.getByAssetId(this.assetId).subscribe({
+         next: (list) => {
+            this.contracts = list || [];
+            this.contractSelectOptions = this.contracts.map(c => ({
+               label: `${c.contractType} (${new Date(c.startDate).toLocaleDateString()} - ${new Date(c.endDate).toLocaleDateString()})`,
+               value: c.id
+            }));
+         },
+         error: () => (this.contracts = []),
+      });
+   }
+
+   // createContract(form: any) {
+   //    if (!form.valid) return;
+
+   //    const payload = {
+   //       assetId: this.assetId,
+   //       contractType: this.contractForm.contractType,
+   //       startDate: this.contractForm.startDate,
+   //       endDate: this.contractForm.endDate,
+   //       vendorId: this.contractForm.vendorId ? Number(this.contractForm.vendorId) : null,
+   //       contractNumber: this.contractForm.contractNumber || null,
+   //       visitsPerYear: this.contractForm.visitsPerYear ? Number(this.contractForm.visitsPerYear) : null,
+   //       cost: this.contractForm.cost ? Number(this.contractForm.cost) : null,
+   //       currency: this.contractForm.currency || null,
+   //       terms: this.contractForm.terms || null,
+   //       includesParts: this.contractForm.includesParts ?? null,
+   //       includesLabor: this.contractForm.includesLabor ?? null,
+   //    };
+
+   //    this.isLoading = true;
+   //    this.contractApi.create(payload).subscribe({
+   //       next: () => {
+   //          this.msg.add({ severity: 'success', summary: 'Created', detail: 'Contract created' });
+   //          if (this.contractFile) {
+   //             this.contractApi.uploadDocument(this.assetId, this.contractFile).subscribe({
+   //                next: (r) => {
+   //                   this.msg.add({ severity: 'success', summary: 'Uploaded', detail: 'Uploaded successfully' });
+   //                   this.isLoading = false;
+   //                },
+   //                error: (err) => {
+   //                   this.isLoading = false;
+   //                   this.msg.add({ severity: 'error', summary: 'Upload failed', detail: err?.error?.error || 'Contract doc upload failed' });
+   //                }
+   //             });
+   //          }
+   //          form.resetForm();
+   //          this.contractForm.currency = 'INR';
+   //          this.loadContracts();
+   //       },
+   //       error: (err) => {
+   //          this.msg.add({ severity: 'error', summary: 'Failed', detail: err?.error?.message || 'Contract create failed' });
+   //          this.isLoading = false;
+   //       },
+   //       complete: () => (this.isLoading = false),
+   //    });
+   // }
+   saveContract(form: any) {
+      if (!form.valid) return;
+
+      const payload = {
+         assetId: this.assetId,
+         contractType: this.contractForm.contractType,
+         startDate: this.contractForm.startDate,
+         endDate: this.contractForm.endDate,
+         vendorId: this.contractForm.vendorId ? Number(this.contractForm.vendorId) : null,
+         contractNumber: this.contractForm.contractNumber || null,
+         visitsPerYear: this.contractForm.visitsPerYear ? Number(this.contractForm.visitsPerYear) : null,
+         cost: this.contractForm.cost ? Number(this.contractForm.cost) : null,
+         currency: this.contractForm.currency || null,
+         terms: this.contractForm.terms || null,
+         includesParts: this.contractForm.includesParts ?? null,
+         includesLabor: this.contractForm.includesLabor ?? null,
+         status: this.contractForm.status || null,
+         reason: this.contractForm.reason || null,
+         createdBy: this.contractForm.createdBy || null,
+      };
+
+      this.isLoading = true;
+
+      const request$ = this.contractForm.id
+         ? this.contractApi.update(this.contractForm.id, payload)
+         : this.contractApi.create(payload);
+
+      request$.subscribe({
+         next: (savedContract: any) => {
+            const contractId = this.contractForm.id || savedContract?.id;
+
+            if (this.contractFile && contractId) {
+               this.contractApi.uploadDocument(contractId, this.contractFile).subscribe({
+                  next: () => {
+                     this.msg.add({
+                        severity: 'success',
+                        summary: 'Success',
+                        detail: this.contractForm.id ? 'Contract updated' : 'Contract created'
+                     });
+                     this.loadContracts();
+                     this.resetContractForm(form);
+                     this.isLoading = false;
+                  },
+                  error: (err) => {
+                     this.msg.add({
+                        severity: 'error',
+                        summary: 'Upload failed',
+                        detail: err?.error?.message || 'Document upload failed'
+                     });
+                     this.isLoading = false;
+                  }
+               });
+            } else {
+               this.msg.add({
+                  severity: 'success',
+                  summary: 'Success',
+                  detail: this.contractForm.id ? 'Contract updated' : 'Contract created'
+               });
+               this.loadContracts();
+               this.resetContractForm(form);
+               this.isLoading = false;
+            }
+         },
+         error: (err) => {
+            this.msg.add({
                severity: 'error',
                summary: 'Failed',
-               detail: 'Could not save maintenance record'
+               detail: err?.error?.message || 'Contract save failed'
             });
-         },
-         complete: () => {
             this.isLoading = false;
-            this.cdr.detectChanges();
          }
       });
    }
 
-   selectedReportFiles: File[] = [];
+   resetContractForm(form?: any) {
+      if (form) {
+         form.resetForm();
+      }
 
-   onFilesSelected(files: File[]) {
-      this.selectedReportFiles = files;
-      console.log('Selected files:', files);
-      this.form.patchValue({ reportFile: files[0] }); // If you want to bind the first file
+      this.contractForm = {
+         id: null,
+         contractType: null,
+         startDate: null,
+         endDate: null,
+         vendorId: null,
+         contractNumber: '',
+         visitsPerYear: null,
+         cost: null,
+         currency: 'INR',
+         terms: '',
+         includesParts: false,
+         includesLabor: true,
+         document: null,
+         status: 'ACTIVE',
+         reason: '',
+         createdBy: '',
+      };
+
+      this.contractFile = null;
    }
 
+   loadMaintenance() {
+      this.maintenanceApi.getByAssetId(this.assetId).subscribe({
+         next: (h) => (this.maintenanceHistory = h || []),
+         error: () => (this.maintenanceHistory = []),
+      });
+   }
+
+   onFileChange(event: any) {
+      const file = event.target?.files?.[0];
+      this.selectedFile = file || null;
+   }
+
+   uploadServiceReport() {
+      if (this.serviceForm.invalid) return;
+
+      const v = this.serviceForm.value;
+
+      let performedBy = '';
+      if (v.performedByType === 'VENDOR') {
+         const vendor = this.vendors.find(x => x.id === v.performedById);
+         performedBy = vendor?.name || '';
+      } else {
+         performedBy = (v.performedByName || '').trim();
+      }
+
+      if (!performedBy) {
+         this.msg.add({ severity: 'warn', summary: 'Required', detail: 'Performed By is required' });
+         return;
+      }
+
+      const formData = new FormData();
+      formData.append('assetId', this.assetId); // ✅ string assetId
+      formData.append('scheduledDue', v.scheduledDue ? new Date(v.scheduledDue).toISOString() : new Date().toISOString());
+      formData.append('actualDoneAt', new Date(v.actualDoneAt).toISOString());
+      formData.append('performedBy', performedBy);
+      formData.append('notes', v.notes || '');
+      formData.append('wasLate', 'false'); // backend can compute too if you want
+
+      if (v.serviceContractId) {
+         formData.append('serviceContractId', String(v.serviceContractId)); // ✅ if backend accepts it
+      }
+
+      if (this.selectedFile) {
+         formData.append('file', this.selectedFile);
+      }
+
+      this.isLoading = true;
+      this.maintenanceApi.uploadReport(formData).subscribe({
+         next: () => {
+            this.msg.add({ severity: 'success', summary: 'Uploaded', detail: 'Service report saved' });
+            this.serviceForm.reset();
+            this.selectedFile = null;
+            this.loadMaintenance();
+            this.isLoading = false;
+         },
+         error: (err) => {
+            this.msg.add({ severity: 'error', summary: 'Failed', detail: err?.error?.error || 'Upload failed' });
+            this.isLoading = false;
+         },
+         complete: () => (this.isLoading = false),
+      });
+   }
+   onContractFileChange(event: any) {
+      const file = event.target?.files?.[0];
+      this.contractFile = file || null;
+   }
+   editContract(c: any) {
+      this.contractForm = {
+         id: c.id,
+         contractType: c.contractType || null,
+         startDate: c.startDate ? new Date(c.startDate) : null,
+         endDate: c.endDate ? new Date(c.endDate) : null,
+         vendorId: c.vendorId ?? null,
+         contractNumber: c.contractNumber || '',
+         visitsPerYear: c.visitsPerYear ?? null,
+         cost: c.cost ?? null,
+         currency: c.currency || 'INR',
+         terms: c.terms || '',
+         includesParts: c.includesParts ?? false,
+         includesLabor: c.includesLabor ?? true,
+         document: c.document || null,
+         status: c.status || 'ACTIVE',
+         reason: c.reason || '',
+         createdBy: c.createdBy || '',
+      };
+
+      this.contractFile = null;
+   }
+   renewWarranty(form: any) {
+      if (!form.valid) return;
+
+      const payload = {
+         isUnderWarranty: this.warranty.isUnderWarranty,
+         warrantyStart: this.warranty.isUnderWarranty ? this.warranty.warrantyStart : null,
+         warrantyEnd: this.warranty.isUnderWarranty ? this.warranty.warrantyEnd : null,
+         warrantyType: this.warranty.warrantyType || null,
+         warrantyProvider: this.warranty.warrantyProvider || null,
+         vendorId: this.warranty.vendorId ? Number(this.warranty.vendorId) : null,
+         warrantyReference: this.warranty.warrantyReference || null,
+         coverageDetails: this.warranty.coverageDetails || null,
+         exclusions: this.warranty.exclusions || null,
+         supportContact: this.warranty.supportContact || null,
+         supportEmail: this.warranty.supportEmail || null,
+         termsUrl: this.warranty.termsUrl || null,
+         remarks: this.warranty.remarks || null,
+      };
+
+      this.isLoading = true;
+
+      this.warrantyApi.renewWarranty(this.assetId, payload).subscribe({
+         next: () => {
+            this.msg.add({
+               severity: 'success',
+               summary: 'Renewed',
+               detail: 'Warranty renewed successfully'
+            });
+            this.isRenewMode = false;
+            this.loadWarranty();
+            this.loadWarrantyHistory();
+            this.isLoading = false;
+         },
+         error: (err) => {
+            this.msg.add({
+               severity: 'error',
+               summary: 'Failed',
+               detail: err?.error?.message || 'Warranty renewal failed'
+            });
+            this.isLoading = false;
+         }
+      });
+   }
+   loadWarrantyHistory() {
+      this.warrantyApi.getWarrantyHistoryByAssetId(this.assetId).subscribe({
+         next: (rows) => {
+            this.warrantyHistory = rows || [];
+         },
+         error: () => {
+            this.warrantyHistory = [];
+         }
+      });
+   }
+   startRenewal() {
+      this.isRenewMode = true;
+
+      this.warranty = {
+         ...this.warranty,
+         id: this.warranty.id, // keep old active warranty id reference in UI if needed
+         isUnderWarranty: true,
+         warrantyStart: null,
+         warrantyEnd: null,
+         warrantyType: null,
+         warrantyProvider: '',
+         vendorId: null,
+         warrantyReference: '',
+         coverageDetails: '',
+         exclusions: '',
+         supportContact: '',
+         supportEmail: '',
+         termsUrl: '',
+         remarks: '',
+      };
+
+      this.warrantyStatus = '';
+   }
+   cancelRenewal() {
+      this.isRenewMode = false;
+      this.loadWarranty();
+   }
 }

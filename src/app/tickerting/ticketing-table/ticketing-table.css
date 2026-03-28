@@ -163,6 +163,67 @@
     font-size: 14px;
 }
 
+::ng-deep .custom-tabs .p-tabview-nav {
+  display: flex !important;
+  justify-content: center;
+  gap: 14px !important;
+  border: none !important;
+  background: transparent !important;
+  margin-bottom: 20px !important;
+}
+
+::ng-deep .custom-tabs .p-tab li {
+  border: none !important;
+  background: #f2f3f5 !important;
+  border-radius: 25px !important;
+  padding: 8px 22px !important;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+::ng-deep .custom-tabs .p-tabview-nav li .p-tabview-nav-link {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #555 !important;
+  font-size: 14px;
+  padding: 0 !important;
+}
+
+/* ACTIVE TAB */
+::ng-deep .custom-tabs .p-tabview-nav li.p-highlight {
+  background: #ccffe0 !important;      /* mint pill */
+}
+
+::ng-deep .custom-tabs .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  color: #0ca854 !important;           /* green text */
+  font-weight: 600 !important;
+}
+::ng-deep .p-tab{
+   border: none !important;
+   border-radius: 40px !important;
+}
+::ng-deep .p-tab-active {
+  background: #DBFFE8 !important;
+  border:none !important;
+  border-color: none !important;
+  color: #00A23D !important;
+  border-radius: 40px !important;
+}
+::ng-deep .p-tablist-tab-list{
+  gap: 20px !important;
+}
+/* Remove PrimeNG underline animation */
+::ng-deep .custom-tabs .p-tabview-nav:before {
+  display: none !important;
+}
+
+.no-record-row {
+  text-align: center;
+  padding: 16px;
+  color: #777;
+}
+
 
 .dot {
     width: 20px;
@@ -189,6 +250,68 @@
     line-height: normal;
     border: none;
 }
+::ng-deep .p-datepicker {
+  height: 42px;
+  width: 100%;
+  flex: 1 1 auto;
+}
+::ng-deep .p-datepicker {
+  max-width: 100%;
+}
+
+input[pInputText],
+.p-inputtext,
+.p-select,
+.p-dropdown,
+.p-datepicker{
+  width: 100% !important;
+  height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+.p-textarea{
+  width: 100% !important;
+  min-height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+
+/* PRIME NG FLOAT LABEL FIX */
+.p-float-label > label {
+  top: -12px !important;
+  font-size: 13px !important;
+  background: white;
+  padding: 0 4px;
+  left: 10px;
+}
+
+
+.actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  /* flex-wrap: wrap;          wraps buttons if space is small */
+  /* min-width: 220px;         keeps action column readable */
+}
+
+/* Small action buttons (Start/Hold/Resolve/Reassign/Close) */
+.small-btn {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid var(--table-border-color);
+  background: #f7f7f7;
+  color: #444;
+}
+
+/* Hover effect */
+.small-btn:hover {
+  background: #eeeeee;
+}
+
 
 .menu-list {
     position: absolute;

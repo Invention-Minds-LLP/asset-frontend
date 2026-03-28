@@ -1,0 +1,112 @@
+<p-toast></p-toast>
+
+<div class="audit-trail-container">
+  <div class="page-header">
+    <h2><i class="pi pi-history"></i> Audit Trail</h2>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>Entity Type</label>
+      <p-select [options]="entityTypeOptions" [(ngModel)]="entityType" placeholder="All Entities" [style]="{'width':'100%'}"></p-select>
+    </div>
+    <div class="filter-item">
+      <label>Action</label>
+      <p-select [options]="actionOptions" [(ngModel)]="action" placeholder="All Actions" [style]="{'width':'100%'}"></p-select>
+    </div>
+    <div class="filter-item">
+      <label>Date From</label>
+      <p-datepicker [(ngModel)]="dateFrom" [showIcon]="true" dateFormat="yy-mm-dd" placeholder="Start date" [style]="{'width':'100%'}"></p-datepicker>
+    </div>
+    <div class="filter-item">
+      <label>Date To</label>
+      <p-datepicker [(ngModel)]="dateTo" [showIcon]="true" dateFormat="yy-mm-dd" placeholder="End date" [style]="{'width':'100%'}"></p-datepicker>
+    </div>
+    <div class="filter-actions">
+      <p-button label="Search" icon="pi pi-search" (onClick)="applyFilters()" [loading]="loading"></p-button>
+      <p-button label="Clear" icon="pi pi-times" severity="secondary" (onClick)="clearFilters()"></p-button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <p-table
+    [value]="logs"
+    [lazy]="true"
+    [paginator]="true"
+    [rows]="rows"
+    [totalRecords]="totalRecords"
+    [loading]="loading"
+    (onLazyLoad)="onPageChange($event)"
+    dataKey="id"
+    [expandedRowKeys]="expandedRows"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    styleClass="p-datatable-sm p-datatable-striped">
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 3rem"></th>
+        <th>Timestamp</th>
+        <th>Entity Type</th>
+        <th>Entity ID</th>
+        <th>Action</th>
+        <th>Performed By</th>
+        <th>Summary</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-log let-expanded="expanded">
+      <tr>
+        <td>
+          <p-button
+            type="button"
+            [pRowToggler]="log"
+            [text]="true"
+            [rounded]="true"
+            [plain]="true"
+            [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
+          </p-button>
+        </td>
+        <td>{{ log.performedAt | date:'medium' }}</td>
+        <td>{{ log.entityType }}</td>
+        <td>{{ log.entityId }}</td>
+        <td><p-tag [value]="log.action" [severity]="getActionSeverity(log.action)"></p-tag></td>
+        <td>{{ log.performedByName || ('User #' + log.performedById) }}</td>
+        <td class="summary-cell">{{ log.description || '—' }}</td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="rowexpansion" let-log>
+      <tr>
+        <td colspan="7">
+          <div class="changes-detail" *ngIf="parseChanges(log.changes) as changes">
+            <h4>Change Details</h4>
+            <table class="changes-table">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let key of getChangeKeys(log.changes)">
+                  <td class="field-name">{{ key }}</td>
+                  <td class="field-value">{{ changes[key] | json }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div *ngIf="!parseChanges(log.changes)" class="no-changes">
+            No change details available.
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center">No audit logs found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

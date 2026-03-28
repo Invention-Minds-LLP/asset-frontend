@@ -1,7 +1,6 @@
 <div class="tickerting-container">
     <div class="header-part">
-        <h1>Warranty & AMC Tracker Form</h1>
-        <p>The analysis list here shows all users</p>
+        <h1>Ticket Form</h1>
         <hr class="underline">
     </div>
 
@@ -9,20 +8,22 @@
         <i class="pi pi-bell"></i>
     </div>
 
-    <form #ticketForm='ngForm' (ngSubmit)="onSubmit(ticketForm)">
+    <form #ticketForm='ngForm'>
         <div class="form-content">
             <div class="form-part">
                 <div class="column-one">
                     <p-floatlabel variant="on" class="half-width" *ngIf="ticket.ticketId !== ''">
                         <input pInputText id="ticketId" name="ticketId" autocomplete="off" [(ngModel)]="ticket.ticketId"
-                            required #ticketIdCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(ticketIdCtrl)}" disabled />
+                            required #ticketIdCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(ticketIdCtrl)}"
+                            disabled />
                         <label for="ticketId">Ticket ID (Auto)</label>
                         <div class="error-msg" *ngIf="showError(ticketIdCtrl)">Ticket ID is required</div>
                     </p-floatlabel>
 
                     <p-floatlabel variant="on" class="half-width">
                         <input pInputText id="raisedBy" name="raisedBy" autocomplete="off" [(ngModel)]="ticket.raisedBy"
-                            required #raisedByCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(raisedByCtrl)}"   readonly/>
+                            required #raisedByCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(raisedByCtrl)}"
+                            readonly />
                         <label for="raisedBy">Raised By ( Id & Name )</label>
                         <div class="error-msg" *ngIf="showError(raisedByCtrl)">Id & Name is required</div>
                     </p-floatlabel>
@@ -31,15 +32,17 @@
                 <div class="column-one">
                     <p-floatlabel class="half-width" variant="on">
                         <input pInputText id="department" [(ngModel)]="ticket.department" autocomplete="off"
-                            name="department" required #departmentCtrl="ngModel"
+                            name="department" required #departmentCtrl="ngModel" readonly
                             [ngClass]="{'ng-invalid': invaild(departmentCtrl)}" />
                         <label for="department">Department</label>
                         <div class="error-msg" *ngIf="showError(departmentCtrl)">Department is required</div>
                     </p-floatlabel>
 
                     <p-floatlabel variant="on" class="half-width">
-                        <p-select inputId="assetId" optionLabel="label" optionValue="id" [options]="assets" name="assetId" [(ngModel)]="ticket.assetId" autocomplete="off"
-                            required #assetIdCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(assetIdCtrl)}" (ngModelChange)="issueChange()" />
+                        <p-select inputId="assetId" optionLabel="label" optionValue="id" [options]="assets"
+                            name="assetId" [(ngModel)]="ticket.assetId" autocomplete="off" required
+                            #assetIdCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(assetIdCtrl)}"
+                            (ngModelChange)="issueChange()"  appendTo="body" [filter]="true"/>
                         <label for="assetId">Asset ID</label>
                         <div class="error-msg" *ngIf="showError(assetIdCtrl)">Asset ID is required</div>
                     </p-floatlabel>
@@ -48,7 +51,7 @@
                     <p-floatlabel variant="on" class="half-width">
                         <p-select [(ngModel)]="ticket.issueType" inputId="issueType" name="issueType"
                             [options]="issueType" required #issueTypeCtrl="ngModel"
-                            [ngClass]="{'ng-invalid': invaild(issueTypeCtrl)}" optionLabel="name" optionValue="value"/>
+                            [ngClass]="{'ng-invalid': invaild(issueTypeCtrl)}" optionLabel="name" optionValue="value" appendTo="body" [filter]="true" />
                         <label for="issueType">Issue Type</label>
                         <div class="error-msg" *ngIf="showError(issueTypeCtrl)">Issue Type is required</div>
                     </p-floatlabel>
@@ -56,7 +59,7 @@
                     <p-floatlabel class="half-width" variant="on">
                         <p-select [(ngModel)]="ticket.priority" inputId="priority" name="priority" [options]="priority"
                             required #priorityCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(priorityCtrl)}"
-                            optionLabel="name" optionValue="value"/>
+                            optionLabel="name" optionValue="value" appendTo="body" [filter]="true" />
                         <label for="priority">Priority</label>
                         <div class="error-msg" *ngIf="showError(priorityCtrl)">Priority is required</div>
                     </p-floatlabel>
@@ -66,32 +69,28 @@
                     <p-floatlabel variant="on">
                         <textarea pTextarea id="description" rows="5" cols="30" style="resize: none" class="h-full"
                             maxlength="500" name="description" [(ngModel)]="ticket.detailedDesc" required
-                            #detailedDescCtrl="ngModel"
-                            [ngClass]="{'ng-invalid': invaild(detailedDescCtrl)}" (ngModelChange)="issueChange()"></textarea>
+                            #detailedDescCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(detailedDescCtrl)}"
+                            (ngModelChange)="issueChange()"></textarea>
                         <label for="description" class="label">Detailed Description ( up to 500 characters )</label>
                         <div class="error-msg" *ngIf="showError(detailedDescCtrl)">Description is required</div>
                     </p-floatlabel>
                 </div>
 
                 <div class="column-one">
-                    <p-floatlabel variant="on" class="half-width">
+                    <!-- <p-floatlabel variant="on" class="half-width">
                         <input pInputText id="building" name="building" autocomplete="off" [(ngModel)]="ticket.location"
-                            required #locationCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(locationCtrl)}" (ngModelChange)="locationChange($event)" />
+                            required #locationCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(locationCtrl)}"
+                            (ngModelChange)="locationChange($event)" />
                         <label for="building">Location</label>
                         <div class="error-msg" *ngIf="showError(locationCtrl)">Location is required</div>
-                    </p-floatlabel>
-                    <p-floatlabel variant="on" class="half-width">
+                    </p-floatlabel> -->
+                    <!-- <p-floatlabel variant="on" class="half-width">
                         <p-select [(ngModel)]="ticket.status" inputId="status" name="status"
                             [options]="getFilteredStatusOptions()" required #statusCtrl="ngModel"
                             [ngClass]="{'ng-invalid': invaild(statusCtrl)}" optionLabel="name" optionValue="value"/>
-                            <!-- <ng-template let-option pTemplate="item">
-                                <span [class.disabled-option]="isOptionDisabled(option.value)">
-                                  {{ option.name }}
-                                </span>
-                              </ng-template> -->
                         <label for="status">Status</label>
                         <div class="error-msg" *ngIf="showError(statusCtrl)">Status is required</div>
-                    </p-floatlabel>
+                    </p-floatlabel> -->
                 </div>
 
                 <div *ngIf="ticket.photoOfIssue === ''">
@@ -111,7 +110,7 @@
             <div class="">
                 <div class="profile">
                     <div class="btns">
-                        <button pButton label="Save" type="submit" class="save-btn"></button>
+                        <button pButton label="Save" type="submit" class="save-btn" (click)="onSubmit(ticketForm)"></button>
                         <button pButton label="Clear" class="clear-btn" severity="danger" outlined
                             (click)="onClear()"></button>
                     </div>
@@ -120,3 +119,104 @@
         </div>
     </form>
 </div>
+
+<p-toast></p-toast>
+
+<p-dialog header="Assign Ticket" [(visible)]="showAssignDialog" [modal]="true" [style]="{ width: '420px' }"
+    [closable]="true" (onHide)="assignForm.reset()">
+
+    <form [formGroup]="assignForm" class="p-fluid">
+        <div class="field">
+            <label>To Employee ID</label>
+            <p-select [options]="employees" optionLabel="label" optionValue="value" formControlName="toEmployeeId"
+                placeholder="Select employee" appendTo="body" [filter]="true">
+            </p-select>
+            <small class="p-error"
+                *ngIf="assignForm.controls['toEmployeeId'].touched && assignForm.controls['toEmployeeId'].invalid">
+                Employee ID is required
+            </small>
+        </div>
+
+        <div class="field">
+            <label>Comment</label>
+            <textarea pTextarea rows="3" formControlName="comment"></textarea>
+            <small class="p-error"
+                *ngIf="assignForm.controls['comment'].touched && assignForm.controls['comment'].invalid">
+                Comment is required
+            </small>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancel" class="p-button-text" (click)="showAssignDialog=false"></button>
+        <button pButton label="Assign" [disabled]="assignForm.invalid" (click)="submitAssign()"></button>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Reassign Ticket" [(visible)]="showReassignDialog" [modal]="true" [style]="{ width: '420px' }"
+    (onHide)="reassignForm.reset()">
+
+    <form [formGroup]="reassignForm" class="p-fluid">
+        <div class="field">
+            <label>To Employee ID</label>
+            <p-select [options]="employees" optionLabel="label" optionValue="value" formControlName="toEmployeeId"
+                placeholder="Select employee" appendTo="body" [filter]="true">
+            </p-select>
+            <small class="p-error"
+                *ngIf="reassignForm.controls['toEmployeeId'].touched && reassignForm.controls['toEmployeeId'].invalid">
+                Employee ID is required
+            </small>
+        </div>
+
+        <div class="field">
+            <label>Comment</label>
+            <textarea pTextarea rows="3" formControlName="comment"></textarea>
+            <small class="p-error"
+                *ngIf="reassignForm.controls['comment'].touched && reassignForm.controls['comment'].invalid">
+                Comment is required
+            </small>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancel" class="p-button-text" (click)="showReassignDialog=false"></button>
+        <button pButton label="Reassign" [disabled]="reassignForm.invalid" (click)="submitReassign()"></button>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Terminate Ticket" [(visible)]="showTerminateDialog" [modal]="true" [style]="{ width: '420px' }"
+    (onHide)="terminateForm.reset()">
+
+    <form [formGroup]="terminateForm" class="p-fluid">
+        <div class="field">
+            <label>Reason</label>
+            <textarea pTextarea rows="3" formControlName="note"></textarea>
+            <small class="p-error"
+                *ngIf="terminateForm.controls['note'].touched && terminateForm.controls['note'].invalid">
+                Reason is required
+            </small>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancel" class="p-button-text" (click)="showTerminateDialog=false"></button>
+        <button pButton label="Terminate" severity="danger" [disabled]="terminateForm.invalid"
+            (click)="submitTerminate()"></button>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Close Ticket" [(visible)]="showCloseDialog" [modal]="true" [style]="{ width: '420px' }"
+    (onHide)="closeForm.reset()">
+
+    <form [formGroup]="closeForm" class="p-fluid">
+        <div class="field">
+            <label>Remarks</label>
+            <textarea pTextarea rows="3" formControlName="remarks"></textarea>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancel" class="p-button-text" (click)="showCloseDialog=false"></button>
+        <button pButton label="Close Ticket" [disabled]="closeForm.invalid" (click)="submitClose()"></button>
+    </ng-template>
+</p-dialog>

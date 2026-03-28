@@ -1,0 +1,99 @@
+<p-toast />
+
+<div class="page-header">
+  <div class="header-left">
+    <h2><i class="pi pi-lock"></i> Module Access Control</h2>
+    <p class="subtitle">Assign role-wise or employee-wise access to application modules</p>
+  </div>
+  <div class="header-right">
+    <p-button label="Seed Default Modules" icon="pi pi-sync" severity="secondary" size="small" (onClick)="seedModules()" />
+  </div>
+</div>
+
+<!-- ── Filter Panel ─────────────────────────────────────────────────────── -->
+<div class="filter-card card">
+  <div class="filter-row">
+    <div class="filter-group">
+      <label>Grant Access To</label>
+      <p-select [options]="filterTypeOptions" [(ngModel)]="filterType" optionLabel="label" optionValue="value"
+        (onChange)="selectedRole = null; selectedEmployeeId = null; matrixLoaded = false" />
+    </div>
+
+    @if (filterType === 'role') {
+      <div class="filter-group">
+        <label>Role</label>
+        <p-select [options]="roleOptions" [(ngModel)]="selectedRole" optionLabel="label" optionValue="value"
+          placeholder="Select role" />
+      </div>
+    }
+
+    @if (filterType === 'employee') {
+      <div class="filter-group">
+        <label>Employee</label>
+        <p-select [options]="employees" [(ngModel)]="selectedEmployeeId" optionLabel="label" optionValue="value"
+          placeholder="Select employee" [filter]="true" filterBy="label" />
+      </div>
+    }
+
+    <div class="filter-group filter-action">
+      <p-button label="Load Permissions" icon="pi pi-search" (onClick)="loadPermissions()" [loading]="loading" />
+    </div>
+  </div>
+</div>
+
+<!-- ── Permission Matrix ─────────────────────────────────────────────────── -->
+@if (matrixLoaded) {
+  <div class="matrix-card card">
+    <div class="matrix-toolbar">
+      <span class="matrix-title">
+        Permission Matrix —
+        @if (filterType === 'role') { <strong>{{ selectedRole }}</strong> }
+        @else { <strong>{{ selectedEmployeeLabel }}</strong> }
+      </span>
+      <div class="matrix-actions">
+        <p-button label="Grant All" icon="pi pi-check-circle" severity="success" size="small" [text]="true" (onClick)="toggleAll(true)" />
+        <p-button label="Revoke All" icon="pi pi-times-circle" severity="danger" size="small" [text]="true" (onClick)="toggleAll(false)" />
+        <p-button label="Save Permissions" icon="pi pi-save" (onClick)="savePermissions()" [loading]="saving" />
+      </div>
+    </div>
+
+    <div class="modules-list">
+      @for (mod of modules; track mod.id) {
+        <div class="module-block">
+          <div class="module-row">
+            <p-checkbox [(ngModel)]="permMatrix['mod_' + mod.id]" [binary]="true"
+              (onChange)="onModuleToggle(mod, $event.checked)" />
+            <i [class]="mod.icon + ' mod-icon'"></i>
+            <span class="mod-label">{{ mod.label }}</span>
+            @if (mod.subItems?.length) {
+              <p-tag [value]="mod.subItems.length + ' sub-items'" severity="secondary" styleClass="count-tag" />
+            }
+          </div>
+
+          @if (mod.subItems?.length) {
+            <div class="sub-items">
+              @for (item of mod.subItems; track item.id) {
+                <div class="item-row">
+                  <p-checkbox [(ngModel)]="permMatrix['item_' + item.id]" [binary]="true" />
+                  <i [class]="item.icon + ' item-icon'"></i>
+                  <span class="item-label">{{ item.label }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="save-footer">
+      <p-button label="Save Permissions" icon="pi pi-save" (onClick)="savePermissions()" [loading]="saving" />
+    </div>
+  </div>
+}
+
+@if (!matrixLoaded && !loading) {
+  <div class="empty-state">
+    <i class="pi pi-lock empty-icon"></i>
+    <p>Select a role or employee above and click <strong>Load Permissions</strong> to configure access.</p>
+  </div>
+}

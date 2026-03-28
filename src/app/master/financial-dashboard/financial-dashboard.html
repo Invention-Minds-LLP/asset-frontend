@@ -1,0 +1,359 @@
+<p-toast></p-toast>
+
+<div class="financial-dashboard">
+  <!-- ═══════════════════════ HEADER ═══════════════════════ -->
+  <div class="dashboard-header">
+    <h2>Financial Dashboard</h2>
+    <div class="header-actions">
+      <p-button label="Reset Filters" icon="pi pi-refresh" severity="secondary" [outlined]="true" (click)="resetFilters()"></p-button>
+      <p-button label="Apply" icon="pi pi-filter" (click)="applyFilters()"></p-button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ FILTER PANEL ═══════════════════════ -->
+  <p-panel header="Filters" [toggleable]="true" [collapsed]="false" styleClass="filter-panel">
+    <div class="filter-grid" *ngIf="!filtersLoading">
+      <div class="filter-item">
+        <label>Financial Year (From)</label>
+        <p-dropdown [options]="financialYears" [(ngModel)]="filters.fyStart" placeholder="All FYs"
+          [showClear]="true" [style]="{'width':'100%'}"></p-dropdown>
+      </div>
+      <div class="filter-item">
+        <label>Financial Year (To)</label>
+        <p-dropdown [options]="financialYears" [(ngModel)]="filters.fyEnd" placeholder="Same as From"
+          [showClear]="true" [style]="{'width':'100%'}"></p-dropdown>
+      </div>
+      <div class="filter-item">
+        <label>Department</label>
+        <p-dropdown [options]="departments" [(ngModel)]="filters.departmentId" placeholder="All Departments"
+          [showClear]="true" [disabled]="userRole === 'HOD'" [style]="{'width':'100%'}" [filter]="true"></p-dropdown>
+      </div>
+      <div class="filter-item">
+        <label>Category</label>
+        <p-dropdown [options]="categories" [(ngModel)]="filters.categoryId" placeholder="All Categories"
+          [showClear]="true" [style]="{'width':'100%'}" [filter]="true"></p-dropdown>
+      </div>
+      <div class="filter-item">
+        <label>Branch</label>
+        <p-dropdown [options]="branches" [(ngModel)]="filters.branchId" placeholder="All Branches"
+          [showClear]="true" [style]="{'width':'100%'}" [filter]="true"></p-dropdown>
+      </div>
+      <div class="filter-item">
+        <label>Vendor</label>
+        <p-dropdown [options]="vendors" [(ngModel)]="filters.vendorId" placeholder="All Vendors"
+          [showClear]="true" [style]="{'width':'100%'}" [filter]="true"></p-dropdown>
+      </div>
+      <div class="filter-item">
+        <label>Procurement Mode</label>
+        <p-dropdown [options]="procurementModes" [(ngModel)]="filters.modeOfProcurement" placeholder="All Modes"
+          [showClear]="true" [style]="{'width':'100%'}"></p-dropdown>
+      </div>
+      <div class="filter-item">
+        <label>Asset Status</label>
+        <p-dropdown [options]="assetStatuses" [(ngModel)]="filters.status" placeholder="All Statuses"
+          [showClear]="true" [style]="{'width':'100%'}"></p-dropdown>
+      </div>
+    </div>
+    <div *ngIf="filtersLoading" class="filters-loading">
+      <p-progressSpinner [style]="{width: '30px', height: '30px'}" strokeWidth="4"></p-progressSpinner>
+      <span>Loading filters...</span>
+    </div>
+  </p-panel>
+
+  <!-- ═══════════════════════ SUMMARY KPI CARDS ═══════════════════════ -->
+  <div class="kpi-section" *ngIf="!loading && summary.assetCount !== undefined">
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-icon"><i class="pi pi-box"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ formatNumber(summary.assetCount) }}</span>
+          <span class="kpi-label">Total Assets</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-icon"><i class="pi pi-indian-rupee"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ formatCurrency(summary.totalPurchaseCost) }}</span>
+          <span class="kpi-label">Purchase Cost</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-orange">
+        <div class="kpi-icon"><i class="pi pi-wrench"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ formatCurrency(summary.totalMaintenanceCost) }}</span>
+          <span class="kpi-label">Maintenance Cost</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-icon"><i class="pi pi-shield"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ formatCurrency(summary.totalInsurancePremiums) }}</span>
+          <span class="kpi-label">Insurance Premiums</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-teal">
+        <div class="kpi-icon"><i class="pi pi-file-check"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ formatCurrency(summary.totalAmcCmcCost) }}</span>
+          <span class="kpi-label">AMC/CMC Cost</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-red">
+        <div class="kpi-icon"><i class="pi pi-chart-line"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ formatCurrency(summary.totalDepreciation) }}</span>
+          <span class="kpi-label">Total Depreciation</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-dark">
+        <div class="kpi-icon"><i class="pi pi-wallet"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ formatCurrency(summary.totalCostOfOwnership) }}</span>
+          <span class="kpi-label">Total Cost of Ownership</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-gray">
+        <div class="kpi-icon"><i class="pi pi-calculator"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ formatCurrency(summary.avgCostPerAsset) }}</span>
+          <span class="kpi-label">Avg Cost / Asset</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="section-loading">
+    <p-progressSpinner [style]="{width: '40px', height: '40px'}" strokeWidth="4"></p-progressSpinner>
+  </div>
+
+  <!-- ═══════════════════════ TAB PANELS ═══════════════════════ -->
+  <p-tabView *ngIf="!loading" class="custom-tabs">
+
+    <!-- ───── TAB 1: FY Breakdown Tree ───── -->
+    <p-tabPanel header="Financial Year Breakdown">
+      <div class="view-switcher">
+        <label>View By:</label>
+        <p-selectButton [options]="viewOptions" [(ngModel)]="selectedView" (onChange)="onViewChange()"
+          optionLabel="label" optionValue="value"></p-selectButton>
+      </div>
+
+      <div *ngIf="treeLoading" class="section-loading">
+        <p-progressSpinner [style]="{width: '40px', height: '40px'}" strokeWidth="4"></p-progressSpinner>
+      </div>
+
+      <p-treeTable *ngIf="!treeLoading" [value]="fyTreeData" [columns]="[{field:'label'},{field:'total'},{field:'assetCount'}]"
+        (onNodeExpand)="onNodeExpand($event)" styleClass="fy-tree-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width:50%">Period</th>
+            <th style="width:30%; text-align:right">Amount</th>
+            <th style="width:20%; text-align:right">Assets</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+          <tr [ngClass]="getRowClass(rowNode)">
+            <td>
+              <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+              <span *ngIf="rowData.level !== 'load_more' && rowData.level !== 'asset'" class="node-label">
+                {{ rowData.label }}
+              </span>
+              <span *ngIf="rowData.level === 'asset'" class="asset-link" [routerLink]="['/assets/form', rowData.asset?.id]">
+                <i class="pi pi-external-link" style="font-size: 0.75rem; margin-right: 4px;"></i>
+                {{ rowData.label }}
+              </span>
+              <a *ngIf="rowData.level === 'load_more'" class="load-more-link" (click)="onLoadMore(rowData)">
+                <i class="pi pi-ellipsis-h"></i> {{ rowData.label }}
+              </a>
+              <p-progressSpinner *ngIf="isMonthLoading(rowNode)" [style]="{width:'18px',height:'18px',marginLeft:'8px'}" strokeWidth="5"></p-progressSpinner>
+            </td>
+            <td style="text-align:right; font-weight:500;">
+              <span *ngIf="rowData.level === 'asset'">{{ formatCurrency(rowData.asset?.purchaseCost) }}</span>
+              <span *ngIf="rowData.level !== 'asset' && rowData.level !== 'load_more'">{{ formatCurrency(rowData.total) }}</span>
+            </td>
+            <td style="text-align:right;">
+              <span *ngIf="rowData.assetCount !== null && rowData.level !== 'load_more'">{{ rowData.assetCount }}</span>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="empty">
+          <tr><td colspan="3" style="text-align:center; padding:2rem; color:#999;">No financial data available for the selected filters.</td></tr>
+        </ng-template>
+      </p-treeTable>
+    </p-tabPanel>
+
+    <!-- ───── TAB 2: Category Breakdown ───── -->
+    <p-tabPanel header="By Category">
+      <div class="breakdown-section" *ngIf="summary.costByCategory?.length > 0">
+        <p-table [value]="summary.costByCategory" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-gridlines">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Category</th>
+              <th style="text-align:right">Total Cost</th>
+              <th style="text-align:right">Asset Count</th>
+              <th style="text-align:right">% of Total</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>{{ row.category }}</td>
+              <td style="text-align:right; font-weight:500">{{ formatCurrency(row.total) }}</td>
+              <td style="text-align:right">{{ row.count }}</td>
+              <td style="text-align:right">
+                {{ summary.totalPurchaseCost > 0 ? ((row.total / summary.totalPurchaseCost) * 100).toFixed(1) : 0 }}%
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="empty">
+            <tr><td colspan="4" class="empty-msg">No category data</td></tr>
+          </ng-template>
+        </p-table>
+
+        <!-- Visual Bar Chart -->
+        <div class="chart-bars">
+          <h4>Category-wise Distribution</h4>
+          <div *ngFor="let item of summary.costByCategory" class="bar-row">
+            <div class="bar-label">{{ item.category }}</div>
+            <div class="bar-track">
+              <div class="bar-fill bar-fill-blue"
+                [style.width.%]="summary.totalPurchaseCost > 0 ? (item.total / summary.totalPurchaseCost * 100) : 0">
+              </div>
+            </div>
+            <div class="bar-value">{{ formatCurrency(item.total) }}</div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="!summary.costByCategory?.length" class="empty-section">
+        <i class="pi pi-info-circle"></i> No category breakdown available.
+      </div>
+    </p-tabPanel>
+
+    <!-- ───── TAB 3: Department Breakdown ───── -->
+    <p-tabPanel header="By Department">
+      <div class="breakdown-section" *ngIf="summary.costByDepartment?.length > 0">
+        <p-table [value]="summary.costByDepartment" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-gridlines">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Department</th>
+              <th style="text-align:right">Total Cost</th>
+              <th style="text-align:right">Asset Count</th>
+              <th style="text-align:right">% of Total</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>{{ row.department }}</td>
+              <td style="text-align:right; font-weight:500">{{ formatCurrency(row.total) }}</td>
+              <td style="text-align:right">{{ row.count }}</td>
+              <td style="text-align:right">
+                {{ summary.totalPurchaseCost > 0 ? ((row.total / summary.totalPurchaseCost) * 100).toFixed(1) : 0 }}%
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="empty">
+            <tr><td colspan="4" class="empty-msg">No department data</td></tr>
+          </ng-template>
+        </p-table>
+
+        <!-- Visual Bar Chart -->
+        <div class="chart-bars">
+          <h4>Department-wise Distribution</h4>
+          <div *ngFor="let item of summary.costByDepartment" class="bar-row">
+            <div class="bar-label">{{ item.department }}</div>
+            <div class="bar-track">
+              <div class="bar-fill bar-fill-green"
+                [style.width.%]="summary.totalPurchaseCost > 0 ? (item.total / summary.totalPurchaseCost * 100) : 0">
+              </div>
+            </div>
+            <div class="bar-value">{{ formatCurrency(item.total) }}</div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="!summary.costByDepartment?.length" class="empty-section">
+        <i class="pi pi-info-circle"></i> No department breakdown available.
+      </div>
+    </p-tabPanel>
+
+    <!-- ───── TAB 4: Procurement Breakdown ───── -->
+    <p-tabPanel header="By Procurement">
+      <div class="breakdown-section" *ngIf="summary.costByProcurement?.length > 0">
+        <p-table [value]="summary.costByProcurement" styleClass="p-datatable-sm p-datatable-gridlines">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Mode</th>
+              <th style="text-align:right">Total Value</th>
+              <th style="text-align:right">Count</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>
+                <p-tag [value]="row.mode" [severity]="getProcurementSeverity(row.mode)"></p-tag>
+              </td>
+              <td style="text-align:right; font-weight:500">{{ formatCurrency(row.total) }}</td>
+              <td style="text-align:right">{{ row.count }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+
+        <div class="chart-bars" style="margin-top:1.5rem;">
+          <h4>Procurement Mode Distribution</h4>
+          <div *ngFor="let item of summary.costByProcurement" class="bar-row">
+            <div class="bar-label">{{ item.mode }}</div>
+            <div class="bar-track">
+              <div class="bar-fill bar-fill-purple"
+                [style.width.%]="summary.totalCostOfOwnership > 0 ? (item.total / summary.totalCostOfOwnership * 100) : 0">
+              </div>
+            </div>
+            <div class="bar-value">{{ formatCurrency(item.total) }}</div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="!summary.costByProcurement?.length" class="empty-section">
+        <i class="pi pi-info-circle"></i> No procurement data available.
+      </div>
+    </p-tabPanel>
+
+    <!-- ───── TAB 5: Asset Detail (when month expanded) ───── -->
+    <p-tabPanel header="Detailed Asset View">
+      <p class="hint-text" *ngIf="expandedMonthAssets.size === 0">
+        <i class="pi pi-info-circle"></i>
+        Expand a month in the "Financial Year Breakdown" tab to see asset details here.
+      </p>
+      <div *ngFor="let entry of expandedMonthAssets | keyvalue" class="month-detail-section">
+        <h4>{{ getMonthLabel(entry.key) }}</h4>
+        <p-table [value]="entry.value" styleClass="p-datatable-sm p-datatable-striped p-datatable-gridlines" [paginator]="true" [rows]="10">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Asset ID</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Department</th>
+              <th>Vendor</th>
+              <th style="text-align:right">Purchase Cost</th>
+              <th style="text-align:right">Maintenance</th>
+              <th style="text-align:right">Insurance</th>
+              <th style="text-align:right">AMC/CMC</th>
+              <th style="text-align:right">Total</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-a>
+            <tr>
+              <td>
+                <a [routerLink]="['/assets/form', a.id]" class="asset-id-link">{{ a.assetId }}</a>
+              </td>
+              <td>{{ a.assetName }}</td>
+              <td>{{ a.category }}</td>
+              <td>{{ a.department }}</td>
+              <td>{{ a.vendor }}</td>
+              <td style="text-align:right">{{ formatCurrency(a.purchaseCost) }}</td>
+              <td style="text-align:right">{{ formatCurrency(a.maintenanceCost) }}</td>
+              <td style="text-align:right">{{ formatCurrency(a.insurancePremium) }}</td>
+              <td style="text-align:right">{{ formatCurrency(a.amcCmcCost) }}</td>
+              <td style="text-align:right; font-weight:600">{{ formatCurrency(a.totalCost) }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabPanel>
+  </p-tabView>
+</div>

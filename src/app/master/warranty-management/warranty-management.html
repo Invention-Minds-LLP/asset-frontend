@@ -1,0 +1,49 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-verified"></i> Warranty Management</h2>
+  </div>
+
+  <div class="kpi-grid" *ngIf="stats.active != null">
+    <div class="kpi-card"><span class="kpi-label">Active</span><span class="kpi-value">{{ stats.active }}</span></div>
+    <div class="kpi-card kpi-danger"><span class="kpi-label">Expired</span><span class="kpi-value">{{ stats.expired }}</span></div>
+    <div class="kpi-card"><span class="kpi-label">Expiring in 30d</span><span class="kpi-value">{{ stats.expiringIn30 }}</span></div>
+    <div class="kpi-card"><span class="kpi-label">Expiring in 60d</span><span class="kpi-value">{{ stats.expiringIn60 }}</span></div>
+  </div>
+
+  <div class="toolbar">
+    <input pInputText placeholder="Search warranties..." [(ngModel)]="search" (keyup.enter)="loadWarranties()" />
+    <p-select [options]="statusOptions" [(ngModel)]="status" (onChange)="loadWarranties()" placeholder="Status"></p-select>
+    <p-button label="Search" icon="pi pi-search" (onClick)="loadWarranties()"></p-button>
+    <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportCsv()"></p-button>
+  </div>
+
+  <p-table [value]="warranties" [loading]="loading" [paginator]="true" [rows]="15"
+    [rowsPerPageOptions]="[10,15,25,50]" [totalRecords]="totalRecords"
+    styleClass="p-datatable-sm p-datatable-striped">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Asset</th>
+        <th>Vendor</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+        <th>Type</th>
+        <th>Status</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-w>
+      <tr>
+        <td>{{ w.asset?.assetName || '—' }}</td>
+        <td>{{ w.asset?.vendor?.name || '—' }}</td>
+        <td>{{ w.warrantyStartDate | date:'mediumDate' }}</td>
+        <td>{{ w.warrantyEndDate | date:'mediumDate' }}</td>
+        <td>{{ w.warrantyType || '—' }}</td>
+        <td><p-tag [value]="getStatusLabel(w)" [severity]="getStatusSeverity(w)"></p-tag></td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="6" class="text-center">No warranties found.</td></tr>
+    </ng-template>
+  </p-table>
+</div>

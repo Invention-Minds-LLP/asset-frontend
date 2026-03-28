@@ -1,16 +1,18 @@
 <div class="ticketing-table-container">
+
+    <!-- HEADER / FILTER / SEARCH / PAGINATION (ONE TIME ONLY) -->
     <div class="ticketing-part">
         <div class="heading">
-            <div class="">
-                <h1>Warranty & AMC Tracker Table</h1>
-                <p>The analysis list here shows all users</p>
+            <div>
+                <h1>Ticket Table</h1>
+                <p>The analysis list here shows all tickets</p>
             </div>
 
             <div class="notification-part">
-                <div class="active-box">
-                    <div class=""></div>
-                    <div class="">099 Active Asset</div>
-                </div>
+                <!-- <div class="active-box">
+          <div></div>
+          <div>099 Active Asset</div>
+        </div> -->
 
                 <div class="notification-icon">
                     <i class="pi pi-bell"></i>
@@ -22,8 +24,9 @@
             <div class="filter-part">
                 <div class="filter-icon" (click)="toggleFilterDropdown($event)">
                     <i class="pi pi-filter"></i>
+
                     <ul class="menu-list" *ngIf="dropdownVisible">
-                        <li class="list" *ngFor="let option of filterOption"
+                        <li class="list" *ngFor="let option of filterOptionForTab"
                             (click)="selectFilter(option.value, $event)"
                             [class.active]="selectedFilter === option.value">
                             {{ option.label }}
@@ -34,7 +37,7 @@
                 <p-iconfield>
                     <p-inputicon styleClass="pi pi-search" />
                     <input type="text" pInputText placeholder="Search" [(ngModel)]="searchTerm"
-                        (input)="applyFilter()"/>
+                        (input)="applyFilter()" />
                 </p-iconfield>
 
                 <div class="filter-clear" *ngIf="isFilterActive" (click)="clearFilter()">
@@ -44,11 +47,12 @@
 
             <div class="pagination-bar">
                 <div class="line"></div>
-                <button class="button">
+
+                <button class="button" (click)="refresh()">
                     <i class="pi pi-refresh"></i>
                 </button>
 
-                <span class="page-num">{{currentPage}} of {{totalPages}}</span>
+                <span class="page-num">{{ currentPage }} of {{ totalPages }}</span>
 
                 <button class="button" (click)="prevPage()" [disabled]="currentPage <= 1">
                     <i class="pi pi-chevron-left"></i>
@@ -61,41 +65,502 @@
         </div>
     </div>
 
+    <!-- TABLES IN TABS -->
     <div class="table-container">
-        <p-table [value]="ticketingAssets" [rows]="rowsPerPage">
-            <ng-template pTemplate="header">
-                <tr>
-                    <th></th>
-                    <th>No</th>
-                    <th>Asset ID</th>
-                    <th>Asset Name</th>
-                    <th>Ticket ID</th>
-                    <th>Raised By</th>
-                    <th>Department</th>
-                    <th>Priority</th>
-                    <th>Action</th>
-                </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-ticketing let-i="rowIndex">
-                <tr>
-                    <td>
-                        <span class="dot" [ngStyle]="{'background-color':ticketing.status}"></span>
-                    </td>
-                    <td>
-                        {{(currentPage-1) * rowsPerPage + i + 1 }}
-                    </td>
-                    <td>{{ ticketing.asset.assetId }}</td>
-                    <td>{{ ticketing.asset.assetName }}</td>
-                    <td>{{ ticketing.ticketId }}</td>
-                    <td>{{ ticketing.raisedBy }}</td>
-                    <td>{{ ticketing.department.name }}</td>
-                    <td>{{ ticketing.priority }}</td>
-                    <td>
-                        <button pButton type="button" label="view" class="view-btn" (click)="viewWarranty(ticketing.ticketId)"></button>
-                    </td>
-                </tr>
-            </ng-template>
-        </p-table>
+        <p-tabView class="custom-tabs" (onChange)="onTabChange($event)" [(activeIndex)]="activeIndex">
 
+            <!-- TAB 1: ALL -->
+            <p-tabPanel header="All Tickets" *ngIf="userRole === 'ADMIN' || userRole === 'HOD'">
+                <p-table [value]="pagedActiveList" [rows]="rowsPerPage" responsiveLayout="scroll">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th></th>
+                            <th>No</th>
+                            <th>Asset ID</th>
+                            <th>Asset Name</th>
+                            <th>Ticket ID</th>
+                            <th>Raised By</th>
+                            <th>Department</th>
+                            <th>Priority</th>
+                            <th>Action</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-ticketing let-i="rowIndex">
+                        <tr>
+                            <td>
+                                <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(ticketing.status) }">
+                                </span>
+                            </td>
+
+                            <td>{{ (currentPage-1) * rowsPerPage + i + 1 }}</td>
+                            <td>{{ ticketing.asset?.assetId }}</td>
+                            <td>{{ ticketing.asset?.assetName }}</td>
+                            <td>{{ ticketing.ticketId }}</td>
+                            <td>{{ ticketing.raisedBy ? ticketing.raisedBy.name : '-' }}</td>
+                            <td>{{ ticketing.department?.name }}</td>
+                            <td>{{ ticketing.priority }}</td>
+
+                            <td class="actions-cell">
+                                <button pButton type="button" label="view" class="view-btn"
+                                    (click)="viewWarranty(ticketing.ticketId)">
+                                </button>
+                                <button *ngIf="canReassignFromTable(ticketing)" pButton label="Reassign"
+                                    class="small-btn btn-reas" (click)="openReassignDialogFromTable(ticketing)">
+                                </button>
+
+                                <button *ngIf="canAssignFromTable(ticketing)" pButton label="Assign"
+                                    class="small-btn btn-start" (click)="openAssignDialogFromTable(ticketing)">
+                                </button>
+
+                                <button *ngIf="canTransferFromTable(ticketing)" pButton label="Transfer"
+                                    class="small-btn" (click)="openTransferDialogFromTable(ticketing)">
+                                </button>
+
+                                <button *ngIf="canTerminateFromTable(ticketing)" pButton label="Terminate"
+                                    class="small-btn btn-hold" (click)="openTerminateDialogFromTable(ticketing)">
+                                </button>
+                                <button *ngIf="canHodResolve(ticketing)" pButton label="Resolve" class="small-btn btn-start"
+                                    (click)="openResolveDialog(ticketing)">
+                                </button>
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="9" class="no-record-row">No records found</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </p-tabPanel>
+
+            <!-- TAB 2: ASSIGNED -->
+            <p-tabPanel header="My Assigned Tickets">
+                <p-table [value]="pagedActiveList" [rows]="rowsPerPage" responsiveLayout="scroll">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th></th>
+                            <th>No</th>
+                            <th>Ticket</th>
+                            <th>Asset</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Updated</th>
+                            <th>Action</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-t let-i="rowIndex">
+                        <tr>
+                            <td>
+                                <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(t.status) }">
+                                </span>
+                            </td>
+                            <td>{{ (currentPage-1) * rowsPerPage + i + 1 }}</td>
+                            <td>{{ t.ticketId }}</td>
+                            <td>{{ t.asset?.assetId }} - {{ t.asset?.assetName }}</td>
+                            <td>{{ t.department?.name }}</td>
+                            <td>{{ t.status }}</td>
+                            <td>{{ t.priority }}</td>
+                            <td>{{ t.updatedAt | date:'dd-MMM-yyyy' }}</td>
+                            <td class="actions-cell">
+                                <button pButton type="button" label="view" class="view-btn"
+                                    (click)="viewWarranty(t.ticketId)">
+                                </button>
+                                <!-- Supervisor actions -->
+                                <button *ngIf="canStartWork(t)" pButton label="Start" class="small-btn"
+                                    (click)="changeStatus(t, 'IN_PROGRESS')">
+                                </button>
+
+                                <button *ngIf="canHold(t)" pButton label="Hold" class="small-btn"
+                                    (click)="changeStatus(t, 'ON_HOLD')">
+                                </button>
+
+                                <button *ngIf="canMarkCompleted(t)" pButton label="Complete" class="small-btn"
+                                    (click)="openCompleteDialog(t)">
+                                </button>
+
+                                <!-- HOD actions -->
+                                <button *ngIf="canReassignFromTable(t)" pButton label="Reassign" class="small-btn"
+                                    (click)="openReassignDialogForTicket(t)">
+                                </button>
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="9" class="no-record-row">No records found</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </p-tabPanel>
+
+            <!-- TAB 3: RAISED -->
+            <p-tabPanel header="My Raised Tickets">
+                <p-table [value]="pagedActiveList" [rows]="rowsPerPage" responsiveLayout="scroll">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th></th>
+                            <th>No</th>
+                            <th>Ticket</th>
+                            <th>Asset</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Updated</th>
+                            <th>Action</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-t let-i="rowIndex">
+                        <tr>
+                            <td>
+                                <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(t.status) }">
+                                </span>
+                            </td>
+                            <td>{{ (currentPage-1) * rowsPerPage + i + 1 }}</td>
+                            <td>{{ t.ticketId }}</td>
+                            <td>{{ t.asset?.assetId }} - {{ t.asset?.assetName }}</td>
+                            <td>{{ t.department?.name }}</td>
+                            <td>{{ t.status }}</td>
+                            <td>{{ t.priority }}</td>
+                            <td>{{ t.updatedAt | date:'dd-MMM-yyyy' }}</td>
+                            <td class="actions-cell">
+                                <button pButton type="button" label="view" class="view-btn"
+                                    (click)="viewWarranty(t.ticketId)">
+                                </button>
+
+                                <button *ngIf="canCloseFromTable(t)" pButton label="Close" class="small-btn"
+                                    (click)="openCloseDialogForTicket(t)">
+                                </button>
+                            </td>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="9" class="no-record-row">No records found</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </p-tabPanel>
+
+            <p-tabPanel header="My Pending Transfers" *ngIf="userRole === 'HOD'">
+
+                <p-table [value]="pagedActiveList" [rows]="rowsPerPage" responsiveLayout="scroll">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Transfer ID</th>
+                            <th>Ticket</th>
+                            <th>Asset</th>
+                            <th>From Dept</th>
+                            <th>To Dept</th>
+                            <th>Requested By</th>
+                            <th>Comment</th>
+                            <th>Requested At</th>
+                            <th>Action</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-r>
+                        <tr>
+                            <td>{{ r.id }}</td>
+                            <td>{{ r.ticket?.ticketId }}</td>
+                            <td>{{ r.ticket?.asset?.assetId }} - {{ r.ticket?.asset?.assetName }}</td>
+                            <td>{{ r.fromDepartment?.name }}</td>
+                            <td>{{ r.toDepartment?.name }}</td>
+                            <td>{{ r.requestedBy?.name }}</td>
+                            <td>{{ r.comment }}</td>
+                            <td>{{ r.createdAt | date:'dd-MMM-yyyy' }}</td>
+                            <td class="actions-cell">
+                                <button pButton label="Approve" class="small-btn"
+                                    (click)="approveTransferRow(r)"></button>
+                                <button pButton label="Reject" class="small-btn p-button-danger"
+                                    (click)="openRejectTransferDialog(r)"></button>
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td colspan="9" class="no-record-row">No pending transfers</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+
+            </p-tabPanel>
+
+        </p-tabView>
     </div>
 </div>
+
+<p-dialog header="Reassign Ticket" [(visible)]="showReassignDialog" [modal]="true" [style]="{ width: '420px' }">
+    <form [formGroup]="reassignForm" class="p-fluid">
+        <div class="field">
+            <label>To Employee</label>
+            <p-select [options]="employees" appendTo="body" optionLabel="label" optionValue="value"
+                formControlName="toEmployeeId" appendTo="body" [filter]="true"></p-select>
+        </div>
+
+        <div class="field">
+            <label>Comment</label>
+            <textarea pTextarea rows="3" formControlName="comment"></textarea>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancel" class="p-button-text" (click)="showReassignDialog=false"></button>
+        <button pButton label="Reassign" [disabled]="reassignForm.invalid" (click)="submitReassignFromTable()"></button>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Assign Ticket" [(visible)]="showAssignDialog" [modal]="true" [style]="{ width: '420px' }">
+    <form [formGroup]="assignForm" class="p-fluid">
+        <div class="field">
+            <label>To Employee</label>
+            <p-select [options]="employees" optionLabel="label" optionValue="value" appendTo="body"
+                formControlName="toEmployeeId" placeholder="Select employee" appendTo="body" [filter]="true">
+            </p-select>
+            <small class="p-error"
+                *ngIf="assignForm.controls['toEmployeeId'].touched && assignForm.controls['toEmployeeId'].invalid">
+                Employee is required
+            </small>
+        </div>
+
+        <div class="field">
+            <label>Comment</label>
+            <textarea pTextarea rows="3" formControlName="comment"></textarea>
+            <small class="p-error"
+                *ngIf="assignForm.controls['comment'].touched && assignForm.controls['comment'].invalid">
+                Comment is required
+            </small>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancel" class="p-button-text" (click)="showAssignDialog=false"></button>
+        <button pButton label="Assign" [disabled]="assignForm.invalid" (click)="submitAssignFromTable()"></button>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Terminate Ticket" [(visible)]="showTerminateDialog" [modal]="true" [style]="{ width: '420px' }">
+    <form [formGroup]="terminateForm" class="p-fluid">
+        <div class="field">
+            <label>Reason</label>
+            <textarea pTextarea rows="3" formControlName="note"></textarea>
+            <small class="p-error"
+                *ngIf="terminateForm.controls['note'].touched && terminateForm.controls['note'].invalid">
+                Reason is required
+            </small>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancel" class="p-button-text" (click)="showTerminateDialog=false"></button>
+        <button pButton label="Terminate" severity="danger" [disabled]="terminateForm.invalid"
+            (click)="submitTerminateFromTable()"></button>
+    </ng-template>
+</p-dialog>
+
+
+<p-dialog header="Transfer Ticket" [(visible)]="showTransferDialog" [modal]="true" [style]="{ width: '420px' }">
+    <form [formGroup]="transferForm" class="p-fluid">
+
+        <div class="field">
+            <label>Transfer Type</label>
+            <p-select appendTo="body" [options]="[
+          {label:'Internal Department', value:'INTERNAL_DEPARTMENT'},
+          {label:'External Vendor', value:'EXTERNAL_VENDOR'},
+          {label:'External Service', value:'EXTERNAL_SERVICE'}
+        ]" optionLabel="label" optionValue="value" formControlName="transferType" appendTo="body" [filter]="true">
+            </p-select>
+        </div>
+
+        <div class="field" *ngIf="transferForm.value.transferType === 'INTERNAL_DEPARTMENT'">
+            <label>To Department</label>
+            <p-select appendTo="body" [options]="departments" optionLabel="name" optionValue="id"
+                formControlName="toDepartmentId" placeholder="Select department" appendTo="body" [filter]="true">
+            </p-select>
+        </div>
+
+        <div class="field" *ngIf="transferForm.value.transferType !== 'INTERNAL_DEPARTMENT'">
+            <label>Vendor</label>
+            <p-select appendTo="body" [options]="vendors" optionLabel="name" optionValue="id" formControlName="vendorId"
+                placeholder="Select vendor" appendTo="body" [filter]="true">
+            </p-select>
+        </div>
+
+        <div class="field">
+            <label>Comment</label>
+            <textarea pTextarea rows="3" formControlName="comment"></textarea>
+            <small class="p-error"
+                *ngIf="transferForm.controls['comment'].touched && transferForm.controls['comment'].invalid">
+                Comment is required
+            </small>
+        </div>
+
+    </form>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancel" class="p-button-text" (click)="showTransferDialog=false"></button>
+        <button pButton label="Request Transfer" [disabled]="transferForm.invalid"
+            (click)="submitTransferFromTable()"></button>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Reject Transfer" [(visible)]="showRejectTransferDialog" [modal]="true" [style]="{ width: '420px' }">
+    <div class="p-fluid">
+        <label>Reason (optional)</label>
+        <textarea pTextarea rows="4" [(ngModel)]="rejectReason" placeholder="Enter reject reason..."></textarea>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancel" class="p-button-text" (click)="showRejectTransferDialog=false"></button>
+        <button pButton label="Reject" class="p-button-danger" (click)="confirmRejectTransfer()"></button>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Close Ticket" [(visible)]="showCloseDialog" [modal]="true" [style]="{ width: '520px' }">
+
+    <!-- ✅ METRICS SECTION -->
+    <div class="metrics-box" style="margin-bottom:12px;">
+        <h4 style="margin:0 0 8px 0;">Ticket Metrics</h4>
+
+        <div *ngIf="metricsLoading">Loading metrics...</div>
+        <div *ngIf="metricsError" class="p-error">{{ metricsError }}</div>
+
+        <div *ngIf="!metricsLoading && metricsData">
+            <div><b>Total TAT:</b> {{ metricsData?.tat?.totalMs | duration }}</div>
+            <div><b>Active TAT (excluding hold):</b> {{ metricsData?.tat?.activeMs | duration }}</div>
+
+            <div style="margin-top:6px;">
+                <b>SLA:</b>
+                {{ metricsData?.sla?.value }} {{ metricsData?.sla?.unit }}
+                ({{ metricsData?.sla?.ms | duration }})
+            </div>
+
+            <div>
+                <b>Resolved Time:</b>
+                <span *ngIf="metricsData?.resolved?.ms != null">
+                    {{ metricsData?.resolved?.ms | duration }}
+                </span>
+                <span *ngIf="metricsData?.resolved?.ms == null">Not resolved yet</span>
+            </div>
+
+            <div>
+                <b>SLA Breach:</b>
+                <span *ngIf="metricsData?.resolved?.breached === true" style="color:red;">BREACHED</span>
+                <span *ngIf="metricsData?.resolved?.breached === false" style="color:green;">WITHIN SLA</span>
+                <span *ngIf="metricsData?.resolved?.breached == null">N/A</span>
+            </div>
+
+            <hr />
+
+            <div><b>Status-wise TAT:</b></div>
+            <ul style="margin:6px 0 0 16px;">
+                <li *ngFor="let k of objectKeys(metricsData?.byStatus)">
+                    {{ k }} : {{ metricsData?.byStatus[k] | duration }}
+                </li>
+            </ul>
+
+            <div *ngIf="metricsData?.vendor?.latestWorkOrderId">
+                <hr />
+                <div><b>Vendor Time:</b> {{ metricsData?.vendor?.ms | duration }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ CLOSE FORM -->
+    <form [formGroup]="closeForm" class="p-fluid">
+        <div class="field">
+            <label>Remarks</label>
+            <textarea pTextarea rows="3" formControlName="remarks"></textarea>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancel" class="p-button-text" (click)="showCloseDialog=false"></button>
+
+        <button pButton label="Close" [disabled]="closeForm.invalid" (click)="submitCloseFromTable()"></button>
+    </ng-template>
+</p-dialog>
+<p-dialog header="Complete Ticket Work" [(visible)]="showCompleteDialog" [modal]="true" [style]="{ width: '420px' }">
+    <form [formGroup]="completeForm" class="p-fluid">
+        <div class="field">
+            <label>Completion Update</label>
+            <textarea pTextarea rows="4" formControlName="note"></textarea>
+            <small class="p-error"
+                *ngIf="completeForm.controls['note'].touched && completeForm.controls['note'].invalid">
+                Completion update is required
+            </small>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancel" class="p-button-text" (click)="showCompleteDialog=false"></button>
+        <button pButton label="Submit" [disabled]="completeForm.invalid" (click)="submitCompleteWork()"></button>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Resolve Ticket" [(visible)]="showResolveDialog" [modal]="true" [style]="{ width: '520px' }">
+
+    <!-- Metrics -->
+    <div class="metrics-box" style="margin-bottom:12px;">
+        <h4 style="margin:0 0 8px 0;">Ticket Metrics</h4>
+
+        <div *ngIf="metricsLoading">Loading metrics...</div>
+        <div *ngIf="metricsError" class="p-error">{{ metricsError }}</div>
+
+        <div *ngIf="!metricsLoading && metricsData">
+            <div><b>Total TAT:</b> {{ metricsData?.tat?.totalMs | duration }}</div>
+            <div><b>Active TAT (excluding hold):</b> {{ metricsData?.tat?.activeMs | duration }}</div>
+
+            <div style="margin-top:6px;">
+                <b>SLA:</b>
+                {{ metricsData?.sla?.value }} {{ metricsData?.sla?.unit }}
+                ({{ metricsData?.sla?.ms | duration }})
+            </div>
+
+            <div>
+                <b>Resolved Time:</b>
+                <span *ngIf="metricsData?.resolved?.ms != null">
+                    {{ metricsData?.resolved?.ms | duration }}
+                </span>
+                <span *ngIf="metricsData?.resolved?.ms == null">Not resolved yet</span>
+            </div>
+
+            <div>
+                <b>SLA Breach:</b>
+                <span *ngIf="metricsData?.resolved?.breached === true" style="color:red;">BREACHED</span>
+                <span *ngIf="metricsData?.resolved?.breached === false" style="color:green;">WITHIN SLA</span>
+                <span *ngIf="metricsData?.resolved?.breached == null">Will be evaluated now</span>
+            </div>
+
+            <hr />
+
+            <div><b>Status-wise TAT:</b></div>
+            <ul style="margin:6px 0 0 16px;">
+                <li *ngFor="let k of objectKeys(metricsData?.byStatus)">
+                    {{ k }} : {{ metricsData?.byStatus[k] | duration }}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Resolve Form -->
+    <form [formGroup]="resolveForm" class="p-fluid">
+        <div class="field">
+            <label>Resolve Remarks</label>
+            <textarea pTextarea rows="3" formControlName="remarks"></textarea>
+            <small class="p-error"
+                *ngIf="resolveForm.controls['remarks'].touched && resolveForm.controls['remarks'].invalid">
+                Remarks are required
+            </small>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancel" class="p-button-text" (click)="showResolveDialog=false"></button>
+        <button pButton label="Resolve" [disabled]="resolveForm.invalid" (click)="submitResolveTicket()"></button>
+    </ng-template>
+</p-dialog>

@@ -1,5 +1,5 @@
-<div *ngIf="!isLoginRoute(); else loginTemplate" class="app-container">
-  <app-sidebar></app-sidebar>
+<div *ngIf="!isLoginRoute(); else loginTemplate" class="app-container" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <app-sidebar (collapsedChange)="isSidebarCollapsed = $event"></app-sidebar>
   <!-- <div style="flex-grow: 1; padding: 2rem;">
     <router-outlet></router-outlet>
   </div> -->

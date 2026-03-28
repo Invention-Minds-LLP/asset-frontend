@@ -1,0 +1,255 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Calibration Management</h2>
+      <p>Manage calibration schedules, history and checklist templates.</p>
+    </div>
+    <div class="header-actions">
+      <p-button label="Log Calibration" icon="pi pi-history" severity="secondary" (onClick)="showHistoryForm = !showHistoryForm" />
+      <p-button label="New Schedule" icon="pi pi-plus" (onClick)="showScheduleForm = !showScheduleForm; editingScheduleId = null; scheduleForm = getEmptyScheduleForm()" />
+    </div>
+  </div>
+
+  <!-- Schedule Form -->
+  <div class="form-card" *ngIf="showScheduleForm">
+    <h3>{{ editingScheduleId ? 'Edit Schedule' : 'New Calibration Schedule' }}</h3>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="assetOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="scheduleForm.assetId" name="schAsset" appendTo="body" [filter]="true" />
+          <label>Asset *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="scheduleForm.frequencyValue" name="freqVal" />
+          <label>Frequency Value</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="unitOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="scheduleForm.frequencyUnit" name="freqUnit" appendTo="body" />
+          <label>Frequency Unit</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="scheduleForm.nextDueAt" name="nextDue" appendTo="body" dateFormat="dd-mm-yy" />
+          <label>Next Due Date *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="vendorOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="scheduleForm.vendorId" name="schVendor" appendTo="body" [filter]="true"
+            [showClear]="true"  />
+          <label>Vendor (optional)</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="scheduleForm.reminderDays" name="reminderDays" />
+          <label>Reminder Days Before</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="scheduleForm.standardProcedure" name="stdProc" />
+          <label>Standard Procedure</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <textarea pTextarea [(ngModel)]="scheduleForm.notes" name="schNotes" rows="2"></textarea>
+          <label>Notes</label>
+        </p-floatlabel>
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" (onClick)="resetScheduleForm()" />
+      <p-button [label]="editingScheduleId ? 'Update' : 'Create'" icon="pi pi-save" (onClick)="saveSchedule()" />
+    </div>
+  </div>
+
+  <!-- Log History Form -->
+  <div class="form-card" *ngIf="showHistoryForm">
+    <h3>Log Calibration</h3>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="assetOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="historyForm.assetId" name="histAsset" appendTo="body" [filter]="true" />
+          <label>Asset *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="historyForm.calibratedAt" name="calibratedAt" appendTo="body" dateFormat="dd-mm-yy" />
+          <label>Calibrated At</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="resultOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="historyForm.result" name="histResult" appendTo="body" />
+          <label>Result</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="historyForm.calibratedByName" name="byName" />
+          <label>Calibrated By</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="vendorOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="historyForm.vendorId" name="histVendor" appendTo="body" [filter]="true"
+            [showClear]="true"  />
+          <label>Vendor</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="historyForm.certificateNo" name="certNo" />
+          <label>Certificate No</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <textarea pTextarea [(ngModel)]="historyForm.remarks" name="histRemarks" rows="2"></textarea>
+          <label>Remarks</label>
+        </p-floatlabel>
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" (onClick)="showHistoryForm = false" />
+      <p-button label="Log" icon="pi pi-save" (onClick)="logHistory()" />
+    </div>
+  </div>
+
+  <p-tabView class="custom-tabs">
+
+    <!-- Schedules -->
+    <p-tabPanel header="Schedules">
+      <p-table [value]="schedules" [loading]="loading" [paginator]="true" [rows]="10"
+        responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Asset</th>
+            <th>Frequency</th>
+            <th>Next Due</th>
+            <th>Last Calibrated</th>
+            <th>Vendor</th>
+            <th>Active</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>{{ row.asset?.assetName }}</td>
+            <td>{{ row.frequencyValue }} {{ row.frequencyUnit }}</td>
+            <td [class.text-danger]="row.nextDueAt < today">{{ row.nextDueAt | date:'dd MMM yyyy' }}</td>
+            <td>{{ row.lastCalibratedAt ? (row.lastCalibratedAt | date:'dd MMM yyyy') : '—' }}</td>
+            <td>{{ row.vendor?.name || '—' }}</td>
+            <td><p-tag [value]="row.isActive ? 'Active' : 'Inactive'" [severity]="row.isActive ? 'success' : 'secondary'" /></td>
+            <td>
+              <div class="action-buttons">
+                <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="editSchedule(row)" />
+                <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="deleteSchedule(row)" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="7" class="text-center">No schedules</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+    <!-- Due -->
+    <p-tabPanel [header]="'Due Soon (' + dueCalibrations.length + ')'">
+      <p-table [value]="dueCalibrations" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr><th>Asset</th><th>Due Date</th><th>Vendor</th><th>Procedure</th></tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr class="due-row">
+            <td>{{ row.asset?.assetName }}</td>
+            <td class="text-danger">{{ row.nextDueAt | date:'dd MMM yyyy' }}</td>
+            <td>{{ row.vendor?.name || '—' }}</td>
+            <td>{{ row.standardProcedure || '—' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="4" class="text-center">No calibrations due</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+    <!-- Templates -->
+    <p-tabPanel header="Checklist Templates">
+      <div class="tab-header">
+        <p-button label="New Template" icon="pi pi-plus" size="small"
+          (onClick)="showTemplateForm = !showTemplateForm; editingTemplateId = null; templateForm = getEmptyTemplateForm()" />
+      </div>
+
+      <div class="form-card" *ngIf="showTemplateForm">
+        <div class="form-grid">
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText [(ngModel)]="templateForm.name" name="tplName" />
+              <label>Template Name *</label>
+            </p-floatlabel>
+          </div>
+          <div class="field">
+            <p-floatlabel variant="on">
+              <p-select [options]="categoryOptions" optionLabel="label" optionValue="value"
+                [(ngModel)]="templateForm.assetCategoryId" name="tplCat" appendTo="body"
+                [showClear]="true"  />
+              <label>Asset Category</label>
+            </p-floatlabel>
+          </div>
+          <div class="field full-width">
+            <p-floatlabel variant="on">
+              <textarea pTextarea [(ngModel)]="templateForm.description" name="tplDesc" rows="2"></textarea>
+              <label>Description</label>
+            </p-floatlabel>
+          </div>
+        </div>
+        <div class="form-actions">
+          <p-button label="Cancel" severity="secondary" (onClick)="resetTemplateForm()" />
+          <p-button [label]="editingTemplateId ? 'Update' : 'Create'" icon="pi pi-save" (onClick)="saveTemplate()" />
+        </div>
+      </div>
+
+      <p-table [value]="templates" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr><th>Name</th><th>Category</th><th>Items</th><th>Active</th><th>Actions</th></tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>{{ row.name }}</td>
+            <td>{{ row.assetCategory?.name || '—' }}</td>
+            <td>{{ row.items?.length ?? 0 }}</td>
+            <td><p-tag [value]="row.isActive ? 'Active' : 'Inactive'" [severity]="row.isActive ? 'success' : 'secondary'" /></td>
+            <td>
+              <div class="action-buttons">
+                <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="editTemplate(row)" />
+                <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="deleteTemplate(row)" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="5" class="text-center">No templates</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+  </p-tabView>
+</div>

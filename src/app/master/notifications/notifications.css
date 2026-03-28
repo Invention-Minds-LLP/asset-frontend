@@ -1,0 +1,117 @@
+.page-container { padding: 1.5rem; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+.page-header h2 { margin: 0 0 0.25rem; display: flex; align-items: center; gap: 0.5rem; }
+.page-header p { margin: 0; color: #6b7280; font-size: 0.875rem; }
+
+.unread-badge {
+  background: #ef4444; color: #fff;
+  border-radius: 9999px; padding: 0.1rem 0.5rem;
+  font-size: 0.75rem; font-weight: 700;
+}
+
+.header-actions { display: flex; gap: 0.5rem; }
+
+.form-card { background: var(--surface-ground); border: 1px solid var(--surface-border); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.form-card h3 { margin: 0 0 1.25rem; font-size: 1rem; font-weight: 600; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.25rem; }
+.field { display: flex; flex-direction: column; }
+.full-width { grid-column: 1 / -1; }
+.form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+
+.unread-row { background: transparent; font-weight: 500; }
+.msg-cell { max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.text-center { text-align: center; padding: 1rem; color: #6b7280; }
+::ng-deep .custom-tabs .p-tabview-nav {
+  display: flex !important;
+  justify-content: center;
+  gap: 14px !important;
+  border: none !important;
+  background: transparent !important;
+  margin-bottom: 20px !important;
+}
+
+::ng-deep .custom-tabs .p-tab li {
+  border: none !important;
+  background: #f2f3f5 !important;
+  border-radius: 25px !important;
+  padding: 8px 22px !important;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+::ng-deep .custom-tabs .p-tabview-nav li .p-tabview-nav-link {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #555 !important;
+  font-size: 14px;
+  padding: 0 !important;
+}
+
+/* ACTIVE TAB */
+::ng-deep .custom-tabs .p-tabview-nav li.p-highlight {
+  background: #ccffe0 !important;
+  /* mint pill */
+}
+
+::ng-deep .custom-tabs .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  color: #0ca854 !important;
+  /* green text */
+  font-weight: 600 !important;
+}
+
+::ng-deep .p-tab {
+  border: none !important;
+  border-radius: 40px !important;
+}
+
+::ng-deep .p-tab-active {
+  background: #DBFFE8 !important;
+  border: none !important;
+  border-color: none !important;
+  color: #00A23D !important;
+  border-radius: 40px !important;
+}
+
+::ng-deep .p-tablist-tab-list {
+  gap: 20px !important;
+}
+
+/* Remove PrimeNG underline animation */
+::ng-deep .custom-tabs .p-tabview-nav:before {
+  display: none !important;
+}
+
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+::ng-deep .p-datatable .p-datatable-wrapper {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+::ng-deep .p-datatable-table {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 400 !important;
+  text-transform: capitalize;
+}
+input[pInputText],
+.p-inputtext,
+.p-select,
+.p-dropdown,
+.p-datepicker {
+  width: 100% !important;
+  height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+.p-textarea {
+  width: 100% !important;
+  min-height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}

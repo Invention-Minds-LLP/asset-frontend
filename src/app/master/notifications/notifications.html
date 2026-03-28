@@ -1,0 +1,137 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Notifications <span class="unread-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span></h2>
+      <p>Manage system-wide and personal notifications.</p>
+    </div>
+    <div class="header-actions">
+      <p-button label="Mark All Read" icon="pi pi-check-square" severity="secondary"
+        (onClick)="markAllAsRead()" [disabled]="unreadCount === 0" />
+      <p-button label="New Notification" icon="pi pi-plus"
+        (onClick)="showCreateForm = !showCreateForm" />
+    </div>
+  </div>
+
+  <!-- Create Form -->
+  <div class="form-card" *ngIf="showCreateForm">
+    <h3>Create Notification</h3>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="typeOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="createForm.type" name="notifType" appendTo="body" />
+          <label>Type *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="priorityOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="createForm.priority" name="notifPriority" appendTo="body" />
+          <label>Priority</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="createForm.title" name="notifTitle" />
+          <label>Title</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <textarea pTextarea [(ngModel)]="createForm.message" name="notifMessage" rows="3"></textarea>
+          <label>Message *</label>
+        </p-floatlabel>
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" (onClick)="showCreateForm = false" />
+      <p-button label="Create" icon="pi pi-send" (onClick)="create()" />
+    </div>
+  </div>
+
+  <p-tabView class="custom-tabs">
+
+    <!-- My Notifications -->
+    <p-tabPanel [header]="'My Notifications (' + myNotifications.length + ')'">
+      <p-table [value]="myNotifications" [loading]="loading" [paginator]="true" [rows]="15"
+        responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Type</th>
+            <th>Title</th>
+            <th>Message</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Received</th>
+            <th>Action</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr [class.unread-row]="!row.isRead">
+            <td><p-tag [value]="row.notification?.type" /></td>
+            <td>{{ row.notification?.title || '—' }}</td>
+            <td class="msg-cell">{{ row.notification?.message }}</td>
+            <td>
+              <p-tag *ngIf="row.notification?.priority"
+                [value]="row.notification.priority"
+                [severity]="getPrioritySeverity(row.notification.priority)" />
+            </td>
+            <td>
+              <p-tag [value]="row.isRead ? 'Read' : 'Unread'"
+                [severity]="row.isRead ? 'secondary' : 'info'" />
+            </td>
+            <td>{{ row.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
+            <td>
+              <p-button *ngIf="!row.isRead" icon="pi pi-eye" size="small"
+                (onClick)="markAsRead(row)" pTooltip="Mark as read" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="7" class="text-center">No notifications</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+    <!-- All Notifications (Admin) -->
+    <p-tabPanel header="All Notifications">
+      <p-table [value]="allNotifications" [paginator]="true" [rows]="15"
+        responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Type</th>
+            <th>Title</th>
+            <th>Message</th>
+            <th>Priority</th>
+            <th>Recipients</th>
+            <th>Created</th>
+            <th>Action</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td><p-tag [value]="row.type" /></td>
+            <td>{{ row.title || '—' }}</td>
+            <td class="msg-cell">{{ row.message }}</td>
+            <td>
+              <p-tag *ngIf="row.priority" [value]="row.priority"
+                [severity]="getPrioritySeverity(row.priority)" />
+            </td>
+            <td>{{ row.recipients?.length ?? 0 }}</td>
+            <td>{{ row.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
+            <td>
+              <p-button icon="pi pi-trash" size="small" severity="danger"
+                (onClick)="delete(row.id)" pTooltip="Delete" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="7" class="text-center">No notifications</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+  </p-tabView>
+</div>

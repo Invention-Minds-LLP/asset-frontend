@@ -1,0 +1,126 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Escalation Matrix</h2>
+      <p>Configure automatic ticket escalation rules by priority and department.</p>
+    </div>
+    <div class="header-actions">
+      <p-button label="Run Auto-Escalation" icon="pi pi-bolt" severity="warn" (onClick)="runAutoEscalation()" />
+      <p-button [label]="showForm ? 'Cancel' : 'Add Rule'" [icon]="showForm ? 'pi pi-times' : 'pi pi-plus'"
+        (onClick)="showForm ? reset() : (showForm = true)" />
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-card" *ngIf="showForm">
+    <h3>{{ editingId ? 'Edit Rule' : 'New Escalation Rule' }}</h3>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="priorityOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.priority" name="escPriority" appendTo="body" />
+          <label>Priority *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.level" name="escLevel" min="1" />
+          <label>Level *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.escalateAfterValue" name="escValue" />
+          <label>Escalate After (value) *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="unitOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.escalateAfterUnit" name="escUnit" appendTo="body" />
+          <label>Unit *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="departmentOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.departmentId" name="escDept" appendTo="body" [filter]="true"
+            [showClear]="true"  />
+          <label>Department (optional)</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="categoryOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.assetCategoryId" name="escCat" appendTo="body" [filter]="true"
+            [showClear]="true"  />
+          <label>Asset Category (optional)</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.notifyRole" name="escRole" />
+          <label>Notify Role</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="employeeOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.notifyEmployeeId" name="escEmployee" appendTo="body" [filter]="true"
+            [showClear]="true"  />
+          <label>Notify Employee</label>
+        </p-floatlabel>
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" (onClick)="reset()" />
+      <p-button [label]="editingId ? 'Update' : 'Save'" icon="pi pi-save" (onClick)="save()" />
+    </div>
+  </div>
+
+  <!-- Rules Table -->
+  <p-table [value]="rules" [loading]="loading" [paginator]="true" [rows]="15"
+    responsiveLayout="scroll" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Priority</th>
+        <th>Level</th>
+        <th>Escalate After</th>
+        <th>Department</th>
+        <th>Category</th>
+        <th>Notify Role</th>
+        <th>Notify Employee</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td><p-tag [value]="row.priority" [severity]="getPrioritySeverity(row.priority)" /></td>
+        <td><strong>L{{ row.level }}</strong></td>
+        <td>{{ row.escalateAfterValue }} {{ row.escalateAfterUnit }}</td>
+        <td>{{ row.department?.name || '—' }}</td>
+        <td>{{ row.assetCategory?.name || '—' }}</td>
+        <td>{{ row.notifyRole || '—' }}</td>
+        <td>{{ row.notifyEmployee?.name || '—' }}</td>
+        <td>
+          <div class="action-buttons">
+            <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="edit(row)" />
+            <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="delete(row)" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="8" class="text-center">No escalation rules configured</td></tr>
+    </ng-template>
+  </p-table>
+</div>

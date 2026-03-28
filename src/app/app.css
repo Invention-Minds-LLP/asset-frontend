@@ -4,43 +4,55 @@
 } */
 
 .app-container {
-    display: flex;
-    height: 100vh; /* Full viewport height */
-    overflow: hidden;
-  }
-  
-  app-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    width: 250px; /* or whatever width your sidebar needs */
-    z-index: 1000;
-  }
-  
-  .content-area {
-    margin-left: 250px; /* match the sidebar width */
-    padding: 2rem;
-    height: 100vh;
-    overflow-y: auto; /* allows content scrolling */
-    flex-grow: 1;
-    margin-bottom: 4rem;
-  }
-  .content-area {
-    scrollbar-width: thin; /* For Firefox */
-    scrollbar-color: #ccc transparent;
-  }
-  
-  /* For Chrome, Edge, and Safari */
-  .content-area::-webkit-scrollbar {
-    width: 4px; /* 👈 Make it very thin */
-  }
-  
-  .content-area::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  .content-area::-webkit-scrollbar-thumb {
-    background-color: #bbb;
-    border-radius: 2px;
-  }
+  display: flex;
+  height: 100vh;
+  /* Full viewport height */
+  overflow: hidden;
+}
+
+app-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 250px;
+  /* or whatever width your sidebar needs */
+  z-index: 1000;
+}
+
+.content-area {
+  margin-left: 250px;
+  /* match the sidebar width */
+  padding: 2rem;
+  height: 100vh;
+  overflow-y: auto;
+  /* allows content scrolling */
+  flex-grow: 1;
+  margin-bottom: 4rem;
+  transition: margin-left 0.3s ease;
+}
+
+.app-container.sidebar-collapsed .content-area {
+  margin-left: 80px;
+}
+
+.content-area {
+  scrollbar-width: thin;
+  /* For Firefox */
+  scrollbar-color: #ccc transparent;
+}
+
+/* For Chrome, Edge, and Safari */
+.content-area::-webkit-scrollbar {
+  width: 4px;
+  /* 👈 Make it very thin */
+}
+
+.content-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.content-area::-webkit-scrollbar-thumb {
+  background-color: #bbb;
+  border-radius: 2px;
+}

@@ -38,5 +38,69 @@ export class Ticketing {
       map((response: { url: string }) => response.url)
     );
   }
+  assignTicket(id: number, toEmployeeId: number, comment: string) {
+  return this.http.post(`${this.ticketUrl}/${id}/assign`, {
+    toEmployeeId,
+    comment
+  });
+}
 
+reassignTicket(id: number, toEmployeeId: number, comment: string) {
+  return this.http.post(`${this.ticketUrl}/${id}/reassign`, {
+    toEmployeeId,
+    comment
+  });
+}
+
+terminateTicket(id: number, note: string) {
+  return this.http.post(`${this.ticketUrl}/${id}/terminate`, { note });
+}
+
+closeTicket(id: number, remarks: string) {
+  return this.http.post(`${this.ticketUrl}/${id}/close`, { remarks });
+}
+
+updateStatus(id: number, status: string) {
+  return this.http.put(`${this.ticketUrl}/${id}`, { status });
+}
+getMyAssignedTickets() {
+  return this.http.get<any[]>(`${this.ticketUrl}/my-assigned`);
+}
+
+getMyRaisedTickets() {
+  return this.http.get<any[]>(`${this.ticketUrl}/my-raised`);
+}
+requestTransfer(ticketDbId: number, payload: any) {
+  return this.http.post(`${this.ticketUrl}/${ticketDbId}/transfer`, payload);
+}
+
+getPendingTransfers() {
+  return this.http.get<any[]>(`${this.ticketUrl}/transfers/pending`);
+}
+
+approveTransfer(ticketId: number, transferId: number) {
+  return this.http.post(`${this.ticketUrl}/${ticketId}/transfers/${transferId}/approve`, {});
+}
+
+rejectTransfer(ticketId: number, transferId: number, reason: string) {
+  return this.http.post(`${this.ticketUrl}/${ticketId}/transfers/${transferId}/reject`, { reason });
+}
+
+completeTransfer(ticketId: number, transferId: number) {
+  return this.http.post(`${this.ticketUrl}/${ticketId}/transfers/${transferId}/complete`, {});
+}
+
+getTransferHistory(ticketId: number) {
+  return this.http.get<any[]>(`${this.ticketUrl}/${ticketId}/transfers`);
+}
+getTicketMetrics(ticketDbId: number) {
+  return this.http.get<any>(`${this.ticketUrl}/${ticketDbId}/metrics`);
+}
+completeWork(ticketId: number, note: string) {
+  return this.http.patch(`${this.ticketUrl}/${ticketId}/complete-work`, { note });
+}
+
+resolveTicketByHod(ticketId: number, note: string) {
+  return this.http.patch(`${this.ticketUrl}/${ticketId}/resolve`, { note });
+}
 }

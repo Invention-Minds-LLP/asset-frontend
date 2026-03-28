@@ -48,6 +48,8 @@
   border-radius: 8px;
   padding: 0.5rem 1rem;
   transition: background 0.2s;
+  width: 100%;
+  cursor: pointer;
 }
 
 .menu-btn:hover {
@@ -321,20 +323,47 @@
   border-radius: 0px 0px 8px 8px;
   /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
   overflow: hidden;
-  margin-top: -1rem;
+  /* margin-top: -1rem; */
   max-height: 0;
   opacity: 0;
   transition: max-height 0.4s ease, opacity 0.4s ease;
   pointer-events: none;
-  padding: 0 12px; 
+  /* padding: 0 12px;  */
 }
-
-.dropdown.open {
-  max-height: 500px; /* enough to show all items */
+.sidebar:not(.collapsed) .dropdown.open {
+  max-height: 500px;
   opacity: 1;
   pointer-events: auto;
-  padding: 8px 12px; /* adds vertical padding when open */
+  padding: 8px 12px;
 }
+.menu-group {
+  border-radius: 10px;
+}
+
+.menu-group.group-active {
+  background-color: #dfffef;
+}
+
+/* remove bg from button itself */
+.menu-btn.active-menu {
+  background: transparent !important;
+}
+
+/* .dropdown.open {
+  max-height: 500px;
+  opacity: 1;
+  pointer-events: auto;
+  padding: 8px 12px;
+} */
+
+/* Expanded sidebar only */
+.sidebar:not(.collapsed) .dropdown.open {
+  max-height: 500px;
+  opacity: 1;
+  pointer-events: auto;
+  padding: 8px 12px;
+}
+
 
 .dropdown-item {
   display: flex;
@@ -373,4 +402,67 @@
 }
 .dot.active {
   background-color: var(--menu-color); /* active green color */
+}
+
+.sidebar.collapsed .dropdown {
+  max-height: none;
+  opacity: 1;
+  pointer-events: auto;
+  background: transparent;
+  /* padding: 6px 0; */
+}
+
+
+.sidebar.collapsed .collapsed-dropdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* gap: 6px; */
+}
+
+
+/* collapsed sub menu container */
+.collapsed-dropdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 0;
+}
+
+/* sub icon */
+.sub-icon {
+  font-size: 1.1rem;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sub-icon:hover {
+  /* background: rgba(0, 0, 0, 0.05); */
+}
+
+.dropdown-item.active-submenu {
+  color: var(--menu-color);            /* blue-600 */
+  font-weight: 700;
+  /* background-color: #e0ecff; light blue */
+}
+
+/* Active dot in expanded mode */
+.dropdown-item.active-submenu .dot {
+  background-color: var(--menu-color); 
+}
+
+/* Collapsed sidebar (icon-only mode) */
+.dropdown-item.active-submenu .sub-icon {
+  /* background-color: #e0ecff; light blue */
+  color: var(--menu-color);            /* blue icon */
+}
+
+/* Optional: hover polish */
+.dropdown-item.active-submenu:hover {
+  background-color: var(--menu-hover-color);
+}
+.img-logo{
+  width: 60px;
+  height: 60px;
 }

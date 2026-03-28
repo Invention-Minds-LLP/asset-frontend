@@ -1,0 +1,185 @@
+<p-toast></p-toast>
+
+<div class="audit-container">
+
+  <!-- LIST VIEW -->
+  <div *ngIf="!showDetail">
+    <div class="page-header">
+      <h2><i class="pi pi-clipboard"></i> Physical Audit</h2>
+      <p-button label="New Audit" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+    </div>
+
+    <p-table [value]="audits" [loading]="loading" [paginator]="true" [rows]="15"
+      [rowsPerPageOptions]="[10,15,25]" styleClass="p-datatable-sm p-datatable-striped">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Total Items</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-audit>
+        <tr>
+          <td>{{ audit.name }}</td>
+          <td class="desc-cell">{{ audit.description || '—' }}</td>
+          <td><p-tag [value]="audit.status" [severity]="getAuditStatusSeverity(audit.status)"></p-tag></td>
+          <td>{{ audit.items?.length || audit._count?.items || '—' }}</td>
+          <td>{{ audit.createdAt | date:'mediumDate' }}</td>
+          <td class="action-cell">
+            <p-button icon="pi pi-eye" label="View" size="small" severity="info" (onClick)="viewAudit(audit)"></p-button>
+            <p-button *ngIf="audit.status === 'PLANNED'" icon="pi pi-play" label="Start" size="small"
+              severity="success" (onClick)="startAudit(audit)"></p-button>
+            <p-button *ngIf="audit.status === 'IN_PROGRESS'" icon="pi pi-check" label="Complete" size="small"
+              severity="warn" (onClick)="completeAudit(audit)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="6" class="text-center">No audits found. Create one to get started.</td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- DETAIL VIEW -->
+  <div *ngIf="showDetail">
+    <div class="detail-header">
+      <p-button icon="pi pi-arrow-left" label="Back to List" severity="secondary" (onClick)="backToList()"></p-button>
+      <h2>{{ selectedAudit?.name }}</h2>
+      <p-tag [value]="selectedAudit?.status" [severity]="getAuditStatusSeverity(selectedAudit?.status)"></p-tag>
+      <p-button *ngIf="selectedAudit?.status === 'IN_PROGRESS'" icon="pi pi-check" label="Complete Audit"
+        severity="success" (onClick)="completeAudit(selectedAudit)"></p-button>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-section" *ngIf="summary.totalItems">
+      <label>Verification Progress: {{ getProgressPercent() }}%</label>
+      <p-progressbar [value]="getProgressPercent()"></p-progressbar>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="summary-grid" *ngIf="summary.totalItems">
+      <div class="summary-card">
+        <span class="summary-label">Total Items</span>
+        <span class="summary-value">{{ summary.totalItems }}</span>
+      </div>
+      <div class="summary-card card-success">
+        <span class="summary-label">Verified</span>
+        <span class="summary-value">{{ summary.verifiedCount }}</span>
+      </div>
+      <div class="summary-card card-danger">
+        <span class="summary-label">Missing</span>
+        <span class="summary-value">{{ summary.missingCount }}</span>
+      </div>
+      <div class="summary-card card-warn">
+        <span class="summary-label">Mismatch</span>
+        <span class="summary-value">{{ summary.mismatchCount }}</span>
+      </div>
+      <div class="summary-card card-secondary">
+        <span class="summary-label">Pending</span>
+        <span class="summary-value">{{ summary.pendingCount }}</span>
+      </div>
+    </div>
+
+    <!-- Items table -->
+    <p-table [value]="auditItems" [loading]="detailLoading" [paginator]="true" [rows]="20"
+      [rowsPerPageOptions]="[10,20,50]" styleClass="p-datatable-sm p-datatable-striped">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Asset ID</th>
+          <th>Asset Name</th>
+          <th>Status</th>
+          <th>Location Match</th>
+          <th>Condition Match</th>
+          <th>Actual Location</th>
+          <th>Remarks</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.asset?.assetId || item.assetId }}</td>
+          <td>{{ item.asset?.assetName || '—' }}</td>
+          <td><p-tag [value]="item.status" [severity]="getItemStatusSeverity(item.status)"></p-tag></td>
+          <td>
+            <i *ngIf="item.locationMatch === true" class="pi pi-check text-green"></i>
+            <i *ngIf="item.locationMatch === false" class="pi pi-times text-red"></i>
+            <span *ngIf="item.locationMatch == null">—</span>
+          </td>
+          <td>
+            <i *ngIf="item.conditionMatch === true" class="pi pi-check text-green"></i>
+            <i *ngIf="item.conditionMatch === false" class="pi pi-times text-red"></i>
+            <span *ngIf="item.conditionMatch == null">—</span>
+          </td>
+          <td>{{ item.actualLocation || '—' }}</td>
+          <td class="remarks-cell">{{ item.remarks || '—' }}</td>
+          <td>
+            <p-button *ngIf="item.status === 'PENDING' && selectedAudit?.status === 'IN_PROGRESS'"
+              icon="pi pi-check-square" label="Verify" size="small" (onClick)="openVerifyDialog(item)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="8" class="text-center">No items in this audit.</td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- Create Audit Dialog -->
+<p-dialog header="Create New Audit" [(visible)]="showCreateDialog" [style]="{ width: '450px' }" [modal]="true">
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Audit Name *</label>
+      <input pInputText [(ngModel)]="createForm.name" placeholder="e.g. Q1 2025 Physical Audit" style="width:100%" />
+    </div>
+    <div class="form-field">
+      <label>Description</label>
+      <textarea pTextarea [(ngModel)]="createForm.description" rows="3" style="width:100%"></textarea>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showCreateDialog = false"></p-button>
+    <p-button label="Create" icon="pi pi-plus" (onClick)="submitCreate()" [loading]="createLoading"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Verify Item Dialog -->
+<p-dialog header="Verify Audit Item" [(visible)]="showVerifyDialog" [style]="{ width: '450px' }" [modal]="true">
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Verification Status *</label>
+      <p-select [options]="verifyStatusOptions" [(ngModel)]="verifyForm.status" [style]="{'width':'100%'}"></p-select>
+    </div>
+    <div class="form-field checkbox-row">
+      <p-checkbox [(ngModel)]="verifyForm.locationMatch" [binary]="true" label="Location Matches"></p-checkbox>
+    </div>
+    <div class="form-field checkbox-row">
+      <p-checkbox [(ngModel)]="verifyForm.conditionMatch" [binary]="true" label="Condition Matches"></p-checkbox>
+    </div>
+    <div class="form-field">
+      <label>Actual Location</label>
+      <input pInputText [(ngModel)]="verifyForm.actualLocation" style="width:100%" />
+    </div>
+    <div class="form-field">
+      <label>Actual Condition</label>
+      <input pInputText [(ngModel)]="verifyForm.actualCondition" style="width:100%" />
+    </div>
+    <div class="form-field">
+      <label>Remarks</label>
+      <textarea pTextarea [(ngModel)]="verifyForm.remarks" rows="2" style="width:100%"></textarea>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showVerifyDialog = false"></p-button>
+    <p-button label="Submit" icon="pi pi-check" (onClick)="submitVerify()" [loading]="verifyLoading"></p-button>
+  </ng-template>
+</p-dialog>

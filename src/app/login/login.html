@@ -4,12 +4,13 @@
       <div class="login-card">
         <div class="login-header">
            <div class="logo">
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <!-- <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
                 <rect width="36" height="36" rx="8" fill="#2C64BB"/>
                 <path d="M6.10423 17.8053C5.62418 16.3075 6.98112 14.8673 8.50482 15.2574L20.1073 18.2277C20.8122 18.4081 21.3634 18.9571 21.5468 19.6612L23.6895 27.8894C24.0628 29.3231 22.8022 30.6509 21.351 30.3524L10.4781 28.1156C9.77083 27.9701 9.19691 27.4547 8.97652 26.7671L6.10423 17.8053Z" fill="white"/>
                 <path d="M26.6074 8.86765C27.3122 9.0481 27.8635 9.59706 28.0468 10.3011L30.1895 18.5287C30.5629 19.9625 29.3021 21.2903 27.851 20.9917L24.6788 20.339C23.939 20.1868 23.3481 19.6308 23.1511 18.9016L23.0745 18.6181C22.8849 17.9161 22.3291 17.3722 21.6231 17.1979L15.96 15.7999C15.2861 15.6335 14.7466 15.1296 14.5348 14.4685L12.6046 8.44504C12.1246 6.94726 13.4816 5.50711 15.0052 5.89721L26.6074 8.86765Z" fill="white"/>
-              </svg>
-            <h2 class="logo-text">Asset Management</h2>
+              </svg> -->
+               <img  class="img-logo" src="./sa_logo.png">
+            <h2 class="logo-text">SMART ASSETS</h2>
            </div>
           <h1>Account Log In</h1>
           <p>Please login to continue to your account</p>
@@ -38,9 +39,15 @@
           </div>
 
 
-          <div class="form-group">
-            <button type="submit" class="login-button">Log In</button>
-          </div>
+  <div class="form-group">
+    <button
+      type="submit"
+      class="login-button"
+      [disabled]="!isLoginFormValid() || loading"
+    >
+      {{ loading ? 'Logging in...' : 'Log In' }}
+    </button>
+  </div>
         </form>
       </div>
       <div class="footer">
@@ -70,6 +77,6 @@
       </p-carousel>
       </div>
     
-      <p class="quote">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+      <!-- <p class="quote">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p> -->
     </div>
   </div>

@@ -1,0 +1,162 @@
+<p-toast></p-toast>
+
+<div class="pending-transfer-container">
+  <div class="header">
+    <div class="title">
+      <h2>Pending Ticket Transfers</h2>
+      <p>Approve or reject transfer requests assigned to your department</p>
+    </div>
+
+    <div class="actions">
+      <input
+        pInputText
+        type="text"
+        placeholder="Search…"
+        [(ngModel)]="globalFilter"
+      />
+      <button pButton type="button" icon="pi pi-refresh" label="Refresh" (click)="refresh()"></button>
+    </div>
+  </div>
+
+  <p-table
+    [value]="rows"
+    [loading]="loading"
+    responsiveLayout="scroll"
+    [paginator]="true"
+    [rows]="10"
+    [globalFilterFields]="[
+      'ticket.ticketId',
+      'ticket.asset.assetId',
+      'ticket.asset.assetName',
+      'fromDepartment.name',
+      'toDepartment.name',
+      'comment',
+      'requestedBy.name'
+    ]"
+    [filters]="{ global: { value: globalFilter, matchMode: 'contains' } }"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 120px;">Transfer ID</th>
+        <th style="width: 160px;">Ticket</th>
+        <th>Asset</th>
+        <th style="width: 140px;">From Dept</th>
+        <th style="width: 140px;">To Dept</th>
+        <th style="width: 160px;">Requested By</th>
+        <th style="width: 140px;">Requested At</th>
+        <th style="width: 120px;">Status</th>
+        <th style="width: 260px;">Action</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-r>
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>
+          <a href="javascript:void(0)" (click)="openDetails(r)">{{ ticketCode(r) }}</a>
+        </td>
+        <td>{{ assetText(r) }}</td>
+        <td>{{ fromDept(r) }}</td>
+        <td>{{ toDept(r) }}</td>
+        <td>{{ requestedBy(r) }}</td>
+        <td>{{ createdAtText(r) }}</td>
+        <td>
+          <span [class]="getStatusBadgeClass(r.status)">
+            {{ r.status }}
+          </span>
+        </td>
+
+        <td class="row-actions">
+          <button
+            pButton
+            type="button"
+            icon="pi pi-check"
+            label="Approve"
+            (click)="approve(r)"
+            [disabled]="loading"
+          ></button>
+
+          <button
+            pButton
+            type="button"
+            icon="pi pi-times"
+            label="Reject"
+            class="p-button-danger"
+            (click)="openReject(r)"
+            [disabled]="loading"
+          ></button>
+
+          <button
+            pButton
+            type="button"
+            icon="pi pi-eye"
+            label="Details"
+            class="p-button-secondary"
+            (click)="openDetails(r)"
+            [disabled]="loading"
+          ></button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="9" class="empty">
+          No pending transfer requests
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- DETAILS DIALOG -->
+<p-dialog
+  header="Transfer Details"
+  [(visible)]="showDetailsDialog"
+  [modal]="true"
+  [style]="{ width: '520px' }"
+>
+  <div *ngIf="selectedRow as r" class="details">
+    <div class="detail-row"><b>Transfer ID:</b> {{ r.id }}</div>
+    <div class="detail-row"><b>Ticket:</b> {{ ticketCode(r) }}</div>
+    <div class="detail-row"><b>Asset:</b> {{ assetText(r) }}</div>
+    <div class="detail-row"><b>From Department:</b> {{ fromDept(r) }}</div>
+    <div class="detail-row"><b>To Department:</b> {{ toDept(r) }}</div>
+    <div class="detail-row"><b>Requested By:</b> {{ requestedBy(r) }}</div>
+    <div class="detail-row"><b>Requested At:</b> {{ createdAtText(r) }}</div>
+    <div class="detail-row"><b>Status:</b> {{ r.status }}</div>
+
+    <div class="detail-row">
+      <b>Comment:</b>
+      <div class="comment-box">{{ r.comment || '-' }}</div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Close" class="p-button-text" (click)="showDetailsDialog=false"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- REJECT DIALOG -->
+<p-dialog
+  header="Reject Transfer"
+  [(visible)]="showRejectDialog"
+  [modal]="true"
+  [style]="{ width: '420px' }"
+>
+  <div class="p-fluid">
+    <label>Reason (optional)</label>
+    <textarea pTextarea rows="4" [(ngModel)]="rejectReason" placeholder="Enter rejection reason..."></textarea>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancel" class="p-button-text" (click)="showRejectDialog=false"></button>
+    <button
+      pButton
+      label="Reject"
+      class="p-button-danger"
+      (click)="confirmReject()"
+      [disabled]="loading"
+    ></button>
+  </ng-template>
+</p-dialog>

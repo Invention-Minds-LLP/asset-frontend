@@ -1,0 +1,319 @@
+<div class="table-wrapper">
+    <div class="header">
+        <div class="header-part">
+            <div>
+                <h2>Asset Assignments</h2>
+                <p>Pending acknowledgements and assignment history</p>
+            </div>
+
+            <div class="notification-part">
+                <div class="active-box">
+                    <div class=""></div>
+                    <span>{{ assignments.length }} Pending Assignments</span>
+                </div>
+                <div class="notification">
+                    <i class="pi pi-bell"></i>
+                </div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <div class="actions">
+                <div class="filter" (click)="toggleFilterDropdown($event)">
+                    <i class="pi pi-filter"></i>
+                    <ul class="filter-menu" *ngIf="dropdownVisible">
+                        <li class="menu" *ngFor="let option of filterOptions"
+                            (click)="selectFilter(option.value, $event)"
+                            [class.active]="selectedFilter === option.value">
+                            {{ option.label }}
+                        </li>
+                    </ul>
+                </div>
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search"></p-inputicon>
+                    <input type="text" pInputText placeholder="Search" [(ngModel)]="searchTerm"
+                        (input)="applyFilter()" />
+                </p-iconfield>
+                <div class="filter-clear" *ngIf="isFilterActive" (click)="clearFilter()">
+                    <i class="pi pi-filter-slash"></i>
+                </div>
+            </div>
+
+
+            <div class="custom-paginator-bar">
+                <div class="separator"></div>
+
+                <button class="icon-button" (click)="refresh()">
+                    <span class="pi pi-refresh"></span>
+                </button>
+
+                <span class="page-info">{{ currentPage }} of {{ totalPages }}</span>
+
+                <button class="icon-button" (click)="previousPage()" [disabled]="currentPage <= 1">
+                    <span class="pi pi-chevron-left"></span>
+                </button>
+
+                <button class="icon-button" (click)="nextPage()" [disabled]="currentPage >= totalPages">
+                    <span class="pi pi-chevron-right"></span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+    <div class="table-container">
+
+        <!-- ✅ ASSIGNMENT TABLE -->
+        <p-table *ngIf="!isLoading && paginatedAssignments.length > 0" [value]="paginatedAssignments">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th></th>
+                    <th>No</th>
+                    <th>Asset ID</th>
+                    <th>Asset Name</th>
+                    <th>Assigned By</th>
+                    <th>Assigned To</th>
+                    <th>Assigned Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-item let-i="rowIndex">
+                <tr>
+                    <td>
+                        <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(item.status) }"></span>
+                    </td>
+
+                    <td>
+                        {{ (currentPage - 1) * rowsPerPage + i + 1 }}
+                    </td>
+
+                    <td>{{ item.asset?.assetId }}</td>
+                    <td>{{ item.asset?.assetName }}</td>
+
+                    <td>{{ item.assignedBy?.name || '-' }}</td>
+                    <td>{{ item.assignedTo?.name || '-' }}</td>
+
+                    <td>{{ item.assignedAt | date:'dd-MM-yyyy' }}</td>
+
+                    <td>
+                        <span class="status" [ngClass]="item.status.toLowerCase()">
+                            {{ item.status }}
+                        </span>
+                    </td>
+
+                    <td class="action-btns">
+                        <button class="accept-btn" (click)="openAcknowledge(item)">
+                            Accept
+                        </button>
+
+                        <button class="reject-btn" (click)="openReject(item)">
+                            Reject
+                        </button>
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+
+        <!-- ❌ NO RECORDS -->
+        <div *ngIf="!isLoading && paginatedAssignments.length === 0" class="no-data">
+            <i class="pi pi-inbox"></i>
+            <p>No assignments found</p>
+        </div>
+
+        <!-- ⏳ SKELETON (same as assets) -->
+        <div *ngIf="isLoading" class="custom-table-skeleton">
+
+            <div class="skeleton-row header">
+                <p-skeleton shape="circle" size="20px"></p-skeleton>
+                <p-skeleton width="30px"></p-skeleton>
+                <p-skeleton width="80px"></p-skeleton>
+                <p-skeleton width="150px"></p-skeleton>
+                <p-skeleton width="120px"></p-skeleton>
+                <p-skeleton width="120px"></p-skeleton>
+                <p-skeleton width="120px"></p-skeleton>
+                <p-skeleton width="100px"></p-skeleton>
+                <p-skeleton width="80px"></p-skeleton>
+            </div>
+
+            <div *ngFor="let i of [1,2,3,4,5,6,7,8]" class="skeleton-row">
+                <p-skeleton shape="circle" size="20px"></p-skeleton>
+                <p-skeleton width="30px"></p-skeleton>
+                <p-skeleton width="80px"></p-skeleton>
+                <p-skeleton width="150px"></p-skeleton>
+                <p-skeleton width="120px"></p-skeleton>
+                <p-skeleton width="120px"></p-skeleton>
+                <p-skeleton width="120px"></p-skeleton>
+                <p-skeleton width="100px"></p-skeleton>
+                <p-skeleton width="80px"></p-skeleton>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- REJECT DIALOG -->
+<p-dialog header="Reject Assignment" [(visible)]="showRejectDialog" [modal]="true" [style]="{width: '400px'}">
+  <div class="p-fluid">
+
+    <div class="asset-info-card" *ngIf="selectedAssignment?.asset">
+      <div class="info-row">
+        <span class="info-label">Asset Name</span>
+        <span class="info-value">{{ selectedAssignment.asset.assetName || '-' }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="info-label">Reference Code</span>
+        <span class="info-value">{{ selectedAssignment.asset.referenceCode || '-' }}</span>
+      </div>
+    </div>
+
+    <label>Reason</label>
+    <textarea pInputTextarea [(ngModel)]="rejectReason" rows="4"></textarea>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancel" (click)="showRejectDialog=false"></button>
+    <button pButton label="Reject" severity="danger" (click)="confirmReject()"></button>
+  </ng-template>
+</p-dialog>
+
+
+<!-- ACKNOWLEDGE DIALOG -->
+<p-dialog
+  header="Acknowledge Asset"
+  [(visible)]="showAckDialog"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '650px' }"
+  [contentStyle]="{ overflow: 'auto' }"
+>
+  <div class="ack-dialog">
+
+    <div class="asset-info-card" *ngIf="selectedAssignment?.asset">
+      <div class="info-row">
+        <span class="info-label">Asset Name</span>
+        <span class="info-value">{{ selectedAssignment.asset.assetName || '-' }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="info-label">Reference Code</span>
+        <span class="info-value">{{ selectedAssignment.asset.referenceCode || '-' }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="ackError" class="ack-error">
+      {{ ackError }}
+    </div>
+
+    <!-- Note -->
+    <div class="field">
+      <label class="lbl">Note</label>
+      <textarea
+        pInputTextarea
+        rows="3"
+        class="w-full"
+        [(ngModel)]="ackNote"
+        placeholder="Enter acknowledgement note"
+      ></textarea>
+    </div>
+
+    <!-- Checklist -->
+    <div class="field">
+      <label class="lbl">Checklist</label>
+
+      <div *ngIf="checklistLoading">Loading checklist...</div>
+
+      <div *ngIf="!checklistLoading && checklistItems.length === 0" class="hint">
+        No checklist available for this asset.
+      </div>
+
+      <div
+        class="checklist-box"
+        *ngFor="let item of checklistResponses; let i = index"
+      >
+        <div class="checklist-row">
+          <input
+            type="checkbox"
+            [(ngModel)]="item.checked"
+            [ngModelOptions]="{ standalone: true }"
+          />
+
+          <div class="checklist-content">
+            <div class="title">
+              {{ checklistItems[i]?.title }}
+              <span *ngIf="checklistItems[i]?.isRequired" class="required-star">*</span>
+            </div>
+
+            <div class="desc" *ngIf="checklistItems[i]?.description">
+              {{ checklistItems[i]?.description }}
+            </div>
+
+            <textarea
+              pInputTextarea
+              rows="2"
+              [(ngModel)]="item.remarks"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="Remarks"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signature -->
+    <div class="field">
+      <div class="row-between">
+        <label class="lbl">Signature</label>
+        <button
+          pButton
+          type="button"
+          label="Clear Signature"
+          class="p-button-text clear-link"
+          (click)="clearSignature()"
+        ></button>
+      </div>
+
+      <canvas #signatureCanvas width="540" height="170" class="signature-box"></canvas>
+      <small class="hint">Sign inside the box using mouse / touch.</small>
+    </div>
+
+    <!-- Upload -->
+    <div class="field">
+      <label class="lbl">Upload Photo</label>
+
+      <div class="upload-row">
+        <label class="upload-btn">
+          <input type="file" accept="image/*" (change)="onFileSelect($event)" />
+          Choose File
+        </label>
+
+        <span class="file-name">
+          {{ selectedFile?.name || 'No file chosen' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="footer-actions">
+      <button
+        pButton
+        type="button"
+        label="Cancel"
+        class="btn-cancel"
+        (click)="resetAckDialog()"
+      ></button>
+      <button
+        pButton
+        type="button"
+        label="Submit"
+        class="btn-submit"
+        (click)="confirmAcknowledge()"
+      ></button>
+    </div>
+  </ng-template>
+</p-dialog>

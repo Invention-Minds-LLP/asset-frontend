@@ -26,23 +26,34 @@
                     <form #basicForm="ngForm">
 
                         <!-- ASSET NAME -->
-                        <p-floatlabel variant="on" class="full-field">
-                            <input pInputText name="assetName" [(ngModel)]="asset.assetName" required />
-                            <label>Asset Name *</label>
-                        </p-floatlabel>
+                        <div class="two-fields">
+                            <p-floatlabel variant="on" class="full-field">
+                                <input pInputText name="assetName" [(ngModel)]="asset.assetName" required
+                                    [disabled]="!canEditBasicDetails" />
+                                <label>Asset Name *</label>
+                            </p-floatlabel>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <input pInputText name="referenceCode" [(ngModel)]="asset.referenceCode"
+                                    [disabled]="!canEditBasicDetails" />
+                                <label>Reference Code</label>
+                            </p-floatlabel>
+                        </div>
 
                         <!-- TYPE + CATEGORY -->
                         <div class="two-fields">
                             <p-floatlabel variant="on">
                                 <p-select [options]="assetTypes" optionLabel="label" optionValue="value"
-                                    name="assetType" [(ngModel)]="asset.assetType" required>
+                                    name="assetType" [(ngModel)]="asset.assetType" [filter]="true" required
+                                    appendTo="body" [disabled]="!canEditBasicDetails">
                                 </p-select>
                                 <label>Asset Type *</label>
                             </p-floatlabel>
 
                             <p-floatlabel variant="on">
                                 <p-select [options]="categories" optionLabel="name" optionValue="id"
-                                    name="assetCategoryId" [(ngModel)]="asset.assetCategoryId" required>
+                                    name="assetCategoryId" [(ngModel)]="asset.assetCategoryId" [filter]="true" required
+                                    appendTo="body" [disabled]="!canEditBasicDetails">
                                 </p-select>
                                 <label>Category *</label>
                             </p-floatlabel>
@@ -50,14 +61,16 @@
 
                         <!-- SERIAL NUMBER -->
                         <p-floatlabel variant="on" class="full-field">
-                            <input pInputText name="serialNumber" [(ngModel)]="asset.serialNumber" required />
+                            <input pInputText name="serialNumber" [(ngModel)]="asset.serialNumber" required
+                                [disabled]="!canEditBasicDetails" />
                             <label>Serial Number *</label>
                         </p-floatlabel>
 
                         <!-- PROCUREMENT MODE -->
                         <p-floatlabel variant="on" class="full-field">
                             <p-select [options]="procurementModes" optionLabel="label" optionValue="value"
-                                name="modeOfProcurement" [(ngModel)]="asset.modeOfProcurement" required>
+                                name="modeOfProcurement" [(ngModel)]="asset.modeOfProcurement" required appendTo="body"
+                                [disabled]="!canEditBasicDetails" [filter]="true">
                             </p-select>
                             <label>Mode of Procurement *</label>
                         </p-floatlabel>
@@ -72,40 +85,43 @@
 
                             <div class="two-fields">
                                 <p-floatlabel variant="on">
-                                    <input pInputText name="invoiceNumber" [(ngModel)]="asset.invoiceNumber" required />
+                                    <input pInputText name="invoiceNumber" [(ngModel)]="asset.invoiceNumber" required
+                                        [disabled]="!canEditBasicDetails" />
                                     <label>Invoice Number *</label>
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on">
-                                    <p-datepicker name="purchaseDate" [(ngModel)]="asset.purchaseDate"
-                                        required></p-datepicker>
+                                    <p-datepicker name="purchaseDate" [(ngModel)]="asset.purchaseDate" required
+                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
                                     <label>Purchase Date *</label>
                                 </p-floatlabel>
                             </div>
 
                             <div class="two-fields">
                                 <p-floatlabel variant="on">
-                                    <input pInputText name="purchaseOrderNo" [(ngModel)]="asset.purchaseOrderNo" />
+                                    <input pInputText name="purchaseOrderNo" [(ngModel)]="asset.purchaseOrderNo"
+                                        [disabled]="!canEditBasicDetails" />
                                     <label>PO Number</label>
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on">
-                                    <p-datepicker name="purchaseOrderDate"
-                                        [(ngModel)]="asset.purchaseOrderDate"></p-datepicker>
+                                    <p-datepicker name="purchaseOrderDate" [(ngModel)]="asset.purchaseOrderDate"
+                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
                                     <label>PO Date</label>
                                 </p-floatlabel>
                             </div>
 
                             <p-floatlabel variant="on" class="full-field">
                                 <input pInputText type="number" name="purchaseCost" [(ngModel)]="asset.purchaseCost"
-                                    required />
+                                    required [disabled]="!canEditBasicDetails" />
                                 <label>Purchase Cost *</label>
                             </p-floatlabel>
 
                             <!-- Vendor -->
                             <p-floatlabel variant="on" class="full-field">
                                 <p-select [options]="vendors" optionLabel="name" optionValue="id"
-                                    [(ngModel)]="asset.vendorId" name="vendorId" required></p-select>
+                                    [(ngModel)]="asset.vendorId" name="vendorId" required appendTo="body"
+                                    [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
                                 <label>Vendor *</label>
                             </p-floatlabel>
 
@@ -138,25 +154,27 @@
                             <h4>Donation Details</h4>
 
                             <p-floatlabel variant="on" class="full-field">
-                                <input pInputText [(ngModel)]="asset.donorName" name="donorName" required />
+                                <input pInputText [(ngModel)]="asset.donorName" name="donorName" required
+                                    [disabled]="!canEditBasicDetails" />
                                 <label>Donor Name *</label>
                             </p-floatlabel>
 
                             <p-floatlabel variant="on" class="full-field">
-                                <p-datepicker [(ngModel)]="asset.donationDate" name="donationDate"
-                                    required></p-datepicker>
+                                <p-datepicker [(ngModel)]="asset.donationDate" name="donationDate" required
+                                    [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
                                 <label>Donation Date *</label>
                             </p-floatlabel>
 
                             <p-floatlabel variant="on" class="full-field">
                                 <p-select [options]="donationConditions" optionLabel="label" optionValue="value"
-                                    [(ngModel)]="asset.assetCondition" name="assetCondition" required></p-select>
+                                    [(ngModel)]="asset.assetCondition" name="assetCondition" required appendTo="body"
+                                    [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
                                 <label>Condition *</label>
                             </p-floatlabel>
 
                             <p-floatlabel variant="on" class="full-field">
-                                <input pInputText type="number" name="estimatedValue"
-                                    [(ngModel)]="asset.estimatedValue" />
+                                <input pInputText type="number" name="estimatedValue" [(ngModel)]="asset.estimatedValue"
+                                    [disabled]="!canEditBasicDetails" />
                                 <label>Estimated Value</label>
                             </p-floatlabel>
                         </div>
@@ -171,26 +189,28 @@
 
                             <p-floatlabel variant="on" class="full-field">
                                 <p-select [options]="vendors" optionLabel="name" optionValue="id"
-                                    [(ngModel)]="asset.vendorId" name="vendorId" required></p-select>
+                                    [(ngModel)]="asset.vendorId" name="vendorId" required appendTo="body"
+                                    [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
                                 <label>Vendor *</label>
                             </p-floatlabel>
 
                             <div class="two-fields">
                                 <p-floatlabel variant="on">
-                                    <p-datepicker [(ngModel)]="asset.leaseStartDate" name="leaseStartDate"
-                                        required></p-datepicker>
+                                    <p-datepicker [(ngModel)]="asset.leaseStartDate" name="leaseStartDate" required
+                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
                                     <label>Start Date *</label>
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on">
-                                    <p-datepicker [(ngModel)]="asset.leaseEndDate" name="leaseEndDate"
-                                        required></p-datepicker>
+                                    <p-datepicker [(ngModel)]="asset.leaseEndDate" name="leaseEndDate" required
+                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
                                     <label>End Date *</label>
                                 </p-floatlabel>
                             </div>
 
                             <p-floatlabel variant="on" class="full-field">
-                                <input pInputText type="number" name="leaseAmount" [(ngModel)]="asset.leaseAmount" />
+                                <input pInputText type="number" name="leaseAmount" [(ngModel)]="asset.leaseAmount"
+                                    [disabled]="!canEditBasicDetails" />
                                 <label>Lease Amount</label>
                             </p-floatlabel>
                         </div>
@@ -206,26 +226,28 @@
 
                             <p-floatlabel variant="on" class="full-field">
                                 <p-select [options]="vendors" optionLabel="name" optionValue="id"
-                                    [(ngModel)]="asset.vendorId" name="vendorId" required></p-select>
+                                    [(ngModel)]="asset.vendorId" name="vendorId" required appendTo="body"
+                                    [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
                                 <label>Vendor *</label>
                             </p-floatlabel>
 
                             <div class="two-fields">
                                 <p-floatlabel variant="on">
-                                    <p-datepicker [(ngModel)]="asset.rentalStartDate" name="rentalStartDate"
-                                        required></p-datepicker>
+                                    <p-datepicker [(ngModel)]="asset.rentalStartDate" name="rentalStartDate" required
+                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
                                     <label>Start Date *</label>
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on">
-                                    <p-datepicker [(ngModel)]="asset.rentalEndDate" name="rentalEndDate"
-                                        required></p-datepicker>
+                                    <p-datepicker [(ngModel)]="asset.rentalEndDate" name="rentalEndDate" required
+                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
                                     <label>End Date *</label>
                                 </p-floatlabel>
                             </div>
 
                             <p-floatlabel variant="on">
-                                <input pInputText type="number" [(ngModel)]="asset.rentalAmount" name="rentalAmount" />
+                                <input pInputText type="number" [(ngModel)]="asset.rentalAmount" name="rentalAmount"
+                                    [disabled]="!canEditBasicDetails" />
                                 <label>Rent Amount</label>
                             </p-floatlabel>
                         </div>
@@ -236,29 +258,34 @@
 
                         <div class="two-fields">
                             <p-floatlabel variant="on">
-                                <input pInputText [(ngModel)]="asset.grnNumber" name="grnNumber" />
+                                <input pInputText [(ngModel)]="asset.grnNumber" name="grnNumber"
+                                    [disabled]="!canEditBasicDetails" />
                                 <label>GRN Number</label>
                             </p-floatlabel>
 
                             <p-floatlabel variant="on">
-                                <p-datepicker [(ngModel)]="asset.grnDate" name="grnDate"></p-datepicker>
+                                <p-datepicker [(ngModel)]="asset.grnDate" name="grnDate"
+                                    [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
                                 <label>GRN Date</label>
                             </p-floatlabel>
                         </div>
 
                         <p-floatlabel variant="on" class="full-field">
-                            <input pInputText type="number" name="grnValue" [(ngModel)]="asset.grnValue" />
+                            <input pInputText type="number" name="grnValue" [(ngModel)]="asset.grnValue"
+                                [disabled]="!canEditBasicDetails" />
                             <label>GRN Value</label>
                         </p-floatlabel>
 
                         <p-floatlabel variant="on" class="full-field">
                             <p-select [options]="inspectionStatuses" optionLabel="label" optionValue="value"
-                                [(ngModel)]="asset.inspectionStatus" name="inspectionStatus" required></p-select>
+                                [(ngModel)]="asset.inspectionStatus" name="inspectionStatus" required appendTo="body"
+                                [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
                             <label>Inspection Status *</label>
                         </p-floatlabel>
 
                         <textarea pInputTextarea rows="2" [(ngModel)]="asset.inspectionRemarks"
-                            placeholder="Inspection Remarks" name="inspectionRemarks"></textarea>
+                            placeholder="Inspection Remarks" name="inspectionRemarks"
+                            [disabled]="!canEditBasicDetails"></textarea>
 
                         <!-- ====================== -->
                         <!-- DEPARTMENT ASSIGNMENT -->
@@ -268,16 +295,27 @@
 
                         <p-floatlabel variant="on" class="full-field">
                             <p-select [options]="departments" optionLabel="name" optionValue="id" name="departmentId"
-                                [(ngModel)]="asset.departmentId" required></p-select>
+                                [(ngModel)]="asset.departmentId" required appendTo="body"
+                                [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
                             <label>Assigned Department *</label>
                         </p-floatlabel>
 
-                        <p-floatlabel variant="on" class="full-field">
+                        <!-- <p-floatlabel variant="on" class="full-field">
                             <p-select [options]="assignmentTypes" optionLabel="label" optionValue="value"
                                 name="assignmentType" [(ngModel)]="asset.assignmentType">
                             </p-select>
                             <label>Assignment Type</label>
+                        </p-floatlabel> -->
+
+                        <p-floatlabel variant="on" class="full-field">
+                            <textarea pInputTextarea rows="2" [(ngModel)]="handoverCondition" name="handoverCondition"
+                                placeholder="Describe condition (Working / Accessories / Scratches / Missing parts etc.)"
+                                [disabled]="!canEditBasicDetails"></textarea>
                         </p-floatlabel>
+
+                        <button *ngIf="canResendSourceHod" pButton label="Resend Source HOD Acknowledgement"
+                            class="p-button-warning" (click)="resendSourceHod()">
+                        </button>
 
                     </form>
 
@@ -310,12 +348,15 @@
                                 fill="#2C64BB" />
                         </svg>
                         <input type="file" #fileInput accept="image/*" style="display: none;"
-                            (change)="onFileSelected($event)" />
+                            (change)="onFileSelected($event)" [disabled]="!canEditBasicDetails" />
                     </div>
 
 
-                    <button pButton label="Save" class="save-btn" (click)="saveBasicDetails(basicForm)"></button>
-                    <button label="Clear" class="clear-btn" (click)="clearForm()">Clear</button>
+                    <div class="button" *ngIf="canEditBasicDetails">
+                        <button pButton label="Save" class="save-btn" (click)="saveBasicDetails(basicForm)"></button>
+
+                        <button label="Clear" class="clear-btn" (click)="clearForm()">Clear</button>
+                    </div>
 
                 </div>
 
@@ -335,66 +376,290 @@
             </div>
         </p-tabPanel> -->
 
-<!-- TAB – ASSIGNMENT & OWNERSHIP -->
-<p-tabPanel header="Assignment">
+        <!-- TAB – ASSIGNMENT & OWNERSHIP -->
 
-    <div class="tab-section">
-  
-      <h3 class="section-title">Department & Supervisor</h3>
-  
-      <!-- DEPARTMENT -->
-      <p-floatlabel variant="on" class="full-field">
-        <p-select
-          [options]="departments"
-          optionLabel="name"
-          optionValue="id"
-          name="departmentId"
-          [(ngModel)]="asset.departmentId">
-        </p-select>
-        <label>Department *</label>
-      </p-floatlabel>
-  
-      <!-- SUPERVISOR -->
-      <p-floatlabel variant="on" class="full-field">
-        <p-select
-          [options]="employees"
-          optionLabel="name"
-          optionValue="id"
-          name="supervisorId"
-          [(ngModel)]="asset.supervisorId">
-        </p-select>
-        <label>Supervisor *</label>
-      </p-floatlabel>
-  
-      <h3 class="section-title" style="margin-top:20px">End User Allocation</h3>
-  
-      <!-- END USER -->
-      <p-floatlabel variant="on" class="full-field">
-        <p-select
-        [options]="employees"
-        optionLabel="name"
-        optionValue="id"
-        name="allottedToId"
-        [(ngModel)]="asset.allottedToId"
-        [disabled]="!asset.supervisorId">
-      </p-select>
-      
-        <label>End User</label>
-      </p-floatlabel>
-  
-      <button
-        pButton
-        label="Save Assignment"
-        style="margin-top: 15px"
-        (click)="saveAssignment()">
-      </button>
-  
-    </div>
-  
-  </p-tabPanel>
-  
+        <p-tabPanel header="Assignment" *ngIf="canAccessDepartmentTabs">
+            <div class="tab-section">
+                <h3 class="section-title">Condition at Handover *</h3>
+                <textarea pInputTextarea rows="2" [(ngModel)]="handoverCondition" name="handoverCondition"
+                    placeholder="Describe condition (Working / Accessories / Scratches / Missing parts etc.)"></textarea>
+
+                <div style="margin-top:10px; font-size: 13px;">
+                    <b>Source HOD:</b> {{ flowState.sourceHodStatus }} |
+                    <b>Supervisor:</b> {{ flowState.supervisorStatus }} |
+                    <b>Target HOD:</b> {{ flowState.targetHodStatus }} |
+                    <b>End User:</b> {{ flowState.endUserStatus }}
+                </div>
+
+                <hr style="margin: 15px 0;">
+
+                <h3 class="section-title">Source Department & Supervisor</h3>
+
+                <div class="two-fields">
+                    <!-- SOURCE DEPARTMENT -->
+                    <p-floatlabel variant="on">
+                        <p-select [options]="departments" optionLabel="name" optionValue="id" name="departmentId"
+                            [(ngModel)]="asset.departmentId" appendTo="body" [filter]="true"></p-select>
+                        <label>Source Department *</label>
+                    </p-floatlabel>
+
+                    <!-- SOURCE SUPERVISOR -->
+                    <p-floatlabel variant="on">
+                        <p-select [options]="employees" optionLabel="name" optionValue="id" name="supervisorId"
+                            [(ngModel)]="asset.supervisorId" [disabled]="flowState.sourceHodStatus !== 'ACKNOWLEDGED'"
+                            appendTo="body" [filter]="true"></p-select>
+                        <label>Source Supervisor *</label>
+                    </p-floatlabel>
+                </div>
+
+                <!-- END USER (only when NO target department flow) -->
+                <div class="two-fields" *ngIf="!targetDepartmentId">
+                    <p-floatlabel variant="on">
+                        <p-select [options]="employees" optionLabel="name" optionValue="id" name="allottedToId"
+                            [(ngModel)]="asset.allottedToId" [disabled]="flowState.supervisorStatus !== 'ACKNOWLEDGED'"
+                            appendTo="body" [filter]="true">
+                        </p-select>
+                        <label>End User (Optional)</label>
+                    </p-floatlabel>
+                </div>
+
+                <hr style="margin: 15px 0;">
+
+                <h3 class="section-title">Target Department Flow (Optional)</h3>
+
+                <div class="two-fields">
+                    <!-- TARGET DEPARTMENT (Optional) -->
+                    <p-floatlabel variant="on">
+                        <p-select [options]="departments" optionLabel="name" optionValue="id" name="targetDepartmentId"
+                            [(ngModel)]="targetDepartmentId" (onChange)="onTargetDepartmentChange()"
+                            [disabled]="flowState.supervisorStatus !== 'ACKNOWLEDGED'" appendTo="body"
+                            [filter]="true"></p-select>
+                        <label>Target Department (Optional)</label>
+                    </p-floatlabel>
+
+                    <!-- TARGET END USER (Optional, only after Target HOD ack) -->
+                    <p-floatlabel variant="on">
+                        <p-select [options]="employees" optionLabel="name" optionValue="id" name="targetAllottedToId"
+                            [(ngModel)]="targetAllottedToId" appendTo="body"
+                            [disabled]="flowState.targetHodStatus !== 'ACKNOWLEDGED'" [filter]="true"></p-select>
+                        <label>Target End User (Optional)</label>
+                    </p-floatlabel>
+                </div>
+
+
+
+                <button pButton style="margin-top: 15px" [label]="assignmentButtonLabel"
+                    (click)="saveAssignment()"></button>
+                <button *ngIf="canResend" pButton label="Resend Request" class="p-button-secondary"
+                    (click)="resendCurrentStage()"></button>
+            </div>
+        </p-tabPanel>
+
+        <p-tabPanel header="Specifications" *ngIf="canAccessDepartmentTabs">
+            <ng-container *ngIf="asset.id; else saveAssetFirstForSpec">
+                <div class="tab-section">
+
+                    <form #specForm="ngForm" (ngSubmit)="saveSpecification(specForm)">
+                        <div class="two-fields">
+                            <p-floatlabel variant="on">
+                                <input pInputText name="key" [(ngModel)]="specFormModel.key" required />
+                                <label>Specification Key *</label>
+                            </p-floatlabel>
+
+                            <p-floatlabel variant="on">
+                                <input pInputText name="value" [(ngModel)]="specFormModel.value" required />
+                                <label>Specification Value *</label>
+                            </p-floatlabel>
+                        </div>
+
+                        <div class="two-fields">
+                            <p-floatlabel variant="on">
+                                <p-select [options]="specGroupOptions" optionLabel="label" optionValue="value"
+                                    name="specificationGroup" [(ngModel)]="specFormModel.specificationGroup"
+                                    appendTo="body" [filter]="true">
+                                </p-select>
+                                <label>Group</label>
+                            </p-floatlabel>
+
+                            <p-floatlabel variant="on">
+                                <p-select [options]="specValueTypeOptions" optionLabel="label" optionValue="value"
+                                    name="valueType" [(ngModel)]="specFormModel.valueType" appendTo="body"
+                                    [filter]="true">
+                                </p-select>
+                                <label>Value Type</label>
+                            </p-floatlabel>
+                        </div>
+
+                        <div class="two-fields">
+                            <p-floatlabel variant="on">
+                                <input pInputText name="unit" [(ngModel)]="specFormModel.unit" />
+                                <label>Unit</label>
+                            </p-floatlabel>
+
+                            <p-floatlabel variant="on">
+                                <input pInputText type="number" name="sortOrder"
+                                    [(ngModel)]="specFormModel.sortOrder" />
+                                <label>Sort Order</label>
+                            </p-floatlabel>
+                        </div>
+
+                        <div class="two-fields">
+                            <p-floatlabel variant="on">
+                                <p-select [options]="specSourceOptions" optionLabel="label" optionValue="value"
+                                    name="source" [(ngModel)]="specFormModel.source" appendTo="body" [filter]="true">
+                                </p-select>
+                                <label>Source</label>
+                            </p-floatlabel>
+
+                            <div class="checkbox-row">
+                                <p-checkbox binary="true" inputId="isMandatory" name="isMandatory"
+                                    [(ngModel)]="specFormModel.isMandatory">
+                                </p-checkbox>
+                                <label for="isMandatory" class="p-checkbox-label">Mandatory</label>
+                            </div>
+                        </div>
+
+                        <p-floatlabel variant="on" class="full-field">
+                            <textarea pInputTextarea rows="3" name="remarks" [(ngModel)]="specFormModel.remarks">
+                    </textarea>
+                            <label>Remarks</label>
+                        </p-floatlabel>
+
+                        <div class="btn-row" style="margin-top: 12px;">
+                            <button pButton type="submit"
+                                [label]="specFormModel.id ? 'Update Specification' : 'Add Specification'">
+                            </button>
+
+                            <button *ngIf="specFormModel.id" pButton type="button" class="p-button-secondary"
+                                label="Cancel" (click)="resetSpecificationForm(specForm)">
+                            </button>
+                        </div>
+                    </form>
+
+                    <h3 class="section-title" style="margin-top: 20px;">Specification List</h3>
+
+                    <div class="table-shell">
+                        <p-table [value]="specifications" [paginator]="true" [rows]="5" responsiveLayout="scroll" class="pretty-table">
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                    <th>Group</th>
+                                    <th>Unit</th>
+                                    <th>Mandatory</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </ng-template>
+
+                            <ng-template pTemplate="body" let-s>
+                                <tr>
+                                    <td>{{ s.key }}</td>
+                                    <td>{{ s.value }}</td>
+                                    <td>{{ s.specificationGroup || '-' }}</td>
+                                    <td>{{ s.unit || '-' }}</td>
+                                    <td>{{ s.isMandatory ? 'Yes' : 'No' }}</td>
+                                    <td>
+                                        <button pButton type="button" label="Edit" (click)="editSpecification(s)">
+                                        </button>
+                                    </td>
+                                </tr>
+                            </ng-template>
+
+                            <ng-template pTemplate="emptymessage">
+                                <tr>
+                                    <td colspan="6" class="no-record-row">No specifications found</td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </div>
+                </div>
+            </ng-container>
+
+            <ng-template #saveAssetFirstForSpec>
+                <p class="warning-text">Please save the asset first before managing specifications.</p>
+            </ng-template>
+        </p-tabPanel>
+
+        <p-tabPanel header="QR" *ngIf="canAccessDepartmentTabs">
+            <app-asset-qr [assetId]="asset.assetId" [assetName]="asset.assetName">
+            </app-asset-qr>
+
+        </p-tabPanel>
+        <p-tabPanel header="Sub Assets" *ngIf="canAccessDepartmentTabs">
+
+            <ng-container *ngIf="asset.assetId; else saveFirst">
+                <div class="tab-section">
+                    <button pButton label="Create Sub Asset" icon="pi pi-plus" (click)="openSubAssetDialog()"></button>
+
+                    <!-- <h3 class="section-title">Parent Asset</h3>
+                    <div class="two-fields">
+                        <p-floatlabel variant="on">
+                            <input pInputText [(ngModel)]="parentSearch" name="parentSearch"
+                                (input)="searchParentAssets(parentSearch)"
+                                placeholder="Search by Asset ID / Name / Serial" />
+                            <label>Search Parent</label>
+                        </p-floatlabel>
+
+                        <p-floatlabel variant="on">
+                            <p-select [options]="parentAssetOptions" optionLabel="label" optionValue="value"
+                                [(ngModel)]="selectedParentAssetId" name="selectedParentAssetId"
+                                placeholder="Select Parent">
+                            </p-select>
+                            <label>Parent Asset</label>
+                        </p-floatlabel>
+                    </div>
+
+                    <div class="btn-row" style="margin-top:10px;">
+                        <button pButton label="Save Parent" (click)="saveParentLink()"></button>
+                        <button pButton class="p-button-secondary" label="Remove Parent"
+                            (click)="detachParent()"></button>
+                    </div> -->
+
+                    <!-- <hr style="margin: 15px 0;" /> -->
+
+                    <h3 class="section-title">Sub Assets</h3>
+
+                    <div class="table-shell">
+                        <p-table [value]="subAssets" [paginator]="true" [rows]="5" responsiveLayout="scroll" class="pretty-table">
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th>Asset ID</th>
+                                    <th>Name</th>
+                                    <th>Serial</th>
+                                    <th>Status</th>
+                                </tr>
+                            </ng-template>
+
+                            <ng-template pTemplate="body" let-a>
+                                <tr>
+                                    <td>{{ a.assetId }}</td>
+                                    <td>{{ a.assetName }}</td>
+                                    <td>{{ a.serialNumber || '-' }}</td>
+                                    <td>{{ a.status || '-' }}</td>
+                                </tr>
+                            </ng-template>
+
+                            <ng-template pTemplate="emptymessage">
+                                <tr>
+                                    <td colspan="4" class="no-record-row">No sub-assets found</td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </div>
+
+                    <button pButton class="p-button-secondary" style="margin-top:10px;" label="Refresh"
+                        (click)="loadSubAssets()"></button>
+
+                </div>
+            </ng-container>
+
+            <ng-template #saveFirst>
+                <p class="warning-text">Please save the asset first to manage parent/sub-assets.</p>
+            </ng-template>
+
+        </p-tabPanel>
         <!-- TAB 3 – DEPRECIATION -->
-        <p-tabPanel header="Depreciation">
+        <p-tabPanel header="Depreciation" *ngIf="canAccessDepartmentTabs">
 
             <div class="tab-section">
 
@@ -403,12 +668,14 @@
                 <div class="two-fields">
                     <p-floatlabel variant="on">
                         <p-select [options]="depreciationMethods" optionLabel="label" optionValue="value"
-                            name="depreciationMethods" [(ngModel)]="asset.depreciationMethod"></p-select>
+                            name="depreciationMethods" [(ngModel)]="depreciationForm.depreciationMethod" appendTo="body"
+                            [filter]="true"></p-select>
                         <label>Method *</label>
                     </p-floatlabel>
 
                     <p-floatlabel variant="on">
-                        <input type="number" name="depreciationRate" pInputText [(ngModel)]="asset.depreciationRate" />
+                        <input type="number" name="depreciationRate" pInputText
+                            [(ngModel)]="depreciationForm.depreciationRate" />
                         <label>Rate (%) *</label>
                     </p-floatlabel>
                 </div>
@@ -416,24 +683,57 @@
                 <div class="two-fields">
                     <p-floatlabel variant="on">
                         <input type="number" pInputText name="expectedLifeYears"
-                            [(ngModel)]="asset.expectedLifeYears" />
+                            [(ngModel)]="depreciationForm.expectedLifeYears" />
                         <label>Expected Life (Years) *</label>
                     </p-floatlabel>
 
                     <p-floatlabel variant="on">
-                        <p-datepicker [(ngModel)]="asset.depreciationStartDate"
-                            name="depreciationStartDate"></p-datepicker>
+                        <p-datepicker [(ngModel)]="depreciationForm.depreciationStart" name="depreciationStartDate"
+                            appendTo="body"></p-datepicker>
                         <label>Depreciation Start Date</label>
                     </p-floatlabel>
                 </div>
 
                 <p-floatlabel variant="on">
-                    <input type="number" pInputText [(ngModel)]="asset.salvageValue" name="salvageValue" />
+                    <input type="number" pInputText [(ngModel)]="depreciationForm.salvageValue" name="salvageValue" />
                     <label>Salvage Value</label>
                 </p-floatlabel>
 
-                <button pButton label="Save Depreciation" style="margin-top: 10px;"
-                    (click)="saveDepreciation()"></button>
+                <button pButton [label]="depreciationButtonLabel" style="margin-top: 10px;"
+                    [disabled]="!depreciationForm.depreciationMethod || !depreciationForm.depreciationRate || !depreciationForm.expectedLifeYears"
+                    (click)="saveDepreciation()">
+                </button>
+
+                <div class="depreciation-summary-card" *ngIf="depreciationResult">
+                    <div class="summary-header">
+                        <h3>Depreciation Summary</h3>
+                        <span class="summary-badge" [ngClass]="getDepStatusClass(depreciationResult)">
+                            {{ getDepStatus(depreciationResult) }}
+                        </span>
+                    </div>
+
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-label">Purchase Cost</span>
+                            <p class="summary-value">{{ depreciationResult.purchaseCost | number:'1.2-2' }}</p>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-label">Book Value</span>
+                            <p class="summary-value">{{ depreciationResult.bookValue | number:'1.2-2' }}</p>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-label">Depreciation Till Date</span>
+                            <p class="summary-value">{{ depreciationResult.depreciationTillDate | number:'1.2-2' }}</p>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-label">Years Used</span>
+                            <p class="summary-value">{{ depreciationResult.yearsUsed | number:'1.2-2' }}</p>
+                        </div>
+                    </div>
+                </div>
 
             </div>
 
@@ -441,11 +741,17 @@
 
 
         <!-- TAB 4 – INSURANCE -->
-        <p-tabPanel header="Insurance Info">
+        <!-- <p-tabPanel header="Insurance Info">
 
             <div class="tab-section">
 
                 <h3 class="section-title">Insurance Details</h3>
+                <div *ngIf="asset.insurance">
+                    <label>Status:</label>
+                    <span [ngClass]="getInsuranceStatusClass(asset.insurance)">
+                        {{ getInsuranceStatus(asset.insurance) }}
+                    </span>
+                </div>
 
                 <p-floatlabel variant="on" class="full-field">
                     <input pInputText [(ngModel)]="asset.insuranceProvider" name="insuranceProvider" />
@@ -474,36 +780,322 @@
                         <label>Insurance End Date</label>
                     </p-floatlabel>
                 </div>
+                <div class="two-fields">
+                    <p-floatlabel>
+                        <p-select [options]="policyTypes" [(ngModel)]="asset.policyType"></p-select>
+                        <label>Policy Type</label>
+                    </p-floatlabel>
 
+                    <p-floatlabel>
+                        <input type="number" pInputText [(ngModel)]="asset.renewalReminderDays" />
+                        <label>Reminder Days</label>
+                    </p-floatlabel>
+                </div>
                 <textarea pInputTextarea rows="3" [(ngModel)]="asset.notes" name="notes"></textarea>
 
                 <button pButton label="Save Insurance" (click)="saveInsurance()"></button>
+                <h3>Policy History</h3>
+                <p-table [value]="insuranceHistory">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Policy</th>
+                            <th>Provider</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Status</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-ins>
+                        <tr>
+                            <td>{{ ins.policyNumber }}</td>
+                            <td>{{ ins.provider }}</td>
+                            <td>{{ ins.startDate | date }}</td>
+                            <td>{{ ins.endDate | date }}</td>
+                            <td>{{ ins.policyStatus }}</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+                <h3>Current Policy</h3>
+
+                <div *ngIf="asset.insurance">
+                    <p><b>Status:</b>
+                        <span [ngClass]="getInsuranceStatusClass(asset.insurance)">
+                            {{ getInsuranceStatus(asset.insurance) }}
+                        </span>
+                    </p>
+
+                    <p><b>Policy:</b> {{ asset.policyNumber }}</p>
+                    <p><b>Provider:</b> {{ asset.insuranceProvider }}</p>
+                    <p><b>Coverage:</b> {{ asset.coverageAmount }}</p>
+                    <p><b>Start:</b> {{ asset.insuranceStartDate | date }}</p>
+                    <p><b>End:</b> {{ asset.insuranceEndDate | date }}</p>
+                </div>
+
+                <button pButton *ngIf="asset.insurance?.id" label="Renew Policy" class="p-button-secondary"
+                    (click)="openRenewDialog()">
+                </button>
+                <button pButton label="Raise Claim" (click)="openClaimDialog()"></button>
+            </div>
+            <h3>Claims</h3>
+
+            <p-table [value]="claims">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Claim No</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-c>
+                    <tr>
+                        <td>{{ c.claimNumber }}</td>
+                        <td>{{ c.claimDate | date }}</td>
+                        <td>{{ c.claimAmount }}</td>
+                        <td>{{ c.claimStatus }}</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+
+        </p-tabPanel> -->
+        <p-tabPanel header="Insurance Info" *ngIf="canAccessDepartmentTabs">
+
+            <div class="insurance-layout">
+
+                <!-- LEFT: FORM + CURRENT POLICY -->
+                <div class="insurance-left">
+
+                    <div class="insurance-card">
+                        <div class="card-header">
+                            <h3 class="section-title">Insurance Details</h3>
+
+                            <div class="status-row" *ngIf="asset.insurance?.id">
+                                <span class="muted">Status:</span>
+                                <span class="status-pill" [ngClass]="getInsuranceStatusClass(asset.insurance)">
+                                    {{ getInsuranceStatus(asset.insurance) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <p-floatlabel variant="on" class="full-field">
+                                <input pInputText [(ngModel)]="asset.insuranceProvider" name="insuranceProvider" />
+                                <label>Provider</label>
+                            </p-floatlabel>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <input pInputText [(ngModel)]="asset.policyNumber" name="policyNumber" />
+                                    <label>Policy Number</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on">
+                                    <input pInputText type="number" [(ngModel)]="asset.coverageAmount"
+                                        name="coverageAmount" />
+                                    <label>Coverage Amount</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.insuranceStartDate" name="insuranceStartDate"
+                                        appendTo="body"></p-datepicker>
+                                    <label>Insurance Start Date</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.insuranceEndDate" name="insuranceEndDate"
+                                        appendTo="body"></p-datepicker>
+                                    <label>Insurance End Date</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <div class="two-fields">
+                                <p-floatlabel>
+                                    <p-select [options]="policyTypes" optionLabel="label" optionValue="value"
+                                        [(ngModel)]="asset.policyType" appendTo="body" [filter]="true"></p-select>
+                                    <label>Policy Type</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel>
+                                    <input type="number" pInputText [(ngModel)]="asset.renewalReminderDays" />
+                                    <label>Reminder Days</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <textarea pInputTextarea rows="3" [(ngModel)]="asset.notes" name="notes"></textarea>
+                                <label>Notes</label>
+                            </p-floatlabel>
+
+                            <div class="btn-row insurance-actions">
+                                <button pButton label="Save Insurance" (click)="saveInsurance()"></button>
+
+                                <button pButton *ngIf="asset.insurance?.id" label="Renew Policy"
+                                    class="p-button-secondary" (click)="openRenewDialog()">
+                                </button>
+
+                                <button pButton label="Raise Claim" class="p-button-warning"
+                                    (click)="openClaimDialog()"></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CURRENT POLICY SUMMARY -->
+                    <div class="insurance-card" *ngIf="asset.insurance?.id">
+                        <h3 class="section-title">Current Policy</h3>
+
+                        <div class="policy-summary">
+                            <div class="summary-item">
+                                <span class="muted">Policy</span>
+                                <b>{{ asset.policyNumber }}</b>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="muted">Provider</span>
+                                <b>{{ asset.insuranceProvider }}</b>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="muted">Coverage</span>
+                                <b>{{ asset.coverageAmount }}</b>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="muted">Period</span>
+                                <b>{{ asset.insuranceStartDate | date:'dd-MMM-yyyy' }} → {{ asset.insuranceEndDate |
+                                    date:'dd-MMM-yyyy' }}</b>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="muted">Status</span>
+                                <span class="status-pill" [ngClass]="getInsuranceStatusClass(asset.insurance)">
+                                    {{ getInsuranceStatus(asset.insurance) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT: SUB-TABS (HISTORY / CLAIMS) -->
+                <div class="insurance-right">
+
+                    <div class="insurance-card">
+                        <p-tabView class="insurance-subtabs">
+
+                            <p-tabPanel header="Policy History">
+                                <div class="table-shell">
+                                    <p-table [value]="insuranceHistory" responsiveLayout="scroll" class="pretty-table"
+                                        styleClass="pretty-table">
+
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th style="width:70px;">No</th>
+                                                <th>Provider</th>
+                                                <th>Policy</th>
+                                                <th>Start</th>
+                                                <th>End</th>
+                                                <th style="width:140px;">Status</th>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="body" let-ins let-i="rowIndex">
+                                            <tr>
+                                                <td>{{ (i+1) | number:'2.0' }}</td>
+                                                <td>{{ ins.provider }}</td>
+                                                <td>{{ ins.policyNumber }}</td>
+                                                <td>{{ ins.startDate | date:'dd/MM/yyyy' }}</td>
+                                                <td>{{ ins.endDate | date:'dd/MM/yyyy' }}</td>
+                                                <td>
+                                                    <span class="mini-pill" [ngClass]="{
+                  'pill-green': ins.policyStatus==='ACTIVE',
+                  'pill-red': ins.policyStatus==='EXPIRED',
+                  'pill-orange': ins.policyStatus==='EXPIRING_SOON'
+                }">
+                                                        {{ ins.policyStatus }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+                                        <ng-template pTemplate="emptymessage">
+                                            <tr>
+                                                <td colspan="6" class="no-record-row">
+                                                    No records found
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+
+
+                                    </p-table>
+                                </div>
+                            </p-tabPanel>
+
+                            <p-tabPanel header="Claims">
+                                <div class="table-shell">
+                                    <p-table [value]="claims" responsiveLayout="scroll" styleClass="pretty-table">
+
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th style="width:70px;">No</th>
+                                                <th style="width:140px;">Claim Date</th>
+                                                <th>Remarks</th>
+                                                <th style="width:160px; text-align:right;">File</th>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="body" let-c let-i="rowIndex">
+                                            <tr>
+                                                <td>{{ (i+1) | number:'2.0' }}</td>
+                                                <td>{{ c.claimDate | date:'dd/MM/yyyy' }}</td>
+
+                                                <!-- Remarks with ellipsis -->
+                                                <td class="ellipsis-cell" [title]="c.reason || ''">
+                                                    {{ c.reason || '-' }}
+                                                </td>
+
+                                                <!-- Action button right aligned -->
+                                                <td class="actions-cell">
+                                                    <button pButton type="button" icon="pi pi-download" label="Download"
+                                                        class="download-pill" (click)="downloadClaimFile(c)">
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+
+                                    </p-table>
+                                </div>
+                            </p-tabPanel>
+
+                        </p-tabView>
+                    </div>
+
+                </div>
 
             </div>
 
         </p-tabPanel>
-
-        <p-tabPanel header="Warranty & AMC">
+        <p-tabPanel header="Warranty & AMC" *ngIf="canAccessDepartmentTabs">
 
             <ng-container *ngIf="asset.id; else saveAssetFirst">
-              <app-warranty-form
-                [assetId]="asset.assetId"
-                [assetDetails]="asset">
-              </app-warranty-form>
+                <app-warranty-form [assetId]="asset.assetId">
+                </app-warranty-form>
             </ng-container>
-          
+
             <ng-template #saveAssetFirst>
-              <p class="warning-text">
-                Please save basic asset details before adding warranty.
-              </p>
+                <p class="warning-text">
+                    Please save basic asset details before adding warranty.
+                </p>
             </ng-template>
-          
-          </p-tabPanel>
-          
+
+        </p-tabPanel>
+
 
 
         <!-- TAB 5 – SLA -->
-        <p-tabPanel header="SLA & Lifetime">
+        <!-- <p-tabPanel header="SLA & Lifetime" *ngIf="canAccessDepartmentTabs">
 
             <div class="tab-section">
 
@@ -517,7 +1109,7 @@
 
                     <p-floatlabel variant="on">
                         <p-select [options]="slaUnits" optionLabel="label" optionValue="value" name="slaExpectedUnit"
-                            [(ngModel)]="asset.slaExpectedUnit"></p-select>
+                            [(ngModel)]="asset.slaExpectedUnit" appendTo="body"></p-select>
                         <label>SLA Unit</label>
                     </p-floatlabel>
                 </div>
@@ -532,29 +1124,100 @@
 
                     <p-floatlabel variant="on">
                         <p-select [options]="slaUnits" optionLabel="label" optionValue="value"
-                            name="expectedLifetimeUnit" [(ngModel)]="asset.expectedLifetimeUnit"></p-select>
+                            name="expectedLifetimeUnit" [(ngModel)]="asset.expectedLifetimeUnit"
+                            appendTo="body"></p-select>
                         <label>Lifetime Unit</label>
                     </p-floatlabel>
                 </div>
 
-                <!-- <p-floatlabel variant="on" class="full-field">
-                    <textarea pInputTextarea rows="2"
-                    [(ngModel)]="asset.slaDetails"
-                    name="slaDetails"
-                    placeholder="SLA Notes"></textarea>
-                    <label>SLA Details</label>
-                </p-floatlabel> -->
+    
 
 
                 <button pButton label="Save SLA" (click)="saveSLA()" style="margin-top: 20px;"></button>
 
             </div>
 
+        </p-tabPanel> -->
+
+        <p-tabPanel header="SLA & Lifetime" *ngIf="canAccessDepartmentTabs">
+            <div class="tab-section">
+
+                <h3 class="section-title">SLA Config</h3>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <p-select [options]="slaCategoryOptions" optionLabel="label" optionValue="value"
+                            name="slaCategory" [(ngModel)]="asset.slaCategory" (onChange)="onSlaCategoryChange()"
+                            appendTo="body" [filter]="true">
+                        </p-select>
+                        <label>SLA Category</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <p-select [options]="levelOptions" optionLabel="label" optionValue="value" name="level"
+                            [(ngModel)]="asset.level" (onChange)="onSlaCategoryChange()" appendTo="body"
+                            [filter]="true">
+                        </p-select>
+                        <label>SLA Level</label>
+                    </p-floatlabel>
+
+                </div>
+                <h3>SLA Response Time</h3>
+                <div class="two-fields" style="margin-top: 12px;">
+                    <p-floatlabel variant="on">
+                        <input type="number" pInputText [(ngModel)]="asset.slaExpectedValue" name="slaExpectedValue"
+                            readonly />
+                        <label>SLA Response Value</label>
+                    </p-floatlabel>
+                    <p-floatlabel variant="on">
+                        <p-select [options]="slaUnits" optionLabel="label" optionValue="value" name="slaExpectedUnit"
+                            [(ngModel)]="asset.slaExpectedUnit" appendTo="body" [disabled]="true" [filter]="true">
+                        </p-select>
+                        <label>SLA Response Unit</label>
+                    </p-floatlabel>
+                </div>
+
+                <h3>SLA Resolution Time</h3>
+                <div class="two-fields" style="margin-top: 12px;">
+                    <p-floatlabel variant="on">
+                        <input type="number" pInputText [(ngModel)]="asset.slaResolutionValue" name="slaResolutionValue"
+                            readonly />
+                        <label>SLA Resolution Value</label>
+                    </p-floatlabel>
+                    <p-floatlabel variant="on">
+                        <p-select [options]="slaUnits" optionLabel="label" optionValue="value" name="slaResolutionUnit"
+                            [(ngModel)]="asset.slaResolutionUnit" appendTo="body" [disabled]="true" [filter]="true">
+                        </p-select>
+                        <label>SLA Resolution Unit</label>
+                    </p-floatlabel>
+                </div>
+
+                <h3>Lifetime</h3>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <input type="number" pInputText name="expectedLifetime" [(ngModel)]="asset.expectedLifetime" />
+                        <label>Lifetime</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <p-select [options]="slaUnits" optionLabel="label" optionValue="value"
+                            name="expectedLifetimeUnit" [(ngModel)]="asset.expectedLifetimeUnit" appendTo="body"
+                            [filter]="true">
+                        </p-select>
+                        <label>Lifetime Unit</label>
+                    </p-floatlabel>
+                </div>
+
+                <button pButton label="Save SLA" (click)="saveSLA()" style="margin-top: 20px;">
+                </button>
+
+            </div>
         </p-tabPanel>
 
 
         <!-- TAB 6 – LOCATION & ALLOCATION -->
-        <p-tabPanel header="Location">
+        <p-tabPanel header="Location" *ngIf="canAccessDepartmentTabs">
 
             <div class="tab-section">
 
@@ -563,7 +1226,7 @@
                 <div class="two-fields">
                     <p-floatlabel variant="on">
                         <p-select [options]="branches" optionLabel="name" optionValue="id" name="branchId"
-                            [(ngModel)]="asset.branchId"></p-select>
+                            [(ngModel)]="asset.branchId" appendTo="body" [filter]="true"></p-select>
                         <label>Branch *</label>
                     </p-floatlabel>
 
@@ -584,51 +1247,65 @@
                         <label>Room</label>
                     </p-floatlabel>
                 </div>
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <p-select [options]="departments" optionLabel="name" optionValue="name"
+                            name="departmentSnapshot" [(ngModel)]="asset.departmentSnapshot" appendTo="body"
+                            [filter]="true">
+                        </p-select>
+                        <label>Department</label>
+                    </p-floatlabel>
 
-                <p-floatlabel variant="on" class="full-field">
-                    <p-select [options]="employees" optionLabel="name" optionValue="id" name="employeeResponsibleId"
-                        [(ngModel)]="asset.employeeResponsibleId"></p-select>
-                    <label>Employee Responsible</label>
-                </p-floatlabel>
-
-                <p-floatlabel variant="on" class="full-field">
+                    <p-floatlabel variant="on">
+                        <p-select appendTo="body" [options]="employees" optionLabel="name" optionValue="id"
+                            name="employeeResponsibleId" [(ngModel)]="asset.employeeResponsibleId"
+                            [filter]="true"></p-select>
+                        <label>Employee Responsible</label>
+                    </p-floatlabel>
+                </div>
+                <!-- <p-floatlabel variant="on" class="full-field">
                     <input pInputText [(ngModel)]="asset.rfidCode" name="rfidCode" />
                     <label>RFID</label>
-                </p-floatlabel>
+                </p-floatlabel> -->
 
                 <button pButton label="Update Location" (click)="saveLocation()"></button>
 
                 <!-- LOCATION HISTORY -->
-                <h3>Location History</h3>
-                <p-table [value]="locationHistory">
-                    <ng-template pTemplate="header">
-                        <tr>
-                            <th>Branch</th>
-                            <th>Block</th>
-                            <th>Floor</th>
-                            <th>Room</th>
-                            <th>Date</th>
-                        </tr>
-                    </ng-template>
+                <h3 style="margin-top: 10px;">Location History</h3>
+                <div class="table-shell">
+                    <p-table [value]="locationHistory" responsiveLayout="scroll" styleClass="pretty-table">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>Branch</th>
+                                <th>Block</th>
+                                <th>Department</th>
+                                <th>Floor</th>
+                                <th>Room</th>
+                                <th>Emp Responsible</th>
+                                <th>Date</th>
+                            </tr>
+                        </ng-template>
 
-                    <ng-template pTemplate="body" let-row>
-                        <tr>
-                            <td>{{ row.branch?.name }}</td>
-                            <td>{{ row.block }}</td>
-                            <td>{{ row.floor }}</td>
-                            <td>{{ row.room }}</td>
-                            <td>{{ row.createdAt | date }}</td>
-                        </tr>
-                    </ng-template>
-                </p-table>
-
+                        <ng-template pTemplate="body" let-row>
+                            <tr>
+                                <td>{{ row.branch?.name }}</td>
+                                <td>{{ row.block }}</td>
+                                <td>{{ row.departmentSnapshot || '-' }}</td>
+                                <td>{{ row.floor }}</td>
+                                <td>{{ row.room }}</td>
+                                <td>{{row.employeeResponsible?.name}}</td>
+                                <td>{{ row.createdAt | date }}</td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
             </div>
 
         </p-tabPanel>
 
 
         <!-- TAB 7 – TRANSFER -->
-        <p-tabPanel header="Transfer">
+        <p-tabPanel header="Transfer" *ngIf="canAccessDepartmentTabs" class="pretty-table">
 
             <div class="tab-section">
                 <button pButton label="Transfer Asset" icon="pi pi-send" (click)="showTransferModal = true"></button>
@@ -638,23 +1315,66 @@
                 <p-table [value]="transferHistory">
                     <ng-template pTemplate="header">
                         <tr>
+                            <th>Status</th>
                             <th>From</th>
                             <th>To</th>
-                            <th>Type</th>
+                            <th>Transfer Type</th>
+                            <th>Temporary</th>
                             <th>Expires</th>
+                            <th>Requested By</th>
                             <th>Approved By</th>
+                            <th>Reason</th>
                             <th>Date</th>
+                            <th>Action</th>
                         </tr>
                     </ng-template>
 
                     <ng-template pTemplate="body" let-row>
                         <tr>
-                            <td>{{ row.fromBranch?.name || '-' }}</td>
-                            <td>{{ row.toBranch?.name }}</td>
-                            <td>{{ row.temporary ? 'Temporary' : 'Permanent' }}</td>
-                            <td>{{ row.expiresAt | date }}</td>
-                            <td>{{ row.approvedBy }}</td>
-                            <td>{{ row.transferDate | date }}</td>
+                            <td>{{ row.status || '-' }}</td>
+
+                            <td>
+                                {{
+                                row.transferType === 'RETURN'
+                                ? (row.parentTransfer?.toBranch?.name || row.parentTransfer?.destinationName ||
+                                row.fromBranch?.name || '-')
+                                : (row.fromBranch?.name || '-')
+                                }}
+                            </td>
+
+                            <td>
+                                {{
+                                row.transferType === 'RETURN'
+                                ? (row.toBranch?.name || '-')
+                                : (row.toBranch?.name || row.destinationName || '-')
+                                }}
+                            </td>
+
+                            <td>{{ row.transferType || '-' }}</td>
+
+                            <td>{{ row.temporary ? 'Yes' : 'No' }}</td>
+
+                            <td>{{ row.expiresAt ? (row.expiresAt | date:'dd.MM.yyyy') : '-' }}</td>
+
+                            <td>{{ row.requestedBy?.name || '-' }}</td>
+
+                            <td>{{ row.approvedBy?.name || '-' }}</td>
+
+                            <td>{{ row.returnReason || row.reason || '-' }}</td>
+
+                            <td>{{ row.transferDate ? (row.transferDate | date:'dd.MM.yyyy') : '-' }}</td>
+
+                            <button *ngIf="
+    row.transferType !== 'RETURN' &&
+    row.status === 'APPROVED' &&
+    row.temporary
+  " pButton type="button" label="Request Return" size="small" (click)="returnAsset(row)"></button>
+
+                            <button *ngIf="
+    row.transferType === 'RETURN' &&
+    row.status === 'APPROVED' &&
+    row.requestedBy?.id === currentUser?.employeeId
+  " pButton type="button" label="Complete Return" size="small" (click)="openReturnChecklist(row)"></button>
                         </tr>
                     </ng-template>
                 </p-table>
@@ -669,93 +1389,708 @@
     <!-- =============================== -->
     <!-- TRANSFER MODAL -->
     <!-- =============================== -->
-    <p-dialog header="Transfer Asset" [(visible)]="showTransferModal" modal="true" [style]="{width: '500px'}"
-        [modal]="true" styleClass="transfer-modal">
+    <p-dialog header="Transfer Asset" [(visible)]="showTransferModal" modal="true" [style]="{ width: '560px' }"
+        styleClass="transfer-modal">
 
         <div class="modal-body">
 
             <p-floatlabel variant="on" class="full-field">
                 <p-select [options]="[
-                {label:'Internal', value:'INTERNAL'},
-                {label:'External', value:'EXTERNAL'}
-              ]" [(ngModel)]="transfer.transferType">
+                  { label: 'Internal', value: 'INTERNAL' },
+                  { label: 'External', value: 'EXTERNAL' }
+                ]" [(ngModel)]="transfer.transferType" appendTo="body" [filter]="true"
+                    (onChange)="transfer.externalType = null; transfer.toBranchId = null">
                 </p-select>
+                <label>Transfer Type</label>
             </p-floatlabel>
+
             <div *ngIf="transfer.transferType === 'INTERNAL'">
                 <p-floatlabel variant="on" class="full-field">
-                    <input pInputText placeholder="Block" [(ngModel)]="transfer.block" />
-                </p-floatlabel>
-                <p-floatlabel variant="on" class="full-field">
-                    <input pInputText placeholder="Floor" [(ngModel)]="transfer.floor" />
-                </p-floatlabel>
-                <p-floatlabel variant="on" class="full-field">
-                    <input pInputText placeholder="Room" [(ngModel)]="transfer.room" />
+                    <input pInputText [(ngModel)]="transfer.block" />
+                    <label>Block</label>
                 </p-floatlabel>
 
+                <p-floatlabel variant="on" class="full-field">
+                    <input pInputText [(ngModel)]="transfer.floor" />
+                    <label>Floor</label>
+                </p-floatlabel>
+
+                <p-floatlabel variant="on" class="full-field">
+                    <input pInputText [(ngModel)]="transfer.room" />
+                    <label>Room</label>
+                </p-floatlabel>
             </div>
-
 
             <div *ngIf="transfer.transferType === 'EXTERNAL'">
                 <p-floatlabel variant="on" class="full-field">
                     <p-select [options]="[
-        {label:'Branch', value:'BRANCH'},
-        {label:'Service', value:'SERVICE'},
-        {label:'Dead / Scrap', value:'DEAD'}
-      ]" [(ngModel)]="transfer.externalType">
+                      { label: 'Branch', value: 'BRANCH' },
+                      { label: 'Service', value: 'SERVICE' },
+                      { label: 'Temporary Use', value: 'TEMP_USE' },
+                      { label: 'Dead / Scrap', value: 'DEAD' }
+                    ]" [(ngModel)]="transfer.externalType" appendTo="body" [filter]="true"
+                        (onChange)="transfer.toBranchId = null">
                     </p-select>
+                    <label>External Type</label>
                 </p-floatlabel>
-                <p-floatlabel variant="on" class="full-field">
-                    <p-select *ngIf="transfer.externalType === 'BRANCH'" [options]="branches" optionLabel="name"
-                        optionValue="id" [(ngModel)]="transfer.toBranchId">
+
+                <p-floatlabel variant="on" class="full-field" *ngIf="transfer.externalType === 'BRANCH'">
+                    <p-select [options]="branches" optionLabel="name" optionValue="id" [(ngModel)]="transfer.toBranchId"
+                        appendTo="body" [filter]="true">
                     </p-select>
+                    <label>To Branch</label>
                 </p-floatlabel>
 
+                <div *ngIf="transfer.externalType === 'BRANCH'">
+                    <p-floatlabel variant="on" class="full-field">
+                        <input pInputText [(ngModel)]="transfer.block" />
+                        <label>Block</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on" class="full-field">
+                        <input pInputText [(ngModel)]="transfer.floor" />
+                        <label>Floor</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on" class="full-field">
+                        <input pInputText [(ngModel)]="transfer.room" />
+                        <label>Room</label>
+                    </p-floatlabel>
+                </div>
+
+                <div *ngIf="transfer.externalType !== 'BRANCH' && transfer.externalType !== 'DEAD'">
+                    <p-floatlabel variant="on" class="full-field">
+                        <p-select [options]="[
+                          { label: 'Vendor', value: 'VENDOR' },
+                          { label: 'Service Center', value: 'SERVICE_CENTER' },
+                          { label: 'Event', value: 'EVENT' },
+                          { label: 'Camp', value: 'CAMP' },
+                          { label: 'Patient Home', value: 'PATIENT_HOME' },
+                          { label: 'Other', value: 'OTHER' }
+                        ]" [(ngModel)]="transfer.destinationType" appendTo="body" [filter]="true">
+                        </p-select>
+                        <label>Destination Type</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on" class="full-field">
+                        <input pInputText [(ngModel)]="transfer.destinationName" />
+                        <label>Destination Name</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on" class="full-field">
+                        <textarea pTextarea rows="2" [(ngModel)]="transfer.destinationAddress"></textarea>
+                        <label>Destination Address</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on" class="full-field">
+                        <input pInputText [(ngModel)]="transfer.destinationContactPerson" />
+                        <label>Contact Person</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on" class="full-field">
+                        <input pInputText [(ngModel)]="transfer.destinationContactNumber" />
+                        <label>Contact Number</label>
+                    </p-floatlabel>
+                </div>
             </div>
-            <div *ngIf="(transfer.transferType === 'EXTERNAL' && transfer.externalType === 'BRANCH')">
-                <p-floatlabel variant="on" class="full-field">
-                    <input pInputText placeholder="Block" [(ngModel)]="transfer.block" />
-                </p-floatlabel>
-                <p-floatlabel variant="on" class="full-field">
-                    <input pInputText placeholder="Floor" [(ngModel)]="transfer.floor" />
-                </p-floatlabel>
-                <p-floatlabel variant="on" class="full-field">
-                    <input pInputText placeholder="Room" [(ngModel)]="transfer.room" />
-                </p-floatlabel>
 
-            </div>
-
-            <div class="checkbox-row">
+            <div class="checkbox-row" *ngIf="transfer.externalType !== 'DEAD'">
                 <p-checkbox binary="true" inputId="temp" [(ngModel)]="transfer.temporary">
                 </p-checkbox>
                 <label class="p-checkbox-label" for="temp">Temporary</label>
             </div>
 
-
-
             <div class="expires-container" *ngIf="transfer.temporary">
                 <p-floatlabel variant="on" class="full-field">
                     <p-datepicker name="expiresAt" [(ngModel)]="transfer.expiresAt" appendTo="body">
                     </p-datepicker>
-                    <label>Expires At</label>
+                    <label>Expected Return Date</label>
                 </p-floatlabel>
             </div>
 
-            <p-floatlabel variant="on" class="full-field" style="margin-top: 10px">
-                <p-select [options]="employees" optionLabel="name" optionValue="employeeID" name="approvedBy"
-                    [(ngModel)]="transfer.approvedBy" placeholder="Select Approver">
-                </p-select>
-                <label>Approved By</label>
+            <p-floatlabel variant="on" class="full-field" style="margin-top: 10px;">
+                <textarea pTextarea rows="3" [(ngModel)]="transfer.reason"></textarea>
+                <label>Reason</label>
             </p-floatlabel>
 
-
             <div class="btn-row">
-                <button pButton label="Transfer" class="green-btn success" (click)="submitTransfer()"></button>
-                <button pButton label="Cancel" class="red-btn danger" (click)="showTransferModal = false"></button>
+                <button pButton label="Submit Request" class="green-btn success" (click)="submitTransfer()">
+                </button>
+
+                <button pButton label="Cancel" class="red-btn danger" (click)="showTransferModal = false">
+                </button>
             </div>
 
         </div>
-
     </p-dialog>
+    <p-dialog header="Renew Insurance Policy" [(visible)]="showRenewDialog" modal="true" [style]="{ width: '520px' }">
+
+        <div class="modal-body">
+
+            <p-floatlabel variant="on" class="full-field">
+                <input pInputText [(ngModel)]="renewForm.provider" />
+                <label>Provider *</label>
+            </p-floatlabel>
+
+            <p-floatlabel variant="on" class="full-field">
+                <input pInputText [(ngModel)]="renewForm.policyNumber" />
+                <label>New Policy Number *</label>
+            </p-floatlabel>
+
+            <div class="two-fields">
+                <p-floatlabel variant="on">
+                    <input type="number" pInputText [(ngModel)]="renewForm.coverageAmount" />
+                    <label>Coverage</label>
+                </p-floatlabel>
+
+                <p-floatlabel variant="on">
+                    <input type="number" pInputText [(ngModel)]="renewForm.premiumAmount" />
+                    <label>Premium</label>
+                </p-floatlabel>
+            </div>
+
+            <div class="two-fields">
+                <p-floatlabel variant="on">
+                    <p-datepicker [(ngModel)]="renewForm.startDate" appendTo="body"></p-datepicker>
+                    <label>Start Date *</label>
+                </p-floatlabel>
+
+                <p-floatlabel variant="on">
+                    <p-datepicker [(ngModel)]="renewForm.endDate" appendTo="body"></p-datepicker>
+                    <label>End Date *</label>
+                </p-floatlabel>
+            </div>
+
+            <p-floatlabel variant="on" class="full-field">
+                <p-select [options]="policyTypes" optionLabel="label" optionValue="value"
+                    [(ngModel)]="renewForm.policyType" appendTo="body" [filter]="true">
+                </p-select>
+                <label>Policy Type</label>
+            </p-floatlabel>
+
+            <textarea pInputTextarea rows="3" [(ngModel)]="renewForm.notes" placeholder="Notes"></textarea>
+
+            <div class="btn-row">
+                <button pButton label="Renew" class="green-btn" (click)="submitRenewal()"></button>
+                <button pButton label="Cancel" class="red-btn" (click)="showRenewDialog=false"></button>
+            </div>
+
+        </div>
+    </p-dialog>
+    <p-dialog
+  header="Complete Asset Return"
+  [(visible)]="showReturnChecklistDialog"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '650px' }"
+  [contentStyle]="{ overflow: 'auto' }"
+>
+  <div class="ack-dialog">
+
+    <div class="asset-info-card" *ngIf="selectedReturnTransfer">
+      <div class="info-row">
+        <span class="info-label">Transfer ID</span>
+        <span class="info-value">{{ selectedReturnTransfer.id || '-' }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="info-label">Status</span>
+        <span class="info-value">{{ selectedReturnTransfer.status || '-' }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="info-label">Transfer Type</span>
+        <span class="info-value">{{ selectedReturnTransfer.transferType || '-' }}</span>
+      </div>
+
+      <div class="info-row">
+        <span class="info-label">Reason</span>
+        <span class="info-value">
+          {{ selectedReturnTransfer.returnReason || selectedReturnTransfer.reason || '-' }}
+        </span>
+      </div>
+    </div>
+
+    <div *ngIf="returnError" class="ack-error">
+      {{ returnError }}
+    </div>
+
+    <!-- Note -->
+    <div class="field">
+      <label class="lbl">Return Note</label>
+      <textarea
+        pInputTextarea
+        rows="3"
+        class="w-full"
+        [(ngModel)]="returnNote"
+        placeholder="Enter return note"
+      ></textarea>
+    </div>
+
+    <!-- Checklist -->
+    <div class="field">
+      <label class="lbl">Checklist</label>
+
+      <div *ngIf="returnChecklistLoading">Loading checklist...</div>
+
+      <div *ngIf="!returnChecklistLoading && returnChecklistItems.length === 0" class="hint">
+        No return checklist available for this asset.
+      </div>
+
+      <div
+        class="checklist-box"
+        *ngFor="let item of returnChecklistResponses; let i = index"
+      >
+        <div class="checklist-row">
+          <input
+            type="checkbox"
+            [(ngModel)]="item.checked"
+            [ngModelOptions]="{ standalone: true }"
+          />
+
+          <div class="checklist-content">
+            <div class="title">
+              {{ returnChecklistItems[i]?.title }}
+              <span *ngIf="returnChecklistItems[i]?.isRequired" class="required-star">*</span>
+            </div>
+
+            <div class="desc" *ngIf="returnChecklistItems[i]?.description">
+              {{ returnChecklistItems[i]?.description }}
+            </div>
+
+            <textarea
+              pInputTextarea
+              rows="2"
+              [(ngModel)]="item.remarks"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="Remarks"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signature -->
+    <div class="field">
+      <div class="row-between">
+        <label class="lbl">Signature</label>
+        <button
+          pButton
+          type="button"
+          label="Clear Signature"
+          class="p-button-text clear-link"
+          (click)="clearReturnSignature()"
+        ></button>
+      </div>
+
+      <canvas
+        #returnSignatureCanvas
+        width="540"
+        height="170"
+        class="signature-box"
+      ></canvas>
+      <small class="hint">Sign inside the box using mouse / touch.</small>
+    </div>
+
+    <!-- Upload -->
+    <div class="field">
+      <label class="lbl">Upload Photo</label>
+
+      <div class="upload-row">
+        <label class="upload-btn">
+          <input type="file" accept="image/*" (change)="onReturnFileSelect($event)" />
+          Choose File
+        </label>
+
+        <span class="file-name">
+          {{ returnSelectedFile?.name || 'No file chosen' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="footer-actions">
+      <button
+        pButton
+        type="button"
+        label="Cancel"
+        class="btn-cancel"
+        (click)="closeReturnChecklistDialog()"
+      ></button>
+      <button
+        pButton
+        type="button"
+        label="Submit Return"
+        class="btn-submit"
+        (click)="completeReturnWithChecklist()"
+      ></button>
+    </div>
+  </ng-template>
+</p-dialog>
 
 
+    <p-dialog header="Raise Insurance Claim" [(visible)]="showClaimDialog" modal="true" [style]="{ width: '520px' }">
+
+        <div class="modal-body">
+
+            <!-- CLAIM CONTEXT INFO -->
+            <div class="claim-context" *ngIf="asset && activeInsurance">
+
+                <div class="context-row">
+                    <b>Asset:</b>
+                    <span>{{ asset.assetName }} ({{ asset.assetId }})</span>
+                </div>
+
+                <div class="context-row">
+                    <b>Insurance Provider:</b>
+                    <span>{{ activeInsurance.provider }}</span>
+                </div>
+
+                <div class="context-row">
+                    <b>Policy No:</b>
+                    <span>{{ activeInsurance.policyNumber }}</span>
+                </div>
+
+                <div class="context-row">
+                    <b>Coverage:</b>
+                    <span>{{ activeInsurance.coverageAmount | number }}</span>
+                </div>
+
+                <div class="context-row">
+                    <b>Policy Period:</b>
+                    <span>
+                        {{ activeInsurance.startDate | date:'dd-MMM-yyyy' }}
+                        →
+                        {{ activeInsurance.endDate | date:'dd-MMM-yyyy' }}
+                    </span>
+                </div>
+
+            </div>
+
+            <hr class="claim-context-divider" *ngIf="asset && activeInsurance" />
+
+            <!-- <hr style="margin: 10px 0;" *ngIf="asset && activeInsurance" /> -->
+
+            <p-floatlabel variant="on" class="full-field">
+                <input pInputText [(ngModel)]="claimForm.claimNumber" name="claimNumber" />
+                <label>Claim Number *</label>
+            </p-floatlabel>
+
+            <div class="two-fields">
+                <p-floatlabel variant="on">
+                    <p-datepicker [(ngModel)]="claimForm.claimDate" name="claimDate" appendTo="body"></p-datepicker>
+                    <label>Claim Date *</label>
+                </p-floatlabel>
+
+                <p-floatlabel variant="on">
+                    <input type="number" pInputText [(ngModel)]="claimForm.claimAmount" name="claimAmount" />
+                    <label>Claim Amount *</label>
+                </p-floatlabel>
+            </div>
+
+            <p-floatlabel variant="on" class="full-field">
+                <textarea pInputTextarea rows="3" [(ngModel)]="claimForm.reason" name="reason"></textarea>
+                <label>Reason</label>
+            </p-floatlabel>
+
+            <div class="btn-row" style="margin-top: 12px;">
+                <button pButton label="Submit" class="green-btn success" (click)="submitClaim()"></button>
+                <button pButton label="Cancel" class="red-btn danger" (click)="showClaimDialog=false"></button>
+            </div>
+
+        </div>
+    </p-dialog>
+    <p-dialog header="Create Sub Asset" [(visible)]="showSubAssetDialog" modal="true" [style]="{ width: '700px' }">
+        <div class="modal-body">
+
+            <div class="two-fields">
+                <p-floatlabel variant="on">
+                    <p-select [options]="subAssetSourceOptions" optionLabel="label" optionValue="value"
+                        [(ngModel)]="subAssetForm.sourceType" (onChange)="onSubAssetSourceChange()" appendTo="body"
+                        [filter]="true">
+                    </p-select>
+                    <label>Source Type *</label>
+                </p-floatlabel>
+
+                <p-floatlabel variant="on">
+                    <p-select [options]="subAssetStatusOptions" optionLabel="label" optionValue="value"
+                        [(ngModel)]="subAssetForm.status" appendTo="body" [filter]="true">
+                    </p-select>
+                    <label>Status *</label>
+                </p-floatlabel>
+            </div>
+
+            <!-- INVENTORY -->
+            <ng-container *ngIf="subAssetForm.sourceType === 'INVENTORY_SPARE'">
+                <p-floatlabel variant="on" class="full-field">
+                    <input pInputText [(ngModel)]="inventorySearch" (input)="searchInventorySpares(inventorySearch)"
+                        placeholder="Search spare by Name / Part Number / Model" />
+                    <label>Search Spare / Inventory Item</label>
+                </p-floatlabel>
+
+                <p-floatlabel variant="on" class="full-field" style="margin-top: 12px;">
+                    <p-select [options]="inventorySpareOptions" optionLabel="label" optionValue="value"
+                        [(ngModel)]="subAssetForm.sparePartId" appendTo="body" [filter]="true">
+                    </p-select>
+                    <label>Select Spare *</label>
+                </p-floatlabel>
+
+                <div class="two-fields" style="margin-top: 12px;">
+                    <p-floatlabel variant="on">
+                        <input pInputText [(ngModel)]="subAssetForm.assetName" />
+                        <label>Sub Asset Name *</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <input pInputText [(ngModel)]="subAssetForm.serialNumber" />
+                        <label>Serial Number *</label>
+                    </p-floatlabel>
+                </div>
+
+                <div class="two-fields" style="margin-top: 12px;">
+                    <p-floatlabel variant="on">
+                        <p-select [options]="assetTypes" optionLabel="label" optionValue="value"
+                            [(ngModel)]="subAssetForm.assetType" appendTo="body" [filter]="true">
+                        </p-select>
+                        <label>Asset Type *</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <p-select [options]="categories" optionLabel="name" optionValue="id"
+                            [(ngModel)]="subAssetForm.assetCategoryId" appendTo="body" [filter]="true">
+                        </p-select>
+                        <label>Category *</label>
+                    </p-floatlabel>
+                </div>
+
+                <div class="two-fields" style="margin-top: 12px;">
+                    <p-floatlabel variant="on">
+                        <input pInputText type="number" [(ngModel)]="subAssetForm.quantity" />
+                        <label>Quantity *</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <p-select [options]="subAssetStatusOptions" optionLabel="label" optionValue="value"
+                            [(ngModel)]="subAssetForm.status" appendTo="body" [filter]="true">
+                        </p-select>
+                        <label>Status *</label>
+                    </p-floatlabel>
+                </div>
+
+                <p-floatlabel variant="on" class="full-field" style="margin-top: 12px;">
+                    <input pInputText [(ngModel)]="subAssetForm.sourceReference" />
+                    <label>Inventory Reference</label>
+                </p-floatlabel>
+            </ng-container>
+
+            <!-- NEW -->
+            <ng-container *ngIf="subAssetForm.sourceType === 'NEW'">
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <input pInputText [(ngModel)]="subAssetForm.assetName" />
+                        <label>Sub Asset Name *</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <input pInputText [(ngModel)]="subAssetForm.referenceCode" />
+                        <label>Reference Code</label>
+                    </p-floatlabel>
+                </div>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <input pInputText [(ngModel)]="subAssetForm.serialNumber" />
+                        <label>Serial Number *</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <p-select [options]="assetTypes" optionLabel="label" optionValue="value"
+                            [(ngModel)]="subAssetForm.assetType" appendTo="body" [filter]="true">
+                        </p-select>
+                        <label>Asset Type *</label>
+                    </p-floatlabel>
+                </div>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <p-select [options]="categories" optionLabel="name" optionValue="id"
+                            [(ngModel)]="subAssetForm.assetCategoryId" appendTo="body" [filter]="true">
+                        </p-select>
+                        <label>Category *</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <p-select [options]="procurementModes" optionLabel="label" optionValue="value"
+                            [(ngModel)]="subAssetForm.modeOfProcurement" appendTo="body" [filter]="true">
+                        </p-select>
+                        <label>Mode of Procurement *</label>
+                    </p-floatlabel>
+                </div>
+
+                <!-- PURCHASE -->
+                <div *ngIf="subAssetForm.modeOfProcurement === 'PURCHASE'">
+                    <h4>Purchase Details</h4>
+
+                    <div class="two-fields">
+                        <p-floatlabel variant="on">
+                            <input pInputText [(ngModel)]="subAssetForm.invoiceNumber" />
+                            <label>Invoice Number *</label>
+                        </p-floatlabel>
+
+                        <p-floatlabel variant="on">
+                            <p-datepicker [(ngModel)]="subAssetForm.purchaseDate" appendTo="body"></p-datepicker>
+                            <label>Purchase Date *</label>
+                        </p-floatlabel>
+                    </div>
+
+                    <div class="two-fields">
+                        <p-floatlabel variant="on">
+                            <input pInputText [(ngModel)]="subAssetForm.purchaseOrderNo" />
+                            <label>PO Number</label>
+                        </p-floatlabel>
+
+                        <p-floatlabel variant="on">
+                            <p-datepicker [(ngModel)]="subAssetForm.purchaseOrderDate" appendTo="body"></p-datepicker>
+                            <label>PO Date</label>
+                        </p-floatlabel>
+                    </div>
+
+                    <p-floatlabel variant="on" class="full-field">
+                        <input pInputText type="number" [(ngModel)]="subAssetForm.purchaseCost" />
+                        <label>Purchase Cost *</label>
+                    </p-floatlabel>
+                </div>
+
+                <!-- DONATION -->
+                <div *ngIf="subAssetForm.modeOfProcurement === 'DONATION'">
+                    <h4>Donation Details</h4>
+
+                    <div class="two-fields">
+                        <p-floatlabel variant="on">
+                            <input pInputText [(ngModel)]="subAssetForm.donorName" />
+                            <label>Donor Name *</label>
+                        </p-floatlabel>
+
+                        <p-floatlabel variant="on">
+                            <p-datepicker [(ngModel)]="subAssetForm.donationDate" appendTo="body"></p-datepicker>
+                            <label>Donation Date *</label>
+                        </p-floatlabel>
+                    </div>
+
+                    <div class="two-fields">
+                        <p-floatlabel variant="on">
+                            <p-select [options]="donationConditions" optionLabel="label" optionValue="value"
+                                [(ngModel)]="subAssetForm.assetCondition" appendTo="body" [filter]="true">
+                            </p-select>
+                            <label>Condition *</label>
+                        </p-floatlabel>
+
+                        <p-floatlabel variant="on">
+                            <input pInputText type="number" [(ngModel)]="subAssetForm.estimatedValue" />
+                            <label>Estimated Value</label>
+                        </p-floatlabel>
+                    </div>
+                </div>
+
+                <!-- LEASE -->
+                <div *ngIf="subAssetForm.modeOfProcurement === 'LEASE'">
+                    <h4>Lease Details</h4>
+
+                    <div class="two-fields">
+                        <p-floatlabel variant="on">
+                            <p-datepicker [(ngModel)]="subAssetForm.leaseStartDate" appendTo="body"></p-datepicker>
+                            <label>Lease Start Date *</label>
+                        </p-floatlabel>
+
+                        <p-floatlabel variant="on">
+                            <p-datepicker [(ngModel)]="subAssetForm.leaseEndDate" appendTo="body"></p-datepicker>
+                            <label>Lease End Date *</label>
+                        </p-floatlabel>
+                    </div>
+
+                    <p-floatlabel variant="on" class="full-field">
+                        <input pInputText type="number" [(ngModel)]="subAssetForm.leaseAmount" />
+                        <label>Lease Amount</label>
+                    </p-floatlabel>
+                </div>
+
+                <!-- RENTAL -->
+                <div *ngIf="subAssetForm.modeOfProcurement === 'RENTAL'">
+                    <h4>Rental Details</h4>
+
+                    <div class="two-fields">
+                        <p-floatlabel variant="on">
+                            <p-datepicker [(ngModel)]="subAssetForm.rentalStartDate" appendTo="body"></p-datepicker>
+                            <label>Rental Start Date *</label>
+                        </p-floatlabel>
+
+                        <p-floatlabel variant="on">
+                            <p-datepicker [(ngModel)]="subAssetForm.rentalEndDate" appendTo="body"></p-datepicker>
+                            <label>Rental End Date *</label>
+                        </p-floatlabel>
+                    </div>
+
+                    <p-floatlabel variant="on" class="full-field">
+                        <input pInputText type="number" [(ngModel)]="subAssetForm.rentalAmount" />
+                        <label>Rental Amount</label>
+                    </p-floatlabel>
+                </div>
+
+                <div style="margin-top:10px;">
+                    <p-checkbox binary="true" [(ngModel)]="subAssetForm.inheritFromParent"></p-checkbox>
+                    <label style="margin-left:8px;">Inherit Vendor & Department from Parent</label>
+                </div>
+
+                <div *ngIf="!subAssetForm.inheritFromParent" class="two-fields" style="margin-top:12px;">
+                    <p-floatlabel variant="on">
+                        <p-select [options]="vendors" optionLabel="name" optionValue="id"
+                            [(ngModel)]="subAssetForm.vendorId" appendTo="body" [filter]="true">
+                        </p-select>
+                        <label>Vendor</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <p-select [options]="departments" optionLabel="name" optionValue="id"
+                            [(ngModel)]="subAssetForm.departmentId" appendTo="body" [filter]="true">
+                        </p-select>
+                        <label>Department</label>
+                    </p-floatlabel>
+                </div>
+
+                <div class="two-fields" style="margin-top:12px;">
+                    <p-floatlabel variant="on">
+                        <p-select [options]="workingConditionOptions" optionLabel="label" optionValue="value"
+                            [(ngModel)]="subAssetForm.workingCondition" appendTo="body" [filter]="true">
+                        </p-select>
+                        <label>Working Condition</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <input pInputText [(ngModel)]="subAssetForm.sourceReference" />
+                        <label>Source Reference</label>
+                    </p-floatlabel>
+                </div>
+
+                <p-floatlabel variant="on" class="full-field" style="margin-top:12px;">
+                    <textarea pInputTextarea rows="3" [(ngModel)]="subAssetForm.remarks"></textarea>
+                    <label>Remarks</label>
+                </p-floatlabel>
+            </ng-container>
+
+            <div class="btn-row" style="margin-top: 12px;">
+                <button pButton label="Save" class="green-btn success" (click)="createSubAsset()"></button>
+                <button pButton label="Cancel" class="red-btn danger" (click)="showSubAssetDialog=false"></button>
+            </div>
+
+        </div>
+    </p-dialog>
 </div>
+<ng-template #loadingTpl>
+    <div class="asset-form-container">
+        <p>Loading...</p>
+    </div>
+</ng-template>
+<p-toast></p-toast>

@@ -1,0 +1,285 @@
+<p-toast></p-toast>
+
+<div class="reports-container">
+  <div class="page-header">
+    <h2><i class="pi pi-file"></i> Reports</h2>
+  </div>
+
+  <p-tabview (onChange)="onTabChange($event)" class="custom-tabs">
+
+    <!-- Tab 1: Asset Register -->
+    <p-tabpanel header="Asset Register">
+      <div class="tab-content">
+        <div class="export-bar">
+          <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportReport('asset-register', 'csv')"></p-button>
+          <p-button label="Export Excel" icon="pi pi-file-excel" severity="success" size="small" (onClick)="exportReport('asset-register', 'excel')"></p-button>
+        </div>
+        <p-table [value]="assetRegisterData" [loading]="assetRegisterLoading" [paginator]="true" [rows]="15"
+          [rowsPerPageOptions]="[10,15,25,50]" styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Asset ID</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Department</th>
+              <th>Vendor</th>
+              <th>Mode of Procurement</th>
+              <th>Purchase Date</th>
+              <th>Cost</th>
+              <th>Status</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-a>
+            <tr>
+              <td>{{ a.assetId }}</td>
+              <td>{{ a.assetName }}</td>
+              <td>{{ a.category || '—' }}</td>
+              <td>{{ a.department || '—' }}</td>
+              <td>{{ a.vendor || '—' }}</td>
+              <td>{{ a.modeOfProcurement }}</td>
+              <td>{{ a.purchaseDate | date:'mediumDate' }}</td>
+              <td>{{ formatCurrency(a.purchaseCost) }}</td>
+              <td><p-tag [value]="a.status"></p-tag></td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="9" class="text-center">No assets found.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 2: Maintenance Cost -->
+    <p-tabpanel header="Maintenance Cost">
+      <div class="tab-content">
+        <div class="export-bar">
+          <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadMaintenanceCost()" [loading]="maintenanceCostLoading"></p-button>
+          <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportReport('maintenance-cost', 'csv')"></p-button>
+          <p-button label="Export Excel" icon="pi pi-file-excel" severity="success" size="small" (onClick)="exportReport('maintenance-cost', 'excel')"></p-button>
+        </div>
+        <p-table [value]="maintenanceCostData" [loading]="maintenanceCostLoading" [paginator]="true" [rows]="15"
+          styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Asset Name</th>
+              <th>Asset ID</th>
+              <th>Total Records</th>
+              <th>Total Cost</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>{{ row.assetName || row.asset?.assetName }}</td>
+              <td>{{ row.assetId }}</td>
+              <td>{{ row.totalRecords || row._count }}</td>
+              <td>{{ formatCurrency(row.totalCost || row._sum?.cost) }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="4" class="text-center">No maintenance cost data found.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 3: Ticket Analytics -->
+    <p-tabpanel header="Ticket Analytics">
+      <div class="tab-content">
+        <div class="export-bar">
+          <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadTicketAnalytics()" [loading]="ticketAnalyticsLoading"></p-button>
+          <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportReport('ticket-analytics', 'csv')"></p-button>
+          <p-button label="Export Excel" icon="pi pi-file-excel" severity="success" size="small" (onClick)="exportReport('ticket-analytics', 'excel')"></p-button>
+        </div>
+
+        <div class="kpi-grid" *ngIf="ticketAnalytics.totalTickets != null">
+          <div class="kpi-card">
+            <span class="kpi-label">Total Tickets</span>
+            <span class="kpi-value">{{ ticketAnalytics.totalTickets }}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Avg Resolution (hrs)</span>
+            <span class="kpi-value">{{ ticketAnalytics.avgResolutionTimeHours }}</span>
+          </div>
+          <div class="kpi-card kpi-danger">
+            <span class="kpi-label">SLA Breaches</span>
+            <span class="kpi-value">{{ ticketAnalytics.slaBreachCount }}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Avg Satisfaction</span>
+            <span class="kpi-value">{{ ticketAnalytics.avgCustomerSatisfaction || 'N/A' }}</span>
+          </div>
+        </div>
+
+        <div class="analytics-tables">
+          <div class="analytics-half">
+            <h4>By Status</h4>
+            <p-table [value]="countByStatus" styleClass="p-datatable-sm">
+              <ng-template pTemplate="header">
+                <tr><th>Status</th><th>Count</th></tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-row>
+                <tr>
+                  <td><p-tag [value]="row.status"></p-tag></td>
+                  <td>{{ row.count }}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+          <div class="analytics-half">
+            <h4>By Priority</h4>
+            <p-table [value]="countByPriority" styleClass="p-datatable-sm">
+              <ng-template pTemplate="header">
+                <tr><th>Priority</th><th>Count</th></tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-row>
+                <tr>
+                  <td><p-tag [value]="row.priority"></p-tag></td>
+                  <td>{{ row.count }}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 4: Expiry Alerts -->
+    <p-tabpanel header="Expiry Alerts">
+      <div class="tab-content">
+        <div class="export-bar">
+          <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportReport('expiry', 'csv')"></p-button>
+          <p-button label="Export Excel" icon="pi pi-file-excel" severity="success" size="small" (onClick)="exportReport('expiry', 'excel')"></p-button>
+        </div>
+        <div class="filter-inline">
+          <label>Days ahead:</label>
+          <input pInputText type="number" [(ngModel)]="expiryDays" style="width:80px" />
+          <p-button label="Load" icon="pi pi-search" (onClick)="loadExpiryReport()" [loading]="expiryLoading"></p-button>
+        </div>
+
+        <h4>Warranties Expiring ({{ expiryWarranties.length }})</h4>
+        <p-table [value]="expiryWarranties" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr><th>Asset</th><th>Warranty End</th><th>Days Remaining</th></tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-w>
+            <tr>
+              <td>{{ w.asset?.assetName || w.assetName }}</td>
+              <td>{{ w.expiryDate | date:'mediumDate' }}</td>
+              <td><p-tag [value]="w.daysRemaining + ' days'" [severity]="w.daysRemaining <= 30 ? 'danger' : 'warn'"></p-tag></td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="3" class="text-center">No warranties expiring soon.</td></tr>
+          </ng-template>
+        </p-table>
+
+        <h4>Insurance Expiring ({{ expiryInsurance.length }})</h4>
+        <p-table [value]="expiryInsurance" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr><th>Asset</th><th>Policy End</th><th>Days Remaining</th></tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-i>
+            <tr>
+              <td>{{ i.asset?.assetName || i.assetName }}</td>
+              <td>{{ i.expiryDate | date:'mediumDate' }}</td>
+              <td><p-tag [value]="i.daysRemaining + ' days'" [severity]="i.daysRemaining <= 30 ? 'danger' : 'warn'"></p-tag></td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="3" class="text-center">No insurance expiring soon.</td></tr>
+          </ng-template>
+        </p-table>
+
+        <h4>Contracts Expiring ({{ expiryContracts.length }})</h4>
+        <p-table [value]="expiryContracts" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr><th>Asset</th><th>Contract End</th><th>Days Remaining</th></tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-c>
+            <tr>
+              <td>{{ c.asset?.assetName || c.assetName }}</td>
+              <td>{{ c.expiryDate | date:'mediumDate' }}</td>
+              <td><p-tag [value]="c.daysRemaining + ' days'" [severity]="c.daysRemaining <= 30 ? 'danger' : 'warn'"></p-tag></td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="3" class="text-center">No contracts expiring soon.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 5: Depreciation -->
+    <p-tabpanel header="Depreciation">
+      <div class="tab-content">
+        <div class="export-bar">
+          <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadDepreciation()" [loading]="depreciationLoading"></p-button>
+          <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportReport('depreciation', 'csv')"></p-button>
+          <p-button label="Export Excel" icon="pi pi-file-excel" severity="success" size="small" (onClick)="exportReport('depreciation', 'excel')"></p-button>
+        </div>
+        <p-table [value]="depreciationData" [loading]="depreciationLoading" [paginator]="true" [rows]="15"
+          styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Asset Name</th>
+              <th>Purchase Cost</th>
+              <th>Current Value</th>
+              <th>Depreciation</th>
+              <th>Method</th>
+              <th>Useful Life (yrs)</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-d>
+            <tr>
+              <td>{{ d.asset?.assetName || d.assetName }}</td>
+              <td>{{ formatCurrency(d.originalCost || d.asset?.originalCost) }}</td>
+              <td>{{ formatCurrency(d.currentBookValue) }}</td>
+              <td>{{ formatCurrency(d.depreciationAmount) }}</td>
+              <td>{{ d.depreciationMethod || '—' }}</td>
+              <td>{{ d.usefulLifeYears || '—' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6" class="text-center">No depreciation data found.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 6: Inventory Stock -->
+    <p-tabpanel header="Inventory Stock">
+      <div class="tab-content">
+        <div class="export-bar">
+          <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadInventoryStock()" [loading]="inventoryLoading"></p-button>
+          <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportReport('inventory-stock', 'csv')"></p-button>
+          <p-button label="Export Excel" icon="pi pi-file-excel" severity="success" size="small" (onClick)="exportReport('inventory-stock', 'excel')"></p-button>
+        </div>
+        <p-table [value]="inventoryData" [loading]="inventoryLoading" [paginator]="true" [rows]="15"
+          styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Part Name</th>
+              <th>Category</th>
+              <th>Current Stock</th>
+              <th>Reorder Level</th>
+              <th>Status</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>{{ item.name || item.partName }}</td>
+              <td>{{ item.category || '—' }}</td>
+              <td>{{ item.currentStock }}</td>
+              <td>{{ item.reorderLevel || '—' }}</td>
+              <td><p-tag [value]="getStockLabel(item)" [severity]="getStockSeverity(item)"></p-tag></td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="5" class="text-center">No inventory data found.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+  </p-tabview>
+</div>

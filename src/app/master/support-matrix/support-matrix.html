@@ -1,0 +1,134 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Support Matrix</h2>
+      <p>Define L1/L2/L3 support escalation contacts per asset category or asset.</p>
+    </div>
+    <p-button [label]="showForm ? 'Cancel' : 'Add Entry'" [icon]="showForm ? 'pi pi-times' : 'pi pi-plus'"
+      (onClick)="showForm ? reset() : (showForm = true)" />
+  </div>
+
+  <!-- Form -->
+  <div class="form-card" *ngIf="showForm">
+    <h3>{{ editingId ? 'Edit Entry' : 'New Support Contact' }}</h3>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="categoryOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.assetCategoryId" name="smCat" appendTo="body" [filter]="true"
+            [showClear]="true"  />
+          <label>Asset Category</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.levelNo" name="levelNo" min="1" />
+          <label>Support Level *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.roleName" name="roleName" />
+          <label>Role Name</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.personName" name="personName" />
+          <label>Person Name</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="employeeOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.employeeId" name="smEmployee" appendTo="body" [filter]="true"
+            [showClear]="true"  />
+          <label>Employee (optional)</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.contactNumber" name="contactNumber" />
+          <label>Contact Number</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="email" [(ngModel)]="form.email" name="smEmail" />
+          <label>Email</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.escalationTime" name="escTime" />
+          <label>Escalation Time</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="unitOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.escalationUnit" name="escUnit" appendTo="body" />
+          <label>Escalation Unit</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <textarea pTextarea [(ngModel)]="form.notes" name="smNotes" rows="2"></textarea>
+          <label>Notes</label>
+        </p-floatlabel>
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" (onClick)="reset()" />
+      <p-button [label]="editingId ? 'Update' : 'Save'" icon="pi pi-save" (onClick)="save()" />
+    </div>
+  </div>
+
+  <!-- Table -->
+  <p-table [value]="rows" [loading]="loading" [paginator]="true" [rows]="15"
+    responsiveLayout="scroll" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Level</th>
+        <th>Category</th>
+        <th>Role</th>
+        <th>Person</th>
+        <th>Contact</th>
+        <th>Email</th>
+        <th>Escalation Time</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td><strong>L{{ row.levelNo }}</strong></td>
+        <td>{{ row.assetCategory?.name || '—' }}</td>
+        <td>{{ row.roleName || '—' }}</td>
+        <td>{{ row.personName || row.employee?.name || '—' }}</td>
+        <td>{{ row.contactNumber || '—' }}</td>
+        <td>{{ row.email || '—' }}</td>
+        <td>{{ row.escalationTime ? row.escalationTime + ' ' + row.escalationUnit : '—' }}</td>
+        <td>
+          <div class="action-buttons">
+            <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="edit(row)" />
+            <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="delete(row)" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="8" class="text-center">No support matrix entries</td></tr>
+    </ng-template>
+  </p-table>
+</div>

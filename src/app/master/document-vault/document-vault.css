@@ -1,0 +1,26 @@
+.page-container { padding: 1.5rem; }
+.page-header { margin-bottom: 1.5rem; }
+.page-header h2 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.toolbar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.kpi-card { background: var(--surface-ground); border: 1px solid var(--surface-border); border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.kpi-label { font-size: 0.85rem; color: var(--text-color-secondary); font-weight: 500; }
+.kpi-value { font-size: 1.75rem; font-weight: 700; color: var(--text-color); }
+.text-center { text-align: center; padding: 2rem; color: var(--text-color-secondary); }
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+::ng-deep .p-datatable .p-datatable-wrapper {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+::ng-deep .p-datatable-table {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 400 !important;
+  text-transform: capitalize;
+}

@@ -10,19 +10,27 @@ import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule, InputSwitchModule, Sidebar,Login, RouterOutlet, ToastModule],
+  imports: [CommonModule, FormsModule, InputSwitchModule, Sidebar, RouterOutlet, ToastModule],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
+  standalone: true
 })
 export class App {
 
   constructor(private router: Router) {}
   dark = false;
+  isSidebarCollapsed = false;
 
   toggleTheme() {
     document.documentElement.classList.toggle('app-dark', this.dark);
   }
   isLoginRoute(): boolean {
-    return this.router.url === '/login'; // Adjust this if your login route is different
+    return this.router.url === '/login'; 
   }
+
+  isNoLayoutRoute(): boolean {
+    const url = this.router.url;
+    return url === '/login' || url.startsWith('/assets/scan/');
+  }
+
 }

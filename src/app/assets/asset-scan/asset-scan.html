@@ -1,0 +1,312 @@
+<div class="scan-page">
+  <div *ngIf="error && !loading" class="error">
+    {{ error }}
+  </div>
+
+  <div *ngIf="scanData && !loading" class="content">
+
+    <div class="header-card">
+      <div class="header-left">
+        <img
+          *ngIf="master?.assetPhoto"
+          [src]="master?.assetPhoto"
+          alt="Asset Photo"
+          class="asset-image"
+        />
+      </div>
+
+      <div class="header-right">
+        <h1>{{ master?.assetName }}</h1>
+        <p><strong>Asset ID:</strong> {{ master?.assetId }}</p>
+        <p><strong>Serial Number:</strong> {{ master?.serialNumber }}</p>
+        <p><strong>Status:</strong> {{ master?.status }}</p>
+        <p><strong>Type:</strong> {{ master?.assetType }}</p>
+        <p><strong>Category:</strong> {{ master?.assetCategory?.name }}</p>
+        <p><strong>Department:</strong> {{ master?.department?.name }}</p>
+        <p><strong>Vendor:</strong> {{ master?.vendor?.name || '-' }}</p>
+        <p><strong>Supervisor:</strong> {{ master?.supervisor?.name || '-' }}</p>
+        <p><strong>Allotted To:</strong> {{ master?.allottedTo?.name || '-' }}</p>
+        <p><strong>Current Location:</strong> {{ master?.currentLocation || '-' }}</p>
+      </div>
+    </div>
+
+    <section class="card">
+      <h2>Master Details</h2>
+      <div class="grid">
+        <div><strong>Reference Code:</strong> {{ master?.referenceCode || '-' }}</div>
+        <div><strong>RFID Code:</strong> {{ master?.rfidCode || '-' }}</div>
+        <div><strong>Purchase Date:</strong> {{ master?.purchaseDate | date:'mediumDate' }}</div>
+        <div><strong>Purchase Cost:</strong> {{ master?.purchaseCost || '-' }}</div>
+        <div><strong>Installed At:</strong> {{ master?.installedAt | date:'mediumDate' }}</div>
+        <div><strong>Criticality:</strong> {{ master?.criticalityLevel || '-' }}</div>
+        <div><strong>Risk Class:</strong> {{ master?.riskClass || '-' }}</div>
+        <div><strong>Working Condition:</strong> {{ master?.workingCondition || '-' }}</div>
+        <div><strong>Health Score:</strong> {{ master?.healthScore || '-' }}</div>
+        <div><strong>SLA:</strong> {{ master?.slaExpectedValue || '-' }} {{ master?.slaExpectedUnit || '' }}</div>
+        <div><strong>SLA Breached:</strong> {{ master?.slaBreached ? 'Yes' : 'No' }}</div>
+        <div><strong>Expected Lifetime:</strong> {{ master?.expectedLifetime || '-' }} {{ master?.expectedLifetimeUnit || '' }}</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Procurement Details</h2>
+      <div class="grid">
+        <div><strong>Mode:</strong> {{ master?.modeOfProcurement || '-' }}</div>
+        <div><strong>Invoice No:</strong> {{ procurement?.invoiceNumber || '-' }}</div>
+        <div><strong>PO No:</strong> {{ procurement?.purchaseOrderNo || '-' }}</div>
+        <div><strong>PO Date:</strong> {{ procurement?.purchaseOrderDate | date:'mediumDate' }}</div>
+        <div><strong>Delivery Date:</strong> {{ procurement?.deliveryDate | date:'mediumDate' }}</div>
+        <div><strong>Donor Name:</strong> {{ procurement?.donorName || '-' }}</div>
+        <div><strong>Donation Date:</strong> {{ procurement?.donationDate | date:'mediumDate' }}</div>
+        <div><strong>Lease Start:</strong> {{ procurement?.leaseStartDate | date:'mediumDate' }}</div>
+        <div><strong>Lease End:</strong> {{ procurement?.leaseEndDate | date:'mediumDate' }}</div>
+        <div><strong>Rental Start:</strong> {{ procurement?.rentalStartDate | date:'mediumDate' }}</div>
+        <div><strong>Rental End:</strong> {{ procurement?.rentalEndDate | date:'mediumDate' }}</div>
+        <div><strong>GRN Number:</strong> {{ procurement?.grnNumber || '-' }}</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Specifications</h2>
+      <div *ngIf="scanData.specifications.length; else noSpecifications">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Group</th>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Unit</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let spec of scanData.specifications">
+                <td>{{ spec.specificationGroup || '-' }}</td>
+                <td>{{ spec.key }}</td>
+                <td>{{ spec.value }}</td>
+                <td>{{ spec.unit || '-' }}</td>
+                <td>{{ spec.source || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <ng-template #noSpecifications>No specifications available</ng-template>
+    </section>
+
+    <section class="card">
+      <h2>Warranty</h2>
+      <div *ngIf="scanData.warranty; else noWarranty" class="grid">
+        <div><strong>Provider:</strong> {{ scanData.warranty.warrantyProvider || '-' }}</div>
+        <div><strong>Type:</strong> {{ scanData.warranty.warrantyType || '-' }}</div>
+        <div><strong>Start:</strong> {{ scanData.warranty.warrantyStart | date:'mediumDate' }}</div>
+        <div><strong>End:</strong> {{ scanData.warranty.warrantyEnd | date:'mediumDate' }}</div>
+        <div><strong>Under Warranty:</strong> {{ scanData.warranty.isUnderWarranty ? 'Yes' : 'No' }}</div>
+        <div><strong>Reference:</strong> {{ scanData.warranty.warrantyReference || '-' }}</div>
+      </div>
+      <ng-template #noWarranty>No warranty details</ng-template>
+    </section>
+
+    <section class="card">
+      <h2>Insurance</h2>
+      <div *ngIf="scanData.insurance.length; else noInsurance">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Provider</th>
+                <th>Policy No</th>
+                <th>Coverage</th>
+                <th>Premium</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of scanData.insurance">
+                <td>{{ item.provider || '-' }}</td>
+                <td>{{ item.policyNumber || '-' }}</td>
+                <td>{{ item.coverageAmount || '-' }}</td>
+                <td>{{ item.premiumAmount || '-' }}</td>
+                <td>{{ item.startDate | date:'mediumDate' }}</td>
+                <td>{{ item.endDate | date:'mediumDate' }}</td>
+                <td>{{ item.policyStatus || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <ng-template #noInsurance>No insurance records</ng-template>
+    </section>
+
+    <section class="card">
+      <h2>Tickets</h2>
+      <div *ngIf="scanData.tickets.length; else noTickets">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Ticket ID</th>
+                <th>Issue</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let ticket of scanData.tickets">
+                <td>{{ ticket.ticketId }}</td>
+                <td>{{ ticket.issueType }}</td>
+                <td>{{ ticket.priority }}</td>
+                <td>{{ ticket.status }}</td>
+                <td>{{ ticket.assignedTo?.name || '-' }}</td>
+                <td>{{ ticket.createdAt | date:'medium' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <ng-template #noTickets>No ticket history</ng-template>
+    </section>
+
+    <section class="card">
+      <h2>Maintenance / Service History</h2>
+      <div *ngIf="scanData.maintenanceHistory.length; else noMaintenance">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Scheduled Due</th>
+                <th>Done At</th>
+                <th>Performed By</th>
+                <th>Service Type</th>
+                <th>Total Cost</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of scanData.maintenanceHistory">
+                <td>{{ item.scheduledDue | date:'mediumDate' }}</td>
+                <td>{{ item.actualDoneAt | date:'mediumDate' }}</td>
+                <td>{{ item.performedBy || '-' }}</td>
+                <td>{{ item.serviceType || '-' }}</td>
+                <td>{{ item.totalCost || '-' }}</td>
+                <td>{{ item.notes || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <ng-template #noMaintenance>No maintenance history</ng-template>
+    </section>
+
+    <section class="card">
+      <h2>Calibration History</h2>
+      <div *ngIf="scanData.calibrationHistory.length; else noCalibration">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Calibrated At</th>
+                <th>Result</th>
+                <th>By Type</th>
+                <th>Vendor</th>
+                <th>Certificate No</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of scanData.calibrationHistory">
+                <td>{{ c.calibratedAt | date:'medium' }}</td>
+                <td>{{ c.result }}</td>
+                <td>{{ c.calibratedByType || '-' }}</td>
+                <td>{{ c.vendor?.name || '-' }}</td>
+                <td>{{ c.certificateNo || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <ng-template #noCalibration>No calibration history</ng-template>
+    </section>
+
+    <section class="card">
+      <h2>Service Contracts</h2>
+      <div *ngIf="scanData.serviceContracts.length; else noContracts">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Contract No</th>
+                <th>Vendor</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let contract of scanData.serviceContracts">
+                <td>{{ contract.contractType }}</td>
+                <td>{{ contract.contractNumber || '-' }}</td>
+                <td>{{ contract.vendor?.name || '-' }}</td>
+                <td>{{ contract.startDate | date:'mediumDate' }}</td>
+                <td>{{ contract.endDate | date:'mediumDate' }}</td>
+                <td>{{ contract.status || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <ng-template #noContracts>No service contracts</ng-template>
+    </section>
+
+    <section class="card">
+      <h2>Current Location</h2>
+      <div *ngIf="scanData.currentLocations.length; else noLocation">
+        <div *ngFor="let loc of scanData.currentLocations" class="location-box">
+          <p><strong>Branch:</strong> {{ loc.branch?.name || '-' }}</p>
+          <p><strong>Block:</strong> {{ loc.block || '-' }}</p>
+          <p><strong>Floor:</strong> {{ loc.floor || '-' }}</p>
+          <p><strong>Room:</strong> {{ loc.room || '-' }}</p>
+          <p><strong>Responsible:</strong> {{ loc.employeeResponsible?.name || '-' }}</p>
+        </div>
+      </div>
+      <ng-template #noLocation>No active location</ng-template>
+    </section>
+
+    <section class="card">
+      <h2>Transfer History</h2>
+      <div *ngIf="scanData.transferHistory.length; else noTransfers">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Transfer Type</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Date</th>
+                <th>Approved By</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let tr of scanData.transferHistory">
+                <td>{{ tr.transferType }}</td>
+                <td>{{ tr.fromBranch?.name || '-' }}</td>
+                <td>{{ tr.toBranch?.name || '-' }}</td>
+                <td>{{ tr.transferDate | date:'medium' }}</td>
+                <td>{{ tr.approvedBy || '-' }}</td>
+                <td>{{ tr.reason || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <ng-template #noTransfers>No transfer history</ng-template>
+    </section>
+
+  </div>
+</div>

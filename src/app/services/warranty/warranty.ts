@@ -46,6 +46,28 @@ export class Warranty {
   getMaintenanceHistory(assetId: string) {
     return this.http.get<any[]>(`${environment.apiUrl}/maintenance-history/${assetId}`);
   }
-  
-  
+  getWarrantyHistoryByAssetId(assetId: string) {
+  return this.http.get<any[]>(`${this.apiUrl}/${assetId}/history`);
+}
+
+renewWarranty(assetId: string, payload: any) {
+  return this.http.post<any>(`${this.apiUrl}/${assetId}/renew`, payload);
+}
+
+  getAllWarrantiesPaginated(params: any = {}): Observable<any> {
+    let q = new URLSearchParams();
+    Object.keys(params).forEach(k => { if (params[k] !== null && params[k] !== undefined && params[k] !== '') q.set(k, params[k]); });
+    return this.http.get<any>(`${this.apiUrl}?${q.toString()}`);
+  }
+
+  getWarrantyStats(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/stats`);
+  }
+
+  exportWarrantiesCsv(params: any = {}): Observable<Blob> {
+    let q = new URLSearchParams();
+    Object.keys(params).forEach(k => { if (params[k]) q.set(k, params[k]); });
+    q.set('exportCsv', 'true');
+    return this.http.get(`${this.apiUrl}?${q.toString()}`, { responseType: 'blob' });
+  }
 }

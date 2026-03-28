@@ -1,0 +1,131 @@
+<div class="import-page">
+  <div class="import-card">
+    <h2>Asset Workbook Upload</h2>
+
+    <input
+      #assetsFileInput
+      class="hidden-file-input"
+      type="file"
+      accept=".xlsx,.xls"
+      (change)="onAssetsFileSelected($event)"
+    />
+
+    <button type="button" class="choose-btn" (click)="assetsFileInput.click()">
+      Choose Asset Workbook
+    </button>
+
+    <div class="file-name" *ngIf="assetsFile">
+      Selected: {{ assetsFile.name }}
+    </div>
+
+    <button
+      type="button"
+      (click)="uploadAssetsWorkbook()"
+      [disabled]="isUploadingAssets || !assetsFile"
+    >
+      {{ isUploadingAssets ? 'Uploading...' : 'Upload Asset Workbook' }}
+    </button>
+
+    <div class="error" *ngIf="assetsError">
+      {{ assetsError }}
+    </div>
+
+    <div class="success-box" *ngIf="assetsResponse">
+      <h3>{{ assetsResponse.message }}</h3>
+
+      <table *ngIf="assetsResponse.summary">
+        <tbody>
+          <tr *ngFor="let key of objectKeys(assetsResponse.summary)">
+            <td *ngIf="key !== 'errors'"><strong>{{ key }}</strong></td>
+            <td *ngIf="key !== 'errors'">{{ assetsResponse.summary[key] }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="assetsResponse.summary?.errors?.length">
+        <h4>Errors</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Sheet</th>
+              <th>Row</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let err of assetsResponse.summary.errors">
+              <td>{{ err.sheet }}</td>
+              <td>{{ err.row }}</td>
+              <td>{{ err.message }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="import-card">
+    <h2>Checklist Workbook Upload</h2>
+
+    <input
+      #checklistFileInput
+      class="hidden-file-input"
+      type="file"
+      accept=".xlsx,.xls"
+      (change)="onChecklistFileSelected($event)"
+    />
+
+    <button type="button" class="choose-btn" (click)="checklistFileInput.click()">
+      Choose Checklist Workbook
+    </button>
+
+    <div class="file-name" *ngIf="checklistFile">
+      Selected: {{ checklistFile.name }}
+    </div>
+
+    <button
+      type="button"
+      (click)="uploadChecklistWorkbook()"
+      [disabled]="isUploadingChecklists || !checklistFile"
+    >
+      {{ isUploadingChecklists ? 'Uploading...' : 'Upload Checklist Workbook' }}
+    </button>
+
+    <div class="error" *ngIf="checklistError">
+      {{ checklistError }}
+    </div>
+
+    <div class="success-box" *ngIf="checklistResponse">
+      <h3>{{ checklistResponse.message }}</h3>
+
+      <table *ngIf="checklistResponse.summary">
+        <tbody>
+          <tr *ngFor="let key of objectKeys(checklistResponse.summary)">
+            <td *ngIf="key !== 'errors'"><strong>{{ key }}</strong></td>
+            <td *ngIf="key !== 'errors'">{{ checklistResponse.summary[key] }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="checklistResponse.summary?.errors?.length">
+        <h4>Errors</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>Sheet</th>
+              <th>Row</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let err of checklistResponse.summary.errors">
+              <td>{{ err.sheet }}</td>
+              <td>{{ err.row }}</td>
+              <td>{{ err.message }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,204 @@
+<p-toast />
+
+<div class="page-header">
+  <h2><i class="pi pi-cog"></i> Master Settings</h2>
+  <p class="subtitle">Manage departments, branches, asset categories, and vendors</p>
+</div>
+
+<p-tabView class="custom-tabs">
+  <!-- ── Departments ──────────────────────────────────────────────────────── -->
+  <p-tabPanel header="Departments">
+    <div class="tab-toolbar">
+      <p-button label="Add Department" icon="pi pi-plus" (onClick)="openDeptForm()" />
+    </div>
+
+    @if (showDeptForm) {
+      <div class="inline-form card">
+        <h4>{{ editingDeptId ? 'Edit Department' : 'New Department' }}</h4>
+        <div class="form-row">
+          <p-floatlabel>
+            <input pInputText id="deptName" [(ngModel)]="deptForm.name" />
+            <label for="deptName">Department Name</label>
+          </p-floatlabel>
+        </div>
+        <div class="form-actions">
+          <p-button label="Save" icon="pi pi-check" (onClick)="saveDept()" />
+          <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showDeptForm = false" />
+        </div>
+      </div>
+    }
+
+    <p-table [value]="departments" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th style="width:120px">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-dept let-i="rowIndex">
+        <tr>
+          <td>{{ i + 1 }}</td>
+          <td>{{ dept.name }}</td>
+          <td>
+            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" (onClick)="openDeptForm(dept)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="deleteDept(dept)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="3" class="empty-msg">No departments found.</td></tr>
+      </ng-template>
+    </p-table>
+  </p-tabPanel>
+
+  <!-- ── Branches ────────────────────────────────────────────────────────── -->
+  <p-tabPanel header="Branches">
+    <div class="tab-toolbar">
+      <p-button label="Add Branch" icon="pi pi-plus" (onClick)="openBranchForm()" />
+    </div>
+
+    @if (showBranchForm) {
+      <div class="inline-form card">
+        <h4>{{ editingBranchId ? 'Edit Branch' : 'New Branch' }}</h4>
+        <div class="form-row">
+          <p-floatlabel>
+            <input pInputText id="branchName" [(ngModel)]="branchForm.name" />
+            <label for="branchName">Branch Name</label>
+          </p-floatlabel>
+        </div>
+        <div class="form-actions">
+          <p-button label="Save" icon="pi pi-check" (onClick)="saveBranch()" />
+          <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showBranchForm = false" />
+        </div>
+      </div>
+    }
+
+    <p-table [value]="branches" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th style="width:120px">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-branch let-i="rowIndex">
+        <tr>
+          <td>{{ i + 1 }}</td>
+          <td>{{ branch.name }}</td>
+          <td>
+            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" (onClick)="openBranchForm(branch)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="deleteBranch(branch)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="3" class="empty-msg">No branches found.</td></tr>
+      </ng-template>
+    </p-table>
+  </p-tabPanel>
+
+  <!-- ── Asset Categories ─────────────────────────────────────────────────── -->
+  <p-tabPanel header="Asset Categories">
+    <div class="tab-toolbar">
+      <p-button label="Add Category" icon="pi pi-plus" (onClick)="openCategoryForm()" />
+    </div>
+
+    @if (showCategoryForm) {
+      <div class="inline-form card">
+        <h4>{{ editingCategoryId ? 'Edit Category' : 'New Category' }}</h4>
+        <div class="form-row">
+          <p-floatlabel>
+            <input pInputText id="catName" [(ngModel)]="categoryForm.name" />
+            <label for="catName">Category Name</label>
+          </p-floatlabel>
+        </div>
+        <div class="form-actions">
+          <p-button label="Save" icon="pi pi-check" (onClick)="saveCategory()" />
+          <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showCategoryForm = false" />
+        </div>
+      </div>
+    }
+
+    <p-table [value]="categories" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th style="width:120px">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-cat let-i="rowIndex">
+        <tr>
+          <td>{{ i + 1 }}</td>
+          <td>{{ cat.name }}</td>
+          <td>
+            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" (onClick)="openCategoryForm(cat)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="deleteCategory(cat)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="3" class="empty-msg">No categories found.</td></tr>
+      </ng-template>
+    </p-table>
+  </p-tabPanel>
+
+  <!-- ── Vendors ──────────────────────────────────────────────────────────── -->
+  <p-tabPanel header="Vendors">
+    <div class="tab-toolbar">
+      <p-button label="Add Vendor" icon="pi pi-plus" (onClick)="openVendorForm()" />
+    </div>
+
+    @if (showVendorForm) {
+      <div class="inline-form card">
+        <h4>{{ editingVendorId ? 'Edit Vendor' : 'New Vendor' }}</h4>
+        <div class="form-row">
+          <p-floatlabel>
+            <input pInputText id="vendorName" [(ngModel)]="vendorForm.name" />
+            <label for="vendorName">Vendor Name</label>
+          </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText id="vendorContact" [(ngModel)]="vendorForm.contact" />
+            <label for="vendorContact">Contact Number</label>
+          </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText id="vendorEmail" [(ngModel)]="vendorForm.email" type="email" />
+            <label for="vendorEmail">Email</label>
+          </p-floatlabel>
+        </div>
+        <div class="form-actions">
+          <p-button label="Save" icon="pi pi-check" (onClick)="saveVendor()" />
+          <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showVendorForm = false" />
+        </div>
+      </div>
+    }
+
+    <p-table [value]="vendors" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Contact</th>
+          <th>Email</th>
+          <th style="width:120px">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-vendor let-i="rowIndex">
+        <tr>
+          <td>{{ i + 1 }}</td>
+          <td>{{ vendor.name }}</td>
+          <td>{{ vendor.contact || '-' }}</td>
+          <td>{{ vendor.email || '-' }}</td>
+          <td>
+            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" (onClick)="openVendorForm(vendor)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="deleteVendor(vendor)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="5" class="empty-msg">No vendors found.</td></tr>
+      </ng-template>
+    </p-table>
+  </p-tabPanel>
+</p-tabView>

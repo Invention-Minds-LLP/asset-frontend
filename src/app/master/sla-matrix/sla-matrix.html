@@ -1,0 +1,156 @@
+<div class="sla-page">
+  <div class="sla-card">
+    <div class="sla-card-header">
+      <div>
+        <h2>Asset SLA Matrix Master</h2>
+        <p>Create and manage SLA rules by asset category and escalation level.</p>
+      </div>
+    </div>
+
+    <div class="sla-form-grid">
+      <div class="field full-sm">
+        <p-floatlabel variant="on">
+          <p-select
+            [options]="assetCategories"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="form.assetCategoryId"
+            name="assetCategoryId"
+            appendTo="body"
+            [filter]="true">
+          </p-select>
+          <label>Asset Category</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field full-sm">
+        <p-floatlabel variant="on">
+          <p-select
+            [options]="slaCategoryOptions"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="form.slaCategory"
+            name="slaCategory"
+            appendTo="body"
+            [filter]="true">
+          </p-select>
+          <label>SLA Category</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field full-sm">
+        <p-floatlabel variant="on">
+          <p-select
+            [options]="levelOptions"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="form.level"
+            name="level"
+            appendTo="body"
+            [filter]="true">
+          </p-select>
+          <label>Level</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input
+            pInputText
+            type="number"
+            [(ngModel)]="form.responseTimeValue"
+            name="responseTimeValue" />
+          <label>Response Time Value</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select
+            [options]="timeUnitOptions"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="form.responseTimeUnit"
+            name="responseTimeUnit"
+            appendTo="body"
+            [filter]="true">
+          </p-select>
+          <label>Response Time Unit</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input
+            pInputText
+            type="number"
+            [(ngModel)]="form.resolutionTimeValue"
+            name="resolutionTimeValue" />
+          <label>Resolution Time Value</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select
+            [options]="timeUnitOptions"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="form.resolutionTimeUnit"
+            name="resolutionTimeUnit"
+            appendTo="body"
+            [filter]="true">
+          </p-select>
+          <label>Resolution Time Unit</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field switch-field">
+        <label class="switch-label">Active</label>
+        <p-inputSwitch [(ngModel)]="form.isActive" name="isActive"></p-inputSwitch>
+      </div>
+    </div>
+
+    <div class="sla-actions">
+      <button pButton [label]="editingId ? 'Update' : 'Create'" (click)="save()"></button>
+      <button pButton label="Reset" severity="secondary" (click)="resetForm()"></button>
+    </div>
+  </div>
+
+  <div class="sla-card table-card">
+    <p-table [value]="rows" responsiveLayout="scroll" [tableStyle]="{ 'min-width': '100%' }">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Category</th>
+          <th>SLA Category</th>
+          <th>Level</th>
+          <th>Response</th>
+          <th>Resolution</th>
+          <th>Active</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>{{ row.assetCategory?.name }}</td>
+          <td>{{ row.slaCategory }}</td>
+          <td>{{ row.level }}</td>
+          <td>{{ row.responseTimeValue }} {{ row.responseTimeUnit }}</td>
+          <td>{{ row.resolutionTimeValue }} {{ row.resolutionTimeUnit }}</td>
+          <td>
+            <span class="status-pill" [class.inactive]="!row.isActive">
+              {{ row.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td>
+            <div class="table-actions">
+              <button pButton icon="pi pi-pencil" class="p-button-text" (click)="editRow(row)"></button>
+              <button pButton icon="pi pi-trash" class="p-button-text p-button-danger" (click)="deleteRow(row)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

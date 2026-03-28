@@ -1,0 +1,487 @@
+<p-toast></p-toast>
+<div class="settings-outer">
+
+  <div class="settings-shell">
+    <!-- LEFT SIDEBAR -->
+    <aside class="settings-sidebar">
+      <div class="sidebar-top">
+        <div class="avatar">
+          <!-- replace with your own image if needed -->
+          <img src="/profile.png" alt="avatar" (error)="$any($event.target).style.display='none'" />
+          <div class="avatar-fallback"></div>
+        </div>
+        <button type="button" class="logout-btn" (click)="confirmLogout($event)" aria-label="Logout" pButton text>
+          <i class="pi pi-sign-out"></i>
+        </button>
+      </div>
+
+      <p-confirmPopup></p-confirmPopup>
+
+      <nav class="sidebar-nav">
+        <button *ngIf="canSee('profile')" class="nav-item" [class.active]="activeSection==='profile'" (click)="setSection('profile')">
+          <i class="pi pi-user"></i>
+          Profile
+        </button>
+
+        <button *ngIf="canSee('reset')" class="nav-item" [class.active]="activeSection==='reset'" (click)="setSection('reset')">
+          <i class="pi pi-lock"></i>
+          Reset Password
+        </button>
+
+        <button *ngIf="canSee('user')" class="nav-item" [class.active]="activeSection==='user'" (click)="setSection('user')">
+          <i class="pi pi-user-plus"></i>
+          User Creation
+        </button>
+
+        <button *ngIf="canSee('employee')" class="nav-item" [class.active]="activeSection==='employee'" (click)="setSection('employee')">
+          <i class="pi pi-id-card"></i>
+          Employee Creation
+        </button>
+
+        <button *ngIf="canSee('table')" class="nav-item" [class.active]="activeSection==='table'" (click)="setSection('table')">
+          <i class="pi pi-table"></i>
+          Table
+        </button>
+
+        <button *ngIf="canSee('master')" class="nav-item" [class.active]="activeSection==='master'" (click)="setSection('master')">
+          <i class="pi pi-database"></i>
+          Master Data
+        </button>
+      </nav>
+    </aside>
+
+    <!-- RIGHT CONTENT -->
+    <main class="settings-content">
+      <section class="content-card">
+        <!-- PROFILE -->
+        <ng-container *ngIf="activeSection==='profile'">
+          <h2 class="page-title">Profile</h2>
+
+          <div class="profile-card" *ngIf="profileUser; else noProfile">
+            <div class="profile-row"><span>Name</span><b>{{ profileUser?.name ?? '-' }}</b></div>
+            <div class="profile-row"><span>Employee ID</span><b>{{ profileUser?.employeeID ?? '-' }}</b></div>
+            <div class="profile-row"><span>Username</span><b>{{ profileUser?.username ?? '-' }}</b></div>
+            <div class="profile-row"><span>Role</span><b>{{ profileUser?.role ?? '-' }}</b></div>
+            <div class="profile-row"><span>Last Login</span><b>{{ profileUser?.lastLogin ? (profileUser.lastLogin |
+                date:'medium') : '-' }}</b></div>
+          </div>
+
+          <ng-template #noProfile>
+            <p class="muted">No profile found in storage. Save login user info in localStorage.</p>
+          </ng-template>
+        </ng-container>
+
+        <ng-container *ngIf="activeSection==='reset'">
+          <h2 class="page-title">Reset Password</h2>
+
+          <form class="employee-form" [formGroup]="resetForm" (ngSubmit)="submitResetPassword()">
+
+            <!-- Employee ID -->
+            <p-floatlabel variant="on" class="field">
+              <input pInputText id="resetEmployeeID" formControlName="employeeID" />
+              <label for="resetEmployeeID">Employee ID</label>
+            </p-floatlabel>
+
+            <!-- New Password -->
+            <div class="password-field">
+              <p-floatlabel variant="on" class="field">
+                <input pInputText [type]="showNewPassword ? 'text' : 'password'" id="newPassword"
+                  formControlName="newPassword" />
+                <label for="newPassword">New Password</label>
+              </p-floatlabel>
+
+              <i class="pi" [ngClass]="showNewPassword ? 'pi-eye-slash' : 'pi-eye'"
+                (click)="showNewPassword = !showNewPassword"></i>
+            </div>
+
+            <!-- strength bar -->
+            <div class="strength" *ngIf="passwordStrength">
+              <span class="weak" [class.active]="passwordStrength === 'weak'">Weak</span>
+              <span class="medium" [class.active]="passwordStrength === 'medium'">Medium</span>
+              <span class="strong" [class.active]="passwordStrength === 'strong'">Strong</span>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="password-field">
+              <p-floatlabel variant="on" class="field">
+                <input pInputText [type]="showConfirmPassword ? 'text' : 'password'" id="confirmPassword"
+                  formControlName="confirmPassword" />
+                <label for="confirmPassword">Confirm Password</label>
+              </p-floatlabel>
+
+              <i class="pi" [ngClass]="showConfirmPassword ? 'pi-eye-slash' : 'pi-eye'"
+                (click)="showConfirmPassword = !showConfirmPassword"></i>
+            </div>
+
+            <!-- mismatch error -->
+            <small class="err" *ngIf="resetForm.touched && resetForm.errors?.['passwordMismatch']">
+              Password and Confirm Password must match
+            </small>
+
+            <div class="actions">
+              <button pButton type="submit" label="Update Password" class="btn-create"></button>
+            </div>
+          </form>
+        </ng-container>
+
+        <!-- USER -->
+        <ng-container *ngIf="activeSection==='user'">
+          <h2 class="page-title">User Creation</h2>
+
+          <form class="employee-form" [formGroup]="userForm" (ngSubmit)="submitUser()">
+            <p-floatlabel variant="on" class="field">
+              <input pInputText id="userEmployeeID" formControlName="employeeID" />
+              <label for="userEmployeeID">Employee ID</label>
+            </p-floatlabel>
+
+            <p-floatlabel variant="on" class="field">
+              <input pInputText id="username" formControlName="username" />
+              <label for="username">Username</label>
+            </p-floatlabel>
+
+            <!-- <p-floatlabel variant="on" class="field">
+              <input pInputText id="password" type="password" formControlName="password" />
+              <label for="password">Password</label>
+            </p-floatlabel> -->
+            <div class="password-field">
+              <p-floatlabel variant="on" class="field">
+                <input pInputText id="password" [type]="showUserPassword ? 'text' : 'password'"
+                  formControlName="password" />
+                <label for="password">Password</label>
+              </p-floatlabel>
+
+              <i class="pi" [ngClass]="showUserPassword ? 'pi-eye-slash' : 'pi-eye'"
+                (click)="showUserPassword = !showUserPassword">
+              </i>
+            </div>
+            <small class="err" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+              Password is required and must be at least 6 characters
+            </small>
+
+            <p-floatlabel variant="on" class="field">
+              <p-select inputId="userRole"
+                [options]="[{label:'HOD',value:'HOD'},{label:'ADMIN',value:'ADMIN'},{label:'SUPERVISOR',value:'SUPERVISOR'}, {label:'USER',value:'USER'} ]"
+                optionLabel="label" optionValue="value" formControlName="role" [filter]="true" appendTo="body"></p-select>
+              <label for="userRole">Role</label>
+            </p-floatlabel>
+
+            <div class="actions">
+              <button pButton type="submit" label="Create" class="btn-create"></button>
+              <button pButton type="button" label="Clear" class="btn-clear"
+                (click)="userForm.reset({role:'USER'})"></button>
+            </div>
+          </form>
+        </ng-container>
+
+        <!-- EMPLOYEE CREATION (matches screenshot) -->
+        <ng-container *ngIf="activeSection==='employee'">
+          <h2 class="page-title">Employee Creation</h2>
+
+          <form class="employee-form" [formGroup]="employeeForm" (ngSubmit)="submitEmployee()">
+            <p-floatlabel variant="on" class="field">
+              <input pInputText id="name" formControlName="name" />
+              <label for="name">Name</label>
+            </p-floatlabel>
+
+            <p-floatlabel variant="on" class="field">
+              <input pInputText id="employeeID" formControlName="employeeID" />
+              <label for="employeeID">Employee ID</label>
+            </p-floatlabel>
+
+            <p-floatlabel variant="on" class="field">
+              <p-select inputId="departmentId" [options]="departmentOptions" optionLabel="label" optionValue="value"
+                formControlName="departmentId" [loading]="loadingDepartments" appendTo="body" [filter]="true"></p-select>
+              <label for="departmentId">Department</label>
+            </p-floatlabel>
+
+            <p-floatlabel variant="on" class="field">
+              <p-select inputId="role" [options]="roleOptions" optionLabel="name" optionValue="value"
+                formControlName="role" appendTo="body" [filter]="true"></p-select>
+              <label for="role">Role</label>
+            </p-floatlabel>
+
+            <div class="actions">
+              <button pButton type="submit" label="Create" class="btn-create"></button>
+              <button pButton type="button" label="Clear" class="btn-clear" (click)="clearEmployeeForm()"></button>
+            </div>
+          </form>
+        </ng-container>
+
+        <!-- TABLE -->
+        <!-- TABLE -->
+        <ng-container *ngIf="activeSection==='table'">
+          <div class="table-page">
+
+            <!-- top bar -->
+            <div class="table-top">
+              <h2 class="table-title">Employee &amp; User Table</h2>
+
+              <div class="table-top-right">
+                <div class="count-pill">{{ employees.length }} Active Employee’s</div>
+
+                <button type="button" class="icon-btn" (click)="onFilterClick()" aria-label="Filter">
+                  <i class="pi pi-filter"></i>
+                </button>
+
+                <div class="search-wrap">
+                  <i class="pi pi-search"></i>
+                  <input pInputText class="search-input" [formControl]="searchCtrl" placeholder="Search" />
+                </div>
+              </div>
+            </div>
+
+            <!-- tabs -->
+            <div class="table-tabs">
+              <button type="button" class="pill-tab" [class.active]="tableTab==='employee'"
+                (click)="setTableTab('employee')">
+                Employee Table
+              </button>
+
+              <button type="button" class="pill-tab" [class.active]="tableTab==='user'" (click)="setTableTab('user')">
+                User Table
+              </button>
+            </div>
+
+            <!-- table container -->
+            <div class="table-card">
+              <!-- EMPLOYEE TABLE -->
+              <p-table *ngIf="tableTab==='employee'" #dt [value]="employees" [loading]="loadingEmployees"
+                [scrollable]="true" scrollHeight="420px" [rowHover]="false" [stripedRows]="false">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th style="width: 70px;">No</th>
+                    <th style="width: 140px;">Employee ID</th>
+                    <th>Employee Name</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th style="width: 160px;">Phone Number</th>
+                    <th style="width: 220px;">Email ID</th>
+                  </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-row let-ri="rowIndex">
+                  <tr>
+                    <td>{{ (ri + 1) | number:'2.0' }}</td>
+                    <td>{{ row.employeeID }}</td>
+                    <td>{{ row.name }}</td>
+                    <td>{{ row.department?.name ?? '-' }}</td>
+                    <!-- you don’t have designation/phone/email in your Employee model now,
+                 so this shows "-" until you add them in backend -->
+                    <td>{{ row.designation ?? '-' }}</td>
+                    <td>{{ row.phoneNumber ?? '-' }}</td>
+                    <td>{{ row.email ?? '-' }}</td>
+                  </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="7" class="empty-msg">No records found</td>
+                  </tr>
+                </ng-template>
+              </p-table>
+
+              <!-- USER TABLE (basic layout; you can wire API later) -->
+              <p-table *ngIf="tableTab==='user'" #dtUser [value]="users" [loading]="loadingUsers" [scrollable]="true"
+                scrollHeight="420px">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th style="width: 70px;">No</th>
+                    <th style="width: 160px;">Employee ID</th>
+                    <th>Username</th>
+                    <th style="width: 160px;">Role</th>
+                    <th style="width: 220px;">Last Login</th>
+                  </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-row let-ri="rowIndex">
+                  <tr>
+                    <td>{{ (ri + 1) | number:'2.0' }}</td>
+                    <td>{{ row.employeeID }}</td>
+                    <td>{{ row.username }}</td>
+                    <td>{{ row.role }}</td>
+                    <td>{{ row.lastLogin ? (row.lastLogin | date:'medium') : '-' }}</td>
+                  </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="5" class="empty-msg">No records found</td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </div>
+        </ng-container>
+        <!-- MASTER DATA -->
+        <ng-container *ngIf="activeSection==='master'">
+          <h2 class="page-title">Master Data</h2>
+
+          <p-tabView class="custom-tabs">
+            <!-- Departments -->
+            <p-tabPanel header="Departments">
+              <div class="master-toolbar">
+                <button pButton icon="pi pi-plus" label="Add Department" class="btn-create" (click)="openDeptForm()"></button>
+              </div>
+              <div class="master-inline-form" *ngIf="showDeptForm">
+                <h4>{{ editingDeptId ? 'Edit Department' : 'New Department' }}</h4>
+                <div class="master-form-row">
+                  <p-floatlabel variant="on" class="field">
+                    <input pInputText id="deptName" [(ngModel)]="deptForm.name" />
+                    <label for="deptName">Department Name</label>
+                  </p-floatlabel>
+                </div>
+                <div class="master-form-actions">
+                  <button pButton label="Save" icon="pi pi-check" class="btn-create" (click)="saveDept()"></button>
+                  <button pButton label="Cancel" icon="pi pi-times" class="btn-clear" (click)="showDeptForm=false"></button>
+                </div>
+              </div>
+              <p-table [value]="masterDepts" [paginator]="true" [rows]="8" styleClass="p-datatable-sm">
+                <ng-template pTemplate="header">
+                  <tr><th>#</th><th>Name</th><th style="width:100px">Actions</th></tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-row let-i="rowIndex">
+                  <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ row.name }}</td>
+                    <td>
+                      <button pButton icon="pi pi-pencil" [text]="true" severity="info" size="small" (click)="openDeptForm(row)"></button>
+                      <button pButton icon="pi pi-trash" [text]="true" severity="danger" size="small" (click)="deleteDept(row)"></button>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr><td colspan="3" class="empty-msg">No departments found.</td></tr>
+                </ng-template>
+              </p-table>
+            </p-tabPanel>
+
+            <!-- Branches -->
+            <p-tabPanel header="Branches">
+              <div class="master-toolbar">
+                <button pButton icon="pi pi-plus" label="Add Branch" class="btn-create" (click)="openBranchForm()"></button>
+              </div>
+              <div class="master-inline-form" *ngIf="showBranchForm">
+                <h4>{{ editingBranchId ? 'Edit Branch' : 'New Branch' }}</h4>
+                <div class="master-form-row">
+                  <p-floatlabel variant="on" class="field">
+                    <input pInputText id="branchName" [(ngModel)]="branchForm.name" />
+                    <label for="branchName">Branch Name</label>
+                  </p-floatlabel>
+                </div>
+                <div class="master-form-actions">
+                  <button pButton label="Save" icon="pi pi-check" class="btn-create" (click)="saveBranch()"></button>
+                  <button pButton label="Cancel" icon="pi pi-times" class="btn-clear" (click)="showBranchForm=false"></button>
+                </div>
+              </div>
+              <p-table [value]="masterBranches" [paginator]="true" [rows]="8" styleClass="p-datatable-sm">
+                <ng-template pTemplate="header">
+                  <tr><th>#</th><th>Name</th><th style="width:100px">Actions</th></tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-row let-i="rowIndex">
+                  <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ row.name }}</td>
+                    <td>
+                      <button pButton icon="pi pi-pencil" [text]="true" severity="info" size="small" (click)="openBranchForm(row)"></button>
+                      <button pButton icon="pi pi-trash" [text]="true" severity="danger" size="small" (click)="deleteBranch(row)"></button>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr><td colspan="3" class="empty-msg">No branches found.</td></tr>
+                </ng-template>
+              </p-table>
+            </p-tabPanel>
+
+            <!-- Asset Categories -->
+            <p-tabPanel header="Asset Categories">
+              <div class="master-toolbar">
+                <button pButton icon="pi pi-plus" label="Add Category" class="btn-create" (click)="openCategoryForm()"></button>
+              </div>
+              <div class="master-inline-form" *ngIf="showCategoryForm">
+                <h4>{{ editingCategoryId ? 'Edit Category' : 'New Category' }}</h4>
+                <div class="master-form-row">
+                  <p-floatlabel variant="on" class="field">
+                    <input pInputText id="catName" [(ngModel)]="categoryForm.name" />
+                    <label for="catName">Category Name</label>
+                  </p-floatlabel>
+                </div>
+                <div class="master-form-actions">
+                  <button pButton label="Save" icon="pi pi-check" class="btn-create" (click)="saveCategory()"></button>
+                  <button pButton label="Cancel" icon="pi pi-times" class="btn-clear" (click)="showCategoryForm=false"></button>
+                </div>
+              </div>
+              <p-table [value]="masterCategories" [paginator]="true" [rows]="8" styleClass="p-datatable-sm">
+                <ng-template pTemplate="header">
+                  <tr><th>#</th><th>Name</th><th style="width:100px">Actions</th></tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-row let-i="rowIndex">
+                  <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ row.name }}</td>
+                    <td>
+                      <button pButton icon="pi pi-pencil" [text]="true" severity="info" size="small" (click)="openCategoryForm(row)"></button>
+                      <button pButton icon="pi pi-trash" [text]="true" severity="danger" size="small" (click)="deleteCategory(row)"></button>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr><td colspan="3" class="empty-msg">No categories found.</td></tr>
+                </ng-template>
+              </p-table>
+            </p-tabPanel>
+
+            <!-- Vendors -->
+            <p-tabPanel header="Vendors">
+              <div class="master-toolbar">
+                <button pButton icon="pi pi-plus" label="Add Vendor" class="btn-create" (click)="openVendorForm()"></button>
+              </div>
+              <div class="master-inline-form" *ngIf="showVendorForm">
+                <h4>{{ editingVendorId ? 'Edit Vendor' : 'New Vendor' }}</h4>
+                <div class="master-form-row">
+                  <p-floatlabel variant="on" class="field">
+                    <input pInputText id="vendorName" [(ngModel)]="vendorForm.name" />
+                    <label for="vendorName">Vendor Name</label>
+                  </p-floatlabel>
+                  <p-floatlabel variant="on" class="field">
+                    <input pInputText id="vendorContact" [(ngModel)]="vendorForm.contact" />
+                    <label for="vendorContact">Contact Number</label>
+                  </p-floatlabel>
+                  <p-floatlabel variant="on" class="field">
+                    <input pInputText id="vendorEmail" [(ngModel)]="vendorForm.email" type="email" />
+                    <label for="vendorEmail">Email</label>
+                  </p-floatlabel>
+                </div>
+                <div class="master-form-actions">
+                  <button pButton label="Save" icon="pi pi-check" class="btn-create" (click)="saveVendor()"></button>
+                  <button pButton label="Cancel" icon="pi pi-times" class="btn-clear" (click)="showVendorForm=false"></button>
+                </div>
+              </div>
+              <p-table [value]="masterVendors" [paginator]="true" [rows]="8" styleClass="p-datatable-sm">
+                <ng-template pTemplate="header">
+                  <tr><th>#</th><th>Name</th><th>Contact</th><th>Email</th><th style="width:100px">Actions</th></tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-row let-i="rowIndex">
+                  <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ row.name }}</td>
+                    <td>{{ row.contact || '-' }}</td>
+                    <td>{{ row.email || '-' }}</td>
+                    <td>
+                      <button pButton icon="pi pi-pencil" [text]="true" severity="info" size="small" (click)="openVendorForm(row)"></button>
+                      <button pButton icon="pi pi-trash" [text]="true" severity="danger" size="small" (click)="deleteVendor(row)"></button>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr><td colspan="5" class="empty-msg">No vendors found.</td></tr>
+                </ng-template>
+              </p-table>
+            </p-tabPanel>
+          </p-tabView>
+        </ng-container>
+
+      </section>
+    </main>
+  </div>
+</div>

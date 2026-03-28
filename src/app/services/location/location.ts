@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
+import { environment } from '../../../environment/environment.prod';
 
 @Injectable({
   providedIn: 'root'
 })
 export class Location {
 
-  private api = "http://localhost:3001/api/location";
+  // private api = "http://localhost:3001/api/location";
+  private api = `${environment.apiUrl}/location`
 
   constructor(private http: HttpClient) {}
   getHistory(assetId: number): Observable<any[]> {

@@ -18,6 +18,9 @@ html {
     --toggle-active-color:#1F1F1F;
     --table-border-color:#cbd5e1;
     --form-text-color:#C3C3C3;
+    --table-row-border: #C3C3C3;
+    --surface-border: #e5e7eb;
+
   }
   .app-dark {
     --text-color: #E8E8E8;
@@ -29,5 +32,7 @@ html {
     --toggle-active-color:#B4B4B4;
     --table-border-color:#52525b;
     --form-text-color:#E8E8E8;
+     --table-row-border: #C3C3C3;
+    --surface-border: #52525b;
   }
 

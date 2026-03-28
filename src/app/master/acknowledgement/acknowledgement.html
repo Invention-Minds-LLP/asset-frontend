@@ -1,0 +1,158 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Acknowledgement Templates</h2>
+      <p>Manage handover checklists for assignments, transfers and maintenance.</p>
+    </div>
+    <p-button [label]="showTemplateForm ? 'Cancel' : 'New Template'" [icon]="showTemplateForm ? 'pi pi-times' : 'pi pi-plus'"
+      (onClick)="showTemplateForm ? resetTemplateForm() : (showTemplateForm = true)" />
+  </div>
+
+  <!-- Template Form -->
+  <div class="form-card" *ngIf="showTemplateForm">
+    <h3>{{ editingTemplateId ? 'Edit Template' : 'New Template' }}</h3>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="templateForm.name" name="tplName" />
+          <label>Template Name *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="purposeOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="templateForm.purpose" name="tplPurpose" appendTo="body" />
+          <label>Purpose</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="categoryOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="templateForm.assetCategoryId" name="tplCat" appendTo="body"
+            [showClear]="true"  [filter]="true" />
+          <label>Asset Category (optional)</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <textarea pTextarea [(ngModel)]="templateForm.description" name="tplDesc" rows="2"></textarea>
+          <label>Description</label>
+        </p-floatlabel>
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" (onClick)="resetTemplateForm()" />
+      <p-button [label]="editingTemplateId ? 'Update' : 'Create'" icon="pi pi-save" (onClick)="saveTemplate()" />
+    </div>
+  </div>
+
+  <!-- Add Items Form -->
+  <div class="form-card" *ngIf="showItemForm">
+    <h3>Add Checklist Items</h3>
+    <p class="hint">Enter one checklist item per line.</p>
+    <textarea pTextarea [(ngModel)]="itemsInput" rows="6" style="width:100%" placeholder="e.g.&#10;Check physical condition&#10;Verify serial number&#10;Test power on"></textarea>
+    <div class="form-actions" style="margin-top:0.75rem">
+      <p-button label="Cancel" severity="secondary" (onClick)="showItemForm = false" />
+      <p-button label="Add Items" icon="pi pi-plus" (onClick)="saveItems()" />
+    </div>
+  </div>
+
+  <p-tabView class="custom-tabs">
+
+    <!-- Templates -->
+    <p-tabPanel header="Templates">
+      <p-table [value]="templates" [loading]="loading" [paginator]="true" [rows]="10"
+        responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Name</th>
+            <th>Purpose</th>
+            <th>Category</th>
+            <th>Items</th>
+            <th>Active</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>{{ row.name }}</td>
+            <td><p-tag [value]="row.purpose" /></td>
+            <td>{{ row.assetCategory?.name || '—' }}</td>
+            <td>{{ row.items?.length ?? 0 }}</td>
+            <td><p-tag [value]="row.isActive ? 'Active' : 'Inactive'" [severity]="row.isActive ? 'success' : 'secondary'" /></td>
+            <td>
+              <div class="action-buttons">
+                <p-button icon="pi pi-list" size="small" severity="info" (onClick)="openAddItems(row.id)" pTooltip="Add Items" />
+                <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="editTemplate(row)" />
+                <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="deleteTemplate(row)" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="text-center">No templates</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+    <!-- Pending Acknowledgements -->
+    <p-tabPanel [header]="'My Pending (' + pendingRuns.length + ')'">
+      <div *ngIf="!activeRun">
+        <p-table [value]="pendingRuns" responsiveLayout="scroll" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr><th>Asset</th><th>Template</th><th>Purpose</th><th>Created</th><th>Action</th></tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-run>
+            <tr>
+              <td>{{ run.asset?.assetName }}</td>
+              <td>{{ run.template?.name || '—' }}</td>
+              <td><p-tag *ngIf="run.template?.purpose" [value]="run.template.purpose" /></td>
+              <td>{{ run.createdAt | date:'dd MMM yyyy' }}</td>
+              <td>
+                <p-button label="Acknowledge" icon="pi pi-check" size="small" (onClick)="openRun(run)" />
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="5" class="text-center">No pending acknowledgements</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Submit form -->
+      <div class="form-card" *ngIf="activeRun">
+        <h3>Acknowledge: {{ activeRun.asset?.assetName }}</h3>
+        <div class="checklist-items" *ngIf="submitForm.rows?.length">
+          <div class="checklist-item" *ngFor="let row of submitForm.rows; let i = index">
+            <label class="check-label">
+              <input type="checkbox" [(ngModel)]="row.checked" />
+              {{ activeRun.rows[i]?.item?.title || 'Item ' + (i + 1) }}
+            </label>
+            <input pInputText [(ngModel)]="row.remarks" placeholder="Remarks" class="remarks-input" />
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:1rem">
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText [(ngModel)]="submitForm.acknowledgedBy" name="ackBy" />
+              <label>Acknowledged By</label>
+            </p-floatlabel>
+          </div>
+          <div class="field full-width">
+            <p-floatlabel variant="on">
+              <textarea pTextarea [(ngModel)]="submitForm.remarks" name="ackRemarks" rows="2"></textarea>
+              <label>Remarks</label>
+            </p-floatlabel>
+          </div>
+        </div>
+        <div class="form-actions">
+          <p-button label="Cancel" severity="secondary" (onClick)="activeRun = null" />
+          <p-button label="Submit Acknowledgement" icon="pi pi-check" (onClick)="submitRun()" />
+        </div>
+      </div>
+    </p-tabPanel>
+
+  </p-tabView>
+</div>

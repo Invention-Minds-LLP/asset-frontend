@@ -34,17 +34,17 @@ export class WarrantyTable {
   ngOnInit() {
     this.warrantyService.getAllWarranties().subscribe({
       next: (response) => {
-        this.warranty = response;
-        const statusSummary = this.getWarrantyStatusSummary();
-        this.activeWarranties = statusSummary.active;
-        this.cdr.detectChanges(); // Ensure the view is updated after data load
-        console.log('Warranties loaded:', this.warranty);
+        setTimeout(() => {
+          this.warranty = response;
+          const statusSummary = this.getWarrantyStatusSummary();
+          this.activeWarranties = statusSummary.active;
+          this.cdr.detectChanges();
+        });
       },
       error: (error) => {
         console.error('Error loading warranties:', error);
       }
     });
-
   }
 
   refresh() {

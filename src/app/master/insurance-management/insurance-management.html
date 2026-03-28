@@ -1,0 +1,114 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-shield"></i> Insurance Management</h2>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="kpi-grid" *ngIf="stats.totalPolicies != null">
+    <div class="kpi-card">
+      <span class="kpi-label">Total Policies</span>
+      <span class="kpi-value">{{ stats.totalPolicies }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Active Policies</span>
+      <span class="kpi-value">{{ stats.activePolicies }}</span>
+    </div>
+    <div class="kpi-card kpi-danger">
+      <span class="kpi-label">Expiring Soon (30d)</span>
+      <span class="kpi-value">{{ stats.expiringSoon }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Total Claims</span>
+      <span class="kpi-value">{{ stats.totalClaims }}</span>
+    </div>
+  </div>
+
+  <p-tabview (onChange)="onTabChange($event)" class="custom-tabs">
+    <!-- Policies Tab -->
+    <p-tabpanel header="Policies">
+      <div class="tab-content">
+        <div class="toolbar">
+          <input pInputText placeholder="Search policies..." [(ngModel)]="policySearch" (keyup.enter)="loadPolicies()" />
+          <p-select [options]="statusOptions" [(ngModel)]="policyStatus" (onChange)="loadPolicies()" placeholder="Status"></p-select>
+          <p-button label="Search" icon="pi pi-search" (onClick)="loadPolicies()"></p-button>
+          <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportPoliciesCsv()"></p-button>
+        </div>
+
+        <p-table [value]="policies" [loading]="policiesLoading" [paginator]="true" [rows]="15"
+          [rowsPerPageOptions]="[10,15,25,50]" [totalRecords]="policiesTotalRecords"
+          styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Policy No</th>
+              <th>Asset</th>
+              <th>Provider</th>
+              <th>Type</th>
+              <th>Premium</th>
+              <th>Coverage</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Status</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-p>
+            <tr>
+              <td>{{ p.policyNumber }}</td>
+              <td>{{ p.asset?.assetName || '—' }}</td>
+              <td>{{ p.provider }}</td>
+              <td>{{ p.insuranceType }}</td>
+              <td>{{ formatCurrency(p.premiumAmount) }}</td>
+              <td>{{ formatCurrency(p.coverageAmount) }}</td>
+              <td>{{ p.startDate | date:'mediumDate' }}</td>
+              <td>{{ p.endDate | date:'mediumDate' }}</td>
+              <td><p-tag [value]="p.status" [severity]="getStatusSeverity(p.status)"></p-tag></td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="9" class="text-center">No policies found.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+    <!-- Claims Tab -->
+    <p-tabpanel header="Claims">
+      <div class="tab-content">
+        <div class="toolbar">
+          <input pInputText placeholder="Search claims..." [(ngModel)]="claimSearch" (keyup.enter)="loadClaims()" />
+          <p-select [options]="claimStatusOptions" [(ngModel)]="claimStatus" (onChange)="loadClaims()" placeholder="Status"></p-select>
+          <p-button label="Search" icon="pi pi-search" (onClick)="loadClaims()"></p-button>
+          <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportClaimsCsv()"></p-button>
+        </div>
+
+        <p-table [value]="claims" [loading]="claimsLoading" [paginator]="true" [rows]="15"
+          [totalRecords]="claimsTotalRecords" styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Claim No</th>
+              <th>Asset</th>
+              <th>Incident Date</th>
+              <th>Claim Amount</th>
+              <th>Settled Amount</th>
+              <th>Status</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-c>
+            <tr>
+              <td>{{ c.claimNumber }}</td>
+              <td>{{ c.insurance?.asset?.assetName || '—' }}</td>
+              <td>{{ c.incidentDate | date:'mediumDate' }}</td>
+              <td>{{ formatCurrency(c.claimAmount) }}</td>
+              <td>{{ formatCurrency(c.settledAmount) }}</td>
+              <td><p-tag [value]="c.status" [severity]="getStatusSeverity(c.status)"></p-tag></td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6" class="text-center">No claims found.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+  </p-tabview>
+</div>

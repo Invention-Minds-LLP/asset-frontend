@@ -1,0 +1,122 @@
+.audit-trail-container {
+  padding: 1.5rem;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--surface-ground);
+  border-radius: 8px;
+  border: 1px solid var(--surface-border);
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 180px;
+}
+
+.filter-item label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-color-secondary);
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.summary-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.changes-detail {
+  padding: 1rem;
+  background: var(--surface-ground);
+  border-radius: 6px;
+}
+
+.changes-detail h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.95rem;
+}
+
+.changes-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.changes-table th,
+.changes-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.changes-table th {
+  font-weight: 600;
+  background: var(--surface-100);
+}
+
+.field-name {
+  font-weight: 500;
+  color: var(--primary-color);
+  width: 200px;
+}
+
+.field-value {
+  font-family: monospace;
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.no-changes {
+  padding: 1rem;
+  color: var(--text-color-secondary);
+  font-style: italic;
+}
+
+.text-center {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-color-secondary);
+}
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+::ng-deep .p-datatable .p-datatable-wrapper {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+::ng-deep .p-datatable-table {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 400 !important;
+  text-transform: capitalize;
+}

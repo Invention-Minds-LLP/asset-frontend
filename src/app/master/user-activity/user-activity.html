@@ -1,0 +1,50 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-users"></i> User Activity</h2>
+  </div>
+
+  <div class="kpi-grid" *ngIf="stats.todayLogins != null">
+    <div class="kpi-card"><span class="kpi-label">Today's Logins</span><span class="kpi-value">{{ stats.todayLogins }}</span></div>
+    <div class="kpi-card kpi-danger"><span class="kpi-label">Failed Attempts</span><span class="kpi-value">{{ stats.failedAttempts }}</span></div>
+    <div class="kpi-card"><span class="kpi-label">Active Users (7d)</span><span class="kpi-value">{{ stats.activeUsersLast7Days }}</span></div>
+  </div>
+
+  <div class="toolbar">
+    <input pInputText placeholder="Search users..." [(ngModel)]="search" (keyup.enter)="loadRecords()" />
+    <p-select [options]="successOptions" [(ngModel)]="success" (onChange)="loadRecords()" placeholder="Result"></p-select>
+    <p-button label="Search" icon="pi pi-search" (onClick)="loadRecords()"></p-button>
+    <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportCsv()"></p-button>
+  </div>
+
+  <p-table [value]="records" [loading]="loading" [paginator]="true" [rows]="15"
+    [rowsPerPageOptions]="[10,15,25,50]" [totalRecords]="totalRecords"
+    styleClass="p-datatable-sm p-datatable-striped">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>User</th>
+        <th>Employee ID</th>
+        <th>IP Address</th>
+        <th>Browser</th>
+        <th>Login Time</th>
+        <th>Result</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-r>
+      <tr>
+        <td>{{ r.user?.name || r.userName || '—' }}</td>
+        <td>{{ r.user?.employeeID || '—' }}</td>
+        <td>{{ r.ipAddress || '—' }}</td>
+        <td>{{ r.userAgent | slice:0:40 }}{{ r.userAgent?.length > 40 ? '...' : '' }}</td>
+        <td>{{ r.createdAt | date:'medium' }}</td>
+        <td>
+          <p-tag [value]="r.success ? 'Success' : 'Failed'" [severity]="r.success ? 'success' : 'danger'"></p-tag>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="6" class="text-center">No login records found.</td></tr>
+    </ng-template>
+  </p-table>
+</div>

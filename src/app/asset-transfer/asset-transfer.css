@@ -1,0 +1,609 @@
+.table-wrapper {
+  /* padding: 2rem; */
+  font-family: "Biryani";
+  max-height: 100vh;
+}
+
+.header h2 {
+  margin: 0;
+}
+
+.header p{
+  color: #696969;
+font-family: Biryani;
+font-size: 14px;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+margin: 0;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.asset-photo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.view-btn {
+  border-radius: 8px;
+  background: #c3ffc3;
+  border-radius: 8px;
+  width: 80px;
+  color: #00a23d;
+  height: 29px;
+  border: none;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: normal;
+}
+
+.dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+::ng-deep .p-datatable .p-datatable-wrapper {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+::ng-deep .p-datatable-table {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.p-inputtext {
+  width: 100%;
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid var(--table-border-color);
+}
+
+.filter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--table-border-color);
+  border-radius: 8px;
+  position: relative;
+}
+.table-container {
+  width: 100%;
+  margin-top: 20px;
+}
+.custom-paginator-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  color: #999;
+  font-family: "Biryani", sans-serif;
+}
+
+.separator {
+  width: 1px;
+  height: 24px;
+  background-color: #ccc;
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: 1px solid var(--table-border-color);
+}
+
+.icon-button:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+
+.icon-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-weight: 600;
+  font-size: 16px;
+  border: 1px solid var(--table-border-color);
+  width: 80px;
+  height: 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.pi {
+  font-size: 18px;
+  color: #8f8f8f;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+}
+.filter-dropdown {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  background: white;
+  border-radius: 8px; 
+  height: 42px;
+  z-index: 10;
+}
+.p-dropdown{
+  height: 42px;
+  font-size: 14px;
+}
+.filter-menu {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  min-width: 160px;
+  background: var(--surface-ground);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 10;
+  padding: 0.25rem 0;
+  list-style: none;
+  margin: 0;
+}
+
+.filter-menu li {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 14px;
+}
+
+
+.filter-menu li.active {
+  background-color: #c3ffc3;
+  color: #00a23d;
+}
+.filter-icons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter, .filter-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--table-border-color);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.header-part {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.notification {
+  display: flex;
+  width: 42px;
+  height: 42px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: 28px;
+  border: 2px solid var(--table-border-color);
+  transform: rotate(40deg);
+}
+.notification-part {
+display: flex;
+align-items: center;
+gap: 20px;
+}
+
+.active-box {
+padding: 4px 20px;
+align-items: center;
+border-radius: 8px;
+border: 1px solid var(--table-border-color);
+color: var(--form-text-color);
+font-size: 14px;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+}
+.custom-table-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.skeleton-row {
+  display: grid;
+  grid-template-columns: 20px 30px 80px 150px 100px 120px 180px 180px 50px 70px;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.accept-btn {
+  background: #c3ffc3;
+  color: #00a23d;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.reject-btn {
+  background: #ffe0e0;
+  color: #d60000;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-weight: 600;
+}
+
+.status.pending {
+  color: orange;
+  font-weight: 600;
+}
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #999;
+  font-size: 14px;
+}
+
+.no-data i {
+  font-size: 40px;
+  margin-bottom: 10px;
+  color: #ccc;
+}
+/* Dialog content spacing */
+.ack-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 6px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lbl {
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+/* signature */
+.signature-box {
+  width: 100%;
+  border: 1px solid var(--table-border-color);
+  border-radius: 10px;
+  background: var(--surface-ground);
+}
+
+.hint {
+  opacity: 0.7;
+}
+
+/* top row for signature label + clear link */
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clear-link {
+  padding: 0 !important;
+}
+
+/* upload */
+.upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--table-border-color);
+  background: var(--surface-ground);
+  cursor: pointer;
+  font-weight: 700;
+  user-select: none;
+}
+
+.upload-btn input {
+  display: none;
+}
+
+.file-name {
+  opacity: 0.75;
+  font-size: 13px;
+}
+
+/* footer buttons */
+.footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+
+.btn-cancel {
+  background: #16a34a !important;
+  border: 1px solid #16a34a !important;
+  border-radius: 10px !important;
+  padding: 10px 18px !important;
+}
+
+.btn-submit {
+  background: #16a34a !important;
+  border: 1px solid #16a34a !important;
+  border-radius: 10px !important;
+  padding: 10px 18px !important;
+}
+
+/* OPTIONAL: dark theme */
+:host-context(.app-dark) .signature-box {
+  background: var(--toggle-bg);
+}
+
+/* =========================
+   TRANSFER DIALOG STYLING
+   ========================= */
+
+.transfer-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding-top: 4px;
+}
+
+.asset-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #42526b;
+  line-height: 1.4;
+}
+
+.info-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2d3d;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.reason-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reason-field label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #42526b;
+}
+
+.reason-field textarea {
+  width: 100%;
+  min-height: 165px;
+  resize: none;
+  border: 1px solid #d9dee7;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: "Biryani", sans-serif;
+  color: #1f2d3d;
+  outline: none;
+  box-shadow: none;
+}
+
+.reason-field textarea:focus {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.12);
+}
+
+.dialog-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+
+.dialog-btn {
+  min-width: 110px !important;
+  height: 44px !important;
+  border-radius: 8px !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+.cancel-btn {
+  background: #10b981 !important;
+  border: 1px solid #10b981 !important;
+  color: #fff !important;
+}
+
+.approve-btn {
+  background: #22c55e !important;
+  border: 1px solid #22c55e !important;
+  color: #fff !important;
+}
+
+.reject-dialog-btn {
+  background: #ef4444 !important;
+  border: 1px solid #ef4444 !important;
+  color: #fff !important;
+}
+
+/* PrimeNG dialog shell */
+::ng-deep .transfer-dialog.p-dialog {
+  border-radius: 18px !important;
+  overflow: hidden;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18) !important;
+  border: none !important;
+}
+
+::ng-deep .transfer-dialog .p-dialog-header {
+  padding: 1.6rem 1.8rem 0.8rem 1.8rem !important;
+  border-bottom: none !important;
+  background: #fff !important;
+}
+
+::ng-deep .transfer-dialog .p-dialog-title {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #334155 !important;
+  font-family: "Biryani", sans-serif;
+}
+
+::ng-deep .transfer-dialog .p-dialog-header-icons {
+  align-items: center;
+}
+
+::ng-deep .transfer-dialog .p-dialog-header-icon {
+  width: 2.2rem !important;
+  height: 2.2rem !important;
+  color: #475569 !important;
+  border-radius: 999px !important;
+}
+
+::ng-deep .transfer-dialog .p-dialog-header-icon:hover {
+  background: #f1f5f9 !important;
+}
+
+::ng-deep .transfer-dialog .p-dialog-content {
+  padding: 0.4rem 1.8rem 1rem 1.8rem !important;
+  background: #fff !important;
+}
+
+::ng-deep .transfer-dialog .p-dialog-footer {
+  padding: 0 1.8rem 1.8rem 1.8rem !important;
+  border-top: none !important;
+  background: #fff !important;
+}
+
+/* Better action buttons in table */
+.accept-btn,
+.reject-btn {
+  min-width: 84px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.accept-btn {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.reject-btn {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.action-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Status chip improvement */
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.status.requested,
+.status.pending {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.status.approved {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.status.rejected {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status.returned {
+  background: #dbeafe;
+  color: #2563eb;
+}

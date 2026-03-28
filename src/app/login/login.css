@@ -21,6 +21,16 @@
     padding: 20px;
     flex-direction: column;
   }
+
+  .login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.img-logo{
+  width: 60px;
+  height: 60px;
+}
   
   .login-card {
 

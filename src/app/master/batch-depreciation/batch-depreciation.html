@@ -1,0 +1,115 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-chart-line"></i> Batch Depreciation</h2>
+  </div>
+
+  <p-tabview (onChange)="onTabChange($event)" class="custom-tabs">
+    <!-- Preview & Run -->
+    <p-tabpanel header="Preview & Run">
+      <div class="tab-content">
+        <div class="kpi-grid" *ngIf="previewSummary.totalAssets != null">
+          <div class="kpi-card"><span class="kpi-label">Eligible Assets</span><span class="kpi-value">{{ previewSummary.totalAssets }}</span></div>
+          <div class="kpi-card"><span class="kpi-label">Total Depreciation</span><span class="kpi-value">{{ formatCurrency(previewSummary.totalDepreciation) }}</span></div>
+        </div>
+
+        <div class="toolbar">
+          <p-button label="Refresh Preview" icon="pi pi-refresh" (onClick)="loadPreview()" [loading]="previewLoading"></p-button>
+          <p-button label="Run Batch Depreciation" icon="pi pi-play" severity="danger" (onClick)="confirmRunBatch()"
+            [loading]="runningBatch" [disabled]="!previewData.length"></p-button>
+        </div>
+
+        <p-table [value]="previewData" [loading]="previewLoading" [paginator]="true" [rows]="15"
+          styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Asset</th>
+              <th>Original Cost</th>
+              <th>Current Book Value</th>
+              <th>Depreciation Amount</th>
+              <th>New Book Value</th>
+              <th>Method</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-d>
+            <tr>
+              <td>{{ d.assetName }}</td>
+              <td>{{ formatCurrency(d.originalCost) }}</td>
+              <td>{{ formatCurrency(d.currentBookValue) }}</td>
+              <td>{{ formatCurrency(d.depreciationAmount) }}</td>
+              <td>{{ formatCurrency(d.newBookValue) }}</td>
+              <td>{{ d.depreciationMethod }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6" class="text-center">No assets eligible for depreciation.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+    <!-- All Records -->
+    <p-tabpanel header="All Records">
+      <div class="tab-content">
+        <p-table [value]="depreciations" [loading]="depreciationsLoading" [paginator]="true" [rows]="15"
+          styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Asset</th>
+              <th>Original Cost</th>
+              <th>Current Value</th>
+              <th>Depreciation</th>
+              <th>Method</th>
+              <th>Useful Life</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-d>
+            <tr>
+              <td>{{ d.asset?.assetName || '—' }}</td>
+              <td>{{ formatCurrency(d.originalCost || d.asset?.originalCost) }}</td>
+              <td>{{ formatCurrency(d.currentBookValue) }}</td>
+              <td>{{ formatCurrency(d.depreciationAmount) }}</td>
+              <td>{{ d.depreciationMethod }}</td>
+              <td>{{ d.usefulLifeYears }} yrs</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6" class="text-center">No depreciation records.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+    <!-- Logs -->
+    <p-tabpanel header="History Logs">
+      <div class="tab-content">
+        <p-table [value]="logs" [loading]="logsLoading" [paginator]="true" [rows]="15"
+          styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Asset</th>
+              <th>Prev Value</th>
+              <th>Depreciation</th>
+              <th>New Value</th>
+              <th>Date</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-l>
+            <tr>
+              <td>{{ l.asset?.assetName || '—' }}</td>
+              <td>{{ formatCurrency(l.previousValue) }}</td>
+              <td>{{ formatCurrency(l.depreciationAmount) }}</td>
+              <td>{{ formatCurrency(l.newValue) }}</td>
+              <td>{{ l.createdAt | date:'medium' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="5" class="text-center">No history logs.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+  </p-tabview>
+</div>

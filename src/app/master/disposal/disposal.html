@@ -1,0 +1,135 @@
+<p-toast></p-toast>
+
+<div class="disposal-container">
+  <div class="page-header">
+    <h2><i class="pi pi-trash"></i> Asset Disposal</h2>
+    <p-button label="New Request" icon="pi pi-plus" (onClick)="openRequestDialog()"></p-button>
+  </div>
+
+  <!-- Status filter -->
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>Status</label>
+      <p-select [options]="statusOptions" [(ngModel)]="statusFilter" (onChange)="onStatusFilter()" [style]="{'width':'200px'}"></p-select>
+    </div>
+  </div>
+
+  <!-- Disposals table -->
+  <p-table [value]="disposals" [lazy]="true" [paginator]="true" [rows]="rows" [totalRecords]="totalRecords"
+    [loading]="loading" (onLazyLoad)="onPageChange($event)" [rowsPerPageOptions]="[10,15,25]"
+    styleClass="p-datatable-sm p-datatable-striped">
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Asset</th>
+        <th>Disposal Type</th>
+        <th>Reason</th>
+        <th>Status</th>
+        <th>Estimated Value</th>
+        <th>Actual Value</th>
+        <th>Requested Date</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-d>
+      <tr>
+        <td>{{ d.asset?.assetName || d.asset?.assetId || '—' }}</td>
+        <td>{{ d.disposalType }}</td>
+        <td class="reason-cell">{{ d.reason }}</td>
+        <td><p-tag [value]="d.status" [severity]="getStatusSeverity(d.status)"></p-tag></td>
+        <td>{{ formatCurrency(d.estimatedScrapValue) }}</td>
+        <td>{{ formatCurrency(d.actualSaleValue) }}</td>
+        <td>{{ d.createdAt | date:'mediumDate' }}</td>
+        <td class="action-cell">
+          <p-button *ngIf="d.status === 'REQUESTED'" icon="pi pi-send" label="To Committee" size="small"
+            severity="info" (onClick)="openReviewDialog(d)"></p-button>
+          <p-button *ngIf="d.status === 'COMMITTEE_REVIEW'" icon="pi pi-check" label="Approve" size="small"
+            severity="success" (onClick)="approveDisposal(d)" class="mr-1"></p-button>
+          <p-button *ngIf="d.status === 'COMMITTEE_REVIEW'" icon="pi pi-times" label="Reject" size="small"
+            severity="danger" (onClick)="rejectDisposal(d)"></p-button>
+          <p-button *ngIf="d.status === 'APPROVED'" icon="pi pi-check-circle" label="Complete" size="small"
+            severity="success" (onClick)="openCompleteDialog(d)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="8" class="text-center">No disposal records found.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Request Dialog -->
+<p-dialog header="New Disposal Request" [(visible)]="showRequestDialog" [style]="{ width: '500px' }" [modal]="true">
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Asset *</label>
+      <p-select [options]="assetOptions" [(ngModel)]="requestForm.assetId" placeholder="Select Asset"
+        [filter]="true" [style]="{'width':'100%'}"></p-select>
+    </div>
+    <div class="form-field">
+      <label>Disposal Type *</label>
+      <p-select [options]="disposalTypeOptions" [(ngModel)]="requestForm.disposalType"
+        placeholder="Select Type" [style]="{'width':'100%'}"></p-select>
+    </div>
+    <div class="form-field">
+      <label>Reason *</label>
+      <textarea pTextarea [(ngModel)]="requestForm.reason" rows="3" style="width:100%"></textarea>
+    </div>
+    <div class="form-field">
+      <label>Estimated Scrap Value</label>
+      <p-inputNumber [(ngModel)]="requestForm.estimatedScrapValue" mode="currency" currency="INR"
+        locale="en-IN" [style]="{'width':'100%'}"></p-inputNumber>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showRequestDialog = false"></p-button>
+    <p-button label="Submit" icon="pi pi-check" (onClick)="submitRequest()" [loading]="requestLoading"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Review Dialog -->
+<p-dialog header="Committee Review" [(visible)]="showReviewDialog" [style]="{ width: '450px' }" [modal]="true">
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Committee Members</label>
+      <input pInputText [(ngModel)]="reviewForm.committeeMembers" placeholder="Names (comma separated)" style="width:100%" />
+    </div>
+    <div class="form-field">
+      <label>Committee Remarks</label>
+      <textarea pTextarea [(ngModel)]="reviewForm.committeeRemarks" rows="3" style="width:100%"></textarea>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showReviewDialog = false"></p-button>
+    <p-button label="Send for Review" icon="pi pi-send" (onClick)="submitReview()" [loading]="reviewLoading"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Complete Dialog -->
+<p-dialog header="Complete Disposal" [(visible)]="showCompleteDialog" [style]="{ width: '500px' }" [modal]="true">
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Actual Sale Value</label>
+      <p-inputNumber [(ngModel)]="completeForm.actualSaleValue" mode="currency" currency="INR"
+        locale="en-IN" [style]="{'width':'100%'}"></p-inputNumber>
+    </div>
+    <div class="form-field">
+      <label>Buyer Name</label>
+      <input pInputText [(ngModel)]="completeForm.buyerName" style="width:100%" />
+    </div>
+    <div class="form-field">
+      <label>Buyer Contact</label>
+      <input pInputText [(ngModel)]="completeForm.buyerContact" style="width:100%" />
+    </div>
+    <div class="form-field">
+      <label>Disposal Certificate Reference</label>
+      <input pInputText [(ngModel)]="completeForm.disposalCertificate" style="width:100%" />
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showCompleteDialog = false"></p-button>
+    <p-button label="Mark Complete" icon="pi pi-check-circle" (onClick)="submitComplete()" [loading]="completeLoading"></p-button>
+  </ng-template>
+</p-dialog>

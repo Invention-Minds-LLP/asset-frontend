@@ -1,0 +1,587 @@
+/* IMPORTANT: do NOT use global *{} reset here. Keep it in styles.css only. */
+
+/* OUTER BORDERED CONTAINER (screenshot box) */
+.settings-outer {
+  max-width: 1100px;
+  margin: 24px auto;
+  background: var(--surface-ground);
+  border: 1px solid var(--table-border-color);
+  border-radius: 14px;
+  overflow: hidden; /* IMPORTANT: clips sidebar green */
+}
+.settings-shell {
+  display: flex;
+  min-height: 80vh;
+  background: var(--surface-ground);
+  color: var(--text-color);
+}
+
+/* LEFT sidebar */
+.settings-sidebar {
+  width: 240px;
+  background: #dfffe9; /* screenshot green in light mode */
+  border-right: 1px solid var(--table-border-color);
+  padding: 22px 18px;
+}
+
+/* Dark mode sidebar background should follow your theme variables */
+:host-context(.app-dark) .settings-sidebar {
+  background: #dfffef !important;
+}
+
+.sidebar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logout-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-btn i {
+  font-size: 1.2rem;
+}
+
+.logout-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.avatar {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface-ground);
+  border: 6px solid rgba(22, 163, 74, 0.20); /* soft green ring */
+  display: grid;
+  place-items: center;
+}
+
+:host-context(.app-dark) .avatar {
+  border-color: rgba(242, 135, 41, 0.25); /* matches your orange-ish dark theme */
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-fallback {
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #9ca3af, #6b7280);
+}
+
+/* nav */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nav-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+
+  color: var(--text-color);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-item .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-color);
+  opacity: 0.65;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+:host-context(.app-dark) .nav-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* active item (use your theme primary color) */
+.nav-item.active {
+  background-color: #dfffef !important;
+  color: #00a23d !important;
+  font-weight: 700;
+}
+
+.nav-item.active .dot {
+  background: #fff;
+  opacity: 1;
+}
+
+/* RIGHT content */
+.settings-content {
+  flex: 1;
+  padding: 26px 28px;
+  display: flex;
+  justify-content: center;
+}
+
+/* main white card like screenshot */
+.content-card {
+  width: min(900px, 100%);
+  background: var(--surface-ground);
+  /* border: 1px solid var(--table-border-color); */
+  border-radius: 12px;
+  padding: 28px;
+}
+
+.page-title {
+  margin: 0 0 22px 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-color);
+}
+
+/* form sizing */
+.employee-form {
+  width: 420px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* force PrimeNG controls full width */
+.field,
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .p-select {
+  width: 100% !important;
+}
+
+/* fix FloatLabel overlap on PrimeNG Select */
+:host ::ng-deep .p-float-label > label {
+  background: var(--surface-ground);
+  padding: 0 6px;
+  margin-left: 8px;
+}
+
+/* Buttons */
+.actions {
+  display: flex;
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.btn-create {
+  background: #16a34a !important;
+  border: 1px solid #16a34a !important;
+  padding: 10px 26px !important;
+  border-radius: 8px !important;
+}
+
+:host-context(.app-dark) .btn-create {
+  background: var(--menu-color) !important;
+  border-color: var(--menu-color) !important;
+}
+
+.btn-clear {
+  background: transparent !important;
+  border: 1px solid #ef4444 !important;
+  color: #ef4444 !important;
+  padding: 10px 26px !important;
+  border-radius: 8px !important;
+}
+/* ===== TABLE PAGE (like screenshot) ===== */
+.table-page {
+  width: 100%;
+}
+
+.table-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.table-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-color);
+}
+
+.table-top-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.count-pill {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--table-border-color);
+  background: var(--surface-ground);
+  color: var(--text-color);
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* filter icon button */
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--table-border-color);
+  background: var(--surface-ground);
+  color: var(--text-color);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  filter: brightness(0.98);
+}
+
+:host-context(.app-dark) .icon-btn:hover {
+  filter: brightness(1.08);
+}
+
+/* search */
+.search-wrap {
+  position: relative;
+  width: 260px;
+}
+
+.search-wrap i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.7;
+}
+
+.search-input {
+  width: 100%;
+  padding-left: 38px !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--table-border-color) !important;
+}
+
+/* tabs */
+.table-tabs {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.pill-tab {
+  border: 0;
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+  background: #f3f4f6;
+  color: var(--text-color);
+}
+
+:host-context(.app-dark) .pill-tab {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pill-tab.active {
+  background: #d1fae5;   /* light green pill */
+  color: #0f6d2f;
+}
+
+:host-context(.app-dark) .pill-tab.active {
+  background: rgba(242, 135, 41, 0.20);
+  color: var(--text-color);
+}
+
+/* table card container */
+.table-card {
+  border: 1px solid var(--table-border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface-ground);
+}
+
+/* PrimeNG table look like screenshot */
+:host ::ng-deep .p-datatable {
+  border: 0;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-header {
+  border: 0;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: var(--surface-ground);
+  color: var(--text-color);
+  font-weight: 800;
+  border-bottom: 1px solid var(--table-border-color);
+  padding: 14px 16px;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  border-bottom: 1px solid var(--table-row-border);
+  padding: 14px 16px;
+  color: var(--text-color);
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr:last-child > td {
+  border-bottom: 0;
+}
+
+/* empty msg */
+.empty-msg {
+  padding: 22px 16px;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+.profile-card {
+  width: 520px;
+  max-width: 100%;
+  border: 1px solid var(--table-border-color);
+  border-radius: 12px;
+  padding: 18px 18px;
+  background: var(--surface-ground);
+}
+
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--table-row-border);
+}
+
+.profile-row:last-child {
+  border-bottom: 0;
+}
+
+.profile-row span {
+  opacity: 0.75;
+}
+.err {
+  display: block;
+  margin-top: -6px;
+  color: #ef4444;
+  font-size: 12px;
+}
+/* password field wrapper */
+.password-field {
+  position: relative;
+}
+
+/* eye icon */
+.password-field i {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  opacity: 0.7;
+  font-size: 18px;
+}
+
+.password-field i:hover {
+  opacity: 1;
+}
+/* password strength */
+.strength {
+  display: flex;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+/* base pill */
+.strength span {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  padding: 5px 0;
+  border-radius: 8px;
+
+  border: 1px solid var(--table-border-color);
+  background: var(--toggle-bg);          /* works in both themes */
+  color: var(--text-color);
+  opacity: 0.55;
+}
+
+/* active pill */
+.strength span.active {
+  opacity: 1;
+  font-weight: 800;
+  border-color: transparent;
+  color: #fff;
+}
+
+/* active colors */
+.strength span.weak.active {
+  background: #ef4444;
+}
+
+.strength span.medium.active {
+  background: #f59e0b;
+}
+
+.strength span.strong.active {
+  background: #22c55e;
+}
+
+/* (optional) in dark mode make inactive slightly brighter */
+:host-context(.app-dark) .strength span {
+  opacity: 0.7;
+}
+
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field .field {
+  width: 100%;
+}
+
+.password-field .pi {
+  position: absolute;
+  right: 12px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+/* ── Master Data Section ──────────────────────────────────────────────────── */
+.master-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.master-inline-form {
+  background: var(--surface-hover, #f9fafb);
+  border: 1px solid var(--table-border-color, #e5e7eb);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.master-inline-form h4 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.master-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.master-form-row .field {
+  flex: 1;
+  min-width: 180px;
+}
+
+.master-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+::ng-deep .custom-tabs .p-tabview-nav {
+  display: flex !important;
+  justify-content: center;
+  gap: 14px !important;
+  border: none !important;
+  background: transparent !important;
+  margin-bottom: 20px !important;
+}
+
+::ng-deep .custom-tabs .p-tab li {
+  border: none !important;
+  background: #f2f3f5 !important;
+  border-radius: 25px !important;
+  padding: 8px 22px !important;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+::ng-deep .custom-tabs .p-tabview-nav li .p-tabview-nav-link {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #555 !important;
+  font-size: 14px;
+  padding: 0 !important;
+}
+
+/* ACTIVE TAB */
+::ng-deep .custom-tabs .p-tabview-nav li.p-highlight {
+  background: #ccffe0 !important;
+  /* mint pill */
+}
+
+::ng-deep .custom-tabs .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  color: #0ca854 !important;
+  /* green text */
+  font-weight: 600 !important;
+}
+
+::ng-deep .p-tab {
+  border: none !important;
+  border-radius: 40px !important;
+}
+
+::ng-deep .p-tab-active {
+  background: #DBFFE8 !important;
+  border: none !important;
+  border-color: none !important;
+  color: #00A23D !important;
+  border-radius: 40px !important;
+}
+
+::ng-deep .p-tablist-tab-list {
+  gap: 20px !important;
+}
+
+/* Remove PrimeNG underline animation */
+::ng-deep .custom-tabs .p-tabview-nav:before {
+  display: none !important;
+}
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+::ng-deep .p-datatable .p-datatable-wrapper {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+::ng-deep .p-datatable-table {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 400 !important;
+  text-transform: capitalize;
+}

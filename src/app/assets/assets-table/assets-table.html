@@ -1,25 +1,25 @@
 <div class="table-wrapper">
   <div class="header">
-  <div class="header-part">
-    <div>
-      <h2>Assets Master Table</h2>
-      <p>The analysis list here shows all users</p>
-    </div>
+    <div class="header-part">
+      <div>
+        <h2>Assets Master Table</h2>
+        <p>The analysis list here shows all users</p>
+      </div>
 
-    <div class="notification-part">
+      <div class="notification-part">
         <div class="active-box">
-            <div class=""></div>
-            <span>{{activeAssets}} Active Assets</span>
+          <div class=""></div>
+          <span>{{activeAssets}} Active Assets</span>
         </div>
         <div class="notification">
-            <i class="pi pi-bell"></i>
+          <i class="pi pi-bell"></i>
         </div>
+      </div>
     </div>
-</div>
     <div class="header-actions">
       <div class="actions">
-        <div class="filter" (click)="toggleFilterDropdown($event)" >
-          <i class="pi pi-filter" ></i>
+        <div class="filter" (click)="toggleFilterDropdown($event)">
+          <i class="pi pi-filter"></i>
           <ul class="filter-menu" *ngIf="dropdownVisible">
             <li class="menu" *ngFor="let option of filterOptions" (click)="selectFilter(option.value, $event)"
               [class.active]="selectedFilter === option.value">
@@ -44,6 +44,10 @@
           <span class="pi pi-refresh"></span>
         </button>
 
+        <button class="icon-button" *ngIf="dt" (click)="dt.exportCSV()" title="Export to CSV">
+          <span class="pi pi-download"></span>
+        </button>
+
         <span class="page-info">{{ currentPage }} of {{ totalPages }}</span>
 
         <button class="icon-button" (click)="previousPage()" [disabled]="currentPage <= 1">
@@ -65,8 +69,10 @@
           <th></th>
           <th>No</th>
           <th>Asset ID</th>
+          <th>Reference Code</th>
           <th>Asset Name</th>
           <th>Asset Type</th>
+          <th>Department</th>
           <th>Asset Category</th>
           <th>Allotted To</th>
           <th>Asset Photo</th>
@@ -76,57 +82,74 @@
       <ng-template pTemplate="body" let-asset let-i="rowIndex">
         <tr>
           <td>
-            <span class="dot"  [ngStyle]="{ 'background-color': getStatusColor(asset.status) }"></span>
+            <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(asset.status) }"
+              [pTooltip]="getStatusLabel(asset.status)" tooltipPosition="top">
+            </span>
           </td>
           <td>
             {{ (currentPage - 1) * rowsPerPage + i + 1 }}
           </td>
           <td>{{ asset.assetId }}</td>
+          <td>
+            {{ asset.referenceCode || '-' }}
+          </td>
           <td>{{ asset.assetName }}</td>
           <td>{{ asset.assetType }}</td>
-          <td>{{ asset.assetCategory.name }}</td>
-          <td>{{ asset.allottedTo.name }}</td>
-          <td style="text-align: center;">
-            <img [src]="asset.assetPhoto" class="asset-photo" />
-          </td>
           <td>
-            <button pButton type="button" label="view" class="view-btn" (click)="viewAsset(asset.assetId)"></button>
+            {{ asset.department?.name || '-' }}
+          </td>
+          <td>{{ asset.assetCategory?.name || '-' }}</td>
+          <td>{{ asset.allottedTo?.name ? asset.allottedTo.name : 'Not Allotted' }}</td>
+          <td style="text-align: center;">
+            <!-- <img [src]="asset.assetPhoto" class="asset-photo" /> -->
+            <img *ngIf="asset.assetPhoto; else noPhoto" [src]="asset.assetPhoto" class="asset-photo" />
+            <ng-template #noPhoto>-</ng-template>
+          </td>
+          <td class="action-cell">
+            <button *ngIf="canViewAsset" pButton type="button" label="View" class="view-btn" (click)="viewAsset(asset.assetId)"></button>
+            <!-- <button *ngIf="canEditAsset" pButton type="button" label="Edit" class="edit-btn" (click)="viewAsset(asset.assetId)"></button> -->
+            <!-- <button *ngIf="canDeleteAsset" pButton type="button" icon="pi pi-trash" severity="danger" [text]="true" size="small" (click)="deleteAsset(asset.assetId)" pTooltip="Delete Asset"></button> -->
           </td>
         </tr>
       </ng-template>
     </p-table>
 
-<!-- Table Skeleton Loader -->
-<div *ngIf="isLoading" class="custom-table-skeleton">
-  <div class="skeleton-row header">
-    <p-skeleton shape="circle" size="20px"></p-skeleton>
-    <p-skeleton width="30px" height="20px"></p-skeleton>
-    <p-skeleton width="80px" height="20px"></p-skeleton>
-    <p-skeleton width="150px" height="20px"></p-skeleton>
-    <p-skeleton width="100px" height="20px"></p-skeleton>
-    <p-skeleton width="120px" height="20px"></p-skeleton>
-    <p-skeleton width="180px" height="20px"></p-skeleton>
-    <p-skeleton width="180px" height="20px"></p-skeleton>
-    <p-skeleton shape="circle" size="40px"></p-skeleton>
-    <p-skeleton width="60px" height="30px" borderRadius="6px"></p-skeleton>
-  </div>
+    <div *ngIf="!isLoading && paginatedAssets.length === 0" class="no-data">
+      <i class="pi pi-inbox"></i>
+      <p>No assets found</p>
+    </div>
 
-  <!-- Repeat rows -->
-  <div *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11]" class="skeleton-row">
-    <p-skeleton shape="circle" size="20px"></p-skeleton>
-    <p-skeleton width="30px" height="16px"></p-skeleton>
-    <p-skeleton width="80px" height="16px"></p-skeleton>
-    <p-skeleton width="150px" height="16px"></p-skeleton>
-    <p-skeleton width="100px" height="16px"></p-skeleton>
-    <p-skeleton width="120px" height="16px"></p-skeleton>
-    <p-skeleton width="180px" height="16px"></p-skeleton>
-    <p-skeleton width="180px" height="16px"></p-skeleton>
-    <p-skeleton shape="circle" size="40px"></p-skeleton>
-    <p-skeleton width="60px" height="30px" borderRadius="6px"></p-skeleton>
-  </div>
-</div>
+    <!-- Table Skeleton Loader -->
+    <div *ngIf="isLoading" class="custom-table-skeleton">
+      <div class="skeleton-row header">
+        <p-skeleton shape="circle" size="20px"></p-skeleton>
+        <p-skeleton width="30px" height="20px"></p-skeleton>
+        <p-skeleton width="80px" height="20px"></p-skeleton>
+        <p-skeleton width="150px" height="20px"></p-skeleton>
+        <p-skeleton width="100px" height="20px"></p-skeleton>
+        <p-skeleton width="120px" height="20px"></p-skeleton>
+        <p-skeleton width="180px" height="20px"></p-skeleton>
+        <p-skeleton width="180px" height="20px"></p-skeleton>
+        <p-skeleton shape="circle" size="40px"></p-skeleton>
+        <p-skeleton width="60px" height="30px" borderRadius="6px"></p-skeleton>
+      </div>
 
-    
-    
+      <!-- Repeat rows -->
+      <div *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11]" class="skeleton-row">
+        <p-skeleton shape="circle" size="20px"></p-skeleton>
+        <p-skeleton width="30px" height="16px"></p-skeleton>
+        <p-skeleton width="80px" height="16px"></p-skeleton>
+        <p-skeleton width="150px" height="16px"></p-skeleton>
+        <p-skeleton width="100px" height="16px"></p-skeleton>
+        <p-skeleton width="120px" height="16px"></p-skeleton>
+        <p-skeleton width="180px" height="16px"></p-skeleton>
+        <p-skeleton width="180px" height="16px"></p-skeleton>
+        <p-skeleton shape="circle" size="40px"></p-skeleton>
+        <p-skeleton width="60px" height="30px" borderRadius="6px"></p-skeleton>
+      </div>
+    </div>
+
+
+
   </div>
 </div>

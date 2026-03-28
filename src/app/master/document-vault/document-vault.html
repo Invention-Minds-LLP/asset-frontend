@@ -1,0 +1,54 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-folder-open"></i> Document Vault</h2>
+  </div>
+
+  <div class="kpi-grid" *ngIf="stats.byEntityType">
+    <div class="kpi-card" *ngFor="let s of stats.byEntityType">
+      <span class="kpi-label">{{ s.entityType || 'Other' }}</span>
+      <span class="kpi-value">{{ s._count }}</span>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input pInputText placeholder="Search documents..." [(ngModel)]="search" (keyup.enter)="loadDocuments()" />
+    <p-select [options]="entityTypeOptions" [(ngModel)]="entityType" (onChange)="loadDocuments()" placeholder="Entity Type"></p-select>
+    <p-select [options]="docTypeOptions" [(ngModel)]="documentType" (onChange)="loadDocuments()" placeholder="Doc Type"></p-select>
+    <p-button label="Search" icon="pi pi-search" (onClick)="loadDocuments()"></p-button>
+    <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportCsv()"></p-button>
+  </div>
+
+  <p-table [value]="documents" [loading]="loading" [paginator]="true" [rows]="15"
+    [rowsPerPageOptions]="[10,15,25,50]" [totalRecords]="totalRecords"
+    styleClass="p-datatable-sm p-datatable-striped">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>File Name</th>
+        <th>Entity Type</th>
+        <th>Document Type</th>
+        <th>Size</th>
+        <th>Uploaded</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-d>
+      <tr>
+        <td>{{ d.fileName || d.originalName }}</td>
+        <td><p-tag [value]="d.entityType" [severity]="getTypeSeverity(d.entityType)"></p-tag></td>
+        <td>{{ d.documentType || '—' }}</td>
+        <td>{{ formatSize(d.fileSize) }}</td>
+        <td>{{ d.createdAt | date:'mediumDate' }}</td>
+        <td>
+          <a *ngIf="d.fileUrl" [href]="d.fileUrl" target="_blank">
+            <p-button icon="pi pi-download" [rounded]="true" [text]="true" size="small"></p-button>
+          </a>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="6" class="text-center">No documents found.</td></tr>
+    </ng-template>
+  </p-table>
+</div>

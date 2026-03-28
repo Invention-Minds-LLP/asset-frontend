@@ -1,0 +1,203 @@
+<div class="inventory-page">
+  <p-tabView class="inventory-tabs custom-tabs">
+
+    <!-- SPARE PARTS -->
+    <p-tabPanel header="Spare Parts">
+      <div class="inventory-card">
+        <div class="inventory-card-header">
+          <div>
+            <h2>Spare Parts Master</h2>
+            <p>Create and manage inventory spare parts.</p>
+          </div>
+        </div>
+
+        <div class="inventory-form-grid">
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText [(ngModel)]="spareForm.name" name="spareName" />
+              <label>Spare Part Name</label>
+            </p-floatlabel>
+          </div>
+
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText [(ngModel)]="spareForm.partNumber" name="partNumber" />
+              <label>Part Number</label>
+            </p-floatlabel>
+          </div>
+
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText [(ngModel)]="spareForm.model" name="spareModel" />
+              <label>Model</label>
+            </p-floatlabel>
+          </div>
+
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText [(ngModel)]="spareForm.category" name="spareCategory" />
+              <label>Category</label>
+            </p-floatlabel>
+          </div>
+
+          <div class="field">
+            <p-floatlabel variant="on">
+              <p-select
+                [options]="vendorOptions"
+                optionLabel="label"
+                optionValue="value"
+                [(ngModel)]="spareForm.vendorId"
+                name="spareVendorId"
+                appendTo="body"
+                [filter]="true">
+              </p-select>
+              <label>Vendor</label>
+            </p-floatlabel>
+          </div>
+
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText type="number" [(ngModel)]="spareForm.stockQuantity" name="spareStockQuantity" />
+              <label>Stock Quantity</label>
+            </p-floatlabel>
+          </div>
+
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText type="number" [(ngModel)]="spareForm.reorderLevel" name="spareReorderLevel" />
+              <label>Reorder Level</label>
+            </p-floatlabel>
+          </div>
+
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText type="number" [(ngModel)]="spareForm.cost" name="spareCost" />
+              <label>Cost</label>
+            </p-floatlabel>
+          </div>
+        </div>
+
+        <div class="inventory-actions">
+          <button pButton [label]="spareEditingId ? 'Update Spare' : 'Create Spare'" (click)="saveSparePart()"></button>
+          <button pButton label="Reset" severity="secondary" (click)="resetSpareForm()"></button>
+        </div>
+      </div>
+
+      <div class="inventory-card table-card">
+        <p-table [value]="spareRows" responsiveLayout="scroll" [tableStyle]="{ 'min-width': '100%' }">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Name</th>
+              <th>Part Number</th>
+              <th>Model</th>
+              <th>Category</th>
+              <th>Vendor</th>
+              <th>Stock</th>
+              <th>Reorder</th>
+              <th>Cost</th>
+              <th>Actions</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>{{ row.name }}</td>
+              <td>{{ row.partNumber || '-' }}</td>
+              <td>{{ row.model || '-' }}</td>
+              <td>{{ row.category || '-' }}</td>
+              <td>{{ row.vendor?.name || '-' }}</td>
+              <td>{{ row.stockQuantity }}</td>
+              <td>{{ row.reorderLevel ?? '-' }}</td>
+              <td>{{ row.cost ?? '-' }}</td>
+              <td>
+                <div class="table-actions">
+                  <button pButton icon="pi pi-pencil" class="p-button-text" (click)="editSparePart(row)"></button>
+                  <button pButton icon="pi pi-trash" class="p-button-text p-button-danger" (click)="deleteSparePart(row)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabPanel>
+
+    <!-- CONSUMABLES -->
+    <p-tabPanel header="Consumables">
+      <div class="inventory-card">
+        <div class="inventory-card-header">
+          <div>
+            <h2>Consumables Master</h2>
+            <p>Create and manage inventory consumables.</p>
+          </div>
+        </div>
+
+        <div class="inventory-form-grid">
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText [(ngModel)]="consumableForm.name" name="consumableName" />
+              <label>Consumable Name</label>
+            </p-floatlabel>
+          </div>
+
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText [(ngModel)]="consumableForm.unit" name="consumableUnit" />
+              <label>Unit</label>
+            </p-floatlabel>
+          </div>
+
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText type="number" [(ngModel)]="consumableForm.stockQuantity" name="consumableStockQuantity" />
+              <label>Stock Quantity</label>
+            </p-floatlabel>
+          </div>
+
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText type="number" [(ngModel)]="consumableForm.reorderLevel" name="consumableReorderLevel" />
+              <label>Reorder Level</label>
+            </p-floatlabel>
+          </div>
+        </div>
+
+        <div class="inventory-actions">
+          <button pButton [label]="consumableEditingId ? 'Update Consumable' : 'Create Consumable'" (click)="saveConsumable()"></button>
+          <button pButton label="Reset" severity="secondary" (click)="resetConsumableForm()"></button>
+        </div>
+      </div>
+
+      <div class="inventory-card table-card">
+        <p-table [value]="consumableRows" responsiveLayout="scroll" [tableStyle]="{ 'min-width': '100%' }">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Name</th>
+              <th>Unit</th>
+              <th>Stock Quantity</th>
+              <th>Reorder Level</th>
+              <th>Actions</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>{{ row.name }}</td>
+              <td>{{ row.unit || '-' }}</td>
+              <td>{{ row.stockQuantity }}</td>
+              <td>{{ row.reorderLevel ?? '-' }}</td>
+              <td>
+                <div class="table-actions">
+                  <button pButton icon="pi pi-pencil" class="p-button-text" (click)="editConsumable(row)"></button>
+                  <button pButton icon="pi pi-trash" class="p-button-text p-button-danger" (click)="deleteConsumable(row)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabPanel>
+
+  </p-tabView>
+</div>
+
+<p-toast></p-toast>

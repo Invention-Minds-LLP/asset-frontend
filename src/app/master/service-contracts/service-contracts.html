@@ -1,0 +1,54 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-file-edit"></i> Service Contracts</h2>
+  </div>
+
+  <div class="kpi-grid" *ngIf="stats.total != null">
+    <div class="kpi-card"><span class="kpi-label">Total Contracts</span><span class="kpi-value">{{ stats.total }}</span></div>
+    <div class="kpi-card"><span class="kpi-label">Active</span><span class="kpi-value">{{ stats.active }}</span></div>
+    <div class="kpi-card kpi-danger"><span class="kpi-label">Expiring Soon</span><span class="kpi-value">{{ stats.expiringSoon }}</span></div>
+    <div class="kpi-card"><span class="kpi-label">Expired</span><span class="kpi-value">{{ stats.expired }}</span></div>
+  </div>
+
+  <div class="toolbar">
+    <input pInputText placeholder="Search contracts..." [(ngModel)]="search" (keyup.enter)="loadContracts()" />
+    <p-select [options]="statusOptions" [(ngModel)]="status" (onChange)="loadContracts()" placeholder="Status"></p-select>
+    <p-select [options]="typeOptions" [(ngModel)]="contractType" (onChange)="loadContracts()" placeholder="Type"></p-select>
+    <p-button label="Search" icon="pi pi-search" (onClick)="loadContracts()"></p-button>
+    <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportCsv()"></p-button>
+  </div>
+
+  <p-table [value]="contracts" [loading]="loading" [paginator]="true" [rows]="15"
+    [rowsPerPageOptions]="[10,15,25,50]" [totalRecords]="totalRecords"
+    styleClass="p-datatable-sm p-datatable-striped">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Contract No</th>
+        <th>Asset</th>
+        <th>Vendor</th>
+        <th>Type</th>
+        <th>Cost</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Status</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-c>
+      <tr>
+        <td>{{ c.contractNumber || c.id }}</td>
+        <td>{{ c.asset?.assetName || '—' }}</td>
+        <td>{{ c.vendor?.name || '—' }}</td>
+        <td>{{ c.contractType }}</td>
+        <td>{{ formatCurrency(c.contractCost) }}</td>
+        <td>{{ c.startDate | date:'mediumDate' }}</td>
+        <td>{{ c.endDate | date:'mediumDate' }}</td>
+        <td><p-tag [value]="c.status" [severity]="getStatusSeverity(c.status)"></p-tag></td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="8" class="text-center">No contracts found.</td></tr>
+    </ng-template>
+  </p-table>
+</div>

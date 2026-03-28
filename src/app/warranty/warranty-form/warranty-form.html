@@ -1,197 +1,399 @@
-<div class="warranty-form-container">
-    <div class="header-part">
-        <h1>Warranty & Annual Maintenance Contract Form</h1>
-        <p>The form to create/update warranty and amc</p>
-        <hr class="underline">
-    </div>
+<p-tabView class="asset-tabs">
+    <!-- TAB 1: WARRANTY -->
+    <p-tabPanel header="Warranty">
+        <div class="tab-card">
+            <form #wForm="ngForm" (ngSubmit)="saveWarranty(wForm)">
+                <div class="btn-row">
 
-    <div class="notification">
-        <i class="pi pi-bell"></i>
-    </div>
-
-    <form #warrantyForm='ngForm' (ngSubmit)="onSubmit(warrantyForm)">
-        <div class="form-content">
-            <div class="form-part">
-                <div class="column-one">
-                    <p-floatlabel variant="on" class="half-width">
-                        <p-select [(ngModel)]="selectedIsUnderWarranty" #underwarrantyCtrl="ngModel"
-                            [ngClass]="{'ng-invalid': invaild(underwarrantyCtrl)}" required name="isUnderWarranty"
-                            [options]="isunderwarranty" optionLabel="name" class="w-full md:w-56"></p-select>
-                        <label for="on_label">Under Warranty</label>
-                        <div class="error-msg" *ngIf="showError(underwarrantyCtrl)">Under Warranty is required</div>
-                    </p-floatlabel>
-                    <p-floatlabel variant="on" class="half-width">
-                        <p-select [(ngModel)]="selectedAmcActive" #amcActiveCtrl="ngModel"
-                            [ngClass]="{'ng-invalid': invaild(amcActiveCtrl)}" required name="amcActive"
-                            [options]="amcactive" optionLabel="name" class="w-full md:w-56"></p-select>
-                        <label for="on_label">AMC Status</label>
-                        <div class="error-msg" *ngIf="showError(amcActiveCtrl)">AMC Active is required</div>
-                    </p-floatlabel>
-                </div>
-
-                <div class="column-one" *ngIf="selectedIsUnderWarranty?.value=== true">
-                    <p-floatlabel variant="on" class="half-width">
-                        <p-datepicker dateFormat="dd.mm.yy" name="warrantyStart" [(ngModel)]="warranty.warrantyStart"
-                            #warrantyStartCtrl="ngModel" required [ngClass]="{'ng-invalid': invaild(warrantyStartCtrl)}"
-                            [showIcon]="true" />
-                        <label for="on_label">Warranty Start Date</label>
-                        <div class="error-msg" *ngIf="showError(warrantyStartCtrl)">Warranty Start Date is required
-                        </div>
-                    </p-floatlabel>
-                    <p-floatlabel variant="on" class="half-width">
-                        <p-datepicker dateFormat="dd.mm.yy" name="warrantyEnd" [(ngModel)]="warranty.warrantyEnd"
-                            required #warrantyEndCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(warrantyEndCtrl)}"
-                            [showIcon]="true" />
-                        <label for="on_label">Warranty End Date</label>
-                        <div class="error-msg" *ngIf="showError(warrantyEndCtrl)">Warranty End Date is required
-                        </div>
-                    </p-floatlabel>
-                </div>
-
-                <ng-container *ngIf="selectedAmcActive?.value === true">
-                    <div class="">
-                        <p-floatlabel variant="on" class="full-width">
-                            <input pInputText id="on_label" name="amcVendor" [(ngModel)]="warranty.amcVendor" required
-                                #amcVendorCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(amcVendorCtrl)}"
-                                autocomplete="off" />
-                            <label for="on_label">AMC Vendor Name</label>
-                            <div class="error-msg" *ngIf="showError(amcVendorCtrl)">AMC Vendor Name is required</div>
-                        </p-floatlabel>
-                    </div>
-
-                    <div class="column-one">
-                        <p-floatlabel variant="on" class="half-width">
-                            <p-datepicker dateFormat="dd.mm.yy" name="amcStart" [(ngModel)]="warranty.amcStart" required
-                                #amcStartCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(amcStartCtrl)}"
-                                [showIcon]="true" />
-                            <label for="on_label">AMC Start Date</label>
-                            <div class="error-msg" *ngIf="showError(amcStartCtrl)">AMC Start Date is required</div>
-                        </p-floatlabel>
-                        <p-floatlabel variant="on" class="half-width">
-                            <p-datepicker dateFormat="dd.mm.yy" name="amcEnd" [(ngModel)]="warranty.amcEnd" required
-                                #amcEndCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(amcEndCtrl)}"
-                                [showIcon]="true" />
-                            <label for="on_label">AMC End Date</label>
-                            <div class="error-msg" *ngIf="showError(amcEndCtrl)">AMC End Date is required</div>
-                        </p-floatlabel>
-                    </div>
-
-                    <div class="column-one">
-                        <p-floatlabel variant="on" class="half-width">
-                            <input pInputText type="number" [(ngModel)]="warranty.amcVisitsDue" name="amcVisitsDue"
-                                #amcVisitsDueCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(amcVisitsDueCtrl)}"
-                                (ngModelChange)="calculateNextVisitDue()" />
-                            <label for="amcVisitsDue">AMC Visit Due(ex: 3 months)</label>
-                            <div class="error-msg" *ngIf="showError(amcVisitsDueCtrl)">AMC Visit Due is required</div>
-                        </p-floatlabel>
-
-                        <p-floatlabel variant="on" class="half-width">
-                            <p-datepicker dateFormat="dd.mm.yy" name="nextVisitDue" [(ngModel)]="warranty.nextVisitDue"
-                                required #nextVisitDueCtrl="ngModel"
-                                [ngClass]="{'ng-invalid':invaild(nextVisitDueCtrl)}" [showIcon]="true"
-                                [readonlyInput]="true" />
-                            <label for="on_label">Next Visit Date</label>
-                            <div class="error-msg" *ngIf="showError(nextVisitDueCtrl)">Next Visit Date is required
-                            </div>
-                        </p-floatlabel>
-
-                    </div>
-
-                </ng-container>
-
-                <div class="maintenance-form p-fluid"  *ngIf="warranty.id">
-                    <div class="header">
-                        <h3 class="section-title">Service Update's</h3> 
-                        <hr class="divider">
-                    </div>
-
-                    <form [formGroup]="form">
-                        <div class="column-one">
-                            <p-floatlabel variant="on" class="half-width">
-                                <p-datepicker dateFormat="dd.mm.yy" formControlName="serviceDate" [showIcon]="true"
-                                    (ngModelChange)="calculateNextVisitDue()" />
-                                <label for="on_label">Last Service Date</label>
-                            </p-floatlabel>
-
-                            <p-floatlabel variant="on" class="half-width">
-                                <input pInputText id="on_label" formControlName="performedBy" autocomplete="off" />
-                                <label for="on_label">Service Performed by</label>
-                            </p-floatlabel>
-                        </div>
-
-                        <div style="margin: 20px 0;">
-                            <p-floatlabel variant="on">
-                                <textarea pTextarea id="remarks" formControlName="remarks" rows="5" cols="30" class="w-full h-full textarea" style="width: 100%; resize: none;"></textarea>
-                                <label  for="on_label">Remarks</label>
-                            </p-floatlabel>
-                        </div>
-
-                       <div class="drag-drop-container">
-                        <app-drag-and-drop (fileSelected)="onFilesSelected($event)"></app-drag-and-drop>
-                       </div>
-
-                    </form>
-
-
-
-                </div>
-
-
-
-
-            </div>
-
-            <div class="form-profile">
-                <div class="profile">
-                    <div class="profile-img" [ngClass]="warrantyStatusClass">
-                        <img [src]="assetDetails?.assetPhoto" alt="">
-
-                    </div>
-                    <div class="">
-                        <p-floatlabel variant="on" class="half-width">
-                            <input pInputText id="on_label" [(ngModel)]="warrantyStatus" name="status" [readOnly]="true" autocomplete="off" />
-                            <label for="on_label"> Warranty Status</label>
-                        </p-floatlabel>
+                    <div class="status-row" *ngIf="warrantyStatus">
+                        <span class="status-chip">{{ warrantyStatus }}</span>
                     </div>
                 </div>
-                <div class="btns">
-                    <button pButton label="Save" [label]="isLoading ? 'Loading...' : (isEditMode ? 'Update' : 'Save')"
-                        [disabled]="isLoading" class="save-btn"></button>
-                    <button pButton label="Clear" class="clear-btn" severity="danger" outlined
-                        (click)="onClear()"></button>
+                <div class="form-row">
+                    <div class="form-field half">
+                        <label class="field-label">Under Warranty <span class="req">*</span></label>
+                        <p-select class="w-full" name="isUnderWarranty" [(ngModel)]="warranty.isUnderWarranty"
+                            [options]="yesNoOptions" optionLabel="label" optionValue="value" placeholder="Select"
+                            required appendTo="body" [filter]="true">
+                        </p-select>
+                    </div>
                 </div>
+
+                <div class="form-row" *ngIf="warranty.isUnderWarranty">
+                    <div class="form-field half">
+                        <label class="field-label">Warranty Start Date <span class="req">*</span></label>
+                        <p-datepicker class="w-full" name="warrantyStart" [(ngModel)]="warranty.warrantyStart"
+                            dateFormat="mm/dd/yy" [showIcon]="true" required appendTo="body">
+                        </p-datepicker>
+                    </div>
+
+                    <div class="form-field half">
+                        <label class="field-label">Warranty End Date <span class="req">*</span></label>
+                        <p-datepicker class="w-full" name="warrantyEnd" [(ngModel)]="warranty.warrantyEnd"
+                            dateFormat="mm/dd/yy" [showIcon]="true" required appendTo="body">
+                        </p-datepicker>
+                    </div>
+                </div>
+
+                <div class="form-row" *ngIf="warranty.isUnderWarranty">
+                    <div class="form-field half">
+                        <label class="field-label">Warranty Type</label>
+                        <p-select class="w-full" name="warrantyType" [(ngModel)]="warranty.warrantyType"
+                            [options]="warrantyTypeOptions" optionLabel="label" optionValue="value" placeholder="Select"
+                            appendTo="body" [filter]="true">
+                        </p-select>
+                    </div>
+
+                    <div class="form-field half">
+                        <label class="field-label">Warranty Provider</label>
+                        <input pInputText class="w-full" name="warrantyProvider"
+                            [(ngModel)]="warranty.warrantyProvider" />
+                    </div>
+                </div>
+
+                <div class="form-row" *ngIf="warranty.isUnderWarranty">
+                    <div class="form-field half">
+                        <label class="field-label">Vendor</label>
+                        <p-select class="w-full" name="vendorId" [(ngModel)]="warranty.vendorId"
+                            [options]="vendorOptions" optionLabel="label" optionValue="value"
+                            placeholder="Select Vendor" appendTo="body" [filter]="true">
+                        </p-select>
+                    </div>
+
+                    <div class="form-field half">
+                        <label class="field-label">Warranty Reference</label>
+                        <input pInputText class="w-full" name="warrantyReference"
+                            [(ngModel)]="warranty.warrantyReference" />
+                    </div>
+                </div>
+
+                <div class="form-row" *ngIf="warranty.isUnderWarranty">
+                    <div class="form-field half">
+                        <label class="field-label">Support Contact</label>
+                        <input pInputText class="w-full" name="supportContact" [(ngModel)]="warranty.supportContact" />
+                    </div>
+
+                    <div class="form-field half">
+                        <label class="field-label">Support Email</label>
+                        <input pInputText class="w-full" name="supportEmail" [(ngModel)]="warranty.supportEmail" />
+                    </div>
+                </div>
+
+                <div class="form-row" *ngIf="warranty.isUnderWarranty">
+                    <div class="form-field full">
+                        <label class="field-label">Terms URL</label>
+                        <input pInputText class="w-full" name="termsUrl" [(ngModel)]="warranty.termsUrl" />
+                    </div>
+                </div>
+
+                <div class="form-row" *ngIf="warranty.isUnderWarranty">
+                    <div class="form-field full">
+                        <label class="field-label">Coverage Details</label>
+                        <textarea pTextarea class="w-full textarea" rows="3" name="coverageDetails"
+                            [(ngModel)]="warranty.coverageDetails"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row" *ngIf="warranty.isUnderWarranty">
+                    <div class="form-field full">
+                        <label class="field-label">Exclusions</label>
+                        <textarea pTextarea class="w-full textarea" rows="3" name="exclusions"
+                            [(ngModel)]="warranty.exclusions"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row" *ngIf="warranty.isUnderWarranty">
+                    <div class="form-field full">
+                        <label class="field-label">Remarks</label>
+                        <textarea pTextarea class="w-full textarea" rows="3" name="remarks"
+                            [(ngModel)]="warranty.remarks"></textarea>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button *ngIf="!isRenewMode" pButton type="submit" [disabled]="isLoading" label="Save">
+                    </button>
+
+                    <button *ngIf="isRenewMode" pButton type="button" [disabled]="isLoading" label="Submit Renewal"
+                        (click)="renewWarranty(wForm)">
+                    </button>
+
+                    <button *ngIf="warranty.id && !isRenewMode" pButton type="button" severity="secondary"
+                        label="Renew Warranty" [disabled]="isLoading" (click)="startRenewal()">
+                    </button>
+
+                    <button *ngIf="isRenewMode" pButton type="button" severity="secondary" label="Cancel Renewal"
+                        [disabled]="isLoading" (click)="cancelRenewal()">
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="table-wrap" *ngIf="warrantyHistory?.length">
+            <p-table [value]="warrantyHistory" [paginator]="true" [rows]="5" class="p-datatable-sm">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Type</th>
+                        <th>Provider</th>
+                        <th>Vendor</th>
+                        <th>Status</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-w>
+                    <tr>
+                        <td>{{ w.warrantyStart | date:'dd.MM.yyyy' }}</td>
+                        <td>{{ w.warrantyEnd | date:'dd.MM.yyyy' }}</td>
+                        <td>{{ w.warrantyType || '-' }}</td>
+                        <td>{{ w.warrantyProvider || '-' }}</td>
+                        <td>{{ w.vendor?.name || '-' }}</td>
+                        <td>{{ w.isActive ? 'Active' : 'Inactive' }}</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </p-tabPanel>
+
+    <!-- TAB 2: CONTRACTS -->
+    <p-tabPanel header="Service Contracts">
+        <div class="tab-card">
+            <form #cForm="ngForm" (ngSubmit)="saveContract(cForm)">
+                <div class="form-row">
+                    <div class="form-field half">
+                        <label class="field-label">Contract Type <span class="req">*</span></label>
+                        <p-select class="w-full" name="contractType" [(ngModel)]="contractForm.contractType"
+                            [options]="contractTypeOptions" optionLabel="label" optionValue="value" placeholder="Select"
+                            required appendTo="body" [filter]="true">
+                        </p-select>
+                    </div>
+
+                    <div class="form-field half">
+                        <label class="field-label">Contract Number</label>
+                        <input pInputText class="w-full" name="contractNumber"
+                            [(ngModel)]="contractForm.contractNumber" />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field half">
+                        <label class="field-label">Start Date <span class="req">*</span></label>
+                        <p-datepicker class="w-full" name="startDate" [(ngModel)]="contractForm.startDate"
+                            dateFormat="mm/dd/yy" [showIcon]="true" required appendTo="body">
+                        </p-datepicker>
+                    </div>
+
+                    <div class="form-field half">
+                        <label class="field-label">End Date <span class="req">*</span></label>
+                        <p-datepicker class="w-full" name="endDate" [(ngModel)]="contractForm.endDate"
+                            dateFormat="mm/dd/yy" [showIcon]="true" required appendTo="body">
+                        </p-datepicker>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field half">
+                        <label class="field-label">Includes Parts?</label>
+                        <p-select class="w-full" name="includesParts" [(ngModel)]="contractForm.includesParts"
+                            [options]="yesNoOptions" optionLabel="label" optionValue="value" placeholder="Select"
+                            appendTo="body" [filter]="true">
+                        </p-select>
+                    </div>
+
+                    <div class="form-field half">
+                        <label class="field-label">Includes Labor?</label>
+                        <p-select class="w-full" name="includesLabor" [(ngModel)]="contractForm.includesLabor"
+                            [options]="yesNoOptions" optionLabel="label" optionValue="value" placeholder="Select"
+                            appendTo="body" [filter]="true">
+                        </p-select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+
+                    <div class="form-field half">
+                        <label class="field-label">Vendor <span class="req">*</span></label>
+                        <p-select class="w-full" name="vendorId" [(ngModel)]="contractForm.vendorId"
+                            [options]="vendorOptions" optionLabel="label" optionValue="value"
+                            placeholder="Select Vendor" required appendTo="body" [filter]="true">
+                        </p-select>
+                    </div>
+
+                    <div class="form-field half">
+                        <label class="field-label">Included Visits Per Year</label>
+                        <input pInputText class="w-full" type="number" name="visitsPerYear"
+                            [(ngModel)]="contractForm.visitsPerYear" />
+                        <small class="help-text">Example: 4 means quarterly visits included in contract</small>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field half">
+                        <label class="field-label">Cost</label>
+                        <input pInputText class="w-full" type="number" name="cost" [(ngModel)]="contractForm.cost" />
+                    </div>
+
+                    <div class="form-field half">
+                        <label class="field-label">Currency</label>
+                        <input pInputText class="w-full" name="currency" [(ngModel)]="contractForm.currency" />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field full">
+                        <label class="field-label">Terms (optional)</label>
+                        <textarea pTextarea class="w-full textarea" rows="3" name="terms"
+                            [(ngModel)]="contractForm.terms"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field full">
+                        <label class="field-label">Upload Contract Document (PDF/Image)</label>
+                        <input class="file-input" type="file" (change)="onContractFileChange($event)" />
+                        <small class="help-text" *ngIf="contractForm.document">
+                            Uploaded: <a [href]="contractForm.document" target="_blank">View Document</a>
+                        </small>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button pButton type="submit" [disabled]="isLoading"
+                        [label]="contractForm.id ? 'Update Contract' : 'Create Contract'">
+                    </button>
+                    <button *ngIf="contractForm.id" pButton type="button" severity="secondary" label="Cancel"
+                        (click)="resetContractForm(cForm)">
+                    </button>
+                </div>
+            </form>
+
+            <div class="table-wrap">
+                <p-table [value]="contracts" [paginator]="true" [rows]="5" class="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Type</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Status</th>
+                            <th>Vendor</th>
+                            <th>Actions</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-c>
+                        <tr>
+                            <td>{{ c.contractType }}</td>
+                            <td>{{ c.startDate | date:'dd.MM.yyyy' }}</td>
+                            <td>{{ c.endDate | date:'dd.MM.yyyy' }}</td>
+                            <td>{{ c.status }}</td>
+                            <td>{{ c.vendor?.name || '-' }}</td>
+                            <td>
+                                <button pButton type="button" label="Edit" (click)="editContract(c)"></button>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
             </div>
         </div>
-    </form>
+    </p-tabPanel>
 
-    <div style="margin-bottom: 40px;" *ngIf="warranty.id">
-        <div class="header">
-            <h3 class="section-title">AMC Service History</h3> 
-            <hr class="divider">
+    <!-- TAB 3: SERVICE VISITS -->
+    <p-tabPanel header="Service Visits">
+        <div class="tab-card">
+            <form [formGroup]="serviceForm" (ngSubmit)="uploadServiceReport()">
+                <div class="form-row">
+                    <div class="form-field half">
+                        <label class="field-label">Scheduled Due</label>
+                        <p-datepicker class="w-full" formControlName="scheduledDue" dateFormat="mm/dd/yy"
+                            [showIcon]="true" appendTo="body">
+                        </p-datepicker>
+                    </div>
+
+                    <div class="form-field half">
+                        <label class="field-label">Actual Service Date <span class="req">*</span></label>
+                        <p-datepicker class="w-full" formControlName="actualDoneAt" dateFormat="mm/dd/yy"
+                            [showIcon]="true" appendTo="body">
+                        </p-datepicker>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-field half">
+                        <label class="field-label">Performed By Type <span class="req">*</span></label>
+                        <p-select class="w-full" [options]="performedByTypeOptions" optionLabel="label"
+                            optionValue="value" formControlName="performedByType" placeholder="Select" appendTo="body"
+                            [filter]="true"></p-select>
+                    </div>
+
+                    <!-- If vendor -->
+                    <div class="form-field half" *ngIf="serviceForm.value.performedByType === 'VENDOR'">
+                        <label class="field-label">Vendor <span class="req">*</span></label>
+                        <p-select class="w-full" [options]="vendorOptions" optionLabel="label" optionValue="value"
+                            formControlName="performedById" placeholder="Select Vendor" appendTo="body"
+                            [filter]="true"></p-select>
+                    </div>
+
+                    <!-- If internal -->
+                    <div class="form-field half" *ngIf="serviceForm.value.performedByType === 'INTERNAL'">
+                        <label class="field-label">Performed By Name <span class="req">*</span></label>
+                        <input pInputText class="w-full" formControlName="performedByName" placeholder="Staff Name" />
+                    </div>
+                </div>
+
+                <div class="form-row">
+
+                    <div class="form-field half">
+                        <label class="field-label">Link to Contract (optional)</label>
+                        <p-select class="w-full" [options]="contractSelectOptions" optionLabel="label"
+                            optionValue="value" placeholder="Select" formControlName="serviceContractId" appendTo="body"
+                            [filter]="true">
+                        </p-select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field full">
+                        <label class="field-label">Remarks</label>
+                        <textarea pTextarea class="w-full textarea" rows="3" formControlName="notes"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field full">
+                        <label class="field-label">Upload Service Report</label>
+                        <input class="file-input" type="file" (change)="onFileChange($event)" />
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button pButton type="submit" [disabled]="isLoading || serviceForm.invalid" label="Upload"></button>
+                </div>
+            </form>
+
+            <div class="table-wrap">
+                <p-table [value]="maintenanceHistory" [paginator]="true" [rows]="5" class="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>No</th>
+                            <th>Actual Done</th>
+                            <th>Notes</th>
+                            <th>File</th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-h let-i="rowIndex">
+                        <tr>
+                            <td>{{ i + 1 }}</td>
+                            <td>{{ h.actualDoneAt | date:'dd.MM.yyyy' }}</td>
+                            <td class="ellipsis">{{ h.notes || '-' }}</td>
+                            <td>
+                                <a *ngIf="h.serviceReport" [href]="h.serviceReport" target="_blank">Download</a>
+                                <span *ngIf="!h.serviceReport">-</span>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
         </div>
-        <p-table [value]="maintenanceHistoryList" class="p-datatable-custom">
-            <ng-template pTemplate="header">
-              <tr>
-                <th>No</th>
-                <th>Service Date</th>
-                <th>Remarks</th>
-                <th>File</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-history let-i="rowIndex">
-              <tr>
-                <td>{{ i + 1 | number: '2.0' }}</td>
-                <td>{{ history.actualDoneAt | date: 'dd.MM.yyyy' }}</td>
-                <td class="remarks-col text-ellipsis">{{ history.notes }}</td>
-                <td>
-                  <a [href]="history.serviceReport" download target="_blank" class="view-btn">
-                    <i class="pi pi-download"></i> Download
-                  </a>
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-          
-    </div>
-</div>
+    </p-tabPanel>
+</p-tabView>
+
 <p-toast></p-toast>

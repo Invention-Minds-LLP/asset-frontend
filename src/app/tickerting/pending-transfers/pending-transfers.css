@@ -1,0 +1,82 @@
+.pending-transfer-container {
+  padding: 12px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.title h2 {
+  margin: 0;
+}
+
+.title p {
+  margin: 4px 0 0 0;
+  opacity: 0.75;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.empty {
+  text-align: center;
+  padding: 14px;
+  opacity: 0.75;
+}
+
+.details .detail-row {
+  margin-bottom: 10px;
+}
+
+.comment-box {
+  margin-top: 6px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+  white-space: pre-wrap;
+}
+
+/* status badges */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-requested { background: #fff3cd; border: 1px solid #ffeeba; }
+.badge-approved { background: #d4edda; border: 1px solid #c3e6cb; }
+.badge-rejected { background: #f8d7da; border: 1px solid #f5c6cb; }
+.badge-completed { background: #d1ecf1; border: 1px solid #bee5eb; }
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+::ng-deep .p-datatable .p-datatable-wrapper {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+::ng-deep .p-datatable-table {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 400 !important;
+  text-transform: capitalize;
+}

@@ -1,0 +1,46 @@
+.page-container { padding: 1.5rem; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+.page-header h2 { margin: 0 0 0.25rem; }
+.page-header p { margin: 0; color: #6b7280; font-size: 0.875rem; }
+
+.form-card { background: var(--surface-ground); border: 1px solid var(--surface-border); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.form-card h3 { margin: 0 0 1.25rem; font-size: 1rem; font-weight: 600; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.25rem; }
+.field { display: flex; flex-direction: column; }
+.full-width { grid-column: 1 / -1; }
+.form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+.action-buttons { display: flex; gap: 0.35rem; }
+.text-center { text-align: center; padding: 1rem; color: #6b7280; }
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+::ng-deep .p-datatable .p-datatable-wrapper {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+::ng-deep .p-datatable-table {
+  border: 1px solid var(--table-border-color) !important;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 400 !important;
+  text-transform: capitalize;
+}
+input[pInputText],
+.p-inputtext,
+.p-select,
+.p-dropdown,
+.p-datepicker {
+  width: 100% !important;
+  height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+.p-textarea {
+  width: 100% !important;
+  min-height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}

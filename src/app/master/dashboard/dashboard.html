@@ -1,0 +1,206 @@
+<div class="dashboard-page">
+  <p-toast />
+
+  <!-- Summary Cards -->
+  <div class="stats-grid">
+    <div class="stat-card stat-blue">
+      <div class="stat-icon"><i class="pi pi-database"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ stats.totalAssets ?? 0 }}</div>
+        <div class="stat-label">Total Assets</div>
+      </div>
+    </div>
+    <div class="stat-card stat-green">
+      <div class="stat-icon"><i class="pi pi-check-circle"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ stats.activeAssets ?? 0 }}</div>
+        <div class="stat-label">Active Assets</div>
+      </div>
+    </div>
+    <div class="stat-card stat-orange">
+      <div class="stat-icon"><i class="pi pi-wrench"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ stats.openTickets ?? 0 }}</div>
+        <div class="stat-label">Open Tickets</div>
+      </div>
+    </div>
+    <div class="stat-card stat-yellow">
+      <div class="stat-icon"><i class="pi pi-spin pi-spinner"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ stats.inProgressTickets ?? 0 }}</div>
+        <div class="stat-label">In Progress</div>
+      </div>
+    </div>
+    <div class="stat-card stat-purple">
+      <div class="stat-icon"><i class="pi pi-file-edit"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ stats.pendingAssignments ?? 0 }}</div>
+        <div class="stat-label">Pending Assignments</div>
+      </div>
+    </div>
+    <div class="stat-card stat-red">
+      <div class="stat-icon"><i class="pi pi-exclamation-triangle"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ stats.slaBreachedTickets ?? 0 }}</div>
+        <div class="stat-label">SLA Breached</div>
+      </div>
+    </div>
+    <div class="stat-card stat-teal">
+      <div class="stat-icon"><i class="pi pi-clock"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ stats.dueCalibrations ?? 0 }}</div>
+        <div class="stat-label">Calibrations Due</div>
+      </div>
+    </div>
+    <div class="stat-card stat-gray">
+      <div class="stat-icon"><i class="pi pi-calendar"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ stats.duePMSchedules ?? 0 }}</div>
+        <div class="stat-label">PM Due</div>
+      </div>
+    </div>
+  </div>
+
+  <p-tabView class="dashboard-tabs custom-tabs" >
+
+    <!-- Recent Tickets -->
+    <p-tabPanel header="Recent Tickets">
+      <p-table [value]="recentTickets" [paginator]="false" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Ticket ID</th>
+            <th>Asset</th>
+            <th>Department</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Created</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-ticket>
+          <tr>
+            <td>{{ ticket.ticketId }}</td>
+            <td>{{ ticket.asset?.assetName }}</td>
+            <td>{{ ticket.department?.name }}</td>
+            <td><p-tag [value]="ticket.priority" /></td>
+            <td><p-tag [value]="ticket.status" [severity]="getSeverity(ticket.status)" /></td>
+            <td>{{ ticket.createdAt | date:'dd MMM yyyy' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="text-center">No tickets found</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+    <!-- Recent Assets -->
+    <p-tabPanel header="Recent Assets">
+      <p-table [value]="recentAssets" [paginator]="false" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Asset ID</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Department</th>
+            <th>Status</th>
+            <th>Created</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-asset>
+          <tr>
+            <td>{{ asset.assetId }}</td>
+            <td>{{ asset.assetName }}</td>
+            <td>{{ asset.assetCategory?.name }}</td>
+            <td>{{ asset.department?.name }}</td>
+            <td><p-tag [value]="asset.status" /></td>
+            <td>{{ asset.createdAt | date:'dd MMM yyyy' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="text-center">No assets found</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+    <!-- Expiry Alerts -->
+    <p-tabPanel header="Expiry Alerts">
+      <div class="expiry-filter">
+        <label>Alerts within</label>
+        <input pInputText type="number" [(ngModel)]="expiryDays" style="width:80px" />
+        <label>days</label>
+        <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadExpiryAlerts()" size="small" />
+      </div>
+
+      <div class="expiry-section" *ngIf="expiryAlerts.expiringWarranties?.length">
+        <h4>Warranties Expiring ({{ expiryAlerts.expiringWarranties.length }})</h4>
+        <p-table [value]="expiryAlerts.expiringWarranties" responsiveLayout="scroll" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr><th>Asset</th><th>Warranty End</th><th>Provider</th></tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-w>
+            <tr>
+              <td>{{ w.asset?.assetName }}</td>
+              <td>{{ w.warrantyEnd | date:'dd MMM yyyy' }}</td>
+              <td>{{ w.warrantyProvider }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <div class="expiry-section" *ngIf="expiryAlerts.expiringInsurance?.length">
+        <h4>Insurance Expiring ({{ expiryAlerts.expiringInsurance.length }})</h4>
+        <p-table [value]="expiryAlerts.expiringInsurance" responsiveLayout="scroll" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr><th>Asset</th><th>End Date</th><th>Provider</th></tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-ins>
+            <tr>
+              <td>{{ ins.asset?.assetName }}</td>
+              <td>{{ ins.endDate | date:'dd MMM yyyy' }}</td>
+              <td>{{ ins.provider }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <div class="expiry-section" *ngIf="expiryAlerts.dueCalibrations?.length">
+        <h4>Calibrations Due ({{ expiryAlerts.dueCalibrations.length }})</h4>
+        <p-table [value]="expiryAlerts.dueCalibrations" responsiveLayout="scroll" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr><th>Asset</th><th>Due Date</th><th>Vendor</th></tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-c>
+            <tr>
+              <td>{{ c.asset?.assetName }}</td>
+              <td>{{ c.nextDueAt | date:'dd MMM yyyy' }}</td>
+              <td>{{ c.vendor?.name }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <div *ngIf="!expiryAlerts.expiringWarranties?.length && !expiryAlerts.expiringInsurance?.length && !expiryAlerts.dueCalibrations?.length"
+           class="text-center p-4">
+        No upcoming expiries within {{ expiryDays }} days.
+      </div>
+    </p-tabPanel>
+
+    <!-- Assets by Category -->
+    <p-tabPanel header="Assets by Category">
+      <p-table [value]="assetsByCategory" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr><th>Category</th><th>Count</th></tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>{{ row.category }}</td>
+            <td>{{ row.count }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="2" class="text-center">No data</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+  </p-tabView>
+</div>

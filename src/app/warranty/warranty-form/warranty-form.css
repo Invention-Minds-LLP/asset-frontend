@@ -266,3 +266,115 @@ label {
     text-overflow: ellipsis;
   }
   
+  /* Make the panel look like your image */
+.asset-tabs :host ::ng-deep .p-tabview-panels {
+  padding: 0 !important;
+}
+
+.tab-card {
+  background: var(--surface-ground);
+  border-radius: 14px;
+  padding: 22px 22px;
+  border: 1px solid var(--surface-border);
+}
+
+/* Row layout like your screenshot (two columns) */
+.form-row {
+  display: flex;
+  gap: 22px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field.half {
+  flex: 1 1 calc(50% - 11px);
+  min-width: 280px;
+}
+
+.form-field.full {
+  flex: 1 1 100%;
+}
+
+/* Labels above inputs */
+.field-label {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 6px;
+}
+
+.req {
+  color: #ef4444;
+}
+
+/* Ensure all Prime inputs fill width and align height */
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .p-select,
+:host ::ng-deep .p-datepicker,
+:host ::ng-deep .p-inputwrapper,
+:host ::ng-deep .p-calendar {
+  width: 100% !important;
+}
+
+:host ::ng-deep .p-select .p-select-label {
+  padding: 0.75rem 0.75rem;
+}
+
+:host ::ng-deep .p-inputtext {
+  padding: 0.75rem 0.75rem;
+}
+
+.textarea {
+  resize: none;
+}
+
+/* Buttons row */
+.btn-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+/* Status chip like a badge */
+.status-row {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.status-chip {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: #eef2ff;
+  color: #1d4ed8;
+}
+
+/* Table spacing */
+.table-wrap {
+  margin-top: 20px;
+}
+
+/* Ellipsis for long text in table */
+.ellipsis {
+  max-width: 360px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* File input */
+.file-input {
+  padding: 10px 0;
+}
+.help-text {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: .7;
+}
