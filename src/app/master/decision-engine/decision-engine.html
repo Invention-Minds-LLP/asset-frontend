@@ -1,0 +1,635 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-microchip"></i> Decision Engine</h2>
+      <p class="subtitle">Smart Maintain vs Replace — Multi-signal CapEx analysis across all assets</p>
+    </div>
+  </div>
+
+  <!-- View toggle -->
+  <div class="view-toggle">
+    <button class="toggle-btn" [class.active]="activeView === 'dashboard'" (click)="activeView = 'dashboard'">
+      <i class="pi pi-chart-pie"></i> Dashboard
+    </button>
+    <button class="toggle-btn" [class.active]="activeView === 'evaluate'" (click)="switchToEvaluate()">
+      <i class="pi pi-list"></i> All Assets
+      @if (summary?.replaceImmediately) {
+        <span class="badge danger">{{ summary.replaceImmediately }}</span>
+      }
+    </button>
+  </div>
+
+  <!-- ═══════════════════════ DASHBOARD VIEW ═══════════════════════ -->
+  @if (activeView === 'dashboard') {
+
+    <!-- KPI Cards -->
+    @if (summary) {
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-total">
+          <div class="kpi-icon"><i class="pi pi-box"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ summary.total }}</span>
+            <span class="kpi-label">
+              Total Assets Evaluated
+              <i class="pi pi-info-circle info-icon" [pTooltip]="kpiTotalTooltip()" tooltipPosition="top"></i>
+            </span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-healthy">
+          <div class="kpi-icon"><i class="pi pi-check-circle"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ summary.continueMaintenance }}</span>
+            <span class="kpi-label">
+              Continue Maintenance
+              <i class="pi pi-info-circle info-icon" [pTooltip]="kpiContinueTooltip()" tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-pct">{{ getSummaryPct('continueMaintenance') }}%</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-monitor">
+          <div class="kpi-icon"><i class="pi pi-eye"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ summary.monitor }}</span>
+            <span class="kpi-label">
+              Monitor
+              <i class="pi pi-info-circle info-icon" [pTooltip]="kpiMonitorTooltip()" tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-pct">{{ getSummaryPct('monitor') }}%</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-review">
+          <div class="kpi-icon"><i class="pi pi-exclamation-triangle"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ summary.reviewForReplacement }}</span>
+            <span class="kpi-label">
+              Review for Replacement
+              <i class="pi pi-info-circle info-icon" [pTooltip]="kpiReviewTooltip()" tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-pct">{{ getSummaryPct('reviewForReplacement') }}%</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-replace">
+          <div class="kpi-icon"><i class="pi pi-times-circle"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ summary.replaceImmediately }}</span>
+            <span class="kpi-label">
+              Replace Immediately
+              <i class="pi pi-info-circle info-icon" [pTooltip]="kpiReplaceTooltip()" tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-pct">{{ getSummaryPct('replaceImmediately') }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost overview row -->
+      <div class="cost-overview-row">
+        <div class="cost-card">
+          <div class="cost-label">
+            Avg Health Score
+            <i class="pi pi-info-circle info-icon" [pTooltip]="avgScoreTooltip()" tooltipPosition="top"></i>
+          </div>
+          <div class="cost-value" [class]="getScoreClass(summary.avgCompositeScore)">
+            {{ summary.avgCompositeScore }}<span class="cost-unit"> / 100</span>
+          </div>
+        </div>
+        <div class="cost-card">
+          <div class="cost-label">
+            Total Maintenance Cost (All Assets)
+            <i class="pi pi-info-circle info-icon" [pTooltip]="totalMaintCostTooltip()" tooltipPosition="top"></i>
+          </div>
+          <div class="cost-value">{{ fc(summary.totalMaintenanceCost) }}</div>
+        </div>
+        <div class="cost-card">
+          <div class="cost-label">
+            Total Book Value (All Assets)
+            <i class="pi pi-info-circle info-icon" [pTooltip]="totalBookValueTooltip()" tooltipPosition="top"></i>
+          </div>
+          <div class="cost-value">{{ fc(summary.totalBookValue) }}</div>
+        </div>
+      </div>
+    }
+
+    @if (loadingSummary) {
+      <div class="loading-state">
+        <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
+        <p>Evaluating all assets...</p>
+      </div>
+    }
+
+    <!-- Top 5 Critical -->
+    @if (topCritical.length) {
+      <div class="section-header">
+        <div class="section-title"><i class="pi pi-exclamation-circle"></i> Top 5 Critical Assets</div>
+      </div>
+
+      <div class="critical-grid">
+        @for (item of topCritical; track item.id) {
+          <div class="critical-card" (click)="openDetail(item.id)">
+            <div class="critical-top">
+              <div class="critical-score" [style.color]="getScoreColor(item.compositeScore)">
+                {{ item.compositeScore }}
+              </div>
+              <p-tag [value]="getDecisionLabel(item.decision)"
+                [severity]="getDecisionSeverity(item.decision)"></p-tag>
+            </div>
+            <div class="critical-name">{{ item.assetName }}</div>
+            <div class="critical-meta">
+              <span class="critical-id">{{ item.assetId }}</span>
+              @if (item.category) { <span>{{ item.category }}</span> }
+              @if (item.department) { <span>{{ item.department }}</span> }
+            </div>
+            @if (item.criticalityLevel) {
+              <span class="criticality-badge criticality-{{ item.criticalityLevel?.toLowerCase() }}">
+                {{ item.criticalityLevel }}
+              </span>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- By Category -->
+    @if (byCategory.length) {
+      <div class="section-header" style="margin-top: 1.5rem;">
+        <div class="section-title"><i class="pi pi-th-large"></i> By Category</div>
+      </div>
+
+      <p-table [value]="byCategory" styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Category</th>
+            <th>Total Assets</th>
+            <th>Replace Immediately</th>
+            <th>Review for Replacement</th>
+            <th>Action Needed</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td><strong>{{ row.category }}</strong></td>
+            <td>{{ row.count }}</td>
+            <td>
+              @if (row.replace > 0) {
+                <p-tag [value]="row.replace + ''" severity="danger"></p-tag>
+              } @else {
+                <span class="text-muted">0</span>
+              }
+            </td>
+            <td>
+              @if (row.review > 0) {
+                <p-tag [value]="row.review + ''" severity="warn"></p-tag>
+              } @else {
+                <span class="text-muted">0</span>
+              }
+            </td>
+            <td>
+              @if (row.replace + row.review > 0) {
+                <span class="action-count">{{ row.replace + row.review }} asset(s) need attention</span>
+              } @else {
+                <span class="text-muted">All healthy</span>
+              }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+
+    <!-- By Criticality — expandable asset lists -->
+    @if (byCriticality.length) {
+      <div class="section-header" style="margin-top: 1.5rem;">
+        <div class="section-title">
+          <i class="pi pi-heart"></i> By Criticality Level
+          <i class="pi pi-info-circle info-icon"
+            pTooltip="Hospital asset criticality breakdown. Click a row to expand and see all assets at that level with their scores."
+            tooltipPosition="top"></i>
+        </div>
+        @if (summary?.capexTriggered > 0) {
+          <span class="capex-summary-badge">
+            <i class="pi pi-flag"></i> {{ summary.capexTriggered }} CapEx trigger(s) fired
+          </span>
+        }
+      </div>
+
+      <div class="criticality-list">
+        @for (crit of byCriticality; track crit.level) {
+          <!-- Criticality level header (clickable) -->
+          <div class="crit-header" [class.expanded]="expandedCriticality === crit.level"
+            (click)="toggleCriticality(crit.level)">
+            <div class="crit-header-left">
+              <i [class]="getCriticalityIcon(crit.level)" [style.color]="getCriticalityColor(crit.level)"></i>
+              <span class="crit-level-name" [style.color]="getCriticalityColor(crit.level)">
+                {{ getCriticalityLabel(crit.level) }}
+              </span>
+              <span class="crit-count-badge">{{ crit.count }} asset(s)</span>
+            </div>
+            <div class="crit-header-stats">
+              <span class="crit-avg-score" [class]="getScoreClass(crit.avgScore)">
+                Avg: {{ crit.avgScore }}
+              </span>
+              @if (crit.replaceImmediately > 0) {
+                <p-tag [value]="crit.replaceImmediately + ' Replace'" severity="danger" [style]="{'font-size':'0.72rem'}"></p-tag>
+              }
+              @if (crit.reviewForReplacement > 0) {
+                <p-tag [value]="crit.reviewForReplacement + ' Review'" severity="warn" [style]="{'font-size':'0.72rem'}"></p-tag>
+              }
+              @if (crit.capexTriggered > 0) {
+                <span class="capex-badge"><i class="pi pi-flag"></i> {{ crit.capexTriggered }} CapEx</span>
+              }
+              <i class="pi" [class.pi-chevron-down]="expandedCriticality !== crit.level"
+                [class.pi-chevron-up]="expandedCriticality === crit.level"></i>
+            </div>
+          </div>
+
+          <!-- Expanded asset table -->
+          @if (expandedCriticality === crit.level) {
+            <div class="crit-asset-table">
+              <p-table [value]="crit.assets" styleClass="p-datatable-sm p-datatable-striped"
+                [paginator]="crit.assets.length > 10" [rows]="10">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th style="width:55px">Score</th>
+                    <th>Asset ID</th>
+                    <th>Asset Name</th>
+                    <th>Category</th>
+                    <th>Department</th>
+                    <th>Decision</th>
+                    <th>CapEx</th>
+                    <th>Maint. Cost</th>
+                    <th>Book Value</th>
+                    <th>Age / Life</th>
+                    <th>Breakdowns</th>
+                    <th style="width:55px"></th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-a>
+                  <tr>
+                    <td>
+                      <span class="score-pill" [class]="getScoreClass(a.compositeScore)">
+                        {{ a.compositeScore }}
+                      </span>
+                    </td>
+                    <td><strong>{{ a.assetId }}</strong></td>
+                    <td>{{ a.assetName }}</td>
+                    <td>{{ a.category || '—' }}</td>
+                    <td>{{ a.department || '—' }}</td>
+                    <td>
+                      <p-tag [value]="getDecisionLabel(a.decision)"
+                        [severity]="getDecisionSeverity(a.decision)" [style]="{'font-size':'0.72rem'}"></p-tag>
+                    </td>
+                    <td>
+                      @if (a.capexTriggered) {
+                        <span class="capex-fired" [pTooltip]="a.capexTriggerCount + ' trigger condition(s) fired'" tooltipPosition="top">
+                          <i class="pi pi-flag"></i> {{ a.capexTriggerCount }}
+                        </span>
+                      } @else {
+                        <span class="text-muted">—</span>
+                      }
+                    </td>
+                    <td>{{ fc(a.totalMaintenanceCost) }}</td>
+                    <td>{{ fc(a.currentBookValue) }}</td>
+                    <td>{{ a.ageYears }} / {{ a.expectedLifeYears || '—' }} yrs</td>
+                    <td>
+                      @if (a.breakdownCount12m >= 3) {
+                        <span class="breakdown-high">{{ a.breakdownCount12m }}</span>
+                      } @else {
+                        {{ a.breakdownCount12m }}
+                      }
+                    </td>
+                    <td>
+                      <p-button icon="pi pi-search" [text]="true" size="small"
+                        pTooltip="View full evaluation" tooltipPosition="top" (onClick)="openDetail(a.id)"></p-button>
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          }
+        }
+      </div>
+    }
+  }
+
+  <!-- ═══════════════════════ ALL ASSETS VIEW ═══════════════════════ -->
+  @if (activeView === 'evaluate') {
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <p-select [options]="decisionOptions" [(ngModel)]="filters.decision"
+        (onChange)="onFilterChange()" [style]="{'width': '220px'}"></p-select>
+      <p-select [options]="categoryOptions" [(ngModel)]="filters.categoryId"
+        (onChange)="onFilterChange()" placeholder="Category" [style]="{'width': '200px'}"></p-select>
+      <p-select [options]="departmentOptions" [(ngModel)]="filters.departmentId"
+        (onChange)="onFilterChange()" placeholder="Department" [style]="{'width': '200px'}"></p-select>
+      <p-select [options]="criticalityOptions" [(ngModel)]="filters.criticalityLevel"
+        (onChange)="onFilterChange()" [style]="{'width': '160px'}"></p-select>
+      <p-button icon="pi pi-refresh" label="Re-evaluate" (onClick)="loadAllResults()"
+        [loading]="loadingAll" severity="secondary"></p-button>
+    </div>
+
+    <!-- Results table -->
+    <p-table [value]="allResults" [loading]="loadingAll" [lazy]="true"
+      [paginator]="true" [rows]="limit" [totalRecords]="filteredTotal"
+      [rowsPerPageOptions]="[10,15,25,50]" (onLazyLoad)="onPageChange($event)"
+      styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 60px;">Score</th>
+          <th>Asset ID</th>
+          <th>Asset Name</th>
+          <th>Category</th>
+          <th>Department</th>
+          <th>Decision</th>
+          <th>Maintenance Cost</th>
+          <th>Book Value</th>
+          <th>Age / Life</th>
+          <th>Breakdowns (12m)</th>
+          <th style="width: 80px;"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-r>
+        <tr>
+          <td>
+            <span class="score-pill" [class]="getScoreClass(r.compositeScore)">
+              {{ r.compositeScore }}
+            </span>
+          </td>
+          <td><strong>{{ r.asset.assetId }}</strong></td>
+          <td>{{ r.asset.assetName }}</td>
+          <td>{{ r.asset.category || '—' }}</td>
+          <td>{{ r.asset.department || '—' }}</td>
+          <td>
+            <p-tag [value]="getDecisionLabel(r.decision)"
+              [severity]="getDecisionSeverity(r.decision)"></p-tag>
+          </td>
+          <td>{{ fc(r.data.totalMaintenanceCost) }}</td>
+          <td>{{ fc(r.asset.currentBookValue) }}</td>
+          <td>{{ r.asset.ageYears }} / {{ r.asset.expectedLifeYears || '—' }} yrs</td>
+          <td>
+            @if (r.data.breakdownCount12m >= 4) {
+              <span class="breakdown-high">{{ r.data.breakdownCount12m }}</span>
+            } @else {
+              {{ r.data.breakdownCount12m }}
+            }
+          </td>
+          <td>
+            <p-button icon="pi pi-search" [text]="true" size="small"
+              pTooltip="View details" tooltipPosition="top" (onClick)="openDetail(r.asset.id)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="11" class="text-center">No assets found matching the selected filters.</td></tr>
+      </ng-template>
+    </p-table>
+  }
+</div>
+
+<!-- ═══════════════════════ DETAIL DIALOG ═══════════════════════ -->
+<p-dialog [header]="detailResult?.asset?.assetName || 'Asset Evaluation'" [(visible)]="showDetailDialog"
+  [style]="{'width': '720px', 'max-height': '85vh'}" [modal]="true">
+
+  @if (loadingDetail) {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner" style="font-size: 1.5rem;"></i>
+      <p>Evaluating asset...</p>
+    </div>
+  }
+
+  @if (detailResult) {
+    <!-- Decision banner -->
+    <div class="detail-decision-banner" [class]="getBannerClass(detailResult.decision)">
+      <div class="banner-score" [style.color]="getScoreColor(detailResult.compositeScore)"
+        [pTooltip]="compositeScoreTooltip()" tooltipPosition="bottom">
+        {{ detailResult.compositeScore }}<span>/100</span>
+        <i class="pi pi-info-circle info-icon-sm"></i>
+      </div>
+      <div class="banner-info">
+        <div class="banner-tag-row">
+          <p-tag [value]="getDecisionLabel(detailResult.decision)"
+            [severity]="getDecisionSeverity(detailResult.decision)"
+            [style]="{'font-size': '1rem', 'padding': '0.4rem 1rem'}"></p-tag>
+          <i class="pi pi-info-circle info-icon" [pTooltip]="decisionTooltip()" tooltipPosition="top"></i>
+        </div>
+        <div class="banner-asset-meta">
+          <span>{{ detailResult.asset.assetId }}</span>
+          <span>{{ detailResult.asset.category }}</span>
+          <span>{{ detailResult.asset.department }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reasons -->
+    <div class="detail-section">
+      <div class="detail-section-title">Why this decision?</div>
+      <ul class="reasons-list">
+        @for (reason of detailResult.reasons; track $index) {
+          <li>{{ reason }}</li>
+        }
+      </ul>
+    </div>
+
+    <!-- CapEx Trigger Conditions -->
+    @if (detailResult.capex) {
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <i class="pi pi-flag" [style.color]="detailResult.capex.triggered ? '#dc2626' : '#94a3b8'"></i>
+          CapEx Trigger Conditions
+          @if (detailResult.capex.triggered) {
+            <span class="capex-fired-label">TRIGGERED</span>
+          } @else {
+            <span class="capex-clear-label">Clear</span>
+          }
+        </div>
+        <div class="trigger-grid">
+          @for (trigger of detailResult.capex.triggers; track trigger.id) {
+            <div class="trigger-row" [class.trigger-fired]="trigger.fired">
+              <div class="trigger-status">
+                @if (trigger.fired) {
+                  <i class="pi pi-exclamation-circle" style="color: #dc2626;"></i>
+                } @else {
+                  <i class="pi pi-check-circle" style="color: #16a34a;"></i>
+                }
+              </div>
+              <div class="trigger-info">
+                <div class="trigger-label">{{ trigger.label }}</div>
+                <div class="trigger-detail">{{ trigger.detail }}</div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Signal bars -->
+    <div class="detail-section">
+      <div class="detail-section-title">Signal Breakdown</div>
+      <div class="signal-grid">
+        <div class="signal-row">
+          <div class="signal-label">
+            Maintenance Ratio
+            <i class="pi pi-info-circle info-icon" [pTooltip]="maintenanceRatioTooltip()" tooltipPosition="top"></i>
+          </div>
+          <div class="signal-bar-container">
+            <div class="signal-bar" [style.width.%]="detailResult.signals.maintenanceRatio"
+              [style.background]="getSignalBarColor(detailResult.signals.maintenanceRatio)"></div>
+          </div>
+          <span class="signal-score">{{ detailResult.signals.maintenanceRatio }}</span>
+        </div>
+        <div class="signal-row">
+          <div class="signal-label">
+            Age Factor
+            <i class="pi pi-info-circle info-icon" [pTooltip]="ageFactorTooltip()" tooltipPosition="top"></i>
+          </div>
+          <div class="signal-bar-container">
+            <div class="signal-bar" [style.width.%]="detailResult.signals.ageFactor"
+              [style.background]="getSignalBarColor(detailResult.signals.ageFactor)"></div>
+          </div>
+          <span class="signal-score">{{ detailResult.signals.ageFactor }}</span>
+        </div>
+        <div class="signal-row">
+          <div class="signal-label">
+            Breakdown Frequency
+            <i class="pi pi-info-circle info-icon" [pTooltip]="breakdownFreqTooltip()" tooltipPosition="top"></i>
+          </div>
+          <div class="signal-bar-container">
+            <div class="signal-bar" [style.width.%]="detailResult.signals.breakdownFreq"
+              [style.background]="getSignalBarColor(detailResult.signals.breakdownFreq)"></div>
+          </div>
+          <span class="signal-score">{{ detailResult.signals.breakdownFreq }}</span>
+        </div>
+        <div class="signal-row">
+          <div class="signal-label">
+            Downtime Impact
+            <i class="pi pi-info-circle info-icon" [pTooltip]="downtimeImpactTooltip()" tooltipPosition="top"></i>
+          </div>
+          <div class="signal-bar-container">
+            <div class="signal-bar" [style.width.%]="detailResult.signals.downtimeImpact"
+              [style.background]="getSignalBarColor(detailResult.signals.downtimeImpact)"></div>
+          </div>
+          <span class="signal-score">{{ detailResult.signals.downtimeImpact }}</span>
+        </div>
+        <div class="signal-row">
+          <div class="signal-label">
+            Cost Trend
+            <i class="pi pi-info-circle info-icon" [pTooltip]="costTrendTooltip()" tooltipPosition="top"></i>
+          </div>
+          <div class="signal-bar-container">
+            <div class="signal-bar" [style.width.%]="detailResult.signals.costTrend"
+              [style.background]="getSignalBarColor(detailResult.signals.costTrend)"></div>
+          </div>
+          <span class="signal-score">{{ detailResult.signals.costTrend }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key data -->
+    <div class="detail-section">
+      <div class="detail-section-title">Key Data</div>
+      <div class="detail-data-grid">
+        <div class="detail-data-item">
+          <span class="data-label">
+            Original Cost
+            <i class="pi pi-info-circle info-icon" pTooltip="Purchase cost (or estimated value for donated/leased assets). Base for all ratio calculations." tooltipPosition="top"></i>
+          </span>
+          <span class="data-value">{{ fc(detailResult.asset.originalCost) }}</span>
+        </div>
+        <div class="detail-data-item">
+          <span class="data-label">
+            Current Book Value
+            <i class="pi pi-info-circle info-icon" [pTooltip]="bookValueTooltip()" tooltipPosition="top"></i>
+          </span>
+          <span class="data-value">{{ fc(detailResult.asset.currentBookValue) }}</span>
+        </div>
+        <div class="detail-data-item">
+          <span class="data-label">
+            Total Maintenance Cost
+            <i class="pi pi-info-circle info-icon" [pTooltip]="maintenanceCostTooltip()" tooltipPosition="top"></i>
+          </span>
+          <span class="data-value">{{ fc(detailResult.data.totalMaintenanceCost) }}</span>
+        </div>
+        <div class="detail-data-item">
+          <span class="data-label">
+            Replacement Estimate
+            <i class="pi pi-info-circle info-icon" [pTooltip]="replacementTooltip()" tooltipPosition="top"></i>
+          </span>
+          <span class="data-value">{{ fc(detailResult.data.replacementEstimate) }}</span>
+        </div>
+        <div class="detail-data-item">
+          <span class="data-label">
+            Asset Age
+            <i class="pi pi-info-circle info-icon" [pTooltip]="ageDataTooltip()" tooltipPosition="top"></i>
+          </span>
+          <span class="data-value">{{ detailResult.asset.ageYears }} yrs</span>
+        </div>
+        <div class="detail-data-item">
+          <span class="data-label">
+            Remaining Life
+            <i class="pi pi-info-circle info-icon" pTooltip="Expected Life Years - Asset Age" tooltipPosition="top"></i>
+          </span>
+          <span class="data-value" [class.value-warn]="detailResult.asset.remainingLifeYears <= 1">
+            {{ detailResult.asset.remainingLifeYears > 0 ? detailResult.asset.remainingLifeYears + ' yrs' : 'Expired' }}
+          </span>
+        </div>
+        <div class="detail-data-item">
+          <span class="data-label">
+            Breakdowns (12 months)
+            <i class="pi pi-info-circle info-icon" [pTooltip]="breakdownFreqTooltip()" tooltipPosition="top"></i>
+          </span>
+          <span class="data-value">{{ detailResult.data.breakdownCount12m }}</span>
+        </div>
+        <div class="detail-data-item">
+          <span class="data-label">
+            Downtime (12 months)
+            <i class="pi pi-info-circle info-icon" [pTooltip]="downtimeImpactTooltip()" tooltipPosition="top"></i>
+          </span>
+          <span class="data-value">{{ detailResult.data.downtimeHours12m }} hrs</span>
+        </div>
+        @if (detailResult.data.costTrendPct != null) {
+          <div class="detail-data-item">
+            <span class="data-label">
+              Cost Trend (YoY)
+              <i class="pi pi-info-circle info-icon" [pTooltip]="costTrendTooltip()" tooltipPosition="top"></i>
+            </span>
+            <span class="data-value" [class.value-warn]="detailResult.data.costTrendPct > 20">
+              {{ detailResult.data.costTrendPct > 0 ? '+' : '' }}{{ detailResult.data.costTrendPct }}%
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- History -->
+    @if (detailHistory.length) {
+      <div class="detail-section">
+        <div class="detail-section-title">Evaluation History</div>
+        <p-table [value]="detailHistory" styleClass="p-datatable-sm" [rows]="5" [paginator]="detailHistory.length > 5">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Date</th>
+              <th>Score</th>
+              <th>Decision</th>
+              <th>By</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-log>
+            <tr>
+              <td>{{ log.evaluatedAt | date:'medium' }}</td>
+              <td>
+                <span class="score-pill" [class]="getScoreClass(log.compositeScore)">
+                  {{ log.compositeScore }}
+                </span>
+              </td>
+              <td>
+                <p-tag [value]="getDecisionLabel(log.decision)"
+                  [severity]="getDecisionSeverity(log.decision)" [style]="{'font-size':'0.75rem'}"></p-tag>
+              </td>
+              <td>{{ log.evaluatedBy?.name || 'System' }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    }
+  }
+</p-dialog>

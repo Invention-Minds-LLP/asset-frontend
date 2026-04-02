@@ -99,12 +99,16 @@
         <hr class="menu-separator-1" />
 
         <div class="user-info" [ngClass]="{ collapsed: isCollapsed }">
-            <img src="/profile.png" alt="DocMinds Logo" class="user-logo" />
+            <img src="/profile.png" alt="Profile" class="user-logo" />
             <div class="user-details" *ngIf="!isCollapsed">
                 <div class="user-name">{{name}}</div>
-                <!-- <div class="user-email">Docminds&#64;gmail.com</div> -->
             </div>
+            <button class="logout-btn" (click)="logout()" pTooltip="Logout" tooltipPosition="top">
+                <i class="pi pi-sign-out"></i>
+                <span *ngIf="!isCollapsed">Logout</span>
+            </button>
         </div>
 
     </div>
 </div>
+<p-confirmDialog></p-confirmDialog>

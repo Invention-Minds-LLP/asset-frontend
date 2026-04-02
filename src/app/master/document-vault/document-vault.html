@@ -25,24 +25,24 @@
     styleClass="p-datatable-sm p-datatable-striped">
     <ng-template pTemplate="header">
       <tr>
-        <th>File Name</th>
+        <th>Title</th>
         <th>Entity Type</th>
         <th>Document Type</th>
-        <th>Size</th>
+        <th>Uploaded By</th>
         <th>Uploaded</th>
         <th>Actions</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-d>
       <tr>
-        <td>{{ d.fileName || d.originalName }}</td>
+        <td>{{ d.title || '—' }}</td>
         <td><p-tag [value]="d.entityType" [severity]="getTypeSeverity(d.entityType)"></p-tag></td>
         <td>{{ d.documentType || '—' }}</td>
-        <td>{{ formatSize(d.fileSize) }}</td>
-        <td>{{ d.createdAt | date:'mediumDate' }}</td>
+        <td>{{ d.uploadedBy?.name || '—' }}</td>
+        <td>{{ d.uploadedAt | date:'mediumDate' }}</td>
         <td>
           <a *ngIf="d.fileUrl" [href]="d.fileUrl" target="_blank">
-            <p-button icon="pi pi-download" [rounded]="true" [text]="true" size="small"></p-button>
+            <p-button icon="pi pi-download" [rounded]="true" [text]="true" size="small" pTooltip="Download" tooltipPosition="top"></p-button>
           </a>
         </td>
       </tr>

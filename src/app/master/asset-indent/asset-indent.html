@@ -1,0 +1,162 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Asset Indent</h2>
+      <p>Raise and track asset procurement indent requests.</p>
+    </div>
+    <div class="header-actions">
+      <p-select [options]="statusOptions" optionLabel="label" optionValue="value"
+        [(ngModel)]="statusFilter" (onChange)="load()" placeholder="Filter by status" />
+      <p-button label="New Indent" icon="pi pi-plus" (onClick)="openCreate()" />
+    </div>
+  </div>
+
+  <p-table [value]="indents" [loading]="loading" [paginator]="true" [rows]="15"
+    [rowsPerPageOptions]="[15,30,50]" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Indent No.</th>
+        <th>Asset Name</th>
+        <th>Department</th>
+        <th>Raised By</th>
+        <th>Urgency</th>
+        <th>Status</th>
+        <th>HOD Approval</th>
+        <th>Mgmt Approval</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-indent>
+      <tr>
+        <td><strong>{{ indent.indentNumber }}</strong></td>
+        <td>{{ indent.assetName }}</td>
+        <td>{{ indent.department?.name }}</td>
+        <td>{{ indent.raisedBy?.name }}</td>
+        <td>
+          <p-tag [value]="indent.urgency"
+            [severity]="indent.urgency === 'CRITICAL' ? 'danger' : indent.urgency === 'URGENT' ? 'warn' : 'info'" />
+        </td>
+        <td><p-tag [value]="indent.status" [severity]="statusSeverity(indent.status)" /></td>
+        <td><p-tag [value]="indent.hodApprovalStatus || 'N/A'"
+          [severity]="indent.hodApprovalStatus === 'APPROVED' ? 'success' : indent.hodApprovalStatus === 'REJECTED' ? 'danger' : 'secondary'" /></td>
+        <td><p-tag [value]="indent.managementApprovalStatus || 'N/A'"
+          [severity]="indent.managementApprovalStatus === 'APPROVED' ? 'success' : indent.managementApprovalStatus === 'REJECTED' ? 'danger' : 'secondary'" /></td>
+        <td>
+          <div class="action-btns">
+            <p-button icon="pi pi-eye" severity="secondary" size="small" (onClick)="viewDetail(indent)" pTooltip="View" tooltipPosition="top"  position="top"/>
+            @if (isRole('HOD', 'ADMIN') && indent.hodApprovalStatus === 'PENDING') {
+              <p-button icon="pi pi-check" severity="success" size="small" (onClick)="openApproval(indent, 'hod')" pTooltip="HOD Approve" tooltipPosition="top" />
+            }
+            @if (isRole('ADMIN') && indent.managementApprovalStatus === 'PENDING') {
+              <p-button icon="pi pi-verified" severity="warn" size="small" (onClick)="openApproval(indent, 'management')" pTooltip="Mgmt Approve" tooltipPosition="top" />
+            }
+            @if (isRole('HOD', 'ADMIN') && indent.status === 'SUBMITTED') {
+              <p-button icon="pi pi-times" severity="danger" size="small" (onClick)="cancel(indent)" [loading]="cancellingIndent" pTooltip="Cancel" tooltipPosition="top" position="top" />
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="9" class="empty-row">No indents found.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Create Dialog -->
+<p-dialog header="New Asset Indent" [(visible)]="showCreateDialog" [modal]="true" [style]="{width:'560px'}">
+  <div class="form-grid">
+    <p-floatlabel variant="on" class="full-field">
+      <input pInputText [(ngModel)]="form.assetName" name="assetName" />
+      <label>Asset Name *</label>
+    </p-floatlabel>
+
+    <div class="two-fields">
+      <p-floatlabel variant="on">
+        <p-select [options]="urgencyOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="form.urgency" appendTo="body" />
+        <label>Urgency</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <p-inputnumber [(ngModel)]="form.quantity" name="quantity" [min]="1" />
+        <label>Quantity</label>
+      </p-floatlabel>
+    </div>
+
+    <p-floatlabel variant="on" class="full-field">
+      <textarea pInputTextarea rows="3" [(ngModel)]="form.justification" name="justification"></textarea>
+      <label>Justification *</label>
+    </p-floatlabel>
+
+    <div class="two-fields">
+      <p-floatlabel variant="on">
+        <p-inputnumber [(ngModel)]="form.estimatedBudget" name="estimatedBudget" mode="currency" currency="INR" locale="en-IN" />
+        <label>Estimated Budget</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <p-datepicker [(ngModel)]="form.requiredByDate" name="requiredByDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <label>Required By</label>
+      </p-floatlabel>
+    </div>
+
+    <p-floatlabel variant="on" class="full-field">
+      <textarea pInputTextarea rows="2" [(ngModel)]="form.specifications" name="specifications"></textarea>
+      <label>Specifications</label>
+    </p-floatlabel>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showCreateDialog = false" />
+    <p-button label="Submit" icon="pi pi-send" (onClick)="create()" [loading]="creatingIndent" />
+  </ng-template>
+</p-dialog>
+
+<!-- Approval Dialog -->
+<p-dialog [header]="approvalType === 'hod' ? 'HOD Approval' : 'Management Approval'"
+  [(visible)]="showApprovalDialog" [modal]="true" [style]="{width:'420px'}">
+  <div class="form-grid">
+    <p-floatlabel variant="on" class="full-field">
+      <p-select [options]="approvalDecisionOptions" optionLabel="label" optionValue="value"
+        [(ngModel)]="approvalDecision" appendTo="body" />
+      <label>Decision</label>
+    </p-floatlabel>
+    <p-floatlabel variant="on" class="full-field">
+      <textarea pInputTextarea rows="3" [(ngModel)]="approvalRemarks"></textarea>
+      <label>Remarks</label>
+    </p-floatlabel>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showApprovalDialog = false" />
+    <p-button label="Submit" icon="pi pi-check" (onClick)="submitApproval()" [loading]="submittingApproval" />
+  </ng-template>
+</p-dialog>
+
+<!-- Detail Dialog -->
+<p-dialog header="Indent Details" [(visible)]="showDetailDialog" [modal]="true" [style]="{width:'560px'}">
+  @if (selectedIndent) {
+    <div class="detail-grid">
+      <div class="detail-row"><span>Indent No.</span><strong>{{ selectedIndent.indentNumber }}</strong></div>
+      <div class="detail-row"><span>Asset Name</span><strong>{{ selectedIndent.assetName }}</strong></div>
+      <div class="detail-row"><span>Department</span><strong>{{ selectedIndent.department?.name }}</strong></div>
+      <div class="detail-row"><span>Raised By</span><strong>{{ selectedIndent.raisedBy?.name }}</strong></div>
+      <div class="detail-row"><span>Quantity</span><strong>{{ selectedIndent.quantity }}</strong></div>
+      <div class="detail-row"><span>Urgency</span><strong>{{ selectedIndent.urgency }}</strong></div>
+      <div class="detail-row"><span>Status</span><p-tag [value]="selectedIndent.status" [severity]="statusSeverity(selectedIndent.status)" /></div>
+      <div class="detail-row"><span>Justification</span><span>{{ selectedIndent.justification }}</span></div>
+      @if (selectedIndent.specifications) {
+        <div class="detail-row"><span>Specifications</span><span>{{ selectedIndent.specifications }}</span></div>
+      }
+      @if (selectedIndent.estimatedBudget) {
+        <div class="detail-row"><span>Est. Budget</span><strong>₹{{ selectedIndent.estimatedBudget | number }}</strong></div>
+      }
+      @if (selectedIndent.hodRemarks) {
+        <div class="detail-row"><span>HOD Remarks</span><span>{{ selectedIndent.hodRemarks }}</span></div>
+      }
+    </div>
+  }
+  <ng-template pTemplate="footer">
+    <p-button label="Close" severity="secondary" (onClick)="showDetailDialog = false" />
+  </ng-template>
+</p-dialog>

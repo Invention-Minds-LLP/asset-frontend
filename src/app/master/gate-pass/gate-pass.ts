@@ -10,6 +10,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { GatePassService } from '../../services/gate-pass/gate-pass';
 import { Assets } from '../../services/assets/assets';
@@ -28,7 +29,8 @@ import { Assets } from '../../services/assets/assets';
     InputTextModule,
     FloatLabelModule,
     SelectModule,
-    TextareaModule
+    TextareaModule,
+    TooltipModule
   ],
   templateUrl: './gate-pass.html',
   styleUrl: './gate-pass.css',
@@ -46,6 +48,11 @@ export class GatePass implements OnInit {
   typeOptions = [
     { label: 'Returnable', value: 'RETURNABLE' },
     { label: 'Non-Returnable', value: 'NON_RETURNABLE' }
+  ];
+
+  vehicleTypeOptions = [
+    { label: 'Hospital Vehicle', value: 'HOSPITAL_VEHICLE' },
+    { label: 'Outside Vehicle', value: 'OUTSIDE_VEHICLE' }
   ];
 
   statusOptions = [
@@ -81,6 +88,7 @@ export class GatePass implements OnInit {
       expectedReturnDate: '',
       courierDetails: '',
       vehicleNo: '',
+      vehicleType: null as string | null,
       approvedBy: '',
       issuedBy: '',
       reason: ''
@@ -148,6 +156,7 @@ export class GatePass implements OnInit {
       expectedReturnDate: row.expectedReturnDate ? row.expectedReturnDate.slice(0, 10) : '',
       courierDetails: row.courierDetails || '',
       vehicleNo: row.vehicleNo || '',
+      vehicleType: row.vehicleType || null,
       approvedBy: row.approvedBy || '',
       issuedBy: row.issuedBy || '',
       reason: row.reason || ''

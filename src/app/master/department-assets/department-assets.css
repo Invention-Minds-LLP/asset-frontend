@@ -1,0 +1,15 @@
+.page-container { padding: 1.5rem; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+.page-header h2 { margin: 0 0 .25rem; font-size: 1.4rem; font-weight: 600; }
+.page-header p { margin: 0; color: #6b7280; font-size: .875rem; }
+.header-actions { display: flex; gap: .75rem; align-items: center; }
+
+.summary-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.summary-card { flex: 1; min-width: 120px; background: #fff; border: 1px solid #e5e7eb;
+  border-radius: 10px; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: .25rem; }
+.summary-count { font-size: 1.75rem; font-weight: 700; color: #1f2937; }
+.summary-label { font-size: .8rem; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+.summary-card.active .summary-count { color: #16a34a; }
+.summary-card.warn .summary-count { color: #d97706; }
+.summary-card.info .summary-count { color: #2563eb; }
+.summary-card.danger .summary-count { color: #dc2626; }

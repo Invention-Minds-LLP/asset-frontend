@@ -1,0 +1,350 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-chart-bar"></i> Asset Cost Analysis</h2>
+      <p class="subtitle">Repair vs Replace ROI · Maintenance Breakdown · Revenue Tracking · Depreciation Alerts</p>
+    </div>
+  </div>
+
+  <!-- View toggle -->
+  <div class="view-toggle">
+    <button class="toggle-btn" [class.active]="activeView === 'analysis'" (click)="activeView = 'analysis'">
+      <i class="pi pi-search"></i> Asset Analysis
+    </button>
+    <button class="toggle-btn" [class.active]="activeView === 'alerts'" (click)="activeView = 'alerts'">
+      <i class="pi pi-bell"></i> Depreciation Alerts
+      @if (alerts.length) { <span class="badge">{{ alerts.length }}</span> }
+    </button>
+  </div>
+
+  <!-- ═══════════════════════ ASSET ANALYSIS VIEW ═══════════════════════ -->
+  @if (activeView === 'analysis') {
+    <div class="analysis-search">
+      <p-select [options]="assetOptions" [(ngModel)]="selectedAssetId"
+        placeholder="Select an asset to analyse..." [filter]="true"
+        [style]="{'width': '420px'}"></p-select>
+      <p-button label="Run Analysis" icon="pi pi-play" (onClick)="runAnalysis()"
+        [loading]="loadingAnalysis" [disabled]="!selectedAssetId"></p-button>
+    </div>
+
+    @if (analysis) {
+
+      <!-- ── Asset header + recommendation ── -->
+      <div class="asset-header-card">
+        <div class="asset-header-info">
+          <h3>{{ analysis.asset.assetName }}</h3>
+          <span class="asset-id-badge">{{ analysis.asset.assetId }}</span>
+          <span class="category-badge">{{ analysis.asset.category }}</span>
+        </div>
+        <div class="recommendation-box" [class]="'rec-' + analysis.recommendation.toLowerCase()">
+          <div class="rec-label">Recommendation</div>
+          <p-tag [value]="analysis.recommendation"
+            [severity]="getRecommendationSeverity(analysis.recommendation)"
+            [style]="{'font-size': '1rem', 'padding': '0.4rem 1rem'}"></p-tag>
+          <ul class="rec-reasons">
+            @for (reason of analysis.reasons; track $index) {
+              <li>{{ reason }}</li>
+            }
+          </ul>
+        </div>
+      </div>
+
+      <!-- ── Summary cards with ⓘ tooltips ── -->
+      <div class="summary-grid">
+
+        <div class="summary-card">
+          <div class="summary-label">
+            Original Cost
+            <i class="pi pi-info-circle info-icon" pTooltip="Purchase cost (or estimated value if donated/leased). Used as the base for all ratio calculations." tooltipPosition="top"></i>
+          </div>
+          <div class="summary-value">{{ fc(analysis.asset.originalCost) }}</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-label">
+            Current Book Value
+            <i class="pi pi-info-circle info-icon" [pTooltip]="bookValueTooltip()" tooltipPosition="top"></i>
+          </div>
+          <div class="summary-value" [class.value-low]="analysis.summary.maintenanceToPurchaseRatio >= 75">
+            {{ fc(analysis.asset.currentBookValue) }}
+          </div>
+          <div class="summary-sub">{{ fc(analysis.asset.accumulatedDepreciation) }} depreciated</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-label">
+            Asset Age
+            <i class="pi pi-info-circle info-icon" [pTooltip]="ageTooltip()" tooltipPosition="top"></i>
+          </div>
+          <div class="summary-value">{{ analysis.asset.ageYears }} yrs</div>
+          <div class="summary-sub">of {{ analysis.asset.expectedLifeYears || '—' }} yr expected life</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-label">
+            Remaining Life
+            <i class="pi pi-info-circle info-icon" pTooltip="Expected Life Years − Asset Age" tooltipPosition="top"></i>
+          </div>
+          <div class="summary-value" [class.value-warn]="analysis.asset.remainingLifeYears <= 1">
+            {{ analysis.asset.remainingLifeYears > 0 ? analysis.asset.remainingLifeYears + ' yrs' : 'Expired' }}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Maintenance cost breakdown ── -->
+      <div class="section-header">
+        <div class="section-title">Maintenance Cost Breakdown</div>
+        <i class="pi pi-info-circle info-icon-lg" [pTooltip]="maintTooltip()" tooltipPosition="top"></i>
+      </div>
+
+      <div class="maintenance-grid">
+
+        <!-- Repair -->
+        <div class="maint-card repair">
+          <div class="maint-icon"><i class="pi pi-wrench"></i></div>
+          <div class="maint-info">
+            <div class="maint-label">Corrective Repairs
+              <i class="pi pi-info-circle info-icon" pTooltip="Breakdown/Corrective tickets in RESOLVED or CLOSED status. Cost = serviceCost (labour) + partsCost." tooltipPosition="top"></i>
+            </div>
+            <div class="maint-count">{{ analysis.summary.repairCount }} incident(s)</div>
+            <div class="maint-cost">{{ fc(analysis.summary.repairCost) }}</div>
+            <div class="maint-sub-row">
+              <span>Labour: <strong>{{ fc(analysis.summary.repairLabourCost) }}</strong></span>
+              <span>Parts: <strong>{{ fc(analysis.summary.repairPartsCost) }}</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PM -->
+        <div class="maint-card pm">
+          <div class="maint-icon"><i class="pi pi-calendar-clock"></i></div>
+          <div class="maint-info">
+            <div class="maint-label">Preventive Maintenance
+              <i class="pi pi-info-circle info-icon" pTooltip="All maintenance history records. Grouped by serviceType: AMC/CMC (contract visits), Paid (outside scope), Internal." tooltipPosition="top"></i>
+            </div>
+            <div class="maint-count">{{ analysis.summary.pmCount }} session(s)</div>
+            <div class="maint-cost">{{ fc(analysis.summary.pmCost) }}</div>
+            <div class="maint-sub-row">
+              <span>AMC/CMC: <strong>{{ fc(analysis.summary.pmAmcCmcCost) }}</strong></span>
+              <span>Paid: <strong>{{ fc(analysis.summary.pmPaidCost) }}</strong></span>
+              <span>Internal: <strong>{{ fc(analysis.summary.pmInternalCost) }}</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total -->
+        <div class="maint-card total">
+          <div class="maint-icon"><i class="pi pi-calculator"></i></div>
+          <div class="maint-info">
+            <div class="maint-label">Total Maintenance Cost
+              <i class="pi pi-info-circle info-icon" [pTooltip]="maintTooltip()" tooltipPosition="top"></i>
+            </div>
+            <div class="maint-count">{{ formatPct(analysis.summary.maintenanceToPurchaseRatio) }} of purchase cost</div>
+            <div class="maint-cost">{{ fc(analysis.summary.totalMaintenanceCost) }}</div>
+            <div class="maint-sub-row">
+              <span>PM: <strong>{{ fc(analysis.summary.pmCost) }}</strong></span>
+              <span>+ Repair: <strong>{{ fc(analysis.summary.repairCost) }}</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Avg / Replacement -->
+        <div class="maint-card avg">
+          <div class="maint-icon"><i class="pi pi-chart-line"></i></div>
+          <div class="maint-info">
+            <div class="maint-label">Avg Cost / Year
+              <i class="pi pi-info-circle info-icon" [pTooltip]="avgCostTooltip()" tooltipPosition="top"></i>
+            </div>
+            <div class="maint-cost">{{ fc(analysis.summary.costPerYear) }}</div>
+            @if (analysis.summary.replacementCostEstimate) {
+              <div class="maint-label" style="margin-top:0.6rem;">
+                Replacement Estimate
+                <i class="pi pi-info-circle info-icon" [pTooltip]="replacementTooltip()" tooltipPosition="top"></i>
+              </div>
+              <div class="maint-cost">{{ fc(analysis.summary.replacementCostEstimate) }}</div>
+            }
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Revenue section ── -->
+      <div class="section-header" style="margin-top:1.5rem;">
+        <div class="section-title">Revenue Generated by this Asset
+          <i class="pi pi-info-circle info-icon-lg" [pTooltip]="roiTooltip()" tooltipPosition="top"></i>
+        </div>
+        <p-button icon="pi pi-plus" label="Log Revenue" size="small" (onClick)="openRevenueDialog()"></p-button>
+      </div>
+
+      <!-- ROI summary row -->
+      <div class="roi-row">
+        <div class="roi-card">
+          <div class="roi-label">Total Revenue</div>
+          <div class="roi-value green">{{ fc(analysis.summary.totalRevenue) }}</div>
+        </div>
+        <div class="roi-card">
+          <div class="roi-label">Total Maintenance Cost</div>
+          <div class="roi-value red">{{ fc(analysis.summary.totalMaintenanceCost) }}</div>
+        </div>
+        <div class="roi-card">
+          <div class="roi-label">
+            ROI
+            <i class="pi pi-info-circle info-icon" [pTooltip]="roiTooltip()" tooltipPosition="top"></i>
+          </div>
+          @if (analysis.summary.roi != null) {
+            <div class="roi-value" [class.green]="analysis.summary.roi >= 0" [class.red]="analysis.summary.roi < 0">
+              {{ analysis.summary.roi }}%
+            </div>
+          } @else {
+            <div class="roi-value muted">No revenue data yet</div>
+          }
+        </div>
+        <div class="roi-card">
+          <div class="roi-label">Revenue Entries</div>
+          <div class="roi-value">{{ revenueEntries.length }}</div>
+        </div>
+      </div>
+
+      @if (revenueEntries.length) {
+        <p-table [value]="revenueEntries" [paginator]="true" [rows]="5"
+          styleClass="p-datatable-sm p-datatable-striped" [style]="{'margin-top':'0.75rem'}">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Qty</th>
+              <th>Unit Rate</th>
+              <th>Total</th>
+              <th>Ref No</th>
+              <th></th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-e>
+            <tr>
+              <td>{{ e.entryDate | date:'mediumDate' }}</td>
+              <td>{{ e.revenueType }}</td>
+              <td>{{ e.description || '—' }}</td>
+              <td>{{ e.quantity }}</td>
+              <td>{{ fc(e.unitRate) }}</td>
+              <td><strong>{{ fc(e.totalRevenue) }}</strong></td>
+              <td>{{ e.referenceNo || '—' }}</td>
+              <td>
+                <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
+                  pTooltip="Delete Revenue Entry" tooltipPosition="top" (onClick)="deleteRevenue(e)"></p-button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <div class="revenue-empty">
+          <i class="pi pi-indian-rupee"></i>
+          No revenue entries yet. Click <strong>Log Revenue</strong> to record revenue generated by this asset.
+        </div>
+      }
+
+    }<!-- /analysis -->
+
+    @if (!analysis && !loadingAnalysis) {
+      <div class="empty-state">
+        <i class="pi pi-chart-bar" style="font-size: 3rem; color: var(--text-color-secondary);"></i>
+        <p>Select an asset above and click <strong>Run Analysis</strong> to see cost insights.</p>
+      </div>
+    }
+  }
+
+  <!-- ═══════════════════════ DEPRECIATION ALERTS VIEW ═══════════════════════ -->
+  @if (activeView === 'alerts') {
+    @if (!alerts.length && !loadingAlerts) {
+      <div class="empty-state">
+        <i class="pi pi-check-circle" style="font-size: 3rem; color: #16a34a;"></i>
+        <p>No depreciation alerts. All assets are within acceptable life and book value thresholds.</p>
+      </div>
+    }
+    @if (alerts.length) {
+      <p-table [value]="alerts" [loading]="loadingAlerts" [paginator]="true" [rows]="15"
+        styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Asset ID</th>
+            <th>Asset Name</th>
+            <th>Category</th>
+            <th>Alert</th>
+            <th>Age (yrs)</th>
+            <th>Expected Life</th>
+            <th>Original Cost</th>
+            <th>Book Value</th>
+            <th>Action</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-a>
+          <tr>
+            <td><strong>{{ a.assetId }}</strong></td>
+            <td>{{ a.assetName }}</td>
+            <td>{{ a.category || '—' }}</td>
+            <td>
+              <p-tag [value]="getAlertLabel(a.alertTypes)" [severity]="getAlertSeverity(a.alertTypes)"></p-tag>
+            </td>
+            <td>{{ a.ageYears }}</td>
+            <td>{{ a.expectedLifeYears || '—' }} yrs</td>
+            <td>{{ fc(a.originalCost) }}</td>
+            <td [style.color]="a.currentBookValue != null && a.originalCost > 0 && a.currentBookValue / a.originalCost <= 0.1 ? '#dc2626' : ''">
+              {{ fc(a.currentBookValue) }}
+            </td>
+            <td>
+              <p-button icon="pi pi-chart-bar" label="Analyse" size="small" [text]="true"
+                (onClick)="selectedAssetId = a.assetDbId; activeView = 'analysis'; runAnalysis()"></p-button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="9" class="text-center">No alerts found.</td></tr>
+        </ng-template>
+      </p-table>
+    }
+  }
+</div>
+
+<!-- ── Revenue Entry Dialog ── -->
+<p-dialog header="Log Revenue Entry" [(visible)]="showRevenueDialog" [style]="{'width':'480px'}" [modal]="true">
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Date *</label>
+      <input type="date" [(ngModel)]="revenueForm.entryDate" style="width:100%; padding:0.5rem; border:1px solid var(--surface-border); border-radius:6px;" />
+    </div>
+    <div class="form-field">
+      <label>Revenue Type *</label>
+      <p-select [options]="revenueTypeOptions" [(ngModel)]="revenueForm.revenueType"
+        placeholder="Select type" [style]="{'width':'100%'}"></p-select>
+    </div>
+    <div class="form-field">
+      <label>Description</label>
+      <input pInputText [(ngModel)]="revenueForm.description" placeholder="e.g. MRI scan for patient X" style="width:100%" />
+    </div>
+    <div class="form-field half">
+      <label>Quantity</label>
+      <p-inputNumber [(ngModel)]="revenueForm.quantity" [min]="1" [style]="{'width':'100%'}"></p-inputNumber>
+    </div>
+    <div class="form-field half">
+      <label>Unit Rate (₹) *</label>
+      <p-inputNumber [(ngModel)]="revenueForm.unitRate" [min]="0" mode="decimal" [style]="{'width':'100%'}"></p-inputNumber>
+    </div>
+    <div class="form-field">
+      <label>Reference No (Bill / Invoice)</label>
+      <input pInputText [(ngModel)]="revenueForm.referenceNo" style="width:100%" />
+    </div>
+    @if (revenueForm.quantity && revenueForm.unitRate) {
+      <div class="form-field calc-preview">
+        Total = {{ revenueForm.quantity }} × ₹{{ revenueForm.unitRate.toLocaleString('en-IN') }} =
+        <strong>₹{{ ((revenueForm.quantity || 0) * (revenueForm.unitRate || 0)).toLocaleString('en-IN') }}</strong>
+      </div>
+    }
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showRevenueDialog = false"></p-button>
+    <p-button label="Save Entry" icon="pi pi-check" (onClick)="saveRevenue()" [loading]="savingRevenue"></p-button>
+  </ng-template>
+</p-dialog>

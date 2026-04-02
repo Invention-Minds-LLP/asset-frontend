@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Smart Assets — Supervisor Guide</title>
+<style>
+  @media print { .no-print { display: none !important; } @page { margin: 15mm; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', -apple-system, sans-serif; color: #1e293b; line-height: 1.6; padding: 40px; max-width: 900px; margin: 0 auto; }
+  .print-btn { position: fixed; top: 15px; right: 15px; padding: 10px 20px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; z-index: 100; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+  .print-btn:hover { background: #1d4ed8; }
+  .header { border-bottom: 4px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+  .header h1 { font-size: 28px; color: #2563eb; margin-bottom: 4px; }
+  .header .role-badge { display: inline-block; background: #2563eb; color: #fff; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .header p { color: #64748b; font-size: 14px; }
+  h2 { font-size: 20px; color: #0f172a; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; }
+  h3 { font-size: 16px; color: #334155; margin: 20px 0 8px; }
+  p, li { font-size: 14px; margin-bottom: 6px; }
+  ul, ol { padding-left: 24px; margin-bottom: 12px; }
+  .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+  .module-card { padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+  .module-card .mod-name { font-weight: 600; color: #2563eb; font-size: 13px; }
+  .module-card .mod-desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .access-yes { color: #16a34a; font-weight: 600; }
+  .access-no { color: #dc2626; font-weight: 600; }
+  .workflow-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px; margin: 10px 0; }
+  .workflow-box h4 { color: #1d4ed8; font-size: 14px; margin-bottom: 8px; }
+  .workflow-box ol { padding-left: 20px; }
+  .workflow-box li { font-size: 13px; margin-bottom: 4px; }
+  .note { background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; padding: 10px; font-size: 13px; color: #854d0e; margin: 10px 0; }
+  .restricted { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 10px; margin: 10px 0; }
+  .restricted h4 { color: #dc2626; font-size: 13px; margin-bottom: 6px; }
+  .restricted li { font-size: 12px; color: #7f1d1d; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #f1f5f9; color: #475569; padding: 8px; text-align: left; border: 1px solid #e2e8f0; font-weight: 600; }
+  td { padding: 8px; border: 1px solid #e2e8f0; }
+  .footer { margin-top: 40px; padding-top: 15px; border-top: 2px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center; }
+</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">Print / Save as PDF</button>
+
+<div class="header">
+  <span class="role-badge">SUPERVISOR</span>
+  <h1>Supervisor Guide</h1>
+  <p>You manage your team's assets and maintenance activities. This guide covers work orders, preventive maintenance, and daily oversight tasks.</p>
+</div>
+
+<h2>Modules You Can Access</h2>
+<p>You have access to everything an Executive can access, plus the following additional modules:</p>
+<div class="module-grid">
+  <div class="module-card">
+    <div class="mod-name">Dashboard</div>
+    <div class="mod-desc">Team-level overview of assets, tickets, and maintenance status.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">My Assets</div>
+    <div class="mod-desc">View your own assigned assets.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Asset Master &gt; View Assets</div>
+    <div class="mod-desc">View all assets within your department scope.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Asset Master &gt; Revenue Log</div>
+    <div class="mod-desc">Log and verify daily usage entries from your team.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Asset Master &gt; Department Assets</div>
+    <div class="mod-desc">View assets grouped by department.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Store &amp; Inventory</div>
+    <div class="mod-desc">Issue materials from store for work orders and maintenance.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Maintenance &gt; Repair Tickets</div>
+    <div class="mod-desc">View and assign repair tickets within your scope.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Maintenance &gt; Work Orders</div>
+    <div class="mod-desc">Start, execute, and complete work orders.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Maintenance &gt; Preventive Maintenance</div>
+    <div class="mod-desc">Execute scheduled PM tasks for assets in your area.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Maintenance &gt; PM Checklists</div>
+    <div class="mod-desc">Fill in and submit PM checklist forms during maintenance.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Maintenance &gt; Calibration</div>
+    <div class="mod-desc">Record calibration results for applicable assets.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Operations &gt; Acknowledgement</div>
+    <div class="mod-desc">Acknowledge asset receipts.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Operations &gt; Physical Audit</div>
+    <div class="mod-desc">Verify assets during physical audits.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Contracts &amp; Coverage</div>
+    <div class="mod-desc">View Warranty, Insurance, Service Contracts, and Vendor Performance.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Operations &gt; Knowledge Base</div>
+    <div class="mod-desc">Access maintenance guides and reference documents.</div>
+  </div>
+</div>
+
+<h2>What You Can Do</h2>
+<ul>
+  <li><span class="access-yes">&#10003;</span> Start and complete <strong>Work Orders</strong> assigned to your team</li>
+  <li><span class="access-yes">&#10003;</span> Issue material from <strong>Store &amp; Inventory</strong> against a work order</li>
+  <li><span class="access-yes">&#10003;</span> Execute <strong>Preventive Maintenance</strong> tasks and fill <strong>PM Checklists</strong></li>
+  <li><span class="access-yes">&#10003;</span> Verify items during <strong>Physical Audit</strong></li>
+  <li><span class="access-yes">&#10003;</span> Verify and review <strong>Revenue Log</strong> entries from team members</li>
+  <li><span class="access-yes">&#10003;</span> Assign and reassign <strong>Repair Tickets</strong> within your scope</li>
+  <li><span class="access-yes">&#10003;</span> Record <strong>Calibration</strong> readings</li>
+  <li><span class="access-yes">&#10003;</span> Raise new tickets, log usage, and acknowledge assignments (same as Executive)</li>
+</ul>
+
+<div class="restricted">
+  <h4>What You CANNOT Do</h4>
+  <ul>
+    <li>Approve or reject Work Orders (you execute, HOD approves)</li>
+    <li>Approve asset disposals or transfers</li>
+    <li>Create new assets or import asset data</li>
+    <li>Access Financial Dashboard, CFO Dashboard, Cost Analysis, or Decision Engine</li>
+    <li>Access Batch Depreciation or Reports</li>
+    <li>Configure SLA Matrix, Escalation Matrix, or Support Matrix</li>
+    <li>Access Module Access, System Config, Email Templates, or Master Settings</li>
+    <li>Create or manage users</li>
+  </ul>
+</div>
+
+<h2>Step-by-Step Workflows</h2>
+
+<div class="workflow-box">
+  <h4>Workflow 1: How to Start and Complete a Work Order</h4>
+  <ol>
+    <li>Navigate to <strong>Maintenance &gt; Work Orders</strong> in the sidebar.</li>
+    <li>Find the work order assigned to you (status: <strong>Approved</strong>).</li>
+    <li>Click on the work order to open the detail view.</li>
+    <li>Click <strong>Start Work</strong> to change the status to <strong>In Progress</strong>.</li>
+    <li>Record the work performed in the <strong>Work Log</strong> section.</li>
+    <li>If spare parts were used, click <strong>Issue Material</strong> to log store items consumed.</li>
+    <li>Once finished, click <strong>Complete Work Order</strong>.</li>
+    <li>Enter the <strong>Completion Summary</strong> and any follow-up notes.</li>
+    <li>The work order moves to <strong>Completed</strong> status for HOD review.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 2: How to Issue Material from Store</h4>
+  <ol>
+    <li>Navigate to <strong>Store &amp; Inventory</strong> in the sidebar.</li>
+    <li>Click <strong>Issue Material</strong>.</li>
+    <li>Select the <strong>Work Order</strong> or <strong>Ticket</strong> this issuance is for.</li>
+    <li>Search for the required item in the inventory list.</li>
+    <li>Enter the <strong>Quantity</strong> to issue.</li>
+    <li>Confirm the issue &mdash; stock levels will update automatically.</li>
+    <li>The issuance is recorded against the work order for cost tracking.</li>
+  </ol>
+</div>
+
+
+<div class="workflow-box">
+  <h4>Workflow 3: How to Execute Preventive Maintenance</h4>
+  <ol>
+    <li>Navigate to <strong>Maintenance &gt; Preventive Maintenance</strong> in the sidebar.</li>
+    <li>View the PM schedule &mdash; find tasks due today or overdue.</li>
+    <li>Click on a PM task to open it.</li>
+    <li>Click <strong>Start PM</strong> to begin execution.</li>
+    <li>Follow the associated checklist (if linked) by navigating to the PM Checklist.</li>
+    <li>Record readings, observations, and any parts replaced.</li>
+    <li>Click <strong>Complete PM</strong> once all steps are finished.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 4: How to Fill a PM Checklist</h4>
+  <ol>
+    <li>Navigate to <strong>Maintenance &gt; PM Checklists</strong> in the sidebar.</li>
+    <li>Find the checklist linked to your current PM task.</li>
+    <li>Open the checklist &mdash; it will display a list of check items.</li>
+    <li>For each item, mark <strong>Pass</strong>, <strong>Fail</strong>, or <strong>N/A</strong>.</li>
+    <li>Enter <strong>Reading Values</strong> where numeric input is required.</li>
+    <li>Add <strong>Remarks</strong> for any item that failed or needs follow-up.</li>
+    <li>Click <strong>Submit Checklist</strong> to save and link it to the PM record.</li>
+  </ol>
+</div>
+
+<div class="note">
+  <strong>Tip:</strong> Check <strong>Preventive Maintenance</strong> daily for overdue tasks. PM compliance is tracked and reported to management. Completing PMs on time helps maintain the department's compliance score.
+</div>
+
+<div class="footer">Smart Assets &mdash; Role-Based User Guide &bull; Confidential &bull; Generated April 2026</div>
+</body>
+</html>

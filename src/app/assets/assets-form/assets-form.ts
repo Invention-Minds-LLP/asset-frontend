@@ -175,7 +175,19 @@ export class AssetsForm implements OnInit {
     grnDate: null,
     grnValue: null,
     inspectionStatus: "",
-    inspectionRemarks: "",
+
+    // Inspection (DONATION / LEASE / RENTAL)
+    inspectionDoneBy: "",
+    inspectionCondition: "",
+    inspectionRemark: "",
+    physicalInspectionStatus: "",
+    physicalInspectionDate: null,
+    functionalInspectionStatus: "",
+    functionalInspectionDate: null,
+    functionalTestNotes: "",
+
+    // Service coverage
+    serviceCoverageType: "",
 
     // Assignment
     departmentId: null,
@@ -449,6 +461,42 @@ export class AssetsForm implements OnInit {
   inventorySpareOptions: { label: string; value: number }[] = [];
   inventorySearch = "";
 
+  // ── Asset Creation Checklist (mandatory before Basic Details save) ──────────
+  readonly creationChecklist = [
+    { key: 'serial',     label: 'Serial number / asset tag verified and matches physical unit' },
+    { key: 'condition',  label: 'Physical condition inspected and documented' },
+    { key: 'accessories',label: 'All accessories / components accounted for' },
+    { key: 'docs',       label: 'Invoice / GRN / delivery note received and filed' },
+    { key: 'location',   label: 'Storage location / department confirmed' },
+  ];
+  creationChecklistDone: Record<string, boolean> = {};
+
+  get allCreationItemsChecked(): boolean {
+    return this.creationChecklist.every(item => this.creationChecklistDone[item.key]);
+  }
+
+  inspectionConditionOptions = [
+    { label: 'Good', value: 'GOOD' },
+    { label: 'Fair', value: 'FAIR' },
+    { label: 'Sealed (Unopened)', value: 'SEALED' },
+    { label: 'Unsealed', value: 'UNSEALED' },
+    { label: 'Damaged', value: 'DAMAGED' },
+  ];
+
+  inspectionPassFailOptions = [
+    { label: 'Pass', value: 'PASS' },
+    { label: 'Fail', value: 'FAIL' },
+    { label: 'Pending', value: 'PENDING' },
+  ];
+
+  serviceCoverageOptions = [
+    { label: '24/7', value: '24/7' },
+    { label: '8/5', value: '8/5' },
+    { label: '9/6', value: '9/6' },
+    { label: '12/7', value: '12/7' },
+    { label: 'Custom', value: 'CUSTOM' },
+  ];
+
 showReturnChecklistDialog = false;
 selectedReturnTransfer: any = null;
 selectedReturnTransferId: number | null = null;
@@ -717,6 +765,9 @@ private returnLastY = 0;
     if (!form.valid)
       return this.toast("error", "Fill required fields");
 
+    if (!this.allCreationItemsChecked)
+      return this.toast("error", "Complete all checklist items before saving");
+
     this.assetAPI.createAsset(this.asset).subscribe({
       next: res => {
         this.asset.id = res.id;
@@ -791,6 +842,7 @@ private returnLastY = 0;
     this.handoverCondition = '';
     this.pendingAssetImageFile = null;
     this.imagePreviewUrl = null;
+    this.creationChecklistDone = {};
   }
 
   // ================================
@@ -1929,6 +1981,103 @@ returnAsset(row: any) {
       this.subAssetForm.quantity = 1;
     }
   }
+
+  // ── Replace sub-asset ────────────────────────────────────────────────────
+  showReplaceDialog = false;
+  replaceTarget: any = null;
+  replaceSaving = false;
+  replaceForm: any = {};
+
+  get assetTypeOptions() { return this.assetTypes; }
+  get categoryOptions() { return this.categories.map((c: any) => ({ label: c.name, value: c.id })); }
+  get procurementOptions() { return this.procurementModes; }
+  get conditionOptions() {
+    return [
+      { label: 'Working', value: 'WORKING' },
+      { label: 'Partial', value: 'PARTIAL' },
+      { label: 'Not Working', value: 'NOT_WORKING' },
+    ];
+  }
+  get sparePartOptions() { return this.inventorySpareOptions; }
+
+  openReplaceDialog(sub: any) {
+    this.replaceTarget = sub;
+    this.replaceForm = {
+      sourceType: 'INVENTORY_SPARE',
+      sparePartId: null,
+      assetName: '',
+      serialNumber: '',
+      assetType: '',
+      assetCategoryId: null,
+      modeOfProcurement: 'PURCHASE',
+      purchaseCost: null,
+      invoiceNumber: '',
+      purchaseDate: null,
+      cost: null,
+      reason: '',
+      workingCondition: 'WORKING',
+    };
+    this.searchInventorySpares('');
+    this.showReplaceDialog = true;
+  }
+
+  onReplaceSourceChange() {
+    this.replaceForm.sparePartId = null;
+    this.replaceForm.assetName = '';
+    this.replaceForm.serialNumber = '';
+  }
+
+  submitReplace() {
+    if (!this.asset?.assetId || !this.replaceTarget) return;
+    const f = this.replaceForm;
+
+    if (!f.serialNumber?.trim()) { this.toast('error', 'Serial number is required'); return; }
+    if (!f.assetCategoryId) { this.toast('error', 'Category is required'); return; }
+    if (f.sourceType === 'INVENTORY_SPARE' && !f.sparePartId) { this.toast('error', 'Select a spare part'); return; }
+    if (f.sourceType === 'NEW' && (!f.assetName?.trim() || !f.assetType || !f.modeOfProcurement)) {
+      this.toast('error', 'Name, type and procurement mode are required'); return;
+    }
+
+    const payload: any = {
+      sourceType: f.sourceType,
+      serialNumber: f.serialNumber.trim(),
+      assetCategoryId: Number(f.assetCategoryId),
+      cost: f.cost ? Number(f.cost) : null,
+      reason: f.reason || null,
+      workingCondition: f.workingCondition || 'WORKING',
+    };
+
+    if (f.sourceType === 'INVENTORY_SPARE') {
+      payload.sparePartId = Number(f.sparePartId);
+    } else {
+      payload.assetName = f.assetName.trim();
+      payload.assetType = f.assetType;
+      payload.modeOfProcurement = f.modeOfProcurement;
+      if (f.purchaseCost) payload.purchaseCost = Number(f.purchaseCost);
+      if (f.invoiceNumber) payload.invoiceNumber = f.invoiceNumber;
+      if (f.purchaseDate) payload.purchaseDate = f.purchaseDate;
+    }
+
+    this.replaceSaving = true;
+    this.assetAPI.replaceSubAsset(this.asset.assetId, this.replaceTarget.assetId, payload).subscribe({
+      next: () => {
+        setTimeout(() => {
+          this.replaceSaving = false;
+          this.showReplaceDialog = false;
+          this.toast('success', 'Component replaced successfully');
+          this.loadSubAssets();
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => {
+        setTimeout(() => {
+          this.replaceSaving = false;
+          this.toast('error', err?.error?.message || 'Failed to replace component');
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
   searchInventorySpares(query: string) {
     this.inventorySearch = query;
 
@@ -2050,7 +2199,19 @@ returnAsset(row: any) {
       grnDate: null,
       grnValue: null,
       inspectionStatus: "",
-      inspectionRemarks: "",
+
+      // Inspection
+      inspectionDoneBy: "",
+      inspectionCondition: "",
+      inspectionRemark: "",
+      physicalInspectionStatus: "",
+      physicalInspectionDate: null,
+      functionalInspectionStatus: "",
+      functionalInspectionDate: null,
+      functionalTestNotes: "",
+
+      // Service coverage
+      serviceCoverageType: "",
 
       departmentId: null,
       supervisorId: null,

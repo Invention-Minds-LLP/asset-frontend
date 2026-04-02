@@ -1,0 +1,481 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-wrench"></i> Work Orders</h2>
+      <p class="subtitle">OpEx Maintenance & CapEx Projects</p>
+    </div>
+  </div>
+
+  <!-- View toggle -->
+  <div class="view-toggle">
+    <button class="toggle-btn" [class.active]="activeView === 'list'" (click)="activeView = 'list'">
+      <i class="pi pi-list"></i> List
+    </button>
+    <button class="toggle-btn" [class.active]="activeView === 'create'" (click)="openCreate()">
+      <i class="pi pi-plus"></i> Create New
+    </button>
+  </div>
+
+  <!-- ═══════════════════════ LIST VIEW ═══════════════════════ -->
+  @if (activeView === 'list') {
+    <div class="filter-bar">
+      <p-select [options]="statusOptions" [(ngModel)]="filters.status"
+        placeholder="Status" [style]="{'width':'180px'}" (onChange)="applyFilters()"></p-select>
+      <p-select [options]="woTypeOptions" [(ngModel)]="filters.woType"
+        placeholder="Type" [style]="{'width':'150px'}" (onChange)="applyFilters()"></p-select>
+      <p-select [options]="assetOptions" [(ngModel)]="filters.assetId"
+        placeholder="Asset" [filter]="true" [showClear]="true"
+        [style]="{'width':'280px'}" (onChange)="applyFilters()"></p-select>
+      <p-button icon="pi pi-filter-slash" label="Reset" severity="secondary" [text]="true"
+        (onClick)="resetFilters()"></p-button>
+    </div>
+
+    <p-table [value]="workOrders" [loading]="loading" [lazy]="true" [paginator]="true"
+      [rows]="limit" [totalRecords]="totalRecords" (onLazyLoad)="onPageChange($event)"
+      styleClass="p-datatable-sm p-datatable-striped" [rowHover]="true">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>WO Number</th>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Asset</th>
+          <th>Status</th>
+          <th>Priority</th>
+          <th style="text-align:right">Est. Cost</th>
+          <th style="text-align:right">Actual Cost</th>
+          <th style="text-align:center">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-wo>
+        <tr>
+          <td><strong>{{ wo.woNumber || 'WO-' + wo.id }}</strong></td>
+          <td>{{ wo.createdAt | date:'mediumDate' }}</td>
+          <td>
+            <p-tag [value]="wo.woType" [severity]="getTypeSeverity(wo.woType)"></p-tag>
+          </td>
+          <td>{{ wo.asset?.assetName || wo.asset?.assetId || '--' }}</td>
+          <td>
+            <p-tag [value]="getStatusLabel(wo.status)" [severity]="getStatusSeverity(wo.status)"></p-tag>
+          </td>
+          <td>
+            <p-tag [value]="wo.priority || 'MEDIUM'" [severity]="getPrioritySeverity(wo.priority)"></p-tag>
+          </td>
+          <td style="text-align:right">{{ formatCurrency(wo.estimatedCost) }}</td>
+          <td style="text-align:right">{{ formatCurrency(wo.actualCost) }}</td>
+          <td style="text-align:center">
+            <p-button icon="pi pi-eye" [text]="true" [rounded]="true" severity="info"
+              pTooltip="View Details" tooltipPosition="top" (onClick)="viewDetail(wo)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="9" class="text-center">No work orders found.</td></tr>
+      </ng-template>
+    </p-table>
+  }
+
+  <!-- ═══════════════════════ CREATE VIEW ═══════════════════════ -->
+  @if (activeView === 'create') {
+    <div class="create-card">
+      <div class="section-header">
+        <div class="section-title"><i class="pi pi-file-plus"></i> New Work Order</div>
+      </div>
+
+      <div class="form-grid-2col">
+        <div class="form-field">
+          <label>Type *</label>
+          <p-select [options]="[{label:'OpEx (Maintenance)',value:'OPEX'},{label:'CapEx (Project)',value:'CAPEX'}]"
+            [(ngModel)]="woForm.woType" [style]="{'width':'100%'}"></p-select>
+        </div>
+        <div class="form-field">
+          <label>Asset</label>
+          <p-select [options]="assetOptions" [(ngModel)]="woForm.assetId"
+            placeholder="Select asset" [filter]="true" [showClear]="true"
+            [style]="{'width':'100%'}"></p-select>
+        </div>
+        <div class="form-field">
+          <label>Linked Ticket</label>
+          <p-select [options]="ticketOptions" [(ngModel)]="woForm.ticketId"
+            placeholder="Select open ticket (optional)" [filter]="true" [showClear]="true"
+            [style]="{'width':'100%'}" appendTo="body"></p-select>
+        </div>
+        <div class="form-field">
+          <label>Priority</label>
+          <p-select [options]="priorityOptions" [(ngModel)]="woForm.priority"
+            [style]="{'width':'100%'}"></p-select>
+        </div>
+        <div class="form-field">
+          <label>Department</label>
+          <p-select [options]="departmentOptions" [(ngModel)]="woForm.departmentId"
+            placeholder="Select department" [filter]="true" [showClear]="true"
+            [style]="{'width':'100%'}"></p-select>
+        </div>
+        <div class="form-field">
+          <label>Assigned To (Internal)</label>
+          <p-select [options]="employeeOptions" [(ngModel)]="woForm.assignedToId"
+            placeholder="Select employee" [filter]="true" [showClear]="true"
+            [style]="{'width':'100%'}" appendTo="body"></p-select>
+        </div>
+        <div class="form-field">
+          <label>Contractor / External Vendor</label>
+          <input pInputText [(ngModel)]="woForm.contractorName" placeholder="External contractor name (if applicable)" style="width:100%" />
+        </div>
+        <div class="form-field">
+          <label>Estimated Cost</label>
+          <p-inputNumber [(ngModel)]="woForm.estimatedCost" [min]="0" mode="decimal"
+            [minFractionDigits]="2" [style]="{'width':'100%'}" placeholder="0.00"></p-inputNumber>
+        </div>
+        <div class="form-field">
+          <label>Budget Code</label>
+          <input pInputText [(ngModel)]="woForm.budgetCode" placeholder="Budget code" style="width:100%" />
+        </div>
+        <div class="form-field">
+          <label>Scheduled Start</label>
+          <p-datePicker [(ngModel)]="woForm.scheduledStartDate" [showIcon]="true"
+            dateFormat="dd/mm/yy" placeholder="Start date" [style]="{'width':'100%'}"></p-datePicker>
+        </div>
+        <div class="form-field">
+          <label>Scheduled End</label>
+          <p-datePicker [(ngModel)]="woForm.scheduledEndDate" [showIcon]="true"
+            dateFormat="dd/mm/yy" placeholder="End date" [style]="{'width':'100%'}"></p-datePicker>
+        </div>
+        <div class="form-field full-width">
+          <label>Description *</label>
+          <textarea pTextarea [(ngModel)]="woForm.description" [rows]="3" placeholder="Work order description..." style="width:100%"></textarea>
+        </div>
+
+        @if (woForm.woType === 'CAPEX') {
+          <div class="form-field">
+            <label>
+              <input type="checkbox" [(ngModel)]="woForm.capitalizeAsAsset" style="margin-right:0.5rem" />
+              Capitalize as Asset
+            </label>
+          </div>
+          <div class="form-field">
+            <label>Asset Category</label>
+            <p-select [options]="categoryOptions" [(ngModel)]="woForm.categoryId"
+              placeholder="Select category" [filter]="true" [showClear]="true"
+              [style]="{'width':'100%'}"></p-select>
+          </div>
+        }
+      </div>
+
+      <!-- Save button -->
+      <div class="form-actions">
+        <p-button label="Cancel" severity="secondary" icon="pi pi-times" (onClick)="activeView = 'list'"></p-button>
+        <p-button label="Save Work Order" icon="pi pi-check" (onClick)="saveWO()" [loading]="savingWO"></p-button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ═══════════════════════ DETAIL DIALOG ═══════════════════════ -->
+<p-dialog header="Work Order Details" [(visible)]="showDetailDialog" [style]="{'width':'800px'}" [modal]="true">
+  @if (detailWO) {
+    <!-- WO Header Info -->
+    <div class="detail-header">
+      <div class="detail-header-left">
+        <h3>{{ detailWO.woNumber || 'WO-' + detailWO.id }}</h3>
+        <p-tag [value]="detailWO.woType" [severity]="getTypeSeverity(detailWO.woType)"
+          [style]="{'font-size':'0.85rem','padding':'0.25rem 0.6rem'}"></p-tag>
+        <p-tag [value]="getStatusLabel(detailWO.status)" [severity]="getStatusSeverity(detailWO.status)"
+          [style]="{'font-size':'0.9rem','padding':'0.3rem 0.75rem'}"></p-tag>
+      </div>
+      <div class="detail-header-right">
+        <div class="detail-meta">
+          <span><strong>Date:</strong> {{ detailWO.createdAt | date:'mediumDate' }}</span>
+          <span><strong>Priority:</strong>
+            <p-tag [value]="detailWO.priority || 'MEDIUM'" [severity]="getPrioritySeverity(detailWO.priority)"
+              [style]="{'font-size':'0.78rem'}"></p-tag>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Info Grid -->
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">Asset</span>
+        <span class="info-value">{{ detailWO.asset?.assetName || detailWO.asset?.assetId || '--' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Department</span>
+        <span class="info-value">{{ detailWO.department?.name || detailWO.departmentName || '--' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Assigned To</span>
+        <span class="info-value">{{ detailWO.assignedTo?.name || detailWO.contractorName || '--' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Linked Ticket</span>
+        <span class="info-value">{{ detailWO.ticket?.ticketId || '--' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Estimated Cost</span>
+        <span class="info-value">{{ formatCurrency(detailWO.estimatedCost) }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Actual Cost</span>
+        <span class="info-value">{{ formatCurrency(detailWO.actualCost) }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Scheduled Start</span>
+        <span class="info-value">{{ detailWO.scheduledStartDate ? (detailWO.scheduledStartDate | date:'mediumDate') : '--' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Scheduled End</span>
+        <span class="info-value">{{ detailWO.scheduledEndDate ? (detailWO.scheduledEndDate | date:'mediumDate') : '--' }}</span>
+      </div>
+    </div>
+
+    @if (detailWO.description) {
+      <div class="detail-info-row" style="margin-top:0.75rem">
+        <span><strong>Description:</strong> {{ detailWO.description }}</span>
+      </div>
+    }
+    @if (detailWO.budgetCode) {
+      <div class="detail-info-row">
+        <span><strong>Budget Code:</strong> {{ detailWO.budgetCode }}</span>
+      </div>
+    }
+
+    <!-- Material Issues -->
+    @if (detailWO.materialIssues?.length) {
+      <div class="section-header" style="margin-top:1rem">
+        <div class="section-title"><i class="pi pi-box"></i> Material Issues</div>
+      </div>
+      <p-table [value]="detailWO.materialIssues" styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>#</th>
+            <th>Type</th>
+            <th>Item</th>
+            <th>Store</th>
+            <th>Qty</th>
+            <th style="text-align:right">Unit Cost</th>
+            <th style="text-align:right">Total</th>
+            <th>Date</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-mi let-i="rowIndex">
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td><p-tag [value]="mi.issueType === 'SPARE_PART' ? 'Spare Part' : 'Consumable'" [severity]="mi.issueType === 'SPARE_PART' ? 'info' : 'warn'" [style]="{'font-size':'0.72rem'}"></p-tag></td>
+            <td><strong>{{ mi.sparePart?.name || mi.consumable?.name || mi.description || '--' }}</strong>
+              @if (mi.sparePart?.partNumber) { <span class="text-muted"> ({{ mi.sparePart.partNumber }})</span> }
+            </td>
+            <td>{{ mi.store?.name || '--' }}</td>
+            <td>{{ mi.quantity }}</td>
+            <td style="text-align:right">{{ mi.unitCost ? formatCurrency(mi.unitCost) : '--' }}</td>
+            <td style="text-align:right"><strong>{{ mi.totalCost ? formatCurrency(mi.totalCost) : '--' }}</strong></td>
+            <td>{{ mi.issuedAt || mi.createdAt | date:'mediumDate' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+
+    <!-- WCC Section -->
+    @if (detailWO.wcc) {
+      <div class="section-header" style="margin-top:1rem">
+        <div class="section-title"><i class="pi pi-verified"></i> Work Completion Certificate</div>
+        <span class="code-badge" style="margin-left:0.5rem">{{ detailWO.wcc.wccNumber }}</span>
+      </div>
+      <div class="wcc-card">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">WCC Date</span>
+            <span class="info-value">{{ detailWO.wcc.wccDate | date:'mediumDate' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Labor Cost</span>
+            <span class="info-value">{{ formatCurrency(detailWO.wcc.totalLaborCost) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Material Cost</span>
+            <span class="info-value">{{ formatCurrency(detailWO.wcc.totalMaterialCost) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Total Cost</span>
+            <span class="info-value" style="font-weight:700">{{ formatCurrency(detailWO.wcc.totalCost) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Quality Check</span>
+            <span class="info-value">
+              @if (detailWO.wcc.qualityCheckStatus === 'PASS') {
+                <p-tag value="Pass" severity="success"></p-tag>
+              } @else if (detailWO.wcc.qualityCheckStatus === 'FAIL') {
+                <p-tag value="Fail" severity="danger"></p-tag>
+              } @else if (detailWO.wcc.qualityCheckStatus === 'CONDITIONAL') {
+                <p-tag value="Conditional" severity="warn"></p-tag>
+              } @else {
+                --
+              }
+            </span>
+          </div>
+        </div>
+        @if (detailWO.wcc.workSummary) {
+          <div class="detail-info-row" style="margin-top:0.75rem">
+            <span><strong>Work Summary:</strong> {{ detailWO.wcc.workSummary }}</span>
+          </div>
+        }
+        @if (detailWO.wcc.materialsUsedSummary) {
+          <div class="detail-info-row">
+            <span><strong>Materials Used:</strong> {{ detailWO.wcc.materialsUsedSummary }}</span>
+          </div>
+        }
+        @if (detailWO.wcc.qualityRemarks) {
+          <div class="detail-info-row">
+            <span><strong>Quality Remarks:</strong> {{ detailWO.wcc.qualityRemarks }}</span>
+          </div>
+        }
+        @if (detailWO.capitalizedAssetId) {
+          <div class="capitalized-asset">
+            <i class="pi pi-check-circle"></i>
+            <span>Capitalized as Asset ID: <strong>{{ detailWO.capitalizedAssetId }}</strong></span>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <ng-template pTemplate="footer">
+    <div class="dialog-actions">
+      <div class="dialog-actions-left">
+        @if (canCancel()) {
+          <p-button label="Cancel WO" icon="pi pi-ban" severity="danger" [outlined]="true"
+            (onClick)="cancelWO()" [loading]="cancellingWO"></p-button>
+        }
+      </div>
+      <div class="dialog-actions-right">
+        @if (canApprove()) {
+          <p-button label="Approve" icon="pi pi-check" severity="info"
+            (onClick)="approveWO()" [loading]="approvingWO"></p-button>
+        }
+        @if (canStart()) {
+          <p-button label="Start" icon="pi pi-play" severity="info"
+            (onClick)="startWO()" [loading]="startingWO"></p-button>
+        }
+        @if (canIssueMaterial()) {
+          <p-button label="Issue Material" icon="pi pi-box" severity="secondary"
+            (onClick)="openMaterialIssue()"></p-button>
+        }
+        @if (canComplete()) {
+          <p-button label="Complete" icon="pi pi-check-circle" severity="success"
+            (onClick)="completeWO()" [loading]="completingWO"></p-button>
+        }
+        @if (canIssueWCC()) {
+          <p-button label="Issue WCC" icon="pi pi-verified"
+            (onClick)="openWCCDialog()"></p-button>
+        }
+        @if (canClose()) {
+          <p-button label="Close" icon="pi pi-lock" severity="contrast"
+            (onClick)="closeWO()" [loading]="closingWO"></p-button>
+        }
+        <p-button label="Dismiss" severity="secondary" (onClick)="showDetailDialog = false"></p-button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- ═══════════════════════ MATERIAL ISSUE DIALOG ═══════════════════════ -->
+<p-dialog header="Issue Material" [(visible)]="showMaterialDialog" [style]="{'width':'520px'}" [modal]="true">
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Store *</label>
+      <p-select [options]="storeOptions" [(ngModel)]="materialForm.storeId"
+        placeholder="Select store" [filter]="true" [style]="{'width':'100%'}" appendTo="body"></p-select>
+    </div>
+    <div class="form-field">
+      <label>Item Type *</label>
+      <p-select [options]="materialItemTypeOptions" [(ngModel)]="materialForm.issueType"
+        [style]="{'width':'100%'}" appendTo="body"
+        (onChange)="materialForm.sparePartId = null; materialForm.consumableId = null"></p-select>
+    </div>
+    @if (materialForm.issueType === 'SPARE_PART') {
+      <div class="form-field">
+        <label>Spare Part *</label>
+        <p-select [options]="sparePartOptions" [(ngModel)]="materialForm.sparePartId"
+          placeholder="Select spare part" [filter]="true" [showClear]="true"
+          [style]="{'width':'100%'}" appendTo="body"></p-select>
+      </div>
+    }
+    @if (materialForm.issueType === 'CONSUMABLE') {
+      <div class="form-field">
+        <label>Consumable *</label>
+        <p-select [options]="consumableOptions" [(ngModel)]="materialForm.consumableId"
+          placeholder="Select consumable" [filter]="true" [showClear]="true"
+          [style]="{'width':'100%'}" appendTo="body"></p-select>
+      </div>
+    }
+    <div style="display:flex; gap:1rem;">
+      <div class="form-field" style="flex:1">
+        <label>Quantity *</label>
+        <p-inputNumber [(ngModel)]="materialForm.quantity" [min]="1" [style]="{'width':'100%'}"
+          [showButtons]="true"></p-inputNumber>
+      </div>
+      <div class="form-field" style="flex:1">
+        <label>Unit Cost</label>
+        <p-inputNumber [(ngModel)]="materialForm.unitCost" [min]="0" mode="decimal"
+          [minFractionDigits]="2" [style]="{'width':'100%'}" placeholder="0.00"></p-inputNumber>
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Description / Remarks</label>
+      <input pInputText [(ngModel)]="materialForm.description" placeholder="Optional description" style="width:100%" />
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showMaterialDialog = false"></p-button>
+    <p-button label="Issue Material" icon="pi pi-check" (onClick)="issueMaterial()" [loading]="issuingMaterial"
+      [disabled]="!materialForm.storeId || !materialForm.quantity || (materialForm.issueType === 'SPARE_PART' && !materialForm.sparePartId) || (materialForm.issueType === 'CONSUMABLE' && !materialForm.consumableId)"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- ═══════════════════════ WCC DIALOG ═══════════════════════ -->
+<p-dialog header="Work Completion Certificate" [(visible)]="showWCCDialog" [style]="{'width':'560px'}" [modal]="true">
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Work Summary *</label>
+      <textarea pTextarea [(ngModel)]="wccForm.workSummary" [rows]="3" placeholder="Describe the work completed..." style="width:100%"></textarea>
+    </div>
+    <div class="form-field">
+      <label>Materials Used Summary</label>
+      <textarea pTextarea [(ngModel)]="wccForm.materialsUsedSummary" [rows]="2" placeholder="List materials consumed..." style="width:100%"></textarea>
+    </div>
+    <div style="display:flex; gap:1rem;">
+      <div class="form-field" style="flex:1">
+        <label>Labor Cost</label>
+        <p-inputNumber [(ngModel)]="wccForm.totalLaborCost" [min]="0" mode="decimal"
+          [minFractionDigits]="2" [style]="{'width':'100%'}" placeholder="0.00"></p-inputNumber>
+      </div>
+      <div class="form-field" style="flex:1">
+        <label>Material Cost</label>
+        <p-inputNumber [(ngModel)]="wccForm.totalMaterialCost" [min]="0" mode="decimal"
+          [minFractionDigits]="2" [style]="{'width':'100%'}" placeholder="0.00"></p-inputNumber>
+      </div>
+    </div>
+    @if (wccForm.totalLaborCost || wccForm.totalMaterialCost) {
+      <div class="form-field" style="background:#f0fdf4; border:1px solid #86efac; border-radius:6px; padding:0.5rem 0.75rem; font-size:0.88rem; color:#166534;">
+        Total Cost = {{ formatCurrency((wccForm.totalLaborCost ?? 0) + (wccForm.totalMaterialCost ?? 0)) }}
+      </div>
+    }
+    <div class="form-field">
+      <label>Quality Check</label>
+      <p-select [options]="qualityCheckOptions" [(ngModel)]="wccForm.qualityCheckStatus"
+        [style]="{'width':'100%'}" appendTo="body"></p-select>
+    </div>
+    <div class="form-field">
+      <label>Quality Remarks</label>
+      <textarea pTextarea [(ngModel)]="wccForm.qualityRemarks" [rows]="2" placeholder="Quality observations, defects found..." style="width:100%"></textarea>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showWCCDialog = false"></p-button>
+    <p-button label="Issue WCC" icon="pi pi-verified" (onClick)="issueWCC()" [loading]="issuingWCC"
+      [disabled]="!wccForm.workSummary"></p-button>
+  </ng-template>
+</p-dialog>

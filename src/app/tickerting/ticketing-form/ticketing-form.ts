@@ -9,6 +9,7 @@ import { DragAndDrop } from "../../drag-and-drop/drag-and-drop";
 import { CommonModule } from '@angular/common';
 import { Ticketing } from '../../services/tickerting/ticketing';
 import { Assets } from '../../services/assets/assets';
+import { KnowledgeBaseService } from '../../services/knowledge-base/knowledge-base';
 import { ActivatedRoute } from '@angular/router';
 import { ChangeDetectorRef } from '@angular/core';
 import { MessageService } from 'primeng/api';
@@ -43,6 +44,7 @@ export class TicketingForm {
     assetId: '',
     issueType: null as SelectOption | null,
     priority: null as SelectOption | null,
+    workCategory: null as string | null,
     detailedDesc: '',
     location: '',
     status: 'OPEN',
@@ -66,6 +68,11 @@ export class TicketingForm {
   issueType: SelectOption[] = [
     { name: 'Hardware', value: 'hardware' },
     { name: 'Software', value: 'software' },
+  ]
+
+  workCategoryOptions: SelectOption[] = [
+    { name: 'Preventive Maintenance (PM)', value: 'PM' },
+    { name: 'Breakdown / Corrective', value: 'BREAKDOWN' },
   ]
 
 
@@ -112,8 +119,17 @@ export class TicketingForm {
 
 
 
+  // Knowledge base suggestions
+  kbSuggestions: any[] = [];
+  kbLoading = false;
+  showKbSuggestions = false;
+  expandedSuggestion: number | null = null;
+
+  private kbSuggestTimer: any;
+
   constructor(private ticketService: Ticketing, private assetService: Assets, private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef, private toastService: MessageService, private fb: FormBuilder) { }
+    private cdr: ChangeDetectorRef, private toastService: MessageService, private fb: FormBuilder,
+    private kbService: KnowledgeBaseService) { }
 
   ngOnInit() {
     // reactive forms
@@ -188,12 +204,11 @@ export class TicketingForm {
           },
         });
 
-        this.assetService.getAllAssets().subscribe(data => {
-          this.assets = data.map(asset => ({
+        this.assetService.getAllAssetsForDropdown().subscribe((data: any[]) => {
+          this.assets = data.map((asset: any) => ({
             ...asset,
             label: `${asset.assetId} - ${asset.assetName}`
           }));
-          console.log(this.assets)
         });
       }
     }
@@ -217,16 +232,47 @@ export class TicketingForm {
     });
   }
   issueChange() {
-
     const selectedAsset = this.assets.find(asset => asset.id === this.ticket.assetId);
-    console.log(selectedAsset)
     if (selectedAsset) {
       this.ticket.location = selectedAsset.currentLocation;
     } else {
       this.ticket.location = '';
     }
+    this.fetchKbSuggestions();
+  }
 
-    console.log(this.ticket)
+  onDescriptionChange() {
+    clearTimeout(this.kbSuggestTimer);
+    this.kbSuggestTimer = setTimeout(() => this.fetchKbSuggestions(), 800);
+  }
+
+  fetchKbSuggestions() {
+    if (this.isEditMode) return;
+    const issueType = this.ticket.issueType;
+    const description = this.ticket.detailedDesc;
+    const selectedAsset = this.assets.find(a => a.id === this.ticket.assetId);
+    if (!issueType && !description) { this.kbSuggestions = []; return; }
+
+    this.kbLoading = true;
+    this.kbService.suggest({
+      issueType: issueType || undefined,
+      description: description || undefined,
+      assetId: selectedAsset?.assetId || undefined
+    }).subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          this.kbSuggestions = res || [];
+          this.showKbSuggestions = this.kbSuggestions.length > 0;
+          this.kbLoading = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => { this.kbLoading = false; }
+    });
+  }
+
+  toggleSuggestion(index: number) {
+    this.expandedSuggestion = this.expandedSuggestion === index ? null : index;
   }
 
   locationChange(event: string) {

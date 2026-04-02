@@ -127,17 +127,18 @@ export class AuditTrail implements OnInit {
     }
   }
 
-  parseChanges(changes: string | object): any {
-    if (!changes) return null;
+  parseJson(value: string | object): any {
+    if (!value) return null;
     try {
-      return typeof changes === 'string' ? JSON.parse(changes) : changes;
+      return typeof value === 'string' ? JSON.parse(value) : value;
     } catch {
       return null;
     }
   }
 
-  getChangeKeys(changes: any): string[] {
-    const parsed = this.parseChanges(changes);
-    return parsed ? Object.keys(parsed) : [];
+  getChangedFields(log: any): string[] {
+    const oldKeys = Object.keys(this.parseJson(log.oldValue) || {});
+    const newKeys = Object.keys(this.parseJson(log.newValue) || {});
+    return [...new Set([...oldKeys, ...newKeys])];
   }
 }

@@ -1,0 +1,452 @@
+<p-toast />
+
+<div class="sub-assets-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h2>Sub-Assets Management</h2>
+      <p class="subtitle">Manage components, spare parts and replacement history per asset</p>
+    </div>
+  </div>
+
+  <!-- Search bar -->
+  <div class="search-bar">
+    <span class="p-input-icon-left w-full">
+      <i class="pi pi-search"></i>
+      <input
+        pInputText
+        type="text"
+        placeholder="Search by asset name, ID or category..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="onSearch()"
+        class="w-full"
+      />
+    </span>
+  </div>
+
+  <!-- Assets Table -->
+  <p-table
+    [value]="filteredAssets"
+    [loading]="loading"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    styleClass="p-datatable-sm p-datatable-striped"
+    dataKey="id"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width:3rem"></th>
+        <th>Asset ID</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Status</th>
+        <th>Sub-Assets</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-asset>
+      <tr [class.expanded-row]="expandedAssetId === asset.id">
+        <td>
+          <p-button
+            [icon]="expandedAssetId === asset.id ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+            [text]="true"
+            size="small"
+            (click)="toggleExpand(asset)"
+          />
+        </td>
+        <td><code>{{ asset.assetId }}</code></td>
+        <td>{{ asset.assetName }}</td>
+        <td>{{ asset.category?.name || '—' }}</td>
+        <td>
+          <p-tag
+            [value]="asset.status"
+            [severity]="getStatusSeverity(asset.status)"
+          />
+        </td>
+        <td>
+          <span class="sub-count">{{ asset.subAssets?.length ?? 0 }}</span>
+        </td>
+        <td>
+          <div class="row-actions">
+            <p-button
+              label="Add Component"
+              icon="pi pi-plus"
+              size="small"
+              [text]="true"
+              severity="success"
+              (click)="openAddDialog(asset)"
+              pTooltip="Add a sub-asset / component"
+              tooltipPosition="top"
+            />
+            <p-button
+              label="History"
+              icon="pi pi-history"
+              size="small"
+              [text]="true"
+              severity="info"
+              (click)="openHistory(asset)"
+              pTooltip="View replacement history"
+              tooltipPosition="top"
+            />
+          </div>
+        </td>
+      </tr>
+
+      <!-- Expanded sub-assets row -->
+      @if (expandedAssetId === asset.id) {
+        <tr class="sub-row">
+          <td colspan="7">
+            @if (subAssetsLoading) {
+              <div class="sub-loading">
+                <i class="pi pi-spin pi-spinner"></i> Loading components...
+              </div>
+            } @else if (subAssets.length === 0) {
+              <div class="sub-empty">No sub-assets / components linked to this asset.</div>
+            } @else {
+              <div class="sub-table-wrapper">
+                <p-table [value]="subAssets" styleClass="p-datatable-sm sub-table">
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th>Component ID</th>
+                      <th>Name</th>
+                      <th>Serial No.</th>
+                      <th>Status</th>
+                      <th>Condition</th>
+                      <th>Cost</th>
+                      <th>Actions</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-sub>
+                    <tr>
+                      <td><code>{{ sub.assetId }}</code></td>
+                      <td>{{ sub.assetName }}</td>
+                      <td>{{ sub.serialNumber || '—' }}</td>
+                      <td>
+                        <p-tag
+                          [value]="sub.status"
+                          [severity]="getStatusSeverity(sub.status)"
+                        />
+                      </td>
+                      <td>{{ sub.workingCondition || '—' }}</td>
+                      <td>{{ sub.cost != null ? ('₹' + sub.cost) : '—' }}</td>
+                      <td>
+                        @if (sub.status !== 'CONDEMNED' && sub.status !== 'DISPOSED') {
+                          <p-button
+                            label="Replace"
+                            icon="pi pi-sync"
+                            size="small"
+                            severity="warn"
+                            [text]="true"
+                            (click)="openReplaceDialog(sub, asset.assetId)"
+                            pTooltip="Replace this component"
+                            tooltipPosition="top"
+                          />
+                        }
+                      </td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
+            }
+          </td>
+        </tr>
+      }
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="empty-msg">No assets found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- Replacement History Dialog                                      -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<p-dialog
+  header="Replacement History"
+  [(visible)]="showHistoryDialog"
+  [modal]="true"
+  [style]="{ width: '750px' }"
+  [draggable]="false"
+>
+  <div class="dialog-subtitle">{{ historyParentName }}</div>
+
+  @if (historyLoading) {
+    <div class="dialog-loading"><i class="pi pi-spin pi-spinner"></i> Loading...</div>
+  } @else if (historyRecords.length === 0) {
+    <div class="dialog-empty">No replacement records found.</div>
+  } @else {
+    <p-table [value]="historyRecords" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Date</th>
+          <th>Old Component</th>
+          <th>New Component</th>
+          <th>Spare Part</th>
+          <th>Cost</th>
+          <th>Reason</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rec>
+        <tr>
+          <td>{{ rec.replacementDate | date:'dd MMM yyyy' }}</td>
+          <td>{{ rec.oldSubAsset?.assetName || '—' }}</td>
+          <td>{{ rec.newSubAsset?.assetName || '—' }}</td>
+          <td>{{ rec.sparePart?.name || '—' }}</td>
+          <td>{{ rec.cost != null ? ('₹' + rec.cost) : '—' }}</td>
+          <td>{{ rec.reason || '—' }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+
+  <ng-template pTemplate="footer">
+    <p-button label="Close" icon="pi pi-times" [text]="true" (click)="showHistoryDialog = false" />
+  </ng-template>
+</p-dialog>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- Add Sub-Asset Dialog                                            -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<p-dialog
+  header="Add Component"
+  [(visible)]="showAddDialog"
+  [modal]="true"
+  [style]="{ width: '620px' }"
+  [draggable]="false"
+>
+  <div class="dialog-subtitle">Parent: {{ addParentName }}</div>
+
+  <div class="form-grid">
+    <!-- Source type -->
+    <div class="field full-width">
+      <label>Source</label>
+      <p-select
+        [options]="sourceTypeOptions"
+        [(ngModel)]="addForm.sourceType"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Select source"
+        styleClass="w-full"
+        (onChange)="onAddSourceChange()"
+      />
+    </div>
+
+    @if (addForm.sourceType === 'INVENTORY_SPARE') {
+      <div class="field full-width">
+        <label>Spare Part <span class="req">*</span></label>
+        <p-select
+          [options]="sparePartOptions"
+          [(ngModel)]="addForm.sparePartId"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Search spare parts..."
+          [filter]="true"
+          (onFilter)="searchSpareParts($event.filter)"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="field">
+        <label>Serial Number</label>
+        <input pInputText [(ngModel)]="addForm.serialNumber" placeholder="Serial number" class="w-full" />
+      </div>
+    }
+
+    @if (addForm.sourceType === 'NEW') {
+      <div class="field">
+        <label>Component Name <span class="req">*</span></label>
+        <input pInputText [(ngModel)]="addForm.assetName" placeholder="e.g. X-Ray Tube" class="w-full" />
+      </div>
+      <div class="field">
+        <label>Serial Number</label>
+        <input pInputText [(ngModel)]="addForm.serialNumber" placeholder="Serial number" class="w-full" />
+      </div>
+      <div class="field">
+        <label>Asset Type</label>
+        <p-select
+          [options]="assetTypeOptions"
+          [(ngModel)]="addForm.assetType"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select type"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="field">
+        <label>Procurement Type</label>
+        <p-select
+          [options]="procurementOptions"
+          [(ngModel)]="addForm.procurementType"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select procurement"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="field">
+        <label>Purchase Cost (₹)</label>
+        <p-inputnumber [(ngModel)]="addForm.cost" [min]="0" [useGrouping]="false" placeholder="0.00" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label>Invoice Number</label>
+        <input pInputText [(ngModel)]="addForm.invoiceNumber" placeholder="Invoice #" class="w-full" />
+      </div>
+      <div class="field">
+        <label>Purchase Date</label>
+        <input pInputText type="date" [(ngModel)]="addForm.purchaseDate" class="w-full" />
+      </div>
+    }
+
+    <!-- Condition (common) -->
+    <div class="field">
+      <label>Condition</label>
+      <p-select
+        [options]="conditionOptions"
+        [(ngModel)]="addForm.condition"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Select condition"
+        styleClass="w-full"
+      />
+    </div>
+
+    <!-- Notes (common) -->
+    <div class="field full-width">
+      <label>Notes</label>
+      <textarea pTextarea [(ngModel)]="addForm.notes" rows="2" placeholder="Optional notes..." class="w-full"></textarea>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" icon="pi pi-times" [text]="true" severity="secondary" (click)="showAddDialog = false" [disabled]="addSaving" />
+    <p-button label="Add Component" icon="pi pi-check" (click)="submitAdd()" [loading]="addSaving" />
+  </ng-template>
+</p-dialog>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- Replace Sub-Asset Dialog                                        -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<p-dialog
+  header="Replace Component"
+  [(visible)]="showReplaceDialog"
+  [modal]="true"
+  [style]="{ width: '620px' }"
+  [draggable]="false"
+>
+  @if (replaceTarget) {
+    <div class="dialog-subtitle">
+      Replacing: <strong>{{ replaceTarget.assetName }}</strong>
+      @if (replaceTarget.serialNumber) { &nbsp;(SN: {{ replaceTarget.serialNumber }}) }
+    </div>
+  }
+
+  <div class="form-grid">
+    <!-- Source type -->
+    <div class="field full-width">
+      <label>New Component Source</label>
+      <p-select
+        [options]="sourceTypeOptions"
+        [(ngModel)]="replaceForm.sourceType"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Select source"
+        styleClass="w-full"
+        (onChange)="onReplaceSourceChange()"
+      />
+    </div>
+
+    @if (replaceForm.sourceType === 'INVENTORY_SPARE') {
+      <div class="field full-width">
+        <label>Spare Part <span class="req">*</span></label>
+        <p-select
+          [options]="sparePartOptions"
+          [(ngModel)]="replaceForm.sparePartId"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Search spare parts..."
+          [filter]="true"
+          (onFilter)="searchSpareParts($event.filter)"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="field">
+        <label>Serial Number</label>
+        <input pInputText [(ngModel)]="replaceForm.spareSerial" placeholder="Serial number" class="w-full" />
+      </div>
+    }
+
+    @if (replaceForm.sourceType === 'NEW') {
+      <div class="field">
+        <label>Component Name <span class="req">*</span></label>
+        <input pInputText [(ngModel)]="replaceForm.assetName" placeholder="e.g. X-Ray Tube" class="w-full" />
+      </div>
+      <div class="field">
+        <label>Serial Number</label>
+        <input pInputText [(ngModel)]="replaceForm.serialNumber" placeholder="Serial number" class="w-full" />
+      </div>
+      <div class="field">
+        <label>Asset Type</label>
+        <p-select
+          [options]="assetTypeOptions"
+          [(ngModel)]="replaceForm.assetType"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select type"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="field">
+        <label>Procurement Type</label>
+        <p-select
+          [options]="procurementOptions"
+          [(ngModel)]="replaceForm.procurementType"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Select procurement"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="field">
+        <label>Purchase Cost (₹)</label>
+        <p-inputnumber [(ngModel)]="replaceForm.cost" [min]="0" [useGrouping]="false" placeholder="0.00" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label>Invoice Number</label>
+        <input pInputText [(ngModel)]="replaceForm.invoiceNumber" placeholder="Invoice #" class="w-full" />
+      </div>
+      <div class="field">
+        <label>Purchase Date</label>
+        <input pInputText type="date" [(ngModel)]="replaceForm.purchaseDate" class="w-full" />
+      </div>
+    }
+
+    <!-- Common fields -->
+    <div class="field">
+      <label>Replacement Cost (₹)</label>
+      <p-inputnumber [(ngModel)]="replaceForm.replacementCost" [min]="0" [useGrouping]="false" placeholder="Labour / service cost" styleClass="w-full" />
+    </div>
+    <div class="field">
+      <label>Old Component Condition</label>
+      <p-select
+        [options]="conditionOptions"
+        [(ngModel)]="replaceForm.conditionAtReplacement"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Condition when removed"
+        styleClass="w-full"
+      />
+    </div>
+    <div class="field full-width">
+      <label>Reason for Replacement</label>
+      <textarea pTextarea [(ngModel)]="replaceForm.reason" rows="2" placeholder="Why is this component being replaced?" class="w-full"></textarea>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" icon="pi pi-times" [text]="true" severity="secondary" (click)="showReplaceDialog = false" [disabled]="replaceSaving" />
+    <p-button label="Replace Component" icon="pi pi-sync" severity="warn" (click)="submitReplace()" [loading]="replaceSaving" />
+  </ng-template>
+</p-dialog>

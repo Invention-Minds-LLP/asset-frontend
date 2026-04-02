@@ -9,6 +9,7 @@ import { TabViewModule } from 'primeng/tabview';
 import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { EscalationService } from '../../services/escalation/escalation';
 import { Assets } from '../../services/assets/assets';
@@ -26,7 +27,8 @@ import { Assets } from '../../services/assets/assets';
     TabViewModule,
     InputTextModule,
     FloatLabelModule,
-    SelectModule
+    SelectModule,
+    TooltipModule
   ],
   templateUrl: './escalation.html',
   styleUrl: './escalation.css',
@@ -50,6 +52,18 @@ export class Escalation implements OnInit {
   unitOptions = [
     { label: 'Minutes', value: 'MINUTES' },
     { label: 'Hours', value: 'HOURS' }
+  ];
+
+  slaTypeOptions = [
+    { label: 'Both (Internal + Vendor)', value: '' },
+    { label: 'Internal Only', value: 'INTERNAL' },
+    { label: 'Vendor Only', value: 'VENDOR' }
+  ];
+
+  applicableToOptions = [
+    { label: 'Both (Ticket + Maintenance)', value: '' },
+    { label: 'Tickets Only', value: 'TICKET' },
+    { label: 'Maintenance Only', value: 'MAINTENANCE' }
   ];
 
   departmentOptions: { label: string; value: number }[] = [];
@@ -79,7 +93,12 @@ export class Escalation implements OnInit {
       escalateAfterValue: 4,
       escalateAfterUnit: 'HOURS',
       notifyRole: '',
-      notifyEmployeeId: null as number | null
+      notifyEmployeeId: null as number | null,
+      slaType: '',            // '' = both, 'INTERNAL', 'VENDOR'
+      applicableTo: '',       // '' = both, 'TICKET', 'MAINTENANCE'
+      vendorContactName: '',
+      vendorContactEmail: '',
+      vendorContactPhone: ''
     };
   }
 
@@ -144,7 +163,12 @@ export class Escalation implements OnInit {
       escalateAfterValue: row.escalateAfterValue,
       escalateAfterUnit: row.escalateAfterUnit,
       notifyRole: row.notifyRole || '',
-      notifyEmployeeId: row.notifyEmployeeId ?? null
+      notifyEmployeeId: row.notifyEmployeeId ?? null,
+      slaType: row.slaType ?? '',
+      applicableTo: row.applicableTo ?? '',
+      vendorContactName: row.vendorContactName ?? '',
+      vendorContactEmail: row.vendorContactEmail ?? '',
+      vendorContactPhone: row.vendorContactPhone ?? ''
     };
   }
 

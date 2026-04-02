@@ -13,6 +13,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { CheckboxModule } from 'primeng/checkbox';
 import { MessageService } from 'primeng/api';
 import { AssetAuditService } from '../../services/asset-audit/asset-audit';
+import { DatePicker } from 'primeng/datepicker';
 
 @Component({
   selector: 'app-asset-audit',
@@ -20,13 +21,17 @@ import { AssetAuditService } from '../../services/asset-audit/asset-audit';
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule,
     TagModule, ToastModule, DialogModule, InputTextModule,
-    TextareaModule, SelectModule, ProgressBarModule, CheckboxModule
+    TextareaModule, SelectModule, ProgressBarModule, CheckboxModule, DatePicker
   ],
   templateUrl: './asset-audit.html',
   styleUrl: './asset-audit.css',
   providers: [MessageService]
 })
 export class AssetAudit implements OnInit {
+  userRole = localStorage.getItem('role') || '';
+
+  isRole(...roles: string[]): boolean { return roles.includes(this.userRole); }
+
   // List view
   audits: any[] = [];
   loading = false;
@@ -41,8 +46,11 @@ export class AssetAudit implements OnInit {
 
   // Create dialog
   showCreateDialog = false;
-  createForm: any = { name: '', description: '', branchId: null, departmentId: null, categoryId: null };
+  createForm: any = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null };
   createLoading = false;
+
+  startingAudit = false;
+  completingAudit = false;
 
   // Verify dialog
   showVerifyDialog = false;
@@ -96,13 +104,17 @@ export class AssetAudit implements OnInit {
 
   // Create
   openCreateDialog() {
-    this.createForm = { name: '', description: '', branchId: null, departmentId: null, categoryId: null };
+    this.createForm = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null };
     this.showCreateDialog = true;
   }
 
   submitCreate() {
-    if (!this.createForm.name) {
+    if (!this.createForm.auditName) {
       this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Audit name is required' });
+      return;
+    }
+    if (!this.createForm.auditDate) {
+      this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Audit date is required' });
       return;
     }
     this.createLoading = true;
@@ -138,8 +150,15 @@ export class AssetAudit implements OnInit {
     this.auditService.getSummary(id).subscribe({
       next: (res) => {
         setTimeout(() => {
-          this.summary = res;
-          this.selectedAudit = res.audit || this.selectedAudit;
+          const data = res?.data ?? res;
+          this.summary = {
+            totalItems: data.totalAssets ?? 0,
+            verifiedCount: data.verifiedCount ?? 0,
+            missingCount: data.missingCount ?? 0,
+            mismatchCount: data.mismatchCount ?? 0,
+            pendingCount: data.pendingCount ?? 0,
+          };
+          this.selectedAudit = { ...this.selectedAudit, auditName: data.auditName, status: data.status };
           this.detailLoading = false;
           this.cdr.detectChanges();
         });
@@ -155,7 +174,7 @@ export class AssetAudit implements OnInit {
     this.auditService.getById(id).subscribe({
       next: (res) => {
         setTimeout(() => {
-          this.auditItems = res.items || [];
+          this.auditItems = (res.data || res)?.items || [];
           this.cdr.detectChanges();
         });
       },
@@ -173,9 +192,11 @@ export class AssetAudit implements OnInit {
 
   // Start audit
   startAudit(audit: any) {
+    this.startingAudit = true;
     this.auditService.start(audit.id).subscribe({
       next: () => {
         setTimeout(() => {
+          this.startingAudit = false;
           this.messageService.add({ severity: 'success', summary: 'Started', detail: 'Audit is now in progress' });
           this.loadAudits();
           this.cdr.detectChanges();
@@ -183,6 +204,7 @@ export class AssetAudit implements OnInit {
       },
       error: () => {
         setTimeout(() => {
+          this.startingAudit = false;
           this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to start audit' });
           this.cdr.detectChanges();
         });
@@ -192,9 +214,11 @@ export class AssetAudit implements OnInit {
 
   // Complete audit
   completeAudit(audit: any) {
+    this.completingAudit = true;
     this.auditService.complete(audit.id).subscribe({
       next: () => {
         setTimeout(() => {
+          this.completingAudit = false;
           this.messageService.add({ severity: 'success', summary: 'Completed', detail: 'Audit completed' });
           if (this.showDetail) {
             this.loadAuditDetail(audit.id);
@@ -205,6 +229,7 @@ export class AssetAudit implements OnInit {
       },
       error: () => {
         setTimeout(() => {
+          this.completingAudit = false;
           this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to complete audit' });
           this.cdr.detectChanges();
         });

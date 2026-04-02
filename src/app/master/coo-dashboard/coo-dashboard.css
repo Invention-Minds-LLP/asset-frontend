@@ -1,0 +1,102 @@
+.page-container { padding: 1.5rem; }
+.page-header { margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; }
+.page-header h2 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.subtitle { margin: 0.25rem 0 0; color: var(--text-color-secondary); font-size: 0.9rem; }
+
+/* Filter Bar */
+.filter-bar { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.date-filters { display: flex; align-items: flex-end; gap: 0.75rem; flex-wrap: wrap; }
+.filter-field { display: flex; flex-direction: column; gap: 0.25rem; }
+.filter-field label { font-size: 0.8rem; font-weight: 500; color: var(--text-color-secondary); }
+
+/* KPI Grid */
+.kpi-grid { display: grid; gap: 1rem; margin-bottom: 1.25rem; }
+.kpi-6 { grid-template-columns: repeat(6, 1fr); }
+.kpi-5 { grid-template-columns: repeat(5, 1fr); }
+.kpi-4 { grid-template-columns: repeat(4, 1fr); }
+.kpi-3 { grid-template-columns: repeat(3, 1fr); }
+.kpi-grid.compact { margin-bottom: 0.75rem; }
+.kpi-card { border: 1px solid var(--surface-border); border-radius: 10px; padding: 1rem 1.25rem; background: var(--surface-0); }
+.kpi-card.subtle { background: var(--surface-50, var(--surface-0)); }
+.kpi-card.mini { padding: 0.75rem 1rem; }
+.kpi-label { font-size: 0.8rem; color: var(--text-color-secondary); font-weight: 500; margin-bottom: 0.35rem; }
+.kpi-value { font-size: 1.35rem; font-weight: 700; color: var(--text-color); }
+.kpi-value.accent { color: #0369a1; }
+.kpi-value.info { color: #2563eb; }
+.kpi-value.good { color: #16a34a; }
+.kpi-value.warn { color: #d97706; }
+.kpi-value.danger { color: #dc2626; }
+.kpi-value.muted { color: var(--text-color-secondary); }
+.kpi-card.mini .kpi-value { font-size: 1.15rem; }
+
+/* Dashboard sections */
+.dashboard-section { margin-bottom: 1.75rem; }
+.section-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+.section-title { font-size: 1rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 0.4rem; }
+
+/* Code badge */
+.code-badge { background: #e0f2fe; color: #0369a1; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 600; }
+
+/* Stats row */
+.stats-row { display: flex; gap: 2rem; padding: 0.75rem 0.5rem; flex-wrap: wrap; }
+.stat-item { display: flex; align-items: center; gap: 0.5rem; }
+.stat-label { font-size: 0.85rem; color: var(--text-color-secondary); }
+.stat-value { font-size: 1rem; font-weight: 700; color: var(--text-color); }
+.stat-value.good { color: #16a34a; }
+.stat-value.warn { color: #d97706; }
+.stat-value.danger { color: #dc2626; }
+
+/* PM Compliance */
+.pm-summary { margin-bottom: 1rem; }
+.pm-compliance-bar { margin-bottom: 0.75rem; }
+.compliance-label { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+.progress-bar-container { width: 100%; height: 22px; background: var(--surface-100); border-radius: 6px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+.progress-bar.good { background: #16a34a; }
+.progress-bar.warning { background: #d97706; }
+.progress-bar.critical { background: #dc2626; }
+.pm-stats { display: flex; gap: 2rem; font-size: 0.85rem; color: var(--text-color-secondary); }
+.pm-stats strong { color: var(--text-color); }
+.pm-stats strong.danger { color: #dc2626; }
+.pm-stats strong.warn { color: #d97706; }
+
+/* Alert cards */
+.alert-card { position: relative; }
+.alert-card.alert-critical { border-color: #fca5a5; background: #fef2f2; }
+.alert-card.alert-warning { border-color: #fcd34d; background: #fffbeb; }
+.alert-sub { font-size: 0.75rem; color: var(--text-color-secondary); margin-top: 0.25rem; }
+
+/* Value colors (for table cells) */
+.danger { color: #dc2626 !important; }
+.warn { color: #d97706 !important; }
+.good { color: #16a34a !important; }
+
+/* Empty / loading */
+.text-center { text-align: center; padding: 2rem; color: var(--text-color-secondary); }
+
+/* Table overrides */
+::ng-deep .p-datatable .p-datatable-thead > tr > th { background: transparent !important; box-shadow: none !important; }
+::ng-deep .p-datatable .p-datatable-wrapper { border: 1px solid var(--table-border-color) !important; border-radius: 12px; overflow: hidden; }
+::ng-deep .p-datatable-table { font-size: 14px; }
+
+/* Section sub-label */
+.section-sub { font-size: 0.8rem; color: var(--text-color-secondary); margin-left: 0.5rem; }
+
+/* Breach department group */
+.breach-dept-group { margin-bottom: 1.25rem; }
+.breach-dept-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .kpi-6 { grid-template-columns: repeat(3, 1fr); }
+  .kpi-4 { grid-template-columns: repeat(2, 1fr); }
+  .kpi-3 { grid-template-columns: repeat(2, 1fr); }
+  .filter-bar { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 768px) {
+  .kpi-6, .kpi-5, .kpi-4, .kpi-3 { grid-template-columns: 1fr; }
+  .stats-row { flex-direction: column; gap: 0.5rem; }
+  .pm-stats { flex-direction: column; gap: 0.5rem; }
+  .date-filters { flex-direction: column; align-items: stretch; }
+}

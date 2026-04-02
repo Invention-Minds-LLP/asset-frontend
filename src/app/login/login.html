@@ -1,82 +1,120 @@
-<div class="container">
-    <!-- Left: Login Form -->
-    <div class="left-panel">
-      <div class="login-card">
-        <div class="login-header">
-           <div class="logo">
-            <!-- <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
-                <rect width="36" height="36" rx="8" fill="#2C64BB"/>
-                <path d="M6.10423 17.8053C5.62418 16.3075 6.98112 14.8673 8.50482 15.2574L20.1073 18.2277C20.8122 18.4081 21.3634 18.9571 21.5468 19.6612L23.6895 27.8894C24.0628 29.3231 22.8022 30.6509 21.351 30.3524L10.4781 28.1156C9.77083 27.9701 9.19691 27.4547 8.97652 26.7671L6.10423 17.8053Z" fill="white"/>
-                <path d="M26.6074 8.86765C27.3122 9.0481 27.8635 9.59706 28.0468 10.3011L30.1895 18.5287C30.5629 19.9625 29.3021 21.2903 27.851 20.9917L24.6788 20.339C23.939 20.1868 23.3481 19.6308 23.1511 18.9016L23.0745 18.6181C22.8849 17.9161 22.3291 17.3722 21.6231 17.1979L15.96 15.7999C15.2861 15.6335 14.7466 15.1296 14.5348 14.4685L12.6046 8.44504C12.1246 6.94726 13.4816 5.50711 15.0052 5.89721L26.6074 8.86765Z" fill="white"/>
-              </svg> -->
-               <img  class="img-logo" src="./sa_logo.png">
-            <h2 class="logo-text">SMART ASSETS</h2>
-           </div>
-          <h1>Account Log In</h1>
-          <p>Please login to continue to your account</p>
+<div class="login-page">
+  <!-- Animated background -->
+  <div class="bg-grid">
+    <div class="floating-asset asset-1"><i class="pi pi-server"></i></div>
+    <div class="floating-asset asset-2"><i class="pi pi-desktop"></i></div>
+    <div class="floating-asset asset-3"><i class="pi pi-warehouse"></i></div>
+    <div class="floating-asset asset-4"><i class="pi pi-wrench"></i></div>
+    <div class="floating-asset asset-5"><i class="pi pi-box"></i></div>
+    <div class="floating-asset asset-6"><i class="pi pi-database"></i></div>
+    <div class="floating-asset asset-7"><i class="pi pi-chart-bar"></i></div>
+    <div class="floating-asset asset-8"><i class="pi pi-cog"></i></div>
+    <div class="grid-line line-h-1"></div>
+    <div class="grid-line line-h-2"></div>
+    <div class="grid-line line-h-3"></div>
+    <div class="grid-line line-v-1"></div>
+    <div class="grid-line line-v-2"></div>
+    <div class="grid-line line-v-3"></div>
+  </div>
+
+  <!-- Glow orbs -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="glow-orb orb-3"></div>
+
+  <!-- Main content -->
+  <div class="login-container">
+    <!-- Left: 3D Asset showcase -->
+    <div class="showcase-panel">
+      <div class="showcase-content">
+        <!-- 3D rotating cube -->
+        <div class="cube-scene">
+          <div class="cube">
+            <div class="cube-face cube-front"><i class="pi pi-server"></i><span>Track</span></div>
+            <div class="cube-face cube-back"><i class="pi pi-chart-line"></i><span>Analyze</span></div>
+            <div class="cube-face cube-right"><i class="pi pi-wrench"></i><span>Maintain</span></div>
+            <div class="cube-face cube-left"><i class="pi pi-shield"></i><span>Protect</span></div>
+            <div class="cube-face cube-top"><i class="pi pi-chart-bar"></i><span>Optimize</span></div>
+            <div class="cube-face cube-bottom"><i class="pi pi-check-circle"></i><span>Comply</span></div>
+          </div>
+        </div>
+
+        <h1 class="showcase-title">Smart Assets</h1>
+        <p class="showcase-subtitle">Enterprise Asset Intelligence Platform</p>
+
+        <!-- Feature pills -->
+        <div class="feature-pills">
+          <div class="pill pill-1"><i class="pi pi-bolt"></i> Real-time Tracking</div>
+          <div class="pill pill-2"><i class="pi pi-chart-pie"></i> Decision Engine</div>
+          <div class="pill pill-3"><i class="pi pi-indian-rupee"></i> TCO Analytics</div>
+        </div>
+
+        <!-- Stats ribbon -->
+        <div class="stats-ribbon">
+          <div class="stat-item">
+            <span class="stat-number">99.9%</span>
+            <span class="stat-label">Uptime SLA</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number">End-to-End</span>
+            <span class="stat-label">Asset Lifecycle</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number">24/7</span>
+            <span class="stat-label">Monitoring</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Login Form -->
+    <div class="form-panel">
+      <div class="form-card">
+        <div class="form-header">
+          <div class="brand-mark">
+            <img src="./sa_logo.png" alt="Smart Assets" class="brand-logo" />
+          </div>
+          <h2>Welcome Back</h2>
+          <p>Sign in to manage your asset ecosystem</p>
         </div>
 
         <form class="login-form" (ngSubmit)="onSubmit()">
-          <div class="form-group">
-            <input id="EmployeeId" type="text" placeholder="Employee ID" [(ngModel)]="employeeId" name="employeeId"/>
+          <div class="input-group">
+            <div class="input-icon"><i class="pi pi-user"></i></div>
+            <input type="text" placeholder="Employee ID" [(ngModel)]="employeeId" name="employeeId"
+              autocomplete="username" />
           </div>
 
-          <div class="form-group password-wrapper">
-            <input id="password" [type]="passwordFieldType" placeholder="Password" [(ngModel)]="password" name="password"/>
-            <div class="toggle-icon" (click)="togglePassword()">
-              <ng-container *ngIf="passwordFieldType === 'text'; else hideIcon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15">
-                  <path fill="#BEBEBE" d="m.5 7.5l-.464-.186a.5.5 0 0 0 0 .372zm14 0l.464.186a.5.5 0 0 0 0-.372zm-7 4.5c-2.314 0-3.939-1.152-5.003-2.334a9.4 9.4 0 0 1-1.449-2.164l-.08-.18l-.004-.007v-.001L.5 7.5l-.464.186v.002l.003.004l.026.063l.078.173a10.4 10.4 0 0 0 1.61 2.406C2.94 11.653 4.814 13 7.5 13zm-7-4.5l.464.186l.004-.008a3 3 0 0 1 .08-.18a9.4 9.4 0 0 1 1.449-2.164C3.56 4.152 5.186 3 7.5 3V2C4.814 2 2.939 3.348 1.753 4.666a10.4 10.4 0 0 0-1.61 2.406a6 6 0 0 0-.104.236l-.002.004v.001H.035zm7-4.5c2.314 0 3.939 1.152 5.003 2.334a9.4 9.4 0 0 1 1.449 2.164l.08.18l.004.007v.001L14.5 7.5l.464-.186v-.002l-.003-.004l-.026-.063l-.078-.173a10.4 10.4 0 0 0-1.61-2.406C12.06 3.348 10.186 2 7.5 2zm7 4.5l-.464-.186l-.003.008l-.015.035l-.066.145a9.4 9.4 0 0 1-1.449 2.164C11.44 10.848 9.814 12 7.5 12v1c2.686 0 4.561-1.348 5.747-2.665a10.4 10.4 0 0 0 1.61-2.407a6 6 0 0 0 .104-.236l.002-.004v-.001h.001zM7.5 9A1.5 1.5 0 0 1 6 7.5H5A2.5 2.5 0 0 0 7.5 10zM9 7.5A1.5 1.5 0 0 1 7.5 9v1A2.5 2.5 0 0 0 10 7.5zM7.5 6A1.5 1.5 0 0 1 9 7.5h1A2.5 2.5 0 0 0 7.5 5zm0-1A2.5 2.5 0 0 0 5 7.5h1A1.5 1.5 0 0 1 7.5 6z" stroke-width="0.5" stroke="#BEBEBE" />
-                </svg>
-              </ng-container>
-              <ng-template #hideIcon>
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24">
-                  <path fill="none" stroke="#BEBEBE" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 6.362A9.7 9.7 0 0 1 12 5c6.307 0 9.367 5.683 9.91 6.808c.06.123.06.261 0 .385c-.352.728-1.756 3.362-4.41 5.131M14 18.8a10 10 0 0 1-2 .2c-6.307 0-9.367-5.683-9.91-6.808a.44.44 0 0 1 0-.386c.219-.452.84-1.632 1.91-2.885m6 .843A3 3 0 0 1 14.236 14M3 3l18 18" />
-                </svg>
-              </ng-template>
+          <div class="input-group">
+            <div class="input-icon"><i class="pi pi-lock"></i></div>
+            <input [type]="passwordFieldType" placeholder="Password" [(ngModel)]="password" name="password"
+              autocomplete="current-password" />
+            <div class="input-action" (click)="togglePassword()">
+              <i [class]="passwordFieldType === 'password' ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
             </div>
-            
           </div>
 
-
-  <div class="form-group">
-    <button
-      type="submit"
-      class="login-button"
-      [disabled]="!isLoginFormValid() || loading"
-    >
-      {{ loading ? 'Logging in...' : 'Log In' }}
-    </button>
-  </div>
+          <button type="submit" class="submit-btn" [disabled]="!isLoginFormValid() || loading"
+            [class.loading]="loading">
+            <span *ngIf="!loading">
+              <i class="pi pi-sign-in"></i> Sign In
+            </span>
+            <span *ngIf="loading" class="loading-content">
+              <i class="pi pi-spin pi-spinner"></i> Authenticating...
+            </span>
+          </button>
         </form>
-      </div>
-      <div class="footer">
-        <p class="footer-text">© {{currentYear}} All Rights Reserved.</p>
-     </div>
-    </div>
 
-    <!-- Right: Illustration and Quote -->
-    <div class="right-panel">
-      <div class="carousel">
-        <p-carousel 
-        [value]="images"
-        class="my-carousel"
-        [numVisible]="1"
-        [numScroll]="1"
-        [circular]="true"
-        [autoplayInterval]="2000"
-        orientation="horizontal"
-        containerClass="my-carousel">
-      
-          <ng-template pTemplate="item" let-image>
-              <div class="flex justify-center items-center">
-                  <img [src]="image" alt="Carousel Image" style="width: 350px; height: 450px;" class="rounded" />
-              </div>
-          </ng-template>
-      
-      </p-carousel>
+        <div class="form-footer">
+          <div class="security-badge">
+            <i class="pi pi-shield"></i>
+            <span>256-bit SSL Encrypted</span>
+          </div>
+          <p class="copyright">&copy; {{ currentYear }} Smart Assets. All rights reserved.</p>
+        </div>
       </div>
-    
-      <!-- <p class="quote">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p> -->
     </div>
   </div>
+</div>

@@ -1,0 +1,20 @@
+.page-container { padding: 1.5rem; }
+.page-header { margin-bottom: 1.5rem; }
+.page-header h2 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.tab-content { padding: 1rem 0; }
+.section-hint { color: var(--text-color-secondary); font-size: 0.9rem; margin: 0 0 1rem 0; }
+.save-bar { margin-top: 1.25rem; display: flex; justify-content: flex-end; }
+.form-field { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; }
+.form-field label { font-size: 0.85rem; font-weight: 600; color: var(--text-color-secondary); }
+.form-row { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.smtp-form { max-width: 800px; }
+.template-editor { background: var(--surface-ground); border: 1px solid var(--surface-border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; }
+.template-editor h4 { margin: 0 0 1rem 0; }
+.form-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.text-center { text-align: center; padding: 2rem; color: var(--text-color-secondary); }
+::ng-deep .p-togglebutton { font-size: 0.8rem !important; padding: 0.35rem 0.75rem !important; }
+::ng-deep .p-tab { border: none !important; border-radius: 40px !important; }
+::ng-deep .p-tab-active { background: #DBFFE8 !important; border: none !important; color: #00A23D !important; border-radius: 40px !important; }
+::ng-deep .p-tablist-tab-list { gap: 20px !important; }
+::ng-deep .p-datatable .p-datatable-thead > tr > th { background: transparent !important; box-shadow: none !important; }
+::ng-deep .p-datatable .p-datatable-wrapper { border: 1px solid var(--table-border-color) !important; border-radius: 12px; overflow: hidden; }

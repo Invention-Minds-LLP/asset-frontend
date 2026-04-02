@@ -27,6 +27,10 @@ import { Assets } from '../../services/assets/assets';
   providers: [MessageService]
 })
 export class Disposal implements OnInit {
+  userRole = localStorage.getItem('role') || '';
+
+  isRole(...roles: string[]): boolean { return roles.includes(this.userRole); }
+
   disposals: any[] = [];
   loading = false;
   totalRecords = 0;
@@ -64,6 +68,9 @@ export class Disposal implements OnInit {
   reviewForm: any = { committeeMembers: '', committeeRemarks: '' };
   reviewLoading = false;
   selectedDisposalId: number | null = null;
+
+  approvingDisposal = false;
+  rejectingDisposal = false;
 
   // Complete dialog
   showCompleteDialog = false;
@@ -193,9 +200,11 @@ export class Disposal implements OnInit {
 
   // Approve
   approveDisposal(disposal: any) {
+    this.approvingDisposal = true;
     this.disposalService.approve(disposal.id, {}).subscribe({
       next: () => {
         setTimeout(() => {
+          this.approvingDisposal = false;
           this.messageService.add({ severity: 'success', summary: 'Approved', detail: 'Disposal approved' });
           this.loadDisposals();
           this.cdr.detectChanges();
@@ -203,6 +212,7 @@ export class Disposal implements OnInit {
       },
       error: () => {
         setTimeout(() => {
+          this.approvingDisposal = false;
           this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to approve' });
           this.cdr.detectChanges();
         });
@@ -212,9 +222,11 @@ export class Disposal implements OnInit {
 
   // Reject
   rejectDisposal(disposal: any) {
+    this.rejectingDisposal = true;
     this.disposalService.reject(disposal.id, { committeeRemarks: 'Rejected' }).subscribe({
       next: () => {
         setTimeout(() => {
+          this.rejectingDisposal = false;
           this.messageService.add({ severity: 'warn', summary: 'Rejected', detail: 'Disposal rejected' });
           this.loadDisposals();
           this.cdr.detectChanges();
@@ -222,6 +234,7 @@ export class Disposal implements OnInit {
       },
       error: () => {
         setTimeout(() => {
+          this.rejectingDisposal = false;
           this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to reject' });
           this.cdr.detectChanges();
         });

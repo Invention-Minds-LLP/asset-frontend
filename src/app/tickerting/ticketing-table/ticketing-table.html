@@ -234,6 +234,10 @@
                                 <button *ngIf="canCloseFromTable(t)" pButton label="Close" class="small-btn"
                                     (click)="openCloseDialogForTicket(t)">
                                 </button>
+                                                            <button *ngIf="canLogCollection(t)"
+                                    pButton label="Log Collection" class="small-btn btn-start"
+                                    (click)="openCollectionNote(t)">
+                                </button>
                             </td>
                         </tr>
                     </ng-template>
@@ -253,8 +257,9 @@
                             <th>Transfer ID</th>
                             <th>Ticket</th>
                             <th>Asset</th>
+                            <th>Type</th>
                             <th>From Dept</th>
-                            <th>To Dept</th>
+                            <th>Destination</th>
                             <th>Requested By</th>
                             <th>Comment</th>
                             <th>Requested At</th>
@@ -267,8 +272,20 @@
                             <td>{{ r.id }}</td>
                             <td>{{ r.ticket?.ticketId }}</td>
                             <td>{{ r.ticket?.asset?.assetId }} - {{ r.ticket?.asset?.assetName }}</td>
+                            <td>{{ r.transferType | titlecase }}</td>
                             <td>{{ r.fromDepartment?.name }}</td>
-                            <td>{{ r.toDepartment?.name }}</td>
+                            <td>
+                                @if (r.transferType === 'INTERNAL_DEPARTMENT') {
+                                    {{ r.toDepartment?.name || '—' }}
+                                } @else if (r.transferType === 'EXTERNAL_VENDOR') {
+                                    {{ r.vendor?.vendorName || r.vendor?.name || '—' }}
+                                } @else {
+                                    {{ r.serviceCenterName || '—' }}
+                                    @if (r.expectedReturnDate) {
+                                        <br><small>Return by: {{ r.expectedReturnDate | date:'dd-MMM-yyyy' }}</small>
+                                    }
+                                }
+                            </td>
                             <td>{{ r.requestedBy?.name }}</td>
                             <td>{{ r.comment }}</td>
                             <td>{{ r.createdAt | date:'dd-MMM-yyyy' }}</td>
@@ -363,36 +380,52 @@
 </p-dialog>
 
 
-<p-dialog header="Transfer Ticket" [(visible)]="showTransferDialog" [modal]="true" [style]="{ width: '420px' }">
+<p-dialog header="Transfer Ticket" [(visible)]="showTransferDialog" [modal]="true" [style]="{ width: '460px' }">
     <form [formGroup]="transferForm" class="p-fluid">
 
         <div class="field">
             <label>Transfer Type</label>
             <p-select appendTo="body" [options]="[
-          {label:'Internal Department', value:'INTERNAL_DEPARTMENT'},
-          {label:'External Vendor', value:'EXTERNAL_VENDOR'},
-          {label:'External Service', value:'EXTERNAL_SERVICE'}
-        ]" optionLabel="label" optionValue="value" formControlName="transferType" appendTo="body" [filter]="true">
+                {label:'Internal Department', value:'INTERNAL_DEPARTMENT'},
+                {label:'External Vendor (AMC/CMC)', value:'EXTERNAL_VENDOR'},
+                {label:'External Service Center', value:'EXTERNAL_SERVICE'}
+            ]" optionLabel="label" optionValue="value" formControlName="transferType" appendTo="body">
             </p-select>
         </div>
 
-        <div class="field" *ngIf="transferForm.value.transferType === 'INTERNAL_DEPARTMENT'">
-            <label>To Department</label>
-            <p-select appendTo="body" [options]="departments" optionLabel="name" optionValue="id"
-                formControlName="toDepartmentId" placeholder="Select department" appendTo="body" [filter]="true">
-            </p-select>
-        </div>
+        @if (transferForm.value.transferType === 'INTERNAL_DEPARTMENT') {
+            <div class="field">
+                <label>To Department</label>
+                <p-select appendTo="body" [options]="departments" optionLabel="name" optionValue="id"
+                    formControlName="toDepartmentId" placeholder="Select department" appendTo="body" [filter]="true">
+                </p-select>
+            </div>
+        }
 
-        <div class="field" *ngIf="transferForm.value.transferType !== 'INTERNAL_DEPARTMENT'">
-            <label>Vendor</label>
-            <p-select appendTo="body" [options]="vendors" optionLabel="name" optionValue="id" formControlName="vendorId"
-                placeholder="Select vendor" appendTo="body" [filter]="true">
-            </p-select>
-        </div>
+        @if (transferForm.value.transferType === 'EXTERNAL_VENDOR') {
+            <div class="field">
+                <label>Vendor *</label>
+                <p-select appendTo="body" [options]="vendors" optionLabel="name" optionValue="id"
+                    formControlName="vendorId" placeholder="Select vendor" appendTo="body" [filter]="true">
+                </p-select>
+            </div>
+        }
+
+        @if (transferForm.value.transferType === 'EXTERNAL_SERVICE') {
+            <div class="field">
+                <label>Service Center Name *</label>
+                <input pInputText formControlName="serviceCenterName" placeholder="e.g. Siemens Healthineers Chennai" />
+            </div>
+            <div class="field">
+                <label>Expected Return Date</label>
+                <input type="date" pInputText formControlName="expectedReturnDate" />
+            </div>
+        }
 
         <div class="field">
-            <label>Comment</label>
-            <textarea pTextarea rows="3" formControlName="comment"></textarea>
+            <label>Comment *</label>
+            <textarea pTextarea rows="3" formControlName="comment"
+                placeholder="Reason for transfer / work to be done"></textarea>
             <small class="p-error"
                 *ngIf="transferForm.controls['comment'].touched && transferForm.controls['comment'].invalid">
                 Comment is required
@@ -484,15 +517,25 @@
         <button pButton label="Close" [disabled]="closeForm.invalid" (click)="submitCloseFromTable()"></button>
     </ng-template>
 </p-dialog>
-<p-dialog header="Complete Ticket Work" [(visible)]="showCompleteDialog" [modal]="true" [style]="{ width: '420px' }">
+<p-dialog header="Complete Ticket Work" [(visible)]="showCompleteDialog" [modal]="true" [style]="{ width: '520px' }">
     <form [formGroup]="completeForm" class="p-fluid">
         <div class="field">
-            <label>Completion Update</label>
-            <textarea pTextarea rows="4" formControlName="note"></textarea>
+            <label>Completion Note *</label>
+            <textarea pTextarea rows="3" formControlName="note"></textarea>
             <small class="p-error"
                 *ngIf="completeForm.controls['note'].touched && completeForm.controls['note'].invalid">
-                Completion update is required
+                Completion note is required
             </small>
+        </div>
+        <div class="field" style="margin-top:1rem">
+            <label>Root Cause <small style="color:#6b7280">(used for knowledge base suggestions)</small></label>
+            <textarea pTextarea rows="3" formControlName="rootCause"
+                placeholder="What was the underlying cause of this issue?"></textarea>
+        </div>
+        <div class="field" style="margin-top:1rem">
+            <label>Resolution Summary <small style="color:#6b7280">(used for knowledge base suggestions)</small></label>
+            <textarea pTextarea rows="3" formControlName="resolutionSummary"
+                placeholder="How was it fixed? Steps taken to resolve."></textarea>
         </div>
     </form>
 
@@ -563,4 +606,25 @@
         <button pButton label="Cancel" class="p-button-text" (click)="showResolveDialog=false"></button>
         <button pButton label="Resolve" [disabled]="resolveForm.invalid" (click)="submitResolveTicket()"></button>
     </ng-template>
+</p-dialog>
+
+<!-- Collection Note Dialog -->
+<p-dialog header="Log Collection / Handover Note" [(visible)]="showCollectionDialog"
+  [modal]="true" [style]="{width:'480px'}">
+  <div class="p-fluid">
+    <div class="field">
+      <label>Collection Notes *</label>
+      <textarea pTextarea rows="4" [(ngModel)]="collectionNotes"
+        placeholder="Describe what was collected / handed over"></textarea>
+    </div>
+    <div class="field" style="margin-top:1rem">
+      <label>Handover Remarks</label>
+      <textarea pTextarea rows="2" [(ngModel)]="collectionHandoverRemarks"
+        placeholder="Optional handover remarks"></textarea>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancel" class="p-button-text" (click)="showCollectionDialog=false"></button>
+    <button pButton label="Submit" (click)="submitCollectionNote()"></button>
+  </ng-template>
 </p-dialog>

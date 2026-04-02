@@ -84,9 +84,9 @@
             <td><p-tag [value]="row.isActive ? 'Active' : 'Inactive'" [severity]="row.isActive ? 'success' : 'secondary'" /></td>
             <td>
               <div class="action-buttons">
-                <p-button icon="pi pi-list" size="small" severity="info" (onClick)="openAddItems(row.id)" pTooltip="Add Items" />
-                <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="editTemplate(row)" />
-                <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="deleteTemplate(row)" />
+                <p-button icon="pi pi-list" size="small" severity="info" (onClick)="openAddItems(row.id)" pTooltip="Add Items" tooltipPosition="top" />
+                <p-button icon="pi pi-pencil" size="small" severity="secondary" pTooltip="Edit" tooltipPosition="top" (onClick)="editTemplate(row)" />
+                <p-button icon="pi pi-trash" size="small" severity="danger" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteTemplate(row)" />
               </div>
             </td>
           </tr>

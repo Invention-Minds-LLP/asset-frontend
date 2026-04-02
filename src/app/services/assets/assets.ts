@@ -23,6 +23,11 @@ export class Assets {
     return this.http.get<any[]>(`${this.assetsUrl}`);
   }
 
+  /** GET all assets for dropdowns (no role filter — anyone can raise ticket for any asset) */
+  getAllAssetsForDropdown(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.assetsUrl}/all-dropdown`);
+  }
+
   /** GET single asset by ID */
   getAssetById(id: number): Observable<any> {
     return this.http.get<any>(`${this.assetsUrl}/${id}`);
@@ -260,6 +265,14 @@ export class Assets {
   createSubAsset(parentAssetId: string, payload: any): Observable<any> {
     return this.http.post(`${this.subAssetsUrl}/${parentAssetId}/sub-assets`, payload);
   }
+
+  replaceSubAsset(parentAssetId: string, oldSubAssetId: string, payload: any): Observable<any> {
+    return this.http.post(`${this.subAssetsUrl}/${parentAssetId}/sub-assets/${oldSubAssetId}/replace`, payload);
+  }
+
+  getReplacementHistory(parentAssetId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.subAssetsUrl}/${parentAssetId}/replacement-history`);
+  }
   getSpecifications(assetId: number) {
     return this.http.get<any[]>(`${this.assetsUrl}/${assetId}/specifications`);
   }
@@ -347,5 +360,20 @@ export class Assets {
 
   deleteConsumable(id: number) {
     return this.http.delete(`${this.inventoryUrl}/consumables/${id}`);
+  }
+
+  hodApproveAsset(id: number, payload: { decision: string; remarks?: string }): Observable<any> {
+    return this.http.post(`${this.assetsUrl}/${id}/hod-approval`, payload);
+  }
+
+  getDepartmentAssets(departmentId: number, params?: { status?: string; category?: string }): Observable<any> {
+    let httpParams = new HttpParams();
+    if (params?.status) httpParams = httpParams.set('status', params.status);
+    if (params?.category) httpParams = httpParams.set('category', params.category);
+    return this.http.get(`${environment.apiUrl}/departments/${departmentId}/assets`, { params: httpParams });
+  }
+
+  getEmployeeAssets(employeeId: number): Observable<any> {
+    return this.http.get(`${environment.apiUrl}/employees/${employeeId}/assets`);
   }
 }

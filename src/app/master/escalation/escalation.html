@@ -4,7 +4,7 @@
   <div class="page-header">
     <div>
       <h2>Escalation Matrix</h2>
-      <p>Configure automatic ticket escalation rules by priority and department.</p>
+      <p>Configure auto-escalation rules. Set <strong>SLA Type</strong> to target internal breaches, vendor contract breaches, or both. Set <strong>Applies To</strong> to scope rules to tickets, preventive maintenance, or both.</p>
     </div>
     <div class="header-actions">
       <p-button label="Run Auto-Escalation" icon="pi pi-bolt" severity="warn" (onClick)="runAutoEscalation()" />
@@ -80,6 +80,44 @@
           <label>Notify Employee</label>
         </p-floatlabel>
       </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="slaTypeOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.slaType" name="escSlaType" appendTo="body" />
+          <label>SLA Type</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="applicableToOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.applicableTo" name="escApplicableTo" appendTo="body" />
+          <label>Applies To</label>
+        </p-floatlabel>
+      </div>
+
+      <!-- Vendor contact fields — shown when SLA Type = VENDOR -->
+      @if (form.slaType === 'VENDOR') {
+        <div class="field">
+          <p-floatlabel variant="on">
+            <input pInputText [(ngModel)]="form.vendorContactName" name="escVendorName" />
+            <label>Vendor Contact Name</label>
+          </p-floatlabel>
+        </div>
+        <div class="field">
+          <p-floatlabel variant="on">
+            <input pInputText [(ngModel)]="form.vendorContactEmail" name="escVendorEmail" />
+            <label>Vendor Contact Email</label>
+          </p-floatlabel>
+        </div>
+        <div class="field">
+          <p-floatlabel variant="on">
+            <input pInputText [(ngModel)]="form.vendorContactPhone" name="escVendorPhone" />
+            <label>Vendor Contact Phone</label>
+          </p-floatlabel>
+        </div>
+      }
     </div>
     <div class="form-actions">
       <p-button label="Cancel" severity="secondary" (onClick)="reset()" />
@@ -95,10 +133,11 @@
         <th>Priority</th>
         <th>Level</th>
         <th>Escalate After</th>
+        <th>SLA Type</th>
+        <th>Applies To</th>
         <th>Department</th>
         <th>Category</th>
-        <th>Notify Role</th>
-        <th>Notify Employee</th>
+        <th>Notify Role / Employee</th>
         <th>Actions</th>
       </tr>
     </ng-template>
@@ -107,20 +146,29 @@
         <td><p-tag [value]="row.priority" [severity]="getPrioritySeverity(row.priority)" /></td>
         <td><strong>L{{ row.level }}</strong></td>
         <td>{{ row.escalateAfterValue }} {{ row.escalateAfterUnit }}</td>
+        <td>
+          @if (row.slaType === 'INTERNAL') { <p-tag value="Internal" severity="info" /> }
+          @else if (row.slaType === 'VENDOR') { <p-tag value="Vendor" severity="warn" /> }
+          @else { <span>Both</span> }
+        </td>
+        <td>
+          @if (row.applicableTo === 'TICKET') { <span>Tickets</span> }
+          @else if (row.applicableTo === 'MAINTENANCE') { <span>Maintenance</span> }
+          @else { <span>Both</span> }
+        </td>
         <td>{{ row.department?.name || '—' }}</td>
         <td>{{ row.assetCategory?.name || '—' }}</td>
-        <td>{{ row.notifyRole || '—' }}</td>
-        <td>{{ row.notifyEmployee?.name || '—' }}</td>
+        <td>{{ row.notifyRole || row.notifyEmployee?.name || '—' }}</td>
         <td>
           <div class="action-buttons">
-            <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="edit(row)" />
-            <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="delete(row)" />
+            <p-button icon="pi pi-pencil" size="small" severity="secondary" pTooltip="Edit" tooltipPosition="top" (onClick)="edit(row)" />
+            <p-button icon="pi pi-trash" size="small" severity="danger" pTooltip="Delete" tooltipPosition="top" (onClick)="delete(row)" />
           </div>
         </td>
       </tr>
     </ng-template>
     <ng-template pTemplate="emptymessage">
-      <tr><td colspan="8" class="text-center">No escalation rules configured</td></tr>
+      <tr><td colspan="9" class="text-center">No escalation rules configured</td></tr>
     </ng-template>
   </p-table>
 </div>

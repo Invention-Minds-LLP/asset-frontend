@@ -160,7 +160,7 @@
 
             <p-floatlabel variant="on" class="field">
               <p-select inputId="userRole"
-                [options]="[{label:'HOD',value:'HOD'},{label:'ADMIN',value:'ADMIN'},{label:'SUPERVISOR',value:'SUPERVISOR'}, {label:'USER',value:'USER'} ]"
+                [options]="[{label:'Admin',value:'ADMIN'},{label:'CEO / COO',value:'CEO_COO'},{label:'HOD',value:'HOD'},{label:'Supervisor',value:'SUPERVISOR'},{label:'Executive',value:'EXECUTIVE'},{label:'Finance',value:'FINANCE'},{label:'Operations',value:'OPERATIONS'}]"
                 optionLabel="label" optionValue="value" formControlName="role" [filter]="true" appendTo="body"></p-select>
               <label for="userRole">Role</label>
             </p-floatlabel>

@@ -46,4 +46,16 @@ export class ServiceContract {
     q.set('exportCsv', 'true');
     return this.http.get(`${this.base}/all?${q.toString()}`, { responseType: 'blob' });
   }
+
+  getVisits(contractId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/${contractId}/visits`);
+  }
+
+  logVisit(contractId: number, payload: any): Observable<any> {
+    return this.http.post<any>(`${this.base}/${contractId}/visits`, payload);
+  }
+
+  approveVisitCharge(visitId: number, payload: { decision: string }): Observable<any> {
+    return this.http.patch<any>(`${this.base}/visits/${visitId}/approve-charge`, payload);
+  }
 }

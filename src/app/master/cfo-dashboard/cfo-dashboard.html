@@ -1,0 +1,262 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-chart-line"></i> CFO Dashboard</h2>
+      <p class="subtitle">Enterprise Financial Analytics & Asset Intelligence</p>
+    </div>
+    <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadDashboard(); loadTCO(); loadTurnover(); loadIdleCapital(); loadInStoreAging()"
+      [loading]="loadingDashboard" size="small" severity="secondary"></p-button>
+  </div>
+
+  @if (dashboard) {
+    <!-- ── Primary KPI Row ── -->
+    <div class="kpi-grid kpi-5">
+      <div class="kpi-card">
+        <div class="kpi-label">Total CapEx Spend</div>
+        <div class="kpi-value">{{ formatCurrency(dashboard.totalCapex) }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total OpEx Spend</div>
+        <div class="kpi-value">{{ formatCurrency(dashboard.totalOpex) }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Asset Value</div>
+        <div class="kpi-value accent">{{ formatCurrency(dashboard.totalAssetValue) }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Book Value</div>
+        <div class="kpi-value">{{ formatCurrency(dashboard.totalBookValue) }}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Active Assets</div>
+        <div class="kpi-value">{{ dashboard.activeAssets ?? 0 }}</div>
+      </div>
+    </div>
+
+    <!-- ── Secondary KPI Row ── -->
+    <div class="kpi-grid kpi-4">
+      <div class="kpi-card subtle">
+        <div class="kpi-label">Pending POs</div>
+        <div class="kpi-value warn">{{ dashboard.pendingPOs ?? 0 }}</div>
+      </div>
+      <div class="kpi-card subtle">
+        <div class="kpi-label">Open Work Orders</div>
+        <div class="kpi-value warn">{{ dashboard.openWorkOrders ?? 0 }}</div>
+      </div>
+      <div class="kpi-card subtle">
+        <div class="kpi-label">Total Maintenance Cost</div>
+        <div class="kpi-value">{{ formatCurrency(dashboard.totalMaintenanceCost) }}</div>
+      </div>
+      <div class="kpi-card subtle">
+        <div class="kpi-label">Idle Assets</div>
+        <div class="kpi-value danger">{{ dashboard.idleAssetCount ?? idleAssets.length }}</div>
+      </div>
+    </div>
+
+    <!-- ── Monthly Spend ── -->
+    @if (monthlySpend.length) {
+      <div class="dashboard-section">
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-calendar"></i> Monthly Spend (Last 12 Months)</span>
+        </div>
+        <p-table [value]="monthlySpend" stripedRows>
+          <ng-template #header>
+            <tr>
+              <th>Month</th>
+              <th style="text-align:right">CapEx</th>
+              <th style="text-align:right">OpEx</th>
+              <th style="text-align:right">Total</th>
+              <th style="width:30%">Relative</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-row>
+            <tr>
+              <td>{{ row.month }}</td>
+              <td style="text-align:right">{{ formatCurrency(row.capex) }}</td>
+              <td style="text-align:right">{{ formatCurrency(row.opex) }}</td>
+              <td style="text-align:right; font-weight:600;">{{ formatCurrency((row.capex ?? 0) + (row.opex ?? 0)) }}</td>
+              <td>
+                <div class="bar-container">
+                  <div class="bar capex-bar" [style.width.%]="((row.capex ?? 0) / maxMonthlyTotal) * 100"></div>
+                  <div class="bar opex-bar" [style.width.%]="((row.opex ?? 0) / maxMonthlyTotal) * 100"></div>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+        <div class="bar-legend">
+          <span class="legend-item"><span class="legend-dot capex"></span> CapEx</span>
+          <span class="legend-item"><span class="legend-dot opex"></span> OpEx</span>
+        </div>
+      </div>
+    }
+  } @else if (loadingDashboard) {
+    <div class="text-center"><i class="pi pi-spin pi-spinner" style="font-size:2rem"></i></div>
+  }
+
+  <!-- ── TCO by Category ── -->
+  @if (tcoData.length) {
+    <div class="dashboard-section">
+      <div class="section-header">
+        <span class="section-title"><i class="pi pi-money-bill"></i> Total Cost of Ownership by Category</span>
+      </div>
+      <p-table [value]="tcoData" [loading]="loadingTCO" stripedRows>
+        <ng-template #header>
+          <tr>
+            <th>Category</th>
+            <th style="text-align:right">Asset Count</th>
+            <th style="text-align:right">Total TCO</th>
+            <th style="text-align:right">Avg TCO/Asset</th>
+            <th style="width:25%">Relative</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-row>
+          <tr>
+            <td>{{ row.category || row.name }}</td>
+            <td style="text-align:right">{{ row.assetCount ?? 0 }}</td>
+            <td style="text-align:right; font-weight:600;">{{ formatCurrency(row.totalTCO) }}</td>
+            <td style="text-align:right">{{ formatCurrency(row.assetCount ? (row.totalTCO / row.assetCount) : 0) }}</td>
+            <td>
+              <div class="bar-container">
+                <div class="bar tco-bar" [style.width.%]="((row.totalTCO ?? 0) / getMaxTCO()) * 100"></div>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
+
+  <!-- ── Asset Turnover ── -->
+  @if (turnoverData) {
+    <div class="dashboard-section">
+      <div class="section-header">
+        <span class="section-title"><i class="pi pi-sync"></i> Asset Turnover Performance</span>
+      </div>
+      <div class="turnover-grid">
+        <!-- Top 5 -->
+        <div class="turnover-panel">
+          <h4 class="panel-title green"><i class="pi pi-arrow-up"></i> Top 5 Performers</h4>
+          <p-table [value]="topPerformers" [loading]="loadingTurnover" stripedRows>
+            <ng-template #header>
+              <tr>
+                <th>Asset</th>
+                <th>Category</th>
+                <th style="text-align:right">Revenue</th>
+                <th style="text-align:right">Cost</th>
+                <th style="text-align:right">Ratio</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-row>
+              <tr>
+                <td>{{ row.assetName || row.name }}</td>
+                <td>{{ row.category }}</td>
+                <td style="text-align:right">{{ formatCurrency(row.revenue) }}</td>
+                <td style="text-align:right">{{ formatCurrency(row.cost) }}</td>
+                <td style="text-align:right; font-weight:700; color:#16a34a;">{{ row.turnoverRatio?.toFixed(2) ?? '—' }}</td>
+              </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+              <tr><td colspan="5" class="text-center">No data available.</td></tr>
+            </ng-template>
+          </p-table>
+        </div>
+        <!-- Bottom 5 -->
+        <div class="turnover-panel">
+          <h4 class="panel-title red"><i class="pi pi-arrow-down"></i> Bottom 5 Performers</h4>
+          <p-table [value]="bottomPerformers" [loading]="loadingTurnover" stripedRows>
+            <ng-template #header>
+              <tr>
+                <th>Asset</th>
+                <th>Category</th>
+                <th style="text-align:right">Revenue</th>
+                <th style="text-align:right">Cost</th>
+                <th style="text-align:right">Ratio</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-row>
+              <tr>
+                <td>{{ row.assetName || row.name }}</td>
+                <td>{{ row.category }}</td>
+                <td style="text-align:right">{{ formatCurrency(row.revenue) }}</td>
+                <td style="text-align:right">{{ formatCurrency(row.cost) }}</td>
+                <td style="text-align:right; font-weight:700; color:#dc2626;">{{ row.turnoverRatio?.toFixed(2) ?? '—' }}</td>
+              </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+              <tr><td colspan="5" class="text-center">No data available.</td></tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Idle Capital ── -->
+  @if (idleAssets.length) {
+    <div class="dashboard-section">
+      <div class="section-header">
+        <span class="section-title"><i class="pi pi-pause-circle"></i> Idle Capital (Unused Assets)</span>
+      </div>
+      <p-table [value]="idleAssets" [loading]="loadingIdle" [paginator]="true" [rows]="10" stripedRows
+        [rowsPerPageOptions]="[10, 25]" sortField="bookValue" [sortOrder]="-1">
+        <ng-template #header>
+          <tr>
+            <th>Asset ID</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Department</th>
+            <th style="text-align:right">Purchase Cost</th>
+            <th style="text-align:right">Book Value</th>
+            <th style="text-align:right">Days Idle</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-row>
+          <tr>
+            <td><span class="code-badge">{{ row.assetId }}</span></td>
+            <td>{{ row.assetName || row.name }}</td>
+            <td>{{ row.category }}</td>
+            <td>{{ row.department }}</td>
+            <td style="text-align:right">{{ formatCurrency(row.purchaseCost) }}</td>
+            <td style="text-align:right; font-weight:600;">{{ formatCurrency(row.bookValue) }}</td>
+            <td style="text-align:right; font-weight:600;" [class.value-low]="row.daysSinceActivity > 180" [class.value-warn]="row.daysSinceActivity > 90 && row.daysSinceActivity <= 180">
+              {{ row.daysSinceActivity ?? '—' }}
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
+
+  <!-- ── In-Store Aging ── -->
+  @if (inStoreAging.length) {
+    <div class="dashboard-section">
+      <div class="section-header">
+        <span class="section-title"><i class="pi pi-clock"></i> In-Store Aging</span>
+      </div>
+      <p-table [value]="inStoreAging" [loading]="loadingAging" [paginator]="true" [rows]="10" stripedRows
+        [rowsPerPageOptions]="[10, 25]" sortField="daysInStore" [sortOrder]="-1">
+        <ng-template #header>
+          <tr>
+            <th>Asset</th>
+            <th>Category</th>
+            <th style="text-align:right">Cost</th>
+            <th style="text-align:right">Days in Store</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-row>
+          <tr [class]="getAgingSeverity(row.daysInStore)">
+            <td>{{ row.assetName || row.name }}</td>
+            <td>{{ row.category }}</td>
+            <td style="text-align:right">{{ formatCurrency(row.cost ?? row.purchaseCost) }}</td>
+            <td style="text-align:right; font-weight:700;" [class.value-low]="row.daysInStore > 180" [class.value-warn]="row.daysInStore > 90 && row.daysInStore <= 180">
+              {{ row.daysInStore }}
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
+</div>

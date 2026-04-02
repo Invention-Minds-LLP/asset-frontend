@@ -9,6 +9,10 @@ import { InputIconModule } from 'primeng/inputicon';
 import { SkeletonModule } from 'primeng/skeleton';
 import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
+import { SelectModule } from 'primeng/select';
+import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 import { Transferr } from '../services/transfer/transferr';
 
 type FilterField = 'assetName' | 'assetId' | 'requestedBy' | 'transferType' | 'status';
@@ -25,8 +29,12 @@ type FilterField = 'assetName' | 'assetId' | 'requestedBy' | 'transferType' | 's
     InputIconModule,
     SkeletonModule,
     DialogModule,
-    TextareaModule
+    TextareaModule,
+    SelectModule,
+    TagModule,
+    ToastModule
   ],
+  providers: [MessageService],
   templateUrl: './asset-transfer.html',
   styleUrl: './asset-transfer.css'
 })
@@ -51,6 +59,18 @@ export class AssetTransfer {
   approvalReason = '';
   rejectReason = '';
 
+  // Management approval
+  mgmtTransfers: any[] = [];
+  mgmtLoading = false;
+  showMgmtDialog = false;
+  selectedMgmtTransfer: any = null;
+  mgmtDecision = 'APPROVED';
+  mgmtRemarks = '';
+  mgmtDecisionOptions = [
+    { label: 'Approve', value: 'APPROVED' },
+    { label: 'Reject', value: 'REJECTED' }
+  ];
+
   filterOptions: { label: string; value: FilterField }[] = [
     { label: 'Asset Name', value: 'assetName' },
     { label: 'Asset ID', value: 'assetId' },
@@ -59,7 +79,11 @@ export class AssetTransfer {
     { label: 'Status', value: 'status' }
   ];
 
-  constructor(private transferService: Transferr, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private transferService: Transferr,
+    private cdr: ChangeDetectorRef,
+    private messageService: MessageService
+  ) {}
 
   @HostListener('document:click', ['$event'])
   onClickOutside(event: Event) {
@@ -71,6 +95,7 @@ export class AssetTransfer {
 
   ngOnInit() {
     this.refreshList();
+    this.loadMgmtPending();
   }
 
   refreshList() {
@@ -251,6 +276,50 @@ export class AssetTransfer {
           this.refreshList();
           this.cdr.detectChanges();
         });
+      }
+    });
+  }
+
+  loadMgmtPending() {
+    this.mgmtLoading = true;
+    this.transferService.getPendingMgmtApprovals().subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          this.mgmtTransfers = res || [];
+          this.mgmtLoading = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        setTimeout(() => { this.mgmtLoading = false; this.cdr.detectChanges(); });
+      }
+    });
+  }
+
+  openMgmtApprove(item: any) {
+    this.selectedMgmtTransfer = item;
+    this.mgmtDecision = 'APPROVED';
+    this.mgmtRemarks = '';
+    this.showMgmtDialog = true;
+  }
+
+  confirmMgmtApprove() {
+    if (!this.selectedMgmtTransfer) return;
+    this.transferService.managementApproveTransfer(this.selectedMgmtTransfer.id, {
+      decision: this.mgmtDecision,
+      remarks: this.mgmtRemarks
+    }).subscribe({
+      next: () => {
+        setTimeout(() => {
+          this.showMgmtDialog = false;
+          this.selectedMgmtTransfer = null;
+          this.messageService.add({ severity: 'success', summary: 'Done', detail: `Transfer ${this.mgmtDecision.toLowerCase()}` });
+          this.loadMgmtPending();
+          this.cdr.detectChanges();
+        });
+      },
+      error: (e: any) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed' });
       }
     });
   }

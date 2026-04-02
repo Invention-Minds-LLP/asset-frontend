@@ -29,6 +29,33 @@ import { AuditTrail } from './master/audit-trail/audit-trail';
 import { Reports } from './master/reports/reports';
 import { Disposal } from './master/disposal/disposal';
 import { AssetAudit } from './master/asset-audit/asset-audit';
+import { InsuranceManagement } from './master/insurance-management/insurance-management';
+import { WarrantyManagement } from './master/warranty-management/warranty-management';
+import { ServiceContracts } from './master/service-contracts/service-contracts';
+import { DocumentVault } from './master/document-vault/document-vault';
+import { BatchDepreciation } from './master/batch-depreciation/batch-depreciation';
+import { UserActivity } from './master/user-activity/user-activity';
+import { PreventiveMaintenance } from './master/preventive-maintenance/preventive-maintenance';
+import { VendorPerformance } from './master/vendor-performance/vendor-performance';
+import { KnowledgeBase } from './master/knowledge-base/knowledge-base';
+import { NotificationPreferences } from './master/notification-preferences/notification-preferences';
+import { AssetIndent } from './master/asset-indent/asset-indent';
+import { EmployeeExit } from './master/employee-exit/employee-exit';
+import { DepartmentAssets } from './master/department-assets/department-assets';
+import { MyAssets } from './master/my-assets/my-assets';
+import { CostAnalysis } from './master/cost-analysis/cost-analysis';
+import { SubAssets } from './master/sub-assets/sub-assets';
+import { DecisionEngine } from './master/decision-engine/decision-engine';
+import { PurchaseOrders } from './master/purchase-orders/purchase-orders';
+import { GoodsReceipts } from './master/goods-receipts/goods-receipts';
+import { WorkOrders } from './master/work-orders/work-orders';
+import { StoreManagement } from './master/store-management/store-management';
+import { CfoDashboard } from './master/cfo-dashboard/cfo-dashboard';
+import { CooDashboard } from './master/coo-dashboard/coo-dashboard';
+import { TenantConfig } from './master/tenant-config/tenant-config';
+import { RevenueLog } from './master/revenue-log/revenue-log';
+import { EmailTemplates } from './master/email-templates/email-templates';
+import { PmChecklist } from './master/pm-checklist/pm-checklist';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -63,6 +90,34 @@ export const routes: Routes = [
   { path: 'disposal', component: Disposal, canActivate: [authGuard] },
   { path: 'asset-audit', component: AssetAudit, canActivate: [authGuard] },
   { path: 'audit-trail', component: AuditTrail, canActivate: [authGuard] },
+  // ── New feature routes ──────────────────────────────────────────────────────
+  { path: 'insurance-management', component: InsuranceManagement, canActivate: [authGuard] },
+  { path: 'warranty-management', component: WarrantyManagement, canActivate: [authGuard] },
+  { path: 'service-contracts', component: ServiceContracts, canActivate: [authGuard] },
+  { path: 'document-vault', component: DocumentVault, canActivate: [authGuard] },
+  { path: 'batch-depreciation', component: BatchDepreciation, canActivate: [authGuard] },
+  { path: 'user-activity', component: UserActivity, canActivate: [authGuard] },
+  { path: 'preventive-maintenance', component: PreventiveMaintenance, canActivate: [authGuard] },
+  { path: 'vendor-performance', component: VendorPerformance, canActivate: [authGuard] },
+  { path: 'knowledge-base', component: KnowledgeBase, canActivate: [authGuard] },
+  { path: 'notification-preferences', component: NotificationPreferences, canActivate: [authGuard] },
+  { path: 'asset-indent', component: AssetIndent, canActivate: [authGuard] },
+  { path: 'employee-exit', component: EmployeeExit, canActivate: [authGuard] },
+  { path: 'department-assets', component: DepartmentAssets, canActivate: [authGuard] },
+  { path: 'my-assets', component: MyAssets, canActivate: [authGuard] },
+  { path: 'cost-analysis', component: CostAnalysis, canActivate: [authGuard] },
+  { path: 'sub-assets', component: SubAssets, canActivate: [authGuard] },
+  { path: 'decision-engine', component: DecisionEngine, canActivate: [authGuard] },
+  { path: 'purchase-orders', component: PurchaseOrders, canActivate: [authGuard] },
+  { path: 'goods-receipts', component: GoodsReceipts, canActivate: [authGuard] },
+  { path: 'work-orders', component: WorkOrders, canActivate: [authGuard] },
+  { path: 'store-management', component: StoreManagement, canActivate: [authGuard] },
+  { path: 'cfo-dashboard', component: CfoDashboard, canActivate: [authGuard] },
+  { path: 'coo-dashboard', component: CooDashboard, canActivate: [authGuard] },
+  { path: 'tenant-config', component: TenantConfig, canActivate: [authGuard] },
+  { path: 'revenue-log', component: RevenueLog, canActivate: [authGuard] },
+  { path: 'email-templates', component: EmailTemplates, canActivate: [authGuard] },
+  { path: 'pm-checklist', component: PmChecklist, canActivate: [authGuard] },
   {
     path: 'assets/scan/:assetId',
     component: AssetScan

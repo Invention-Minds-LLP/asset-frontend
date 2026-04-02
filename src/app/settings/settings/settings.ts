@@ -72,10 +72,13 @@ export class Settings {
 
   // ===== Employee Form =====
   roleOptions = [
+    { name: 'CEO / COO', value: 'CEO_COO' as EmployeeRole },
     { name: 'HOD', value: 'HOD' as EmployeeRole },
     { name: 'Supervisor', value: 'SUPERVISOR' as EmployeeRole },
     { name: 'Executive', value: 'EXECUTIVE' as EmployeeRole },
-    { name: 'Admin', value: 'ADMIN' as EmployeeRole}
+    { name: 'Finance', value: 'FINANCE' as EmployeeRole },
+    { name: 'Operations', value: 'OPERATIONS' as EmployeeRole },
+    { name: 'Admin', value: 'ADMIN' as EmployeeRole },
   ];
 
   employeeForm!: FormGroup

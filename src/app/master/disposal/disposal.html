@@ -25,8 +25,10 @@
         <th>Disposal Type</th>
         <th>Reason</th>
         <th>Status</th>
-        <th>Estimated Value</th>
-        <th>Actual Value</th>
+        <th>Book Value</th>
+        <th>Est. Scrap</th>
+        <th>Actual Sale</th>
+        <th>Net Gain/Loss</th>
         <th>Requested Date</th>
         <th>Actions</th>
       </tr>
@@ -38,24 +40,28 @@
         <td>{{ d.disposalType }}</td>
         <td class="reason-cell">{{ d.reason }}</td>
         <td><p-tag [value]="d.status" [severity]="getStatusSeverity(d.status)"></p-tag></td>
+        <td>{{ formatCurrency(d.bookValueAtDisposal) }}</td>
         <td>{{ formatCurrency(d.estimatedScrapValue) }}</td>
         <td>{{ formatCurrency(d.actualSaleValue) }}</td>
+        <td [ngStyle]="{'color': d.netGainLoss != null ? (d.netGainLoss >= 0 ? '#16a34a' : '#dc2626') : ''}">
+          {{ d.netGainLoss != null ? formatCurrency(d.netGainLoss) : '—' }}
+        </td>
         <td>{{ d.createdAt | date:'mediumDate' }}</td>
         <td class="action-cell">
-          <p-button *ngIf="d.status === 'REQUESTED'" icon="pi pi-send" label="To Committee" size="small"
+          <p-button *ngIf="d.status === 'REQUESTED' && isRole('HOD', 'ADMIN')" icon="pi pi-send" label="To Committee" size="small"
             severity="info" (onClick)="openReviewDialog(d)"></p-button>
-          <p-button *ngIf="d.status === 'COMMITTEE_REVIEW'" icon="pi pi-check" label="Approve" size="small"
-            severity="success" (onClick)="approveDisposal(d)" class="mr-1"></p-button>
-          <p-button *ngIf="d.status === 'COMMITTEE_REVIEW'" icon="pi pi-times" label="Reject" size="small"
-            severity="danger" (onClick)="rejectDisposal(d)"></p-button>
-          <p-button *ngIf="d.status === 'APPROVED'" icon="pi pi-check-circle" label="Complete" size="small"
+          <p-button *ngIf="d.status === 'COMMITTEE_REVIEW' && isRole('ADMIN')" icon="pi pi-check" label="Approve" size="small"
+            severity="success" (onClick)="approveDisposal(d)" [loading]="approvingDisposal" class="mr-1"></p-button>
+          <p-button *ngIf="d.status === 'COMMITTEE_REVIEW' && isRole('ADMIN')" icon="pi pi-times" label="Reject" size="small"
+            severity="danger" (onClick)="rejectDisposal(d)" [loading]="rejectingDisposal"></p-button>
+          <p-button *ngIf="d.status === 'APPROVED' && isRole('HOD', 'ADMIN')" icon="pi pi-check-circle" label="Complete" size="small"
             severity="success" (onClick)="openCompleteDialog(d)"></p-button>
         </td>
       </tr>
     </ng-template>
 
     <ng-template pTemplate="emptymessage">
-      <tr><td colspan="8" class="text-center">No disposal records found.</td></tr>
+      <tr><td colspan="10" class="text-center">No disposal records found.</td></tr>
     </ng-template>
   </p-table>
 </div>

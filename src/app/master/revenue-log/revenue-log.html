@@ -1,0 +1,739 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-chart-line"></i> Revenue Log &amp; Utilization</h2>
+      <p class="subtitle">Daily Usage Tracking · OEE Analysis · Revenue Insights · Fleet Leaderboard</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ TAB TOGGLE ═══════════════════════ -->
+  <div class="view-toggle">
+    <button class="toggle-btn" [class.active]="activeTab === 'dashboard'" (click)="onTabChange('dashboard')">
+      <i class="pi pi-th-large"></i> Fleet Dashboard
+    </button>
+    <button class="toggle-btn" [class.active]="activeTab === 'asset-detail'" (click)="onTabChange('asset-detail')">
+      <i class="pi pi-search"></i> Asset Detail
+    </button>
+    <button class="toggle-btn" [class.active]="activeTab === 'log-entry'" (click)="onTabChange('log-entry')">
+      <i class="pi pi-pencil"></i> Log Daily Usage
+    </button>
+    <button class="toggle-btn" [class.active]="activeTab === 'leaderboard'" (click)="onTabChange('leaderboard')">
+      <i class="pi pi-trophy"></i> Leaderboard
+    </button>
+  </div>
+
+  <!-- ═══════════════════════ TAB 1: FLEET DASHBOARD ═══════════════════════ -->
+  @if (activeTab === 'dashboard') {
+    @if (loadingDashboard) {
+      <div class="loading-state">
+        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+        <span>Loading fleet dashboard...</span>
+      </div>
+    } @else if (dashboardData) {
+      <!-- KPI row -->
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-oee">
+          <div class="kpi-icon"><i class="pi pi-gauge"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ formatPct(dashboardData.fleetAvgOee) }}</span>
+            <span class="kpi-label">Fleet Avg OEE</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-util">
+          <div class="kpi-icon"><i class="pi pi-chart-bar"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ formatPct(dashboardData.fleetUtilization) }}</span>
+            <span class="kpi-label">Fleet Utilization</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-revenue">
+          <div class="kpi-icon"><i class="pi pi-indian-rupee"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ formatCurrency(dashboardData.totalRevenue30d) }}</span>
+            <span class="kpi-label">Total Revenue (30d)</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-tracked">
+          <div class="kpi-icon"><i class="pi pi-database"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ dashboardData.assetsTracked ?? 0 }}</span>
+            <span class="kpi-label">Assets Tracked</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-missing">
+          <div class="kpi-icon"><i class="pi pi-exclamation-triangle"></i></div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ dashboardData?.missingLogAlerts?.count ?? missingLogs.length }}</span>
+            <span class="kpi-label">Missing Logs Alert</span>
+            <span class="kpi-sub">3+ days without entry</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top 10 Revenue Generators -->
+      <div class="section-header">
+        <span class="section-title"><i class="pi pi-star"></i> Top 10 Revenue Generators</span>
+        <i class="pi pi-info-circle info-icon" pTooltip="Assets generating the highest revenue in the last 30 days" tooltipPosition="top"></i>
+      </div>
+      @if (dashboardData.topRevenue?.length) {
+        <p-table [value]="dashboardData.topRevenue" [rows]="10" styleClass="p-datatable-sm">
+          <ng-template #header>
+            <tr>
+              <th>#</th>
+              <th>Asset ID</th>
+              <th>Asset Name</th>
+              <th>Category</th>
+              <th>Department</th>
+              <th>Revenue (30d)</th>
+              <th>Avg OEE</th>
+              <th>Utilization</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-row let-i="rowIndex">
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td><span style="background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 1px 6px; font-weight: 600; font-size: 0.82rem;">{{ row.assetId }}</span></td>
+              <td>{{ row.assetName }}</td>
+              <td>{{ row.category }}</td>
+              <td>{{ row.department }}</td>
+              <td style="font-weight: 700;">{{ formatCurrency(row.totalRevenue) }}</td>
+              <td><span class="score-pill" [class]="getOeeClass(row.avgOee)">{{ formatPct(row.avgOee) }}</span></td>
+              <td><span [class]="getUtilizationClass(row.utilizationPct)">{{ formatPct(row.utilizationPct) }}</span></td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <div class="text-center">No revenue data available yet.</div>
+      }
+
+      <!-- Top 10 Underutilized Assets -->
+      <div class="section-header">
+        <span class="section-title"><i class="pi pi-exclamation-circle"></i> Top 10 Underutilized Assets</span>
+        <i class="pi pi-info-circle info-icon" pTooltip="Assets with the lowest utilization and estimated revenue loss" tooltipPosition="top"></i>
+      </div>
+      @if (dashboardData.underutilized?.length) {
+        <p-table [value]="dashboardData.underutilized" [rows]="10" styleClass="p-datatable-sm">
+          <ng-template #header>
+            <tr>
+              <th>#</th>
+              <th>Asset ID</th>
+              <th>Asset Name</th>
+              <th>Category</th>
+              <th>Utilization</th>
+              <th>Avg.OEE</th>
+              <th>Potential Revenue Loss</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-row let-i="rowIndex">
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td><span style="background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 1px 6px; font-weight: 600; font-size: 0.82rem;">{{ row.assetId }}</span></td>
+              <td>{{ row.assetName }}</td>
+              <td>{{ row.category }}</td>
+              <td><span class="score-pill" [class]="getUtilizationClass(row.utilizationPct)">{{ formatPct(row.utilizationPct) }}</span></td>
+              <td><span class="score-pill" [class]="getOeeClass(row.avgOee)">{{ formatPct(row.avgOee) }}</span></td>
+              <td style="font-weight: 700; color: #dc2626;">{{ formatCurrency(row.revenueLoss) }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <div class="text-center">No underutilization data available.</div>
+      }
+
+      <!-- Missing Logs Compliance -->
+      @if (missingLogs.length) {
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-exclamation-triangle"></i> Missing Logs Compliance</span>
+          <span class="badge danger">{{ missingLogs.length }}</span>
+          <i class="pi pi-info-circle info-icon" pTooltip="Assets that have not been logged in 3 or more days" tooltipPosition="top"></i>
+        </div>
+        <p-table [value]="missingLogs" [rows]="10" [paginator]="missingLogs.length > 10" styleClass="p-datatable-sm">
+          <ng-template #header>
+            <tr>
+              <th>Asset ID</th>
+              <th>Asset Name</th>
+              <th>Department</th>
+              <th>Last Logged</th>
+              <th>Days Missing</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-row>
+            <tr>
+              <td><span style="background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 1px 6px; font-weight: 600; font-size: 0.82rem;">{{ row.assetId }}</span></td>
+              <td>{{ row.assetName }}</td>
+              <td>{{ row.department }}</td>
+              <td>{{ row.lastLogDate ? (row.lastLogDate | date: 'dd MMM yyyy') : 'Never' }}</td>
+              <td><span style="font-weight: 700; color: #dc2626;">{{ row.daysSinceLastLog ?? '—' }} days</span></td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    } @else {
+      <div class="empty-state">
+        <i class="pi pi-chart-line"></i>
+        <p>No dashboard data available yet. Start logging daily usage to see fleet insights.</p>
+      </div>
+    }
+  }
+
+  <!-- ═══════════════════════ TAB 2: ASSET DETAIL ═══════════════════════ -->
+  @if (activeTab === 'asset-detail') {
+    <div class="asset-selector">
+      <p-select [options]="assetOptions" [(ngModel)]="selectedAssetId"
+        placeholder="Select an asset to view details..." [filter]="true"
+        [style]="{'width': '420px'}"></p-select>
+      <p-button label="Load Details" icon="pi pi-search" (onClick)="selectAsset(selectedAssetId!)"
+        [disabled]="!selectedAssetId" [loading]="loadingDetail"></p-button>
+    </div>
+
+    @if (loadingDetail) {
+      <div class="loading-state">
+        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+        <span>Loading asset details...</span>
+      </div>
+    } @else if (selectedAssetId && !loadingDetail) {
+
+      <!-- Rate Card Summary -->
+      @if (rateCard) {
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-credit-card"></i> Rate Card</span>
+          <p-button icon="pi pi-pencil" label="Edit" [text]="true" size="small" (onClick)="openRateCard()"
+            pTooltip="Edit rate card configuration" tooltipPosition="top"></p-button>
+        </div>
+        <div class="rate-card-bar">
+          <div class="rate-card-item">
+            <span class="rate-card-label">Avg Revenue/Unit <i class="pi pi-info-circle info-icon" pTooltip="Average revenue generated per procedure or unit" tooltipPosition="top"></i></span>
+            <span class="rate-card-value">{{ formatCurrency(rateCard.avgRevenuePerUnit) }}</span>
+          </div>
+          <div class="rate-card-item">
+            <span class="rate-card-label">Planned Hours/Day <i class="pi pi-info-circle info-icon" pTooltip="Target operating hours per day for this asset" tooltipPosition="top"></i></span>
+            <span class="rate-card-value">{{ rateCard.plannedHoursPerDay ?? '--' }} hrs</span>
+          </div>
+          <div class="rate-card-item">
+            <span class="rate-card-label">Target OEE <i class="pi pi-info-circle info-icon" pTooltip="Targeted Overall Equipment Effectiveness" tooltipPosition="top"></i></span>
+            <span class="rate-card-value">{{ formatPct(rateCard.targetOeeScore) }}</span>
+          </div>
+          <div class="rate-card-item">
+            <span class="rate-card-label">Target Utilization <i class="pi pi-info-circle info-icon" pTooltip="Targeted utilization percentage for this asset" tooltipPosition="top"></i></span>
+            <span class="rate-card-value">{{ formatPct(rateCard.targetUtilizationPct) }}</span>
+          </div>
+        </div>
+      } @else {
+        <div class="no-rate-card">
+          <i class="pi pi-credit-card"></i>
+          <p>No rate card configured for this asset.</p>
+          <p-button label="Set Up Rate Card" icon="pi pi-plus" (onClick)="openRateCard()" size="small"></p-button>
+        </div>
+      }
+
+      <!-- Utilization KPI row -->
+      @if (utilization) {
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-chart-bar"></i> Utilization Overview</span>
+          <i class="pi pi-info-circle info-icon" pTooltip="Utilization metrics across 7, 15, and 30 day windows" tooltipPosition="top"></i>
+        </div>
+        <div class="util-grid">
+          @for (period of ['7d', '15d', '30d']; track period) {
+            @let pd = utilization?.windows?.[period];
+            @if (pd) {
+              <div class="util-card">
+                <div class="util-period">{{ period }} Window</div>
+                <div class="util-row">
+                  <span class="util-label">Avg Hours/Day</span>
+                  <span class="util-value">{{ pd.avgHoursPerDay != null ? (pd.avgHoursPerDay | number: '1.1-1') : '--' }}</span>
+                </div>
+                <div class="util-row">
+                  <span class="util-label">Utilization</span>
+                  <span class="util-value" [class]="getUtilizationClass(pd?.utilizationPct)">{{ formatPct(pd?.utilizationPct) }}</span>
+                </div>
+                <div class="util-row">
+                  <span class="util-label">Revenue</span>
+                  <span class="util-value">{{ formatCurrency(pd.totalRevenue) }}</span>
+                </div>
+                <div class="util-row">
+                  <span class="util-label">OEE</span>
+                  <span class="util-value" [class]="getOeeClass(pd.avgOee)">{{ formatPct(pd.avgOee) }}</span>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
+
+      <!-- OEE Breakdown -->
+      @if (oeeData) {
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-gauge"></i> OEE Breakdown</span>
+          <i class="pi pi-info-circle info-icon" pTooltip="Overall Equipment Effectiveness = Availability x Performance x Quality" tooltipPosition="top"></i>
+        </div>
+        <div class="oee-section">
+          <div class="oee-bars">
+            <div class="oee-bar-row">
+              <span class="oee-bar-label">Availability</span>
+              <div class="oee-bar-container">
+                <div class="oee-bar bar-availability" [style.width.%]="oeeData?.averages?.availability ?? 0"></div>
+              </div>
+              <span class="oee-bar-score">{{ formatPct(oeeData?.averages?.availability) }}</span>
+            </div>
+            <div class="oee-bar-row">
+              <span class="oee-bar-label">Performance</span>
+              <div class="oee-bar-container">
+                <div class="oee-bar bar-performance" [style.width.%]="oeeData?.averages?.performance ?? 0"></div>
+              </div>
+              <span class="oee-bar-score">{{ formatPct(oeeData?.averages?.performance) }}</span>
+            </div>
+            <div class="oee-bar-row">
+              <span class="oee-bar-label">Quality</span>
+              <div class="oee-bar-container">
+                <div class="oee-bar bar-quality" [style.width.%]="oeeData?.averages?.quality ?? 0"></div>
+              </div>
+              <span class="oee-bar-score">{{ formatPct(oeeData?.averages?.quality) }}</span>
+            </div>
+          </div>
+          <div class="oee-combined">
+            <span class="oee-combined-score" [class]="getOeeClass(oeeData?.averages?.oee)">{{ formatPct(oeeData?.averages?.oee) }}</span>
+            <div>
+              <div class="oee-combined-label">Combined OEE</div>
+              <p-tag [value]="getOeeLabel(oeeData?.averages?.oee)" [severity]="getOeeSeverity(oeeData?.averages?.oee)"></p-tag>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Revenue Summary -->
+      @if (revenueSummary) {
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-indian-rupee"></i> Revenue Summary</span>
+          <i class="pi pi-info-circle info-icon" pTooltip="Revenue metrics: actual, estimated, per-hour, and projected monthly revenue" tooltipPosition="top"></i>
+        </div>
+        <div class="revenue-grid">
+          <div class="revenue-card">
+            <div class="revenue-label">Actual Revenue <i class="pi pi-info-circle info-icon" pTooltip="Total revenue recorded from daily usage logs" tooltipPosition="top"></i></div>
+            <div class="revenue-value green">{{ formatCurrency(revenueSummary.monthlyTotals?.actual) }}</div>
+          </div>
+          <div class="revenue-card">
+            <div class="revenue-label">Estimated Revenue <i class="pi pi-info-circle info-icon" pTooltip="Revenue estimated based on rate card and procedure counts" tooltipPosition="top"></i></div>
+            <div class="revenue-value">{{ formatCurrency(revenueSummary.monthlyTotals?.estimated) }}</div>
+          </div>
+          <div class="revenue-card">
+            <div class="revenue-label">Revenue / Hour <i class="pi pi-info-circle info-icon" pTooltip="Average revenue generated per operating hour" tooltipPosition="top"></i></div>
+            <div class="revenue-value">{{ formatCurrency(revenueSummary.revenuePerHour) }}</div>
+          </div>
+          <div class="revenue-card">
+            <div class="revenue-label">Downtime Revenue Loss <i class="pi pi-info-circle info-icon" pTooltip="Revenue lost due to equipment downtime" tooltipPosition="top"></i></div>
+            <div class="revenue-value red">{{ formatCurrency(revenueSummary.revenueLossFromDowntime) }}</div>
+          </div>
+        </div>
+        <div class="revenue-grid" style="grid-template-columns: 1fr;">
+          <div class="revenue-card">
+            <div class="revenue-label">Projected Monthly Revenue <i class="pi pi-info-circle info-icon" pTooltip="Projected revenue for the full month based on current trends" tooltipPosition="top"></i></div>
+            <div class="revenue-value green" style="font-size: 1.5rem;">{{ formatCurrency(revenueSummary.projectedMonthlyRevenue) }}</div>
+          </div>
+        </div>
+      }
+
+      <div class="two-col">
+        <!-- Downtime Analysis -->
+        <div>
+          @if (downtimeData?.breakdown?.length) {
+            <div class="section-header">
+              <span class="section-title"><i class="pi pi-clock"></i> Downtime Analysis</span>
+              <i class="pi pi-info-circle info-icon" pTooltip="Downtime hours grouped by type with percentage distribution" tooltipPosition="top"></i>
+            </div>
+            <div class="downtime-grid">
+              @for (dt of downtimeData.breakdown; track dt.type) {
+                <div class="downtime-row">
+                  <span class="downtime-type">{{ dt.type }}</span>
+                  <div class="downtime-bar-container">
+                    <div class="downtime-bar" [style.width.%]="downtimeData.totalDowntimeHours > 0 ? (dt.totalHours / downtimeData.totalDowntimeHours * 100) : 0"></div>
+                  </div>
+                  <span class="downtime-hours">{{ dt.totalHours }} hrs</span>
+                  <span class="downtime-pct">{{ downtimeData.totalDowntimeHours > 0 ? formatPct(dt.totalHours / downtimeData.totalDowntimeHours * 100) : '0%' }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Shift Analysis -->
+        <div>
+          @if (shiftData?.shifts?.length) {
+            <div class="section-header">
+              <span class="section-title"><i class="pi pi-clock"></i> Shift Analysis</span>
+              <i class="pi pi-info-circle info-icon" pTooltip="Comparison of operating hours and revenue across shifts" tooltipPosition="top"></i>
+            </div>
+            <div class="shift-grid">
+              @for (s of shiftData.shifts; track s.shift) {
+                <div class="shift-card">
+                  <div class="shift-name">{{ s.shift }}</div>
+                  <div class="shift-stat">
+                    <span class="shift-stat-label">Avg Hours/Day</span>
+                    <span class="shift-stat-value">{{ s.avgHoursPerDay }}</span>
+                  </div>
+                  <div class="shift-stat">
+                    <span class="shift-stat-label">Est. Revenue</span>
+                    <span class="shift-stat-value">{{ formatCurrency(s.estimatedRevenue) }}</span>
+                  </div>
+                  <div class="shift-bar-container">
+                    <div class="shift-bar" [class]="'shift-' + ($index + 1)" [style.width.%]="s.revenuePct ?? 0"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Daily Usage Log Table -->
+      <div class="section-header">
+        <span class="section-title"><i class="pi pi-list"></i> Daily Usage Logs</span>
+        <p-button icon="pi pi-plus" label="Add Log" size="small" (onClick)="openLogEntry()"
+          pTooltip="Log daily usage for this asset" tooltipPosition="top"></p-button>
+      </div>
+      @if (dailyLogs.length) {
+        <p-table [value]="dailyLogs" [rows]="10" [paginator]="dailyLogs.length > 10" [rowsPerPageOptions]="[10, 25, 50]" styleClass="p-datatable-sm">
+          <ng-template #header>
+            <tr>
+              <th>Date</th>
+              <th>Hours Used</th>
+              <th>Procedures</th>
+              <th>Patients</th>
+              <th>Revenue</th>
+              <th>OEE</th>
+              <th>Downtime</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-log>
+            <tr>
+              <td>{{ log.logDate | date: 'dd MMM yyyy' }}</td>
+              <td>{{ log.hoursUsed ?? '--' }}</td>
+              <td>{{ log.procedureCount ?? '--' }}</td>
+              <td>{{ log.patientsServed ?? '--' }}</td>
+              <td style="font-weight: 600;">{{ formatCurrency(log.revenueGenerated ?? log.estimatedRevenue) }}</td>
+              <td><span class="score-pill" [class]="getOeeClass(log.oeeScore)">{{ formatPct(log.oeeScore) }}</span></td>
+              <td>{{ log.downtimeHours != null ? (log.downtimeHours + ' hrs') : '--' }}</td>
+              <td>
+                @if (log.status === 'VERIFIED') {
+                  <p-tag value="Verified" severity="success"></p-tag>
+                } @else if (log.status === 'FLAGGED') {
+                  <p-tag value="Flagged" severity="danger"></p-tag>
+                } @else {
+                  <p-tag value="Pending" severity="warn"></p-tag>
+                }
+              </td>
+              <td>
+                @if (log.status !== 'VERIFIED') {
+                  <p-button icon="pi pi-check" [text]="true" severity="success" size="small" (onClick)="verifyLog(log.id)"
+                    pTooltip="Verify this log entry" tooltipPosition="top"></p-button>
+                }
+                <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small" (onClick)="deleteLog(log.id)"
+                  pTooltip="Delete this log entry" tooltipPosition="top"></p-button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <div class="text-center">No daily logs recorded for this asset yet.</div>
+      }
+    } @else if (!selectedAssetId) {
+      <div class="empty-state">
+        <i class="pi pi-search"></i>
+        <p>Select an asset from the dropdown above to view its detailed utilization and revenue data.</p>
+      </div>
+    }
+  }
+
+  <!-- ═══════════════════════ TAB 3: LOG DAILY USAGE ═══════════════════════ -->
+  @if (activeTab === 'log-entry') {
+    <div class="asset-selector">
+      <p-select [options]="assetOptions" [(ngModel)]="selectedAssetId"
+        placeholder="Select asset to log usage..." [filter]="true"
+        [style]="{'width': '420px'}"
+        (onChange)="selectedAssetId ? selectAsset(selectedAssetId) : null"></p-select>
+    </div>
+
+    @if (selectedAssetId) {
+      <!-- Rate card info -->
+      @if (rateCard) {
+        <div class="rate-card-bar" style="margin-bottom: 1.5rem;">
+          <div class="rate-card-item">
+            <span class="rate-card-label">Planned Hours/Day</span>
+            <span class="rate-card-value">{{ rateCard.plannedHoursPerDay ?? '--' }} hrs</span>
+          </div>
+          <div class="rate-card-item">
+            <span class="rate-card-label">Revenue/Unit</span>
+            <span class="rate-card-value">{{ formatCurrency(rateCard.avgRevenuePerUnit) }}</span>
+          </div>
+          <div class="rate-card-item">
+            <span class="rate-card-label">Target OEE</span>
+            <span class="rate-card-value">{{ formatPct(rateCard.targetOeeScore) }}</span>
+          </div>
+          <div class="rate-card-item">
+            <span class="rate-card-label">Target Utilization</span>
+            <span class="rate-card-value">{{ formatPct(rateCard.targetUtilizationPct) }}</span>
+          </div>
+        </div>
+      }
+
+      <div class="form-grid">
+        <!-- Row 1: Date & Hours -->
+        <div class="form-row">
+          <div class="form-field">
+            <label>Date</label>
+            <p-datepicker [(ngModel)]="logForm.logDate" dateFormat="dd/mm/yy" [showIcon]="true"></p-datepicker>
+          </div>
+          <div class="form-field">
+            <label>Hours Used</label>
+            <p-inputnumber [(ngModel)]="logForm.hoursUsed" [min]="0" [max]="24" [minFractionDigits]="1" placeholder="e.g. 8.5"></p-inputnumber>
+          </div>
+        </div>
+
+        <!-- Row 2: Procedures & Patients -->
+        <div class="form-row">
+          <div class="form-field">
+            <label>Procedure Count</label>
+            <p-inputnumber [(ngModel)]="logForm.procedureCount" [min]="0" placeholder="e.g. 12"></p-inputnumber>
+          </div>
+          <div class="form-field">
+            <label>Patients Served</label>
+            <p-inputnumber [(ngModel)]="logForm.patientsServed" [min]="0" placeholder="e.g. 10"></p-inputnumber>
+          </div>
+        </div>
+
+        <!-- Row 3: Shift Hours -->
+        <div class="form-row">
+          <div class="form-field">
+            <label>Shift 1 Hours</label>
+            <p-inputnumber [(ngModel)]="logForm.shift1Hours" [min]="0" [max]="8" [minFractionDigits]="1" placeholder="0.0"></p-inputnumber>
+          </div>
+          <div class="form-field">
+            <label>Shift 2 Hours</label>
+            <p-inputnumber [(ngModel)]="logForm.shift2Hours" [min]="0" [max]="8" [minFractionDigits]="1" placeholder="0.0"></p-inputnumber>
+          </div>
+          <div class="form-field">
+            <label>Shift 3 Hours</label>
+            <p-inputnumber [(ngModel)]="logForm.shift3Hours" [min]="0" [max]="8" [minFractionDigits]="1" placeholder="0.0"></p-inputnumber>
+          </div>
+        </div>
+
+        <!-- Row 4: Revenue -->
+        <div class="form-row">
+          <div class="form-field">
+            <label>Revenue Generated</label>
+            <p-inputnumber [(ngModel)]="logForm.revenueGenerated" [min]="0" mode="currency" currency="INR" locale="en-IN" placeholder="0.00"></p-inputnumber>
+          </div>
+        </div>
+
+        <!-- Row 5: Downtime -->
+        <div class="form-row">
+          <div class="form-field">
+            <label>Downtime Hours</label>
+            <p-inputnumber [(ngModel)]="logForm.downtimeHours" [min]="0" [max]="24" [minFractionDigits]="1" placeholder="0.0"></p-inputnumber>
+          </div>
+          <div class="form-field">
+            <label>Downtime Type</label>
+            <p-select [options]="downtimeTypeOptions" [(ngModel)]="logForm.downtimeType" placeholder="Select type..." [showClear]="true"></p-select>
+          </div>
+        </div>
+
+        <!-- Row 6: Downtime Remarks -->
+        <div class="form-row">
+          <div class="form-field">
+            <label>Downtime Remarks</label>
+            <textarea pTextarea [(ngModel)]="logForm.downtimeRemarks" rows="2" placeholder="Describe reason for downtime..."></textarea>
+          </div>
+        </div>
+
+        <!-- Row 7: Condition & Remarks -->
+        <div class="form-row">
+          <div class="form-field">
+            <label>Condition After Use</label>
+            <p-select [options]="conditionOptions" [(ngModel)]="logForm.conditionAfterUse" placeholder="Select condition..."></p-select>
+          </div>
+          <div class="form-field">
+            <label>Remarks</label>
+            <textarea pTextarea [(ngModel)]="logForm.remarks" rows="2" placeholder="Any additional remarks..."></textarea>
+          </div>
+        </div>
+
+        <!-- Auto-calculated preview -->
+        @if (estimatedRevenue != null || calcOee != null) {
+          <div class="calc-preview">
+            <div class="calc-preview-title">Auto-Calculated Preview</div>
+            @if (estimatedRevenue != null) {
+              <div class="calc-preview-row">
+                <span>Estimated Revenue</span>
+                <span style="font-weight: 700;">{{ formatCurrency(estimatedRevenue) }}</span>
+              </div>
+            }
+            @if (calcAvailability != null) {
+              <div class="calc-preview-row">
+                <span>Availability %</span>
+                <span style="font-weight: 700;">{{ formatPct(calcAvailability) }}</span>
+              </div>
+            }
+            @if (calcPerformance != null) {
+              <div class="calc-preview-row">
+                <span>Performance %</span>
+                <span style="font-weight: 700;">{{ formatPct(calcPerformance) }}</span>
+              </div>
+            }
+            @if (calcOee != null) {
+              <div class="calc-preview-row">
+                <span>OEE</span>
+                <span style="font-weight: 700;" [class]="getOeeClass(calcOee)">{{ formatPct(calcOee) }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Submit -->
+        <div style="margin-top: 0.75rem;">
+          <p-button label="Submit Daily Log" icon="pi pi-check" (onClick)="saveLog()"
+            [loading]="savingLog" [disabled]="!logForm.hoursUsed"></p-button>
+        </div>
+      </div>
+    } @else {
+      <div class="empty-state">
+        <i class="pi pi-pencil"></i>
+        <p>Select an asset above to log its daily usage data.</p>
+      </div>
+    }
+  }
+
+  <!-- ═══════════════════════ TAB 4: LEADERBOARD ═══════════════════════ -->
+  @if (activeTab === 'leaderboard') {
+    <div class="period-toggle">
+      <button class="period-btn" [class.active]="leaderboardPeriod === 7" (click)="loadLeaderboard(7)">7 Days</button>
+      <button class="period-btn" [class.active]="leaderboardPeriod === 15" (click)="loadLeaderboard(15)">15 Days</button>
+      <button class="period-btn" [class.active]="leaderboardPeriod === 30" (click)="loadLeaderboard(30)">30 Days</button>
+    </div>
+
+    @if (loadingLeaderboard) {
+      <div class="loading-state">
+        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+        <span>Loading leaderboard...</span>
+      </div>
+    } @else if (leaderboardData.length) {
+      <p-table [value]="leaderboardData" [rows]="20" [paginator]="leaderboardData.length > 20" [rowsPerPageOptions]="[20, 50, 100]" styleClass="p-datatable-sm">
+        <ng-template #header>
+          <tr>
+            <th style="width: 50px;">#</th>
+            <th>Asset ID</th>
+            <th>Asset Name</th>
+            <th>Category</th>
+            <th>Department</th>
+            <th>Avg OEE</th>
+            <th>Utilization %</th>
+            <th>Total Revenue</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-row let-i="rowIndex">
+          <tr>
+            <td style="font-weight: 700; color: var(--text-color-secondary);">{{ i + 1 }}</td>
+            <td><span style="background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 1px 6px; font-weight: 600; font-size: 0.82rem;">{{ row.assetId }}</span></td>
+            <td>{{ row.assetName }}</td>
+            <td>{{ row.category }}</td>
+            <td>{{ row.department }}</td>
+            <td><span class="score-pill" [class]="getOeeClass(row.avgOee)">{{ formatPct(row.avgOee) }}</span></td>
+            <td><span class="score-pill" [class]="getUtilizationClass(row.utilizationPct)">{{ formatPct(row.utilizationPct) }}</span></td>
+            <td style="font-weight: 700;">{{ formatCurrency(row.totalRevenue) }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    } @else {
+      <div class="empty-state">
+        <i class="pi pi-trophy"></i>
+        <p>No leaderboard data available for the selected period. Start logging daily usage to see rankings.</p>
+      </div>
+    }
+  }
+</div>
+
+<!-- ═══════════════════════ RATE CARD DIALOG ═══════════════════════ -->
+<p-dialog header="Rate Card Configuration" [(visible)]="showRateCardDialog" [modal]="true" [style]="{'width': '500px'}">
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Revenue Per Unit (INR)</label>
+      <p-inputnumber [(ngModel)]="rateCardForm.revenuePerUnit" [min]="0" mode="currency" currency="INR" locale="en-IN" placeholder="e.g. 5000"></p-inputnumber>
+    </div>
+    <div class="form-field">
+      <label>Planned Hours Per Day</label>
+      <p-inputnumber [(ngModel)]="rateCardForm.plannedHoursPerDay" [min]="0" [max]="24" [minFractionDigits]="1" placeholder="e.g. 8.0"></p-inputnumber>
+    </div>
+    <div class="form-field">
+      <label>Target OEE (%)</label>
+      <p-inputnumber [(ngModel)]="rateCardForm.targetOee" [min]="0" [max]="100" [minFractionDigits]="1" placeholder="e.g. 85.0"></p-inputnumber>
+    </div>
+    <div class="form-field">
+      <label>Target Utilization (%)</label>
+      <p-inputnumber [(ngModel)]="rateCardForm.targetUtilization" [min]="0" [max]="100" [minFractionDigits]="1" placeholder="e.g. 80.0"></p-inputnumber>
+    </div>
+    <div class="form-field">
+      <label>Cost Per Hour (INR)</label>
+      <p-inputnumber [(ngModel)]="rateCardForm.costPerHour" [min]="0" mode="currency" currency="INR" locale="en-IN" placeholder="e.g. 1000"></p-inputnumber>
+    </div>
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" [text]="true" (onClick)="showRateCardDialog = false"></p-button>
+    <p-button label="Save Rate Card" icon="pi pi-check" (onClick)="saveRateCard()" [loading]="savingRateCard"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- ═══════════════════════ DAILY LOG DIALOG (from Asset Detail tab) ═══════════════════════ -->
+<p-dialog header="Log Daily Usage" [(visible)]="showLogDialog" [modal]="true" [style]="{'width': '600px'}">
+  <div class="form-grid">
+    <div class="form-row">
+      <div class="form-field">
+        <label>Date</label>
+        <p-datepicker [(ngModel)]="logForm.logDate" dateFormat="dd/mm/yy" [showIcon]="true"></p-datepicker>
+      </div>
+      <div class="form-field">
+        <label>Hours Used</label>
+        <p-inputnumber [(ngModel)]="logForm.hoursUsed" [min]="0" [max]="24" [minFractionDigits]="1" placeholder="e.g. 8.5"></p-inputnumber>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Procedure Count</label>
+        <p-inputnumber [(ngModel)]="logForm.procedureCount" [min]="0" placeholder="e.g. 12"></p-inputnumber>
+      </div>
+      <div class="form-field">
+        <label>Patients Served</label>
+        <p-inputnumber [(ngModel)]="logForm.patientsServed" [min]="0" placeholder="e.g. 10"></p-inputnumber>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Revenue Generated</label>
+        <p-inputnumber [(ngModel)]="logForm.revenueGenerated" [min]="0" mode="currency" currency="INR" locale="en-IN"></p-inputnumber>
+      </div>
+      <div class="form-field">
+        <label>Downtime Hours</label>
+        <p-inputnumber [(ngModel)]="logForm.downtimeHours" [min]="0" [max]="24" [minFractionDigits]="1"></p-inputnumber>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Downtime Type</label>
+        <p-select [options]="downtimeTypeOptions" [(ngModel)]="logForm.downtimeType" placeholder="Select..." [showClear]="true"></p-select>
+      </div>
+      <div class="form-field">
+        <label>Condition After Use</label>
+        <p-select [options]="conditionOptions" [(ngModel)]="logForm.conditionAfterUse" placeholder="Select..."></p-select>
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Remarks</label>
+      <textarea pTextarea [(ngModel)]="logForm.remarks" rows="2" placeholder="Any remarks..."></textarea>
+    </div>
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" [text]="true" (onClick)="showLogDialog = false"></p-button>
+    <p-button label="Save Log" icon="pi pi-check" (onClick)="saveLog()" [loading]="savingLog" [disabled]="!logForm.hoursUsed"></p-button>
+  </ng-template>
+</p-dialog>

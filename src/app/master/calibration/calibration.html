@@ -159,8 +159,8 @@
             <td><p-tag [value]="row.isActive ? 'Active' : 'Inactive'" [severity]="row.isActive ? 'success' : 'secondary'" /></td>
             <td>
               <div class="action-buttons">
-                <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="editSchedule(row)" />
-                <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="deleteSchedule(row)" />
+                <p-button icon="pi pi-pencil" size="small" severity="secondary" pTooltip="Edit" tooltipPosition="top" (onClick)="editSchedule(row)" />
+                <p-button icon="pi pi-trash" size="small" severity="danger" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteSchedule(row)" />
               </div>
             </td>
           </tr>
@@ -239,8 +239,9 @@
             <td><p-tag [value]="row.isActive ? 'Active' : 'Inactive'" [severity]="row.isActive ? 'success' : 'secondary'" /></td>
             <td>
               <div class="action-buttons">
-                <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="editTemplate(row)" />
-                <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="deleteTemplate(row)" />
+                <p-button icon="pi pi-list" size="small" severity="info" pTooltip="Manage Items" tooltipPosition="top" (onClick)="openItemsDialog(row)" />
+                <p-button icon="pi pi-pencil" size="small" severity="secondary" pTooltip="Edit" tooltipPosition="top" (onClick)="editTemplate(row)" />
+                <p-button icon="pi pi-trash" size="small" severity="danger" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteTemplate(row)" />
               </div>
             </td>
           </tr>
@@ -251,5 +252,124 @@
       </p-table>
     </p-tabPanel>
 
+    <!-- History -->
+    <p-tabPanel header="Calibration History">
+      <div class="history-filter">
+        <p-select [options]="assetOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="historyAssetId" name="histFilterAsset" appendTo="body"
+          [filter]="true" [showClear]="true" placeholder="Select Asset" />
+        <p-button label="Load History" icon="pi pi-search" (onClick)="loadHistory()" [loading]="historyLoading" />
+      </div>
+
+      <p-table [value]="historyRecords" [loading]="historyLoading" [paginator]="true" [rows]="10"
+        responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Date</th>
+            <th>Result</th>
+            <th>Calibrated By</th>
+            <th>Vendor</th>
+            <th>Certificate No</th>
+            <th>Remarks</th>
+            <th>Logged By</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>{{ row.calibratedAt | date:'dd MMM yyyy' }}</td>
+            <td><p-tag [value]="row.result" [severity]="getResultSeverity(row.result)" /></td>
+            <td>{{ row.calibratedByName || '—' }}</td>
+            <td>{{ row.vendor?.name || '—' }}</td>
+            <td>{{ row.certificateNo || '—' }}</td>
+            <td class="remarks-cell">{{ row.remarks || '—' }}</td>
+            <td>{{ row.createdBy?.name || '—' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="7" class="text-center">{{ historyAssetId ? 'No history found for this asset' : 'Select an asset and click Load History' }}</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
   </p-tabView>
 </div>
+
+<!-- Template Items Dialog -->
+<p-dialog [header]="'Checklist Items — ' + (selectedTemplate?.name || '')"
+  [(visible)]="showItemsDialog" [style]="{ width: '600px' }" [modal]="true">
+
+  <!-- Existing items list -->
+  <div class="items-list" *ngIf="templateItems.length">
+    <p-table [value]="templateItems" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th>Expected Value</th>
+          <th>Unit</th>
+          <th>Required</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item let-i="rowIndex">
+        <tr>
+          <td>{{ i + 1 }}</td>
+          <td>{{ item.title }}</td>
+          <td>{{ item.expectedValue || '—' }}</td>
+          <td>{{ item.unit || '—' }}</td>
+          <td>
+            <i [class]="item.isRequired ? 'pi pi-check text-success' : 'pi pi-minus text-muted'"></i>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+  <div *ngIf="!templateItems.length" class="empty-items">No items yet. Add the first one below.</div>
+
+  <!-- Add new item form -->
+  <div class="add-item-form">
+    <h4>Add New Item</h4>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="newItem.title" name="itemTitle" />
+          <label>Title *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="newItem.expectedValue" name="itemExpected" />
+          <label>Expected Value</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="newItem.unit" name="itemUnit" />
+          <label>Unit (e.g. mA, kPa)</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="newItem.sortOrder" name="itemOrder" />
+          <label>Sort Order</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="newItem.description" name="itemDesc" />
+          <label>Description</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width checkbox-field">
+        <p-checkbox [(ngModel)]="newItem.isRequired" [binary]="true" inputId="itemRequired" />
+        <label for="itemRequired" class="checkbox-label">Required during calibration</label>
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Add Item" icon="pi pi-plus" (onClick)="addItem()" [loading]="savingItem" />
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Done" severity="secondary" (onClick)="showItemsDialog = false" />
+  </ng-template>
+</p-dialog>

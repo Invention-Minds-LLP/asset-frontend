@@ -11,9 +11,9 @@
           <div class=""></div>
           <span>{{activeAssets}} Active Assets</span>
         </div>
-        <div class="notification">
+        <!-- <div class="notification">
           <i class="pi pi-bell"></i>
-        </div>
+        </div> -->
       </div>
     </div>
     <div class="header-actions">
@@ -107,6 +107,11 @@
           </td>
           <td class="action-cell">
             <button *ngIf="canViewAsset" pButton type="button" label="View" class="view-btn" (click)="viewAsset(asset.assetId)"></button>
+            @if (asset.hodApprovalStatus === 'PENDING') {
+              <button pButton type="button" label="HOD Approve" class="view-btn"
+                style="background:#f59e0b;border-color:#f59e0b"
+                (click)="openHodApproval(asset)" pTooltip="HOD approval required"></button>
+            }
             <!-- <button *ngIf="canEditAsset" pButton type="button" label="Edit" class="edit-btn" (click)="viewAsset(asset.assetId)"></button> -->
             <!-- <button *ngIf="canDeleteAsset" pButton type="button" icon="pi pi-trash" severity="danger" [text]="true" size="small" (click)="deleteAsset(asset.assetId)" pTooltip="Delete Asset"></button> -->
           </td>
@@ -153,3 +158,30 @@
 
   </div>
 </div>
+
+<p-toast />
+
+<!-- HOD Approval Dialog -->
+<p-dialog header="HOD Approval — Asset" [(visible)]="showHodApprovalDialog"
+  [modal]="true" [style]="{width:'440px'}">
+  @if (selectedHodAsset) {
+    <div style="margin-bottom:1rem">
+      <strong>{{ selectedHodAsset.assetName }}</strong>
+      <span style="color:#6b7280;margin-left:.5rem">({{ selectedHodAsset.assetId || 'No Asset ID yet' }})</span>
+    </div>
+    <div style="margin-bottom:1rem">
+      <label style="display:block;margin-bottom:.4rem">Decision</label>
+      <p-select [options]="hodDecisionOptions" optionLabel="label" optionValue="value"
+        [(ngModel)]="hodDecision" appendTo="body" styleClass="w-full" />
+    </div>
+    <div>
+      <label style="display:block;margin-bottom:.4rem">Remarks</label>
+      <textarea pInputTextarea [(ngModel)]="hodRemarks" rows="3"
+        style="width:100%" placeholder="Optional remarks"></textarea>
+    </div>
+  }
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showHodApprovalDialog=false" />
+    <p-button label="Submit" (onClick)="submitHodApproval()" />
+  </ng-template>
+</p-dialog>

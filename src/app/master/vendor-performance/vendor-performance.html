@@ -1,0 +1,58 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-star"></i> Vendor Performance</h2>
+      <p class="subtitle">Track vendor metrics, response times and SLA compliance</p>
+    </div>
+    <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadVendors()" [loading]="loading"></p-button>
+  </div>
+
+  <p-table [value]="vendors" [loading]="loading" [paginator]="true" [rows]="15"
+    [rowsPerPageOptions]="[10,15,25,50]"
+    styleClass="p-datatable-sm p-datatable-striped">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Vendor</th>
+        <th>Contact</th>
+        <th>Avg Response (days)</th>
+        <th>SLA Compliance</th>
+        <th>Maintenance Cost</th>
+        <th>Active Contracts</th>
+        <th>Tickets (Resolved/Total)</th>
+        <th>Rating</th>
+        <th>Update Rating</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-v>
+      <tr>
+        <td><strong>{{ v.vendorName }}</strong></td>
+        <td>{{ v.contact || '—' }}<br><small>{{ v.email || '' }}</small></td>
+        <td>{{ v.avgResponseDays != null ? (v.avgResponseDays | number:'1.1-1') + ' days' : '—' }}</td>
+        <td>
+          @if (v.slaComplianceRate != null) {
+            <p-tag [value]="(v.slaComplianceRate | number:'1.0-0') + '%'"
+              [severity]="getComplianceSeverity(v.slaComplianceRate)" />
+          } @else { <span>—</span> }
+        </td>
+        <td>{{ formatCurrency(v.totalMaintenanceCost) }}</td>
+        <td>{{ v.activeContracts ?? 0 }}</td>
+        <td>{{ v.ticketSummary ?? 0 }}</td>
+        <td>
+          <span class="stars" [title]="(v.currentRating || 0) + '/5'">{{ getRatingStars(v.currentRating) }}</span>
+        </td>
+        <td>
+          <div class="rating-edit">
+            <p-inputnumber [(ngModel)]="editingRatings[v.vendorId]" [min]="1" [max]="5" [showButtons]="true"
+              buttonLayout="horizontal" [name]="'rating_' + v.vendorId"></p-inputnumber>
+            <p-button icon="pi pi-check" [rounded]="true" size="small" (onClick)="updateRating(v)"></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="8" class="text-center">No vendor data found.</td></tr>
+    </ng-template>
+  </p-table>
+</div>

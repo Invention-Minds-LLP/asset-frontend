@@ -14,6 +14,12 @@ import { Router } from '@angular/router';
 import { ModuleAccessService } from '../../services/module-access/module-access';
 import { Skeleton } from 'primeng/skeleton';
 import { TooltipModule } from 'primeng/tooltip';
+import { DialogModule } from 'primeng/dialog';
+import { SelectModule } from 'primeng/select';
+import { TextareaModule } from 'primeng/textarea';
+import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 
 type FilterField = 'assetName' | 'assetId' | 'assetType' | 'category' | 'allotted';
@@ -21,9 +27,11 @@ type FilterField = 'assetName' | 'assetId' | 'assetType' | 'category' | 'allotte
 @Component({
   selector: 'app-assets-table',
   imports: [TableModule, ButtonModule, InputTextModule, DropdownModule,
-     FormsModule, CommonModule, IconFieldModule, InputIconModule, Skeleton, TooltipModule],
+     FormsModule, CommonModule, IconFieldModule, InputIconModule, Skeleton, TooltipModule,
+     DialogModule, SelectModule, TextareaModule, TagModule, ToastModule],
   templateUrl: './assets-table.html',
-  styleUrl: './assets-table.css'
+  styleUrl: './assets-table.css',
+  providers: [MessageService]
 })
 
 export class AssetsTable implements OnInit {
@@ -43,12 +51,23 @@ export class AssetsTable implements OnInit {
   activeAssets: number = 0;
   isLoading: boolean = true; // Flag to track loading state
 
+  // HOD Approval
+  showHodApprovalDialog = false;
+  selectedHodAsset: any = null;
+  hodDecision = 'APPROVED';
+  hodRemarks = '';
+  hodDecisionOptions = [
+    { label: 'Approve', value: 'APPROVED' },
+    { label: 'Reject', value: 'REJECTED' }
+  ];
+
   constructor(
     private assetService: Assets,
     private cdr: ChangeDetectorRef,
     private assetEditService: AssetEditService,
     private router: Router,
-    private moduleAccessService: ModuleAccessService
+    private moduleAccessService: ModuleAccessService,
+    private messageService: MessageService
   ) { }
 
   @ViewChild('filterContainer') filterContainerRef!: ElementRef;
@@ -277,5 +296,35 @@ get exportAssets() {
     assetCategoryName: asset.assetCategory?.name || '-',
     allottedToName: asset.allottedTo?.name || 'Not Allotted'
   }));
+}
+
+openHodApproval(asset: any) {
+  this.selectedHodAsset = asset;
+  this.hodDecision = 'APPROVED';
+  this.hodRemarks = '';
+  this.showHodApprovalDialog = true;
+}
+
+submitHodApproval() {
+  if (!this.selectedHodAsset) return;
+  this.assetService.hodApproveAsset(this.selectedHodAsset.id, {
+    decision: this.hodDecision,
+    remarks: this.hodRemarks || undefined
+  }).subscribe({
+    next: () => {
+      setTimeout(() => {
+        this.messageService.add({ severity: 'success', summary: 'Done', detail: `Asset ${this.hodDecision.toLowerCase()} by HOD` });
+        this.showHodApprovalDialog = false;
+        this.selectedHodAsset = null;
+        this.assetService.getAllAssets().subscribe((data: any[]) => {
+          setTimeout(() => { this.assets = data; this.cdr.detectChanges(); });
+        });
+        this.cdr.detectChanges();
+      });
+    },
+    error: (e: any) => {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed' });
+    }
+  });
 }
 }

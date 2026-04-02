@@ -10,52 +10,175 @@
     <p-tabpanel header="Calendar">
       <div class="tab-content">
         <div class="calendar-nav">
-          <p-button icon="pi pi-chevron-left" [rounded]="true" [text]="true" (onClick)="prevMonth()"></p-button>
-          <p-select [options]="monthOptions" [(ngModel)]="currentMonth" (onChange)="loadCalendar()" ></p-select>
-          <p-select [options]="yearOptions" [(ngModel)]="currentYear" (onChange)="loadCalendar()"></p-select>
-          <p-button icon="pi pi-chevron-right" [rounded]="true" [text]="true" (onClick)="nextMonth()"></p-button>
+          <p-button icon="pi pi-chevron-left" [rounded]="true" [text]="true" pTooltip="Previous Month" tooltipPosition="top" (onClick)="prevMonth()"></p-button>
+          <p-select [options]="monthOptions" [(ngModel)]="currentMonth" (onChange)="loadCalendar()" appendTo="body"></p-select>
+          <p-select [options]="yearOptions" [(ngModel)]="currentYear" (onChange)="loadCalendar()" appendTo="body"></p-select>
+          <p-button icon="pi pi-chevron-right" [rounded]="true" [text]="true" pTooltip="Next Month" tooltipPosition="top" (onClick)="nextMonth()"></p-button>
         </div>
 
-        <div class="calendar-grid" *ngIf="!calendarLoading">
-          <div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div>
-          <div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div>
-          <div class="cal-header">Sat</div>
+        <div class="calendar-layout">
+          <!-- Calendar grid -->
+          <div class="calendar-section">
+            @if (!calendarLoading) {
+              <div class="calendar-grid">
+                <div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div>
+                <div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div>
+                <div class="cal-header">Sat</div>
+                @for (cell of daysInMonth; track $index) {
+                  <div class="cal-day"
+                    [class.empty]="!cell.day"
+                    [class.has-events]="cell.events?.length"
+                    [class.selected-day]="cell.day && cell.day === selectedDay"
+                    (click)="selectDay(cell)"
+                    [style.cursor]="cell.day ? 'pointer' : 'default'">
+                    @if (cell.day) {
+                      <span class="day-number">{{ cell.day }}</span>
+                      @if (cell.events?.length) {
+                        <div class="day-events">
+                          <span class="event-count">{{ cell.events.length }}</span>
+                        </div>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="text-center">Loading calendar...</div>
+            }
+          </div>
 
-          <div class="cal-day" *ngFor="let cell of daysInMonth" [class.empty]="!cell.day" [class.has-events]="cell.events?.length">
-            <span class="day-number" *ngIf="cell.day">{{ cell.day }}</span>
-            <div class="day-events" *ngIf="cell.events?.length">
-              <span *ngFor="let e of cell.events" class="event-dot" [title]="e.asset?.assetName + ' - ' + e.maintenanceType">
-                <p-tag [value]="e.status" [severity]="getEventSeverity(e.status)" [style]="{'font-size': '0.65rem'}"></p-tag>
-              </span>
+          <!-- Side panel -->
+          <div class="side-panel">
+            <div class="side-panel-header">
+              @if (selectedDay) {
+                <span>
+                  <i class="pi pi-calendar-clock"></i>
+                  {{ currentYear }}-{{ currentMonth | number:'2.0-0' }}-{{ selectedDay | number:'2.0-0' }} &mdash; {{ selectedDayEvents.length }} scheduled
+                </span>
+              } @else {
+                <span>
+                  <i class="pi pi-list"></i>
+                  All Events ({{ calendarEvents.length }})
+                  <small class="hint">Click a date to filter</small>
+                </span>
+              }
+            </div>
+            <div class="side-panel-body">
+              @let events = selectedDay ? selectedDayEvents : calendarEvents;
+              @if (!events.length) {
+                <div class="no-events">No scheduled events.</div>
+              }
+              @for (e of events; track $index) {
+                <div class="event-card" [class]="'event-card-' + (e.status | lowercase)">
+                  <div class="event-card-top">
+                    <strong>{{ e.assetName || '—' }}</strong>
+                    <p-tag [value]="e.status" [severity]="getEventSeverity(e.status)" [style]="{'font-size':'0.7rem'}"></p-tag>
+                  </div>
+                  <div class="event-card-meta">
+                    <span><i class="pi pi-wrench"></i> Every {{ e.frequencyValue }} {{ e.frequencyUnit }}</span>
+                    @if (e.department) {
+                      <span><i class="pi pi-building"></i> {{ e.department }}</span>
+                    }
+                    @if (!selectedDay) {
+                      <span><i class="pi pi-clock"></i> {{ e.dueDate | date:'MMM d' }}</span>
+                    }
+                  </div>
+                  @if (e.assetCode) {
+                    <div class="event-card-asset-id"><small>{{ e.assetCode }}</small></div>
+                  }
+                </div>
+              }
             </div>
           </div>
         </div>
+      </div>
+    </p-tabpanel>
 
-        <div *ngIf="calendarLoading" class="text-center">Loading calendar...</div>
+    <!-- Schedules -->
+    <p-tabpanel header="Schedules">
+      <div class="tab-content">
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-list"></i> Maintenance Schedules</span>
+          <span style="flex:1"></span>
+          <p-button label="Create Schedule" icon="pi pi-plus" size="small" (onClick)="openCreateSchedule()"></p-button>
+        </div>
 
-        <!-- Event list below calendar -->
-        <h4 *ngIf="calendarEvents.length">Scheduled Events ({{ calendarEvents.length }})</h4>
-        <p-table *ngIf="calendarEvents.length" [value]="calendarEvents" [paginator]="true" [rows]="10"
-          styleClass="p-datatable-sm p-datatable-striped">
+        <p-table [value]="schedules" [loading]="schedulesLoading" [paginator]="true" [rows]="15"
+          [rowsPerPageOptions]="[10,15,25]" styleClass="p-datatable-sm p-datatable-striped">
           <ng-template pTemplate="header">
             <tr>
               <th>Asset</th>
-              <th>Type</th>
-              <th>Scheduled Date</th>
+              <th>Frequency</th>
+              <th>Start Date</th>
+              <th>Next Due</th>
+              <th>Reminder</th>
               <th>Status</th>
+              <th>Reason</th>
             </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-e>
+          <ng-template pTemplate="body" let-s>
             <tr>
-              <td>{{ e.asset?.assetName || '—' }}</td>
-              <td>{{ e.maintenanceType }}</td>
-              <td>{{ e.scheduledDate | date:'mediumDate' }}</td>
-              <td><p-tag [value]="e.status" [severity]="getEventSeverity(e.status)"></p-tag></td>
+              <td><strong>{{ s.asset?.assetName || s.asset?.assetId || '—' }}</strong></td>
+              <td>Every {{ s.frequencyValue }} {{ s.frequencyUnit }}</td>
+              <td>{{ s.startDate ? (s.startDate | date:'mediumDate') : '—' }}</td>
+              <td>{{ s.nextDueAt | date:'mediumDate' }}</td>
+              <td>{{ s.reminderDays || 7 }} days before</td>
+              <td>
+                <p-tag [value]="getScheduleStatus(s)" [severity]="getScheduleStatusSeverity(getScheduleStatus(s))"></p-tag>
+              </td>
+              <td>{{ s.reason || '—' }}</td>
             </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="7" class="text-center">No schedules found. Create one to get started.</td></tr>
           </ng-template>
         </p-table>
       </div>
     </p-tabpanel>
+
+    <!-- Create Schedule Dialog -->
+    <p-dialog header="Create PM Schedule" [(visible)]="showCreateScheduleDialog" [modal]="true" [style]="{'width':'520px'}">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Asset *</label>
+          <p-select [options]="assetOptions" [(ngModel)]="scheduleForm.assetId"
+            placeholder="Select asset" [filter]="true" [style]="{'width':'100%'}" appendTo="body"></p-select>
+        </div>
+        <div style="display:flex; gap:1rem;">
+          <div class="form-field" style="flex:1">
+            <label>Every *</label>
+            <p-inputNumber [(ngModel)]="scheduleForm.frequencyValue" [min]="1" [showButtons]="true" [style]="{'width':'100%'}"></p-inputNumber>
+          </div>
+          <div class="form-field" style="flex:1">
+            <label>Unit *</label>
+            <p-select [options]="frequencyUnitOptions" [(ngModel)]="scheduleForm.frequencyUnit" [style]="{'width':'100%'}" appendTo="body"></p-select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Start Date (from when?)</label>
+          <p-datePicker [(ngModel)]="scheduleForm.startDate" [showIcon]="true"
+            dateFormat="dd/mm/yy" placeholder="Schedule starts from this date" [style]="{'width':'100%'}" appendTo="body"></p-datePicker>
+          <small style="color:var(--text-color-secondary);">First maintenance due = Start Date + Frequency. If blank, starts from today.</small>
+        </div>
+        <div class="form-field">
+          <label>Reminder (days before due)</label>
+          <p-inputNumber [(ngModel)]="scheduleForm.reminderDays" [min]="1" [max]="90" [showButtons]="true" [style]="{'width':'100%'}"></p-inputNumber>
+        </div>
+        <div class="form-field">
+          <label>Reason / Type</label>
+          <input pInputText [(ngModel)]="scheduleForm.reason" placeholder="e.g. AMC Service, Calibration, Filter Change" style="width:100%" />
+        </div>
+        <div class="form-field">
+          <label>Description</label>
+          <textarea pTextarea [(ngModel)]="scheduleForm.description" rows="2" placeholder="Optional details..." style="width:100%"></textarea>
+        </div>
+      </div>
+      <ng-template pTemplate="footer">
+        <p-button label="Cancel" severity="secondary" (onClick)="showCreateScheduleDialog = false"></p-button>
+        <p-button label="Create Schedule" icon="pi pi-check" (onClick)="submitCreateSchedule()"
+          [loading]="savingSchedule" [disabled]="!scheduleForm.assetId || !scheduleForm.frequencyValue"></p-button>
+      </ng-template>
+    </p-dialog>
 
     <!-- History -->
     <p-tabpanel header="History">
@@ -75,10 +198,10 @@
           <ng-template pTemplate="body" let-h>
             <tr>
               <td>{{ h.asset?.assetName || '—' }}</td>
-              <td>{{ h.maintenanceType }}</td>
-              <td>{{ h.performedDate | date:'mediumDate' }}</td>
+              <td>{{ h.serviceType || '-'}}</td>
+              <td>{{ h.actualDoneAt | date:'mediumDate' }}</td>
               <td>{{ h.performedBy || '—' }}</td>
-              <td>₹{{ h.cost || 0 }}</td>
+              <td>₹{{ h.serviceCost || 0 }}</td>
               <td>{{ h.notes || '—' }}</td>
             </tr>
           </ng-template>

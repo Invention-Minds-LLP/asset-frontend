@@ -1,0 +1,236 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-list-check"></i> PM Checklists</h2>
+      <p class="subtitle">Preventive Maintenance Checklist Templates &amp; Execution Runs</p>
+    </div>
+  </div>
+
+  <!-- View toggle -->
+  <div class="view-toggle">
+    <button class="toggle-btn" [class.active]="activeTab === 'templates'" (click)="activeTab = 'templates'">
+      <i class="pi pi-file-edit"></i> Templates
+    </button>
+    <button class="toggle-btn" [class.active]="activeTab === 'runs'" (click)="activeTab = 'runs'">
+      <i class="pi pi-play-circle"></i> Checklist Runs
+    </button>
+  </div>
+
+  <!-- ═══════════════════════ TEMPLATES TAB ═══════════════════════ -->
+  @if (activeTab === 'templates') {
+    <div class="section-header">
+      <div class="section-title">Checklist Templates</div>
+      <p-button label="Create Template" icon="pi pi-plus" pTooltip="Create a new checklist template" tooltipPosition="top" (onClick)="openCreateTemplate()"></p-button>
+    </div>
+
+    <p-table [value]="templates" [loading]="loadingTemplates" [paginator]="true" [rows]="10"
+      styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Items</th>
+          <th>Status</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-t>
+        <tr>
+          <td><strong>{{ t.name }}</strong></td>
+          <td>{{ t.description || '—' }}</td>
+          <td>{{ t.assetCategory?.name || t.categoryName || '—' }}</td>
+          <td>{{ t.items?.length ?? t._count?.items ?? 0 }}</td>
+          <td><p-tag value="Active" severity="success"></p-tag></td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="5" class="text-center">No templates found. Create one to get started.</td></tr>
+      </ng-template>
+    </p-table>
+  }
+
+  <!-- ═══════════════════════ RUNS TAB ═══════════════════════ -->
+  @if (activeTab === 'runs') {
+    <div class="filter-bar">
+      <p-select [options]="assetOptions" [(ngModel)]="selectedAssetForRuns"
+        placeholder="Select asset to view runs..." [filter]="true"
+        [style]="{'width': '400px'}" (onChange)="onAssetFilterChange()" appendTo="body"></p-select>
+      <p-button label="Create Run" icon="pi pi-plus" pTooltip="Schedule a new checklist run" tooltipPosition="top" (onClick)="openCreateRun()"></p-button>
+    </div>
+
+    @if (selectedAssetForRuns) {
+      <p-table [value]="runs" [loading]="loadingRuns" [paginator]="true" [rows]="10"
+        styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Template</th>
+            <th>Asset</th>
+            <th>Scheduled Due</th>
+            <th>Performed At</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-r>
+          <tr>
+            <td>{{ r.template?.name || r.templateName || '—' }}</td>
+            <td>{{ r.asset?.assetName || r.assetName || '—' }}</td>
+            <td>{{ r.scheduledDue ? (r.scheduledDue | date:'mediumDate') : '—' }}</td>
+            <td>{{ r.performedAt ? (r.performedAt | date:'medium') : '—' }}</td>
+            <td><p-tag [value]="r.status" [severity]="getStatusSeverity(r.status)"></p-tag></td>
+            <td>
+              @if (r.status === 'DUE' || r.status === 'OVERDUE') {
+                <p-button icon="pi pi-pencil" label="Fill Checklist" size="small" [text]="true"
+                  pTooltip="Fill out this checklist" tooltipPosition="top"
+                  (onClick)="openFillChecklist(r)"></p-button>
+              }
+              @if (r.status === 'COMPLETED') {
+                <p-button icon="pi pi-eye" label="View" size="small" [text]="true"
+                  pTooltip="View completed checklist" tooltipPosition="top"
+                  (onClick)="openViewChecklist(r)"></p-button>
+                <p-button icon="pi pi-file-pdf" label="PDF" size="small" [text]="true" severity="danger"
+                  pTooltip="Download PDF report" tooltipPosition="top"
+                  (onClick)="downloadPdf(r.id)"></p-button>
+              }
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="text-center">No runs found for this asset.</td></tr>
+        </ng-template>
+      </p-table>
+    } @else {
+      <div class="empty-state">
+        <i class="pi pi-search" style="font-size: 3rem; color: var(--text-color-secondary);"></i>
+        <p>Select an asset above to view its checklist runs.</p>
+      </div>
+    }
+  }
+</div>
+
+<!-- ── Create Template Dialog ── -->
+<p-dialog header="Create Checklist Template" [(visible)]="showTemplateDialog" [style]="{'width':'600px'}" [modal]="true">
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Template Name *</label>
+      <input pInputText [(ngModel)]="templateForm.name" placeholder="e.g. Monthly PM Checklist" style="width:100%" />
+    </div>
+    <div class="form-field">
+      <label>Description</label>
+      <textarea pTextarea [(ngModel)]="templateForm.description" placeholder="Describe the purpose of this template" [rows]="3" style="width:100%"></textarea>
+    </div>
+    <div class="form-field">
+      <label>Asset Category (optional)</label>
+      <p-select [options]="categoryOptions" [(ngModel)]="templateForm.assetCategoryId"
+        placeholder="Select category..." [filter]="true" [showClear]="true"
+        [style]="{'width':'100%'}" appendTo="body"></p-select>
+    </div>
+
+    <!-- Items section -->
+    <div class="items-section">
+      <div class="items-header">
+        <h4>Checklist Items</h4>
+        <p-button icon="pi pi-plus" label="Add Item" size="small" severity="secondary"
+          pTooltip="Add a checklist item" tooltipPosition="top"
+          (onClick)="addItem()"></p-button>
+      </div>
+
+      @if (templateForm.items.length) {
+        @for (item of templateForm.items; track $index) {
+          <div class="item-row">
+            <input pInputText [(ngModel)]="item.title" placeholder="Item title *" />
+            <input pInputText [(ngModel)]="item.description" placeholder="Description" />
+            <p-inputNumber [(ngModel)]="item.sortOrder" [min]="1" placeholder="Sort" [style]="{'width':'100%'}"></p-inputNumber>
+            <p-checkbox [(ngModel)]="item.isRequired" [binary]="true" label="Req"></p-checkbox>
+            <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
+              pTooltip="Remove item" tooltipPosition="top"
+              (onClick)="removeItem($index)"></p-button>
+          </div>
+        }
+      } @else {
+        <div class="no-items">No items added yet. Click <strong>Add Item</strong> to start building the checklist.</div>
+      }
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showTemplateDialog = false"></p-button>
+    <p-button label="Save Template" icon="pi pi-check" (onClick)="saveTemplate()"
+      [loading]="savingTemplate" pTooltip="Save the template and its items" tooltipPosition="top"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- ── Create Run Dialog ── -->
+<p-dialog header="Create Checklist Run" [(visible)]="showRunDialog" [style]="{'width':'450px'}" [modal]="true">
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Asset *</label>
+      <p-select [options]="assetOptions" [(ngModel)]="runForm.assetId"
+        placeholder="Select asset..." [filter]="true" [style]="{'width':'100%'}" appendTo="body"></p-select>
+    </div>
+    <div class="form-field">
+      <label>Template *</label>
+      <p-select [options]="templateOptions" [(ngModel)]="runForm.templateId"
+        placeholder="Select template..." [filter]="true" [style]="{'width':'100%'}" appendTo="body"></p-select>
+    </div>
+    <div class="form-field">
+      <label>Scheduled Due Date</label>
+      <p-datepicker [(ngModel)]="runForm.scheduledDue" [showIcon]="true"
+        dateFormat="dd/mm/yy" placeholder="Pick a date" [style]="{'width':'100%'}" appendTo="body"></p-datepicker>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showRunDialog = false"></p-button>
+    <p-button label="Create Run" icon="pi pi-check" (onClick)="saveRun()"
+      [loading]="savingRun" pTooltip="Create the checklist run" tooltipPosition="top"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- ── Fill / View Checklist Dialog ── -->
+<p-dialog [header]="viewOnly ? 'View Checklist' : 'Fill Checklist'" [(visible)]="showFillDialog" [style]="{'width':'700px'}" [modal]="true">
+  @if (selectedRun) {
+    <div style="margin-bottom: 1rem;">
+      <strong>Template:</strong> {{ selectedRun.template?.name || selectedRun.templateName || '—' }}
+    </div>
+
+    <div class="fill-item-row fill-item-header">
+      <div>#</div>
+      <div>Item Title</div>
+      <div>Description</div>
+      <div>Result</div>
+      <div>Remarks</div>
+    </div>
+
+    @for (item of fillResults; track item.itemId) {
+      <div class="fill-item-row">
+        <div>{{ $index + 1 }}</div>
+        <div><strong>{{ item.title }}</strong></div>
+        <div>{{ item.description || '—' }}</div>
+        <div>
+          @if (viewOnly) {
+            <p-tag [value]="item.result" [severity]="getResultSeverity(item.result)"></p-tag>
+          } @else {
+            <p-select [options]="resultOptions" [(ngModel)]="item.result" [style]="{'width':'120px'}" appendTo="body"></p-select>
+          }
+        </div>
+        <div>
+          @if (viewOnly) {
+            {{ item.remarks || '—' }}
+          } @else {
+            <input pInputText [(ngModel)]="item.remarks" placeholder="Remarks" style="width:100%" />
+          }
+        </div>
+      </div>
+    }
+  }
+  <ng-template pTemplate="footer">
+    @if (viewOnly) {
+      <p-button label="Close" severity="secondary" (onClick)="showFillDialog = false"></p-button>
+    } @else {
+      <p-button label="Cancel" severity="secondary" (onClick)="showFillDialog = false"></p-button>
+      <p-button label="Submit Checklist" icon="pi pi-check" (onClick)="submitChecklist()"
+        [loading]="submittingChecklist" pTooltip="Submit the checklist results" tooltipPosition="top"></p-button>
+    }
+  </ng-template>
+</p-dialog>

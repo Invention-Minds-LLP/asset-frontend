@@ -1,3 +1,4 @@
+<p-toast />
 <div class="table-wrapper">
     <div class="header">
         <div class="header-part">
@@ -151,6 +152,52 @@
     </div>
 </div>
 
+<!-- MANAGEMENT APPROVAL SECTION -->
+@if (mgmtTransfers.length > 0) {
+<div class="table-wrapper" style="margin-top:1.5rem">
+  <div class="header">
+    <div class="header-part">
+      <div>
+        <h2>Pending Management Approvals</h2>
+        <p>Permanent transfers awaiting management sign-off</p>
+      </div>
+      <div class="notification-part">
+        <div class="active-box"><span>{{ mgmtTransfers.length }} Pending</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="table-container">
+    <p-table [value]="mgmtTransfers" [loading]="mgmtLoading" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Asset ID</th>
+          <th>Asset Name</th>
+          <th>Requested By</th>
+          <th>Transfer Type</th>
+          <th>Destination</th>
+          <th>Requested Date</th>
+          <th>Action</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.asset?.assetId || '-' }}</td>
+          <td>{{ item.asset?.assetName || '-' }}</td>
+          <td>{{ item.requestedBy?.name || '-' }}</td>
+          <td>{{ item.transferType }}</td>
+          <td>{{ item.toBranch?.name || item.destinationName || item.externalType || '-' }}</td>
+          <td>{{ item.requestedAt | date:'dd-MM-yyyy' }}</td>
+          <td>
+            <p-button label="Review" icon="pi pi-check-circle" size="small" severity="warn"
+              (onClick)="openMgmtApprove(item)" />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+}
+
 <!-- APPROVE DIALOG -->
 <p-dialog
     [header]="selectedTransfer?.transferType === 'RETURN' ? 'Approve Return Request' : 'Approve Transfer'"
@@ -277,4 +324,45 @@
             </button>
         </div>
     </ng-template>
+</p-dialog>
+
+<!-- MANAGEMENT APPROVAL DIALOG -->
+<p-dialog header="Management Approval — Permanent Transfer"
+    [(visible)]="showMgmtDialog" [modal]="true" [style]="{width:'460px'}">
+  @if (selectedMgmtTransfer) {
+    <div class="transfer-dialog-body">
+      <div class="asset-info-card">
+        <div class="info-item">
+          <div class="info-label">Asset</div>
+          <div class="info-value">{{ selectedMgmtTransfer.asset?.assetName }} ({{ selectedMgmtTransfer.asset?.assetId }})</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Requested By</div>
+          <div class="info-value">{{ selectedMgmtTransfer.requestedBy?.name }}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Destination</div>
+          <div class="info-value">{{ selectedMgmtTransfer.toBranch?.name || selectedMgmtTransfer.destinationName || selectedMgmtTransfer.externalType || '-' }}</div>
+        </div>
+      </div>
+      <div class="reason-field" style="margin-top:1rem">
+        <label>Decision</label>
+        <p-select [options]="mgmtDecisionOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="mgmtDecision" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="reason-field" style="margin-top:1rem">
+        <label>Remarks</label>
+        <textarea pInputTextarea [(ngModel)]="mgmtRemarks" rows="3"
+          placeholder="Optional remarks" style="width:100%;margin-top:.4rem"></textarea>
+      </div>
+    </div>
+  }
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer-actions">
+      <button pButton type="button" label="Cancel" class="dialog-btn cancel-btn"
+        (click)="showMgmtDialog = false"></button>
+      <button pButton type="button" label="Submit" severity="success"
+        class="dialog-btn approve-btn" (click)="confirmMgmtApprove()"></button>
+    </div>
+  </ng-template>
 </p-dialog>

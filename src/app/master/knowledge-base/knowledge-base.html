@@ -1,0 +1,68 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-book"></i> Knowledge Base</h2>
+    <p class="subtitle">Search resolved tickets by issue type, keywords and root cause</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="kpi-grid" *ngIf="statsArray.length">
+    <div class="kpi-card" *ngFor="let s of statsArray">
+      <span class="kpi-label">{{ s.type }}</span>
+      <span class="kpi-value">{{ s.count }}</span>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-bar">
+    <input pInputText placeholder="Search by keyword, issue, resolution..." [(ngModel)]="query"
+      (keyup.enter)="search()" style="flex:1; min-width: 250px" />
+    <p-select [options]="issueTypeOptions" [(ngModel)]="issueType" (onChange)="search()" placeholder="Issue Type"></p-select>
+    <p-button label="Search" icon="pi pi-search" (onClick)="search()" [loading]="loading"></p-button>
+  </div>
+
+  <!-- Results -->
+  <div class="results-count" *ngIf="!loading">{{ results.length }} article{{ results.length !== 1 ? 's' : '' }} found</div>
+
+  <div class="articles-list" *ngIf="!loading">
+    <div *ngFor="let article of results" class="article-card" (click)="viewArticle(article)">
+      <div class="article-header">
+        <div class="article-title">
+          <i class="pi pi-ticket"></i>
+          <strong>{{ article.title || article.description | slice:0:80 }}{{ (article.title?.length || article.description?.length) > 80 ? '...' : '' }}</strong>
+        </div>
+        <div class="article-meta">
+          <p-tag [value]="article.issueType || 'OTHER'" severity="info"></p-tag>
+          <p-tag [value]="article.priority" [severity]="getPrioritySeverity(article.priority)"></p-tag>
+          <span class="article-date">{{ article.resolvedAt | date:'mediumDate' }}</span>
+        </div>
+      </div>
+
+      <div class="article-body" *ngIf="selectedArticle?.id === article.id">
+        <div class="article-section" *ngIf="article.rootCause">
+          <h4><i class="pi pi-exclamation-circle"></i> Root Cause</h4>
+          <p>{{ article.rootCause }}</p>
+        </div>
+        <div class="article-section" *ngIf="article.resolutionSummary">
+          <h4><i class="pi pi-check-circle"></i> Resolution</h4>
+          <p>{{ article.resolutionSummary }}</p>
+        </div>
+        <div class="article-section" *ngIf="article.asset">
+          <h4><i class="pi pi-desktop"></i> Asset</h4>
+          <p>{{ article.asset.assetName }} ({{ article.asset.assetId }})</p>
+        </div>
+      </div>
+
+      <div class="article-expand">
+        <i [class]="selectedArticle?.id === article.id ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i>
+      </div>
+    </div>
+
+    <div *ngIf="!results.length" class="text-center">
+      No articles found. Try a different search term.
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center">Searching knowledge base...</div>
+</div>

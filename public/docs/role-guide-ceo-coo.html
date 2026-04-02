@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Smart Assets — CEO / COO Guide</title>
+<style>
+  @media print { .no-print { display: none !important; } @page { margin: 15mm; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', -apple-system, sans-serif; color: #1e293b; line-height: 1.6; padding: 40px; max-width: 900px; margin: 0 auto; }
+  .print-btn { position: fixed; top: 15px; right: 15px; padding: 10px 20px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; z-index: 100; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+  .print-btn:hover { background: #1d4ed8; }
+  .header { border-bottom: 4px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+  .header h1 { font-size: 28px; color: #2563eb; margin-bottom: 4px; }
+  .header .role-badge { display: inline-block; background: #2563eb; color: #fff; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .header p { color: #64748b; font-size: 14px; }
+  h2 { font-size: 20px; color: #0f172a; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; }
+  h3 { font-size: 16px; color: #334155; margin: 20px 0 8px; }
+  p, li { font-size: 14px; margin-bottom: 6px; }
+  ul, ol { padding-left: 24px; margin-bottom: 12px; }
+  .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+  .module-card { padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+  .module-card .mod-name { font-weight: 600; color: #2563eb; font-size: 13px; }
+  .module-card .mod-desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .access-yes { color: #16a34a; font-weight: 600; }
+  .access-no { color: #dc2626; font-weight: 600; }
+  .workflow-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px; margin: 10px 0; }
+  .workflow-box h4 { color: #1d4ed8; font-size: 14px; margin-bottom: 8px; }
+  .workflow-box ol { padding-left: 20px; }
+  .workflow-box li { font-size: 13px; margin-bottom: 4px; }
+  .note { background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; padding: 10px; font-size: 13px; color: #854d0e; margin: 10px 0; }
+  .restricted { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 10px; margin: 10px 0; }
+  .restricted h4 { color: #dc2626; font-size: 13px; margin-bottom: 6px; }
+  .restricted li { font-size: 12px; color: #7f1d1d; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #f1f5f9; color: #475569; padding: 8px; text-align: left; border: 1px solid #e2e8f0; font-weight: 600; }
+  td { padding: 8px; border: 1px solid #e2e8f0; }
+  .footer { margin-top: 40px; padding-top: 15px; border-top: 2px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center; }
+</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">Print / Save as PDF</button>
+
+<div class="header">
+  <span class="role-badge">CEO / COO</span>
+  <h1>CEO / COO Guide</h1>
+  <p>You have top-level executive oversight of the entire asset management system. This guide covers strategic dashboards, final approval authority, the Decision Engine, and organization-wide visibility.</p>
+</div>
+
+<h2>Modules You Can Access</h2>
+<div class="module-grid">
+  <div class="module-card">
+    <div class="mod-name">Dashboard</div>
+    <div class="mod-desc">Organization-wide overview: all departments, all KPIs.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Asset Master (Full)</div>
+    <div class="mod-desc">View Assets, Assignments, Transfer, Department Assets, Revenue Log, Asset Disposal, Sub-Assets.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Asset Indent</div>
+    <div class="mod-desc">Review high-value indent requests.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Store &amp; Inventory</div>
+    <div class="mod-desc">View inventory levels across all stores.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Maintenance (Full)</div>
+    <div class="mod-desc">Repair Tickets, Work Orders, Preventive Maintenance, Calibration, PM Checklists.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Contracts &amp; Coverage (Full)</div>
+    <div class="mod-desc">Warranty, Insurance, Service Contracts, Vendor Performance.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Finance &amp; Analytics (Full)</div>
+    <div class="mod-desc">Financial Dashboard, CFO Dashboard, Cost Analysis, Decision Engine, Batch Depreciation, Reports.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Operations (Full)</div>
+    <div class="mod-desc">Gate Pass, Acknowledgement, Physical Audit, Employee Exit, Document Vault, Knowledge Base.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration (Partial)</div>
+    <div class="mod-desc">SLA Matrix, Escalation Matrix, Notifications, Audit Trail (read access).</div>
+  </div>
+</div>
+
+<h2>What You Can Do</h2>
+<ul>
+  <li><span class="access-yes">&#10003;</span> <strong>COO Dashboard</strong> &mdash; organization-wide operational overview</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Financial Dashboard</strong> &mdash; detailed asset valuation, depreciation, and spend</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Decision Engine</strong> &mdash; AI-assisted maintain-vs-replace recommendations</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Approve Disposals</strong> &mdash; final authority on asset disposal decisions</li>
+  <li><span class="access-yes">&#10003;</span> <strong>View All Departments</strong> &mdash; cross-department visibility for all data</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Cost Analysis</strong> &mdash; review TCO and cost-per-usage for strategic decisions</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Reports</strong> &mdash; generate and export all report types</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Vendor Performance</strong> &mdash; review vendor scores for contract renewal decisions</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Audit Trail</strong> &mdash; view system-wide audit trail for compliance</li>
+</ul>
+
+<div class="restricted">
+  <h4>What You CANNOT Do</h4>
+  <ul>
+    <li>Create or manage user accounts (Admin only)</li>
+    <li>Configure Module Access for roles (Admin only)</li>
+    <li>Edit System Config / Tenant Config (Admin only)</li>
+    <li>Manage Email Templates or SMTP settings (Admin only)</li>
+    <li>Edit Master Settings or Inventory Master data (Admin only)</li>
+    <li>Seed default system data (Admin only)</li>
+  </ul>
+</div>
+
+
+<h2>Step-by-Step Workflows</h2>
+
+<div class="workflow-box">
+  <h4>Workflow 1: How to Review the COO Dashboard</h4>
+  <ol>
+    <li>Navigate to <strong>Dashboard</strong> in the sidebar &mdash; the main dashboard provides an organization-wide overview.</li>
+    <li>Review key operational metrics: <strong>Total Open Tickets</strong>, <strong>SLA Compliance %</strong>, <strong>PM Compliance %</strong>, <strong>Asset Utilization Rate</strong>.</li>
+    <li>Use the <strong>Department Filter</strong> to drill down into specific departments.</li>
+    <li>Check the <strong>Fleet Health</strong> section &mdash; percentage of assets in Good, Fair, and Critical condition.</li>
+    <li>Review <strong>SLA Breach Trend</strong> &mdash; are breaches increasing or decreasing over time?</li>
+    <li>Identify departments with consistently low PM compliance for management attention.</li>
+    <li>Click any metric card to drill down into the detailed data.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 2: How to Use the Decision Engine</h4>
+  <ol>
+    <li>Navigate to <strong>Finance &amp; Analytics &gt; Decision Engine</strong> in the sidebar.</li>
+    <li>The engine analyzes each asset's: age, maintenance cost trend, downtime frequency, book value, and replacement cost.</li>
+    <li>Assets are categorized as: <strong>Maintain</strong> (green), <strong>Monitor</strong> (yellow), or <strong>Replace</strong> (red).</li>
+    <li>Click on an asset in the <strong>Replace</strong> category to see the detailed analysis.</li>
+    <li>Review the <strong>Cost Projection</strong> &mdash; projected maintenance costs vs. replacement cost over the next 1-3 years.</li>
+    <li>Use this data to make strategic <strong>CapEx</strong> decisions for the next budget cycle.</li>
+    <li>If you agree with a replacement recommendation, initiate the process via <strong>Asset Indent</strong> or direct the HOD.</li>
+  </ol>
+</div>
+
+
+<div class="workflow-box">
+  <h4>Workflow 3: How to Review Uncovered Assets</h4>
+  <ol>
+    <li>Navigate to <strong>Contracts &amp; Coverage &gt; Warranty</strong> in the sidebar.</li>
+    <li>Filter by <strong>Expired</strong> status to see all assets with no active warranty coverage.</li>
+    <li>Navigate to <strong>Contracts &amp; Coverage &gt; Insurance</strong> and filter by <strong>Expired</strong> or <strong>Not Covered</strong>.</li>
+    <li>Cross-reference with <strong>Cost Analysis</strong> to identify high-value assets that are unprotected.</li>
+    <li>Review the <strong>CFO Dashboard &gt; Upcoming Renewals</strong> section for proactive planning.</li>
+    <li>Direct the Finance team or relevant HOD to initiate warranty extensions, AMC renewals, or insurance coverage.</li>
+    <li>Track coverage improvement over time using the <strong>Reports</strong> module.</li>
+  </ol>
+</div>
+
+<div class="note">
+  <strong>Tip:</strong> Start your day with the <strong>Dashboard</strong> for operational health, then check <strong>CFO Dashboard</strong> for financial health. Review the <strong>Decision Engine</strong> monthly to stay ahead of asset replacement needs.
+</div>
+
+<div class="footer">Smart Assets &mdash; Role-Based User Guide &bull; Confidential &bull; Generated April 2026</div>
+</body>
+</html>

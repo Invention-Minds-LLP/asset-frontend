@@ -150,10 +150,14 @@ export class TicketingTable {
       transferType: ['INTERNAL_DEPARTMENT', Validators.required],
       toDepartmentId: [''],
       vendorId: [''],
+      serviceCenterName: [''],
+      expectedReturnDate: [''],
       comment: ['', Validators.required],
     });
     this.completeForm = this.fb.group({
       note: ['', Validators.required],
+      rootCause: [''],
+      resolutionSummary: [''],
     });
     this.resolveForm = this.fb.group({
       remarks: ['', Validators.required],
@@ -511,6 +515,13 @@ export class TicketingTable {
     console.log(allowedStatus)
     return iRaised && allowedStatus;
   }
+    canLogCollection(t: any) {
+    const iRaised = !!this.myEmployeeDbId && t.raisedById === this.myEmployeeDbId;
+    console.log(iRaised, 'isRaised', this.myEmployeeDbId, 'dbId', t.raisedById, 'raisedBy')
+    const allowedStatus = (t.status === 'ASSIGNED');
+    console.log(allowedStatus)
+    return iRaised && allowedStatus;
+  }
 
   // ---------- Dialog openers ----------
   openReassignDialogForTicket(t: any) {
@@ -669,6 +680,8 @@ export class TicketingTable {
       transferType: 'INTERNAL_DEPARTMENT',
       toDepartmentId: '',
       vendorId: '',
+      serviceCenterName: '',
+      expectedReturnDate: '',
       comment: '',
     });
     this.showTransferDialog = true;
@@ -685,16 +698,17 @@ export class TicketingTable {
 
     if (v.transferType === 'INTERNAL_DEPARTMENT') {
       payload.toDepartmentId = Number(v.toDepartmentId);
-      if (!payload.toDepartmentId) {
-        this.toast('error', 'Select department');
-        return;
-      }
-    } else {
+      if (!payload.toDepartmentId) { this.toast('error', 'Select a department'); return; }
+
+    } else if (v.transferType === 'EXTERNAL_VENDOR') {
       payload.vendorId = Number(v.vendorId);
-      if (!payload.vendorId) {
-        this.toast('error', 'Select vendor');
-        return;
-      }
+      if (!payload.vendorId) { this.toast('error', 'Select a vendor'); return; }
+
+    } else if (v.transferType === 'EXTERNAL_SERVICE') {
+      const sc = String(v.serviceCenterName || '').trim();
+      if (!sc) { this.toast('error', 'Service center name is required'); return; }
+      payload.serviceCenterName = sc;
+      if (v.expectedReturnDate) payload.expectedReturnDate = v.expectedReturnDate;
     }
 
     this.ticketService.requestTransfer(this.selectedTicket.id, payload).subscribe({
@@ -815,8 +829,10 @@ export class TicketingTable {
     if (!this.selectedTicket?.id || this.completeForm.invalid) return;
 
     const note = String(this.completeForm.value.note).trim();
+    const rootCause = String(this.completeForm.value.rootCause || '').trim() || undefined;
+    const resolutionSummary = String(this.completeForm.value.resolutionSummary || '').trim() || undefined;
 
-    this.ticketService.completeWork(this.selectedTicket.id, note).subscribe({
+    this.ticketService.completeWork(this.selectedTicket.id, note, rootCause, resolutionSummary).subscribe({
       next: () => {
         this.toast('success', 'Work marked as completed');
         this.showCompleteDialog = false;
@@ -857,6 +873,36 @@ export class TicketingTable {
         this.refreshAfterAction();
       },
       error: (e) => this.toast('error', e?.error?.message || 'Failed to resolve ticket')
+    });
+  }
+
+  // Collection note
+  showCollectionDialog = false;
+  collectionNotes = '';
+  collectionHandoverRemarks = '';
+
+  openCollectionNote(ticket: any) {
+    this.selectedTicket = ticket;
+    this.collectionNotes = '';
+    this.collectionHandoverRemarks = '';
+    this.showCollectionDialog = true;
+  }
+
+  submitCollectionNote() {
+    if (!this.selectedTicket?.id || !this.collectionNotes.trim()) {
+      this.toast('warn', 'Collection notes are required');
+      return;
+    }
+    this.ticketService.addCollectionNote(this.selectedTicket.id, {
+      collectionNotes: this.collectionNotes.trim(),
+      collectionHandoverRemarks: this.collectionHandoverRemarks.trim() || undefined
+    }).subscribe({
+      next: () => {
+        this.toast('success', 'Collection note logged');
+        this.showCollectionDialog = false;
+        this.refreshAfterAction();
+      },
+      error: (e: any) => this.toast('error', e?.error?.message || 'Failed to log collection note')
     });
   }
 }

@@ -85,7 +85,7 @@
             <td>{{ row.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
             <td>
               <p-button *ngIf="!row.isRead" icon="pi pi-eye" size="small"
-                (onClick)="markAsRead(row)" pTooltip="Mark as read" />
+                (onClick)="markAsRead(row)" pTooltip="Mark as read" tooltipPosition="top" />
             </td>
           </tr>
         </ng-template>
@@ -123,7 +123,7 @@
             <td>{{ row.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
             <td>
               <p-button icon="pi pi-trash" size="small" severity="danger"
-                (onClick)="delete(row.id)" pTooltip="Delete" />
+                (onClick)="delete(row.id)" pTooltip="Delete" tooltipPosition="top" />
             </td>
           </tr>
         </ng-template>

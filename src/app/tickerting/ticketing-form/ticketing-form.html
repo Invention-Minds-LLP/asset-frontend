@@ -65,16 +65,52 @@
                     </p-floatlabel>
 
                 </div>
+
+                <div class="column-one">
+                    <p-floatlabel variant="on" class="half-width">
+                        <p-select [(ngModel)]="ticket.workCategory" inputId="workCategory" name="workCategory"
+                            [options]="workCategoryOptions" optionLabel="name" optionValue="value"
+                            appendTo="body" [showClear]="true" />
+                        <label for="workCategory">Work Category</label>
+                    </p-floatlabel>
+                </div>
                 <div class="">
                     <p-floatlabel variant="on">
                         <textarea pTextarea id="description" rows="5" cols="30" style="resize: none" class="h-full"
                             maxlength="500" name="description" [(ngModel)]="ticket.detailedDesc" required
                             #detailedDescCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(detailedDescCtrl)}"
-                            (ngModelChange)="issueChange()"></textarea>
+                            (ngModelChange)="onDescriptionChange()"></textarea>
                         <label for="description" class="label">Detailed Description ( up to 500 characters )</label>
                         <div class="error-msg" *ngIf="showError(detailedDescCtrl)">Description is required</div>
                     </p-floatlabel>
                 </div>
+
+                <!-- Knowledge Base Suggestions -->
+                @if (showKbSuggestions && !isEditMode) {
+                <div class="kb-suggestions">
+                    <div class="kb-suggestions-header">
+                        <i class="pi pi-lightbulb" style="color:#f59e0b"></i>
+                        <span>Similar resolved issues found — check before raising:</span>
+                        <button type="button" class="kb-dismiss" (click)="showKbSuggestions=false">✕</button>
+                    </div>
+                    @for (s of kbSuggestions; track s.id; let i = $index) {
+                    <div class="kb-item" (click)="toggleSuggestion(i)">
+                        <div class="kb-item-header">
+                            <span class="kb-issue-type">{{ s.issueType | uppercase }}</span>
+                            <span class="kb-asset">{{ s.asset?.assetName || 'General' }}</span>
+                            <i class="pi" [class.pi-chevron-down]="expandedSuggestion !== i" [class.pi-chevron-up]="expandedSuggestion === i"></i>
+                        </div>
+                        <p class="kb-desc">{{ s.detailedDesc }}</p>
+                        @if (expandedSuggestion === i) {
+                        <div class="kb-detail">
+                            <div class="kb-detail-row"><strong>Root Cause:</strong><span>{{ s.rootCause }}</span></div>
+                            <div class="kb-detail-row"><strong>Resolution:</strong><span>{{ s.resolutionSummary }}</span></div>
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+                }
 
                 <div class="column-one">
                     <!-- <p-floatlabel variant="on" class="half-width">

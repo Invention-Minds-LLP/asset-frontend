@@ -60,8 +60,8 @@ export class BatchDepreciation implements OnInit {
     this.depService.batchPreview().subscribe({
       next: (res) => {
         setTimeout(() => {
-          this.previewData = res.assets || [];
-          this.previewSummary = res.summary || {};
+          this.previewData = res.preview || res.assets || [];
+          this.previewSummary = { totalDepreciation: res.totalDepreciation, count: res.preview?.length ?? 0 };
           this.previewLoading = false;
           this.cdr.detectChanges();
         });
@@ -87,7 +87,7 @@ export class BatchDepreciation implements OnInit {
       next: (res) => {
         setTimeout(() => {
           this.runningBatch = false;
-          this.messageService.add({ severity: 'success', summary: 'Success', detail: `Depreciation applied to ${res.updated || 0} assets` });
+          this.messageService.add({ severity: 'success', summary: 'Success', detail: `Depreciation applied to ${res.processed || 0} assets` });
           this.loadPreview();
           this.cdr.detectChanges();
         });

@@ -1,71 +1,132 @@
 <div class="dashboard-page">
   <p-toast />
 
-  <!-- Summary Cards -->
+  <!-- Header -->
+  <div class="dash-header">
+    <div>
+      <h2><i class="pi pi-chart-bar"></i> Dashboard</h2>
+      <p class="subtitle">Real-time overview of assets, tickets, and operations</p>
+    </div>
+    <div class="dash-header-actions">
+      <p-button icon="pi pi-refresh" label="Refresh" severity="secondary" size="small"
+        (onClick)="loadDashboard(); loadExpiryAlerts()" [loading]="loading"
+        pTooltip="Reload all dashboard data" tooltipPosition="top"></p-button>
+    </div>
+  </div>
+
+  <!-- Summary Tiles (clickable) -->
   <div class="stats-grid">
-    <div class="stat-card stat-blue">
+    <div class="stat-card stat-blue clickable" (click)="onTileClick('totalAssets')"
+      pTooltip="Click to view all assets" tooltipPosition="top">
       <div class="stat-icon"><i class="pi pi-database"></i></div>
       <div class="stat-body">
         <div class="stat-value">{{ stats.totalAssets ?? 0 }}</div>
         <div class="stat-label">Total Assets</div>
       </div>
     </div>
-    <div class="stat-card stat-green">
+    <div class="stat-card stat-green clickable" (click)="navigate('/assets/view')"
+      pTooltip="Assets currently active and deployed" tooltipPosition="top">
       <div class="stat-icon"><i class="pi pi-check-circle"></i></div>
       <div class="stat-body">
         <div class="stat-value">{{ stats.activeAssets ?? 0 }}</div>
-        <div class="stat-label">Active Assets</div>
+        <div class="stat-label">Active</div>
       </div>
     </div>
-    <div class="stat-card stat-orange">
+    <div class="stat-card stat-teal clickable" (click)="navigate('/store-management')"
+      pTooltip="Assets in store, not yet deployed" tooltipPosition="top">
+      <div class="stat-icon"><i class="pi pi-warehouse"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ stats.inStoreAssets ?? 0 }}</div>
+        <div class="stat-label">In Store</div>
+      </div>
+    </div>
+    <div class="stat-card stat-yellow clickable"
+      pTooltip="Assets currently under maintenance" tooltipPosition="top">
+      <div class="stat-icon"><i class="pi pi-cog"></i></div>
+      <div class="stat-body">
+        <div class="stat-value">{{ stats.inMaintenanceAssets ?? 0 }}</div>
+        <div class="stat-label">In Maintenance</div>
+      </div>
+    </div>
+    <div class="stat-card stat-orange clickable" (click)="onTileClick('openTickets')"
+      pTooltip="Click to view open repair tickets" tooltipPosition="top">
       <div class="stat-icon"><i class="pi pi-wrench"></i></div>
       <div class="stat-body">
         <div class="stat-value">{{ stats.openTickets ?? 0 }}</div>
         <div class="stat-label">Open Tickets</div>
       </div>
     </div>
-    <div class="stat-card stat-yellow">
-      <div class="stat-icon"><i class="pi pi-spin pi-spinner"></i></div>
-      <div class="stat-body">
-        <div class="stat-value">{{ stats.inProgressTickets ?? 0 }}</div>
-        <div class="stat-label">In Progress</div>
-      </div>
-    </div>
-    <div class="stat-card stat-purple">
-      <div class="stat-icon"><i class="pi pi-file-edit"></i></div>
-      <div class="stat-body">
-        <div class="stat-value">{{ stats.pendingAssignments ?? 0 }}</div>
-        <div class="stat-label">Pending Assignments</div>
-      </div>
-    </div>
-    <div class="stat-card stat-red">
+    <div class="stat-card stat-red clickable" (click)="onTileClick('slaBreached')"
+      pTooltip="Tickets that have breached their SLA resolution time (excluding closed/resolved)" tooltipPosition="top">
       <div class="stat-icon"><i class="pi pi-exclamation-triangle"></i></div>
       <div class="stat-body">
         <div class="stat-value">{{ stats.slaBreachedTickets ?? 0 }}</div>
         <div class="stat-label">SLA Breached</div>
       </div>
     </div>
-    <div class="stat-card stat-teal">
-      <div class="stat-icon"><i class="pi pi-clock"></i></div>
+    <div class="stat-card stat-purple clickable" (click)="navigate('/assets/assignments')"
+      pTooltip="Assets pending handover acknowledgement" tooltipPosition="top">
+      <div class="stat-icon"><i class="pi pi-truck"></i></div>
       <div class="stat-body">
-        <div class="stat-value">{{ stats.dueCalibrations ?? 0 }}</div>
-        <div class="stat-label">Calibrations Due</div>
+        <div class="stat-value">{{ stats.pendingAssignments ?? 0 }}</div>
+        <div class="stat-label">Consignment (Pending)</div>
       </div>
     </div>
-    <div class="stat-card stat-gray">
+    <div class="stat-card stat-gray clickable" (click)="navigate('/preventive-maintenance')"
+      pTooltip="Preventive maintenance schedules overdue" tooltipPosition="top">
       <div class="stat-icon"><i class="pi pi-calendar"></i></div>
       <div class="stat-body">
         <div class="stat-value">{{ stats.duePMSchedules ?? 0 }}</div>
-        <div class="stat-label">PM Due</div>
+        <div class="stat-label">PM Overdue</div>
       </div>
     </div>
   </div>
 
-  <p-tabView class="dashboard-tabs custom-tabs" >
+  <!-- Quick Stats Row -->
+  <div class="quick-stats-row">
+    <div class="quick-stat" (click)="navigate('/warranty-management')" pTooltip="Warranties that have expired" tooltipPosition="top">
+      <i class="pi pi-verified" style="color:#dc2626"></i>
+      <span class="qs-value">{{ stats.expiredWarranties ?? 0 }}</span>
+      <span class="qs-label">Expired Warranties</span>
+    </div>
+    <div class="quick-stat" (click)="navigate('/service-contracts')" pTooltip="Service contracts that have expired" tooltipPosition="top">
+      <i class="pi pi-file-edit" style="color:#dc2626"></i>
+      <span class="qs-value">{{ stats.expiredContracts ?? 0 }}</span>
+      <span class="qs-label">Expired Contracts</span>
+    </div>
+    <div class="quick-stat" (click)="navigate('/service-contracts')" pTooltip="Currently active AMC/CMC contracts" tooltipPosition="top">
+      <i class="pi pi-file-edit" style="color:#16a34a"></i>
+      <span class="qs-value">{{ stats.activeContracts ?? 0 }}</span>
+      <span class="qs-label">Active Contracts</span>
+    </div>
+    <div class="quick-stat" (click)="navigate('/calibration')" pTooltip="Calibrations overdue" tooltipPosition="top">
+      <i class="pi pi-sliders-h" style="color:#d97706"></i>
+      <span class="qs-value">{{ stats.dueCalibrations ?? 0 }}</span>
+      <span class="qs-label">Calibrations Due</span>
+    </div>
+    <div class="quick-stat" (click)="onTileClick('assetsByCategory')" pTooltip="Click to see category breakdown" tooltipPosition="top">
+      <i class="pi pi-th-large"></i>
+      <span class="qs-value">{{ assetsByCategory.length }}</span>
+      <span class="qs-label">Categories</span>
+    </div>
+  </div>
+
+  <!-- Tabs with configurable limit -->
+  <div class="tab-controls">
+    <span class="tab-controls-label">Show recent</span>
+    <p-select [options]="recentLimitOptions" [(ngModel)]="recentLimit" (onChange)="onRecentLimitChange()"
+      [style]="{'width':'120px'}" appendTo="body"></p-select>
+  </div>
+
+  <p-tabView class="dashboard-tabs custom-tabs">
 
     <!-- Recent Tickets -->
     <p-tabPanel header="Recent Tickets">
-      <p-table [value]="recentTickets" [paginator]="false" responsiveLayout="scroll" styleClass="p-datatable-sm">
+      <div class="tab-header-actions">
+        <p-button icon="pi pi-download" label="Export CSV" severity="secondary" size="small"
+          (onClick)="exportRecentTickets()" pTooltip="Download as CSV" tooltipPosition="top"></p-button>
+      </div>
+      <p-table [value]="recentTickets" [paginator]="recentTickets.length > 10" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
         <ng-template pTemplate="header">
           <tr>
             <th>Ticket ID</th>
@@ -78,9 +139,9 @@
         </ng-template>
         <ng-template pTemplate="body" let-ticket>
           <tr>
-            <td>{{ ticket.ticketId }}</td>
-            <td>{{ ticket.asset?.assetName }}</td>
-            <td>{{ ticket.department?.name }}</td>
+            <td><strong>{{ ticket.ticketId }}</strong></td>
+            <td>{{ ticket.asset?.assetName || '—' }}</td>
+            <td>{{ ticket.department?.name || '—' }}</td>
             <td><p-tag [value]="ticket.priority" /></td>
             <td><p-tag [value]="ticket.status" [severity]="getSeverity(ticket.status)" /></td>
             <td>{{ ticket.createdAt | date:'dd MMM yyyy' }}</td>
@@ -94,7 +155,11 @@
 
     <!-- Recent Assets -->
     <p-tabPanel header="Recent Assets">
-      <p-table [value]="recentAssets" [paginator]="false" responsiveLayout="scroll" styleClass="p-datatable-sm">
+      <div class="tab-header-actions">
+        <p-button icon="pi pi-download" label="Export CSV" severity="secondary" size="small"
+          (onClick)="exportRecentAssets()" pTooltip="Download as CSV" tooltipPosition="top"></p-button>
+      </div>
+      <p-table [value]="recentAssets" [paginator]="recentAssets.length > 10" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
         <ng-template pTemplate="header">
           <tr>
             <th>Asset ID</th>
@@ -107,10 +172,10 @@
         </ng-template>
         <ng-template pTemplate="body" let-asset>
           <tr>
-            <td>{{ asset.assetId }}</td>
+            <td><strong>{{ asset.assetId }}</strong></td>
             <td>{{ asset.assetName }}</td>
-            <td>{{ asset.assetCategory?.name }}</td>
-            <td>{{ asset.department?.name }}</td>
+            <td>{{ asset.assetCategory?.name || '—' }}</td>
+            <td>{{ asset.department?.name || '—' }}</td>
             <td><p-tag [value]="asset.status" /></td>
             <td>{{ asset.createdAt | date:'dd MMM yyyy' }}</td>
           </tr>
@@ -123,84 +188,159 @@
 
     <!-- Expiry Alerts -->
     <p-tabPanel header="Expiry Alerts">
-      <div class="expiry-filter">
-        <label>Alerts within</label>
-        <input pInputText type="number" [(ngModel)]="expiryDays" style="width:80px" />
-        <label>days</label>
-        <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadExpiryAlerts()" size="small" />
+      <div class="tab-header-actions">
+        <div class="expiry-filter">
+          <label>Alerts within</label>
+          <input pInputText type="number" [(ngModel)]="expiryDays" style="width:70px" />
+          <label>days</label>
+          <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadExpiryAlerts()" size="small" severity="secondary" />
+        </div>
+        <p-button icon="pi pi-download" label="Export All" severity="secondary" size="small"
+          (onClick)="exportExpiryAlerts()" pTooltip="Download all expiry alerts as CSV" tooltipPosition="top"></p-button>
       </div>
 
       <div class="expiry-section" *ngIf="expiryAlerts.expiringWarranties?.length">
-        <h4>Warranties Expiring ({{ expiryAlerts.expiringWarranties.length }})</h4>
-        <p-table [value]="expiryAlerts.expiringWarranties" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <h4><i class="pi pi-verified"></i> Warranties Expiring ({{ expiryAlerts.expiringWarranties.length }})</h4>
+        <p-table [value]="expiryAlerts.expiringWarranties" [paginator]="expiryAlerts.expiringWarranties.length > 10" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
           <ng-template pTemplate="header">
             <tr><th>Asset</th><th>Warranty End</th><th>Provider</th></tr>
           </ng-template>
           <ng-template pTemplate="body" let-w>
             <tr>
-              <td>{{ w.asset?.assetName }}</td>
+              <td>{{ w.asset?.assetName || '—' }}</td>
               <td>{{ w.warrantyEnd | date:'dd MMM yyyy' }}</td>
-              <td>{{ w.warrantyProvider }}</td>
+              <td>{{ w.warrantyProvider || '—' }}</td>
             </tr>
           </ng-template>
         </p-table>
       </div>
 
       <div class="expiry-section" *ngIf="expiryAlerts.expiringInsurance?.length">
-        <h4>Insurance Expiring ({{ expiryAlerts.expiringInsurance.length }})</h4>
-        <p-table [value]="expiryAlerts.expiringInsurance" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <h4><i class="pi pi-shield"></i> Insurance Expiring ({{ expiryAlerts.expiringInsurance.length }})</h4>
+        <p-table [value]="expiryAlerts.expiringInsurance" [paginator]="expiryAlerts.expiringInsurance.length > 10" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
           <ng-template pTemplate="header">
             <tr><th>Asset</th><th>End Date</th><th>Provider</th></tr>
           </ng-template>
           <ng-template pTemplate="body" let-ins>
             <tr>
-              <td>{{ ins.asset?.assetName }}</td>
+              <td>{{ ins.asset?.assetName || '—' }}</td>
               <td>{{ ins.endDate | date:'dd MMM yyyy' }}</td>
-              <td>{{ ins.provider }}</td>
+              <td>{{ ins.provider || '—' }}</td>
             </tr>
           </ng-template>
         </p-table>
       </div>
 
       <div class="expiry-section" *ngIf="expiryAlerts.dueCalibrations?.length">
-        <h4>Calibrations Due ({{ expiryAlerts.dueCalibrations.length }})</h4>
-        <p-table [value]="expiryAlerts.dueCalibrations" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <h4><i class="pi pi-clock"></i> Calibrations Due ({{ expiryAlerts.dueCalibrations.length }})</h4>
+        <p-table [value]="expiryAlerts.dueCalibrations" [paginator]="expiryAlerts.dueCalibrations.length > 10" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
           <ng-template pTemplate="header">
             <tr><th>Asset</th><th>Due Date</th><th>Vendor</th></tr>
           </ng-template>
           <ng-template pTemplate="body" let-c>
             <tr>
-              <td>{{ c.asset?.assetName }}</td>
+              <td>{{ c.asset?.assetName || '—' }}</td>
               <td>{{ c.nextDueAt | date:'dd MMM yyyy' }}</td>
-              <td>{{ c.vendor?.name }}</td>
+              <td>{{ c.vendor?.name || '—' }}</td>
             </tr>
           </ng-template>
         </p-table>
       </div>
 
       <div *ngIf="!expiryAlerts.expiringWarranties?.length && !expiryAlerts.expiringInsurance?.length && !expiryAlerts.dueCalibrations?.length"
-           class="text-center p-4">
-        No upcoming expiries within {{ expiryDays }} days.
+           class="empty-state">
+        <i class="pi pi-check-circle" style="font-size:2rem; color:#16a34a;"></i>
+        <p>No upcoming expiries within {{ expiryDays }} days.</p>
       </div>
     </p-tabPanel>
 
     <!-- Assets by Category -->
     <p-tabPanel header="Assets by Category">
-      <p-table [value]="assetsByCategory" responsiveLayout="scroll" styleClass="p-datatable-sm">
+      <div class="tab-header-actions">
+        <p-button icon="pi pi-download" label="Export CSV" severity="secondary" size="small"
+          (onClick)="exportTableToCsv(assetsByCategory, [{field:'category',header:'Category'},{field:'count',header:'Count'}], 'assets_by_category')"
+          pTooltip="Download as CSV" tooltipPosition="top"></p-button>
+      </div>
+      <p-table [value]="assetsByCategory" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
         <ng-template pTemplate="header">
-          <tr><th>Category</th><th>Count</th></tr>
+          <tr><th>Category</th><th style="text-align:right">Count</th><th style="width:200px">Distribution</th></tr>
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr>
-            <td>{{ row.category }}</td>
-            <td>{{ row.count }}</td>
+            <td><strong>{{ row.category }}</strong></td>
+            <td style="text-align:right; font-weight:600;">{{ row.count }}</td>
+            <td>
+              <div class="bar-container">
+                <div class="bar-fill" [style.width.%]="stats.totalAssets > 0 ? (row.count / stats.totalAssets * 100) : 0"></div>
+              </div>
+            </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="2" class="text-center">No data</td></tr>
+          <tr><td colspan="3" class="text-center">No data</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+    <!-- Ticket Status Breakdown -->
+    <p-tabPanel header="Ticket Breakdown">
+      <div class="tab-header-actions">
+        <p-button icon="pi pi-download" label="Export CSV" severity="secondary" size="small"
+          (onClick)="exportTableToCsv(ticketStatusBreakdown, [{field:'status',header:'Status'},{field:'count',header:'Count'}], 'ticket_breakdown')"
+          pTooltip="Download as CSV" tooltipPosition="top"></p-button>
+      </div>
+      <p-table [value]="ticketStatusBreakdown" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr><th>Status</th><th style="text-align:right">Count</th><th style="width:200px">Distribution</th></tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td><p-tag [value]="row.status" [severity]="getSeverity(row.status)"></p-tag></td>
+            <td style="text-align:right; font-weight:600;">{{ row.count }}</td>
+            <td>
+              <div class="bar-container">
+                <div class="bar-fill bar-ticket" [style.width.%]="(stats.openTickets + stats.inProgressTickets + stats.resolvedTickets) > 0 ? (row.count / (stats.openTickets + stats.inProgressTickets + stats.resolvedTickets) * 100) : 0"></div>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="3" class="text-center">No data</td></tr>
         </ng-template>
       </p-table>
     </p-tabPanel>
 
   </p-tabView>
 </div>
+
+<!-- Drill-down Dialog -->
+<p-dialog [header]="drillTitle" [(visible)]="showDrillDialog" [modal]="true" [style]="{'width':'750px', 'max-height':'80vh'}">
+  @if (drillData.length) {
+    <div class="drill-actions">
+      <p-button icon="pi pi-download" label="Export CSV" severity="secondary" size="small"
+        (onClick)="exportDrillData()" pTooltip="Download this list as CSV" tooltipPosition="top"></p-button>
+      <span class="drill-count">{{ drillData.length }} item(s)</span>
+    </div>
+    <p-table [value]="drillData" [paginator]="drillData.length > 15" [rows]="15" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          @for (col of drillColumns; track col.field) {
+            <th>{{ col.header }}</th>
+          }
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          @for (col of drillColumns; track col.field) {
+            <td>{{ row[col.field] ?? '—' }}</td>
+          }
+        </tr>
+      </ng-template>
+    </p-table>
+  } @else {
+    <div class="empty-state">
+      <i class="pi pi-inbox" style="font-size:2rem; color:var(--text-color-secondary)"></i>
+      <p>No data available for this view.</p>
+    </div>
+  }
+</p-dialog>

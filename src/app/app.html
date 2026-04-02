@@ -1,12 +1,47 @@
 <div *ngIf="!isLoginRoute(); else loginTemplate" class="app-container" [class.sidebar-collapsed]="isSidebarCollapsed">
   <app-sidebar (collapsedChange)="isSidebarCollapsed = $event"></app-sidebar>
-  <!-- <div style="flex-grow: 1; padding: 2rem;">
-    <router-outlet></router-outlet>
-  </div> -->
   <div class="content-area">
+    <!-- Global notification bell — top right corner -->
+    <div class="top-bar">
+      <div class="top-bar-right">
+        <div class="notif-bell" (click)="showNotifPanel = !showNotifPanel; loadRecentNotifications()">
+          <i class="pi pi-bell"></i>
+          <span *ngIf="unreadCount > 0" class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification dropdown panel -->
+    <div class="notif-panel" *ngIf="showNotifPanel">
+      <div class="notif-panel-header">
+        <span class="notif-panel-title">Notifications</span>
+        <span *ngIf="unreadCount > 0" class="notif-mark-all" (click)="markAllRead()">Mark all read</span>
+      </div>
+      <div class="notif-panel-body">
+        <div *ngIf="loadingNotifs" class="notif-loading">
+          <i class="pi pi-spin pi-spinner"></i> Loading...
+        </div>
+        <div *ngIf="!loadingNotifs && notifications.length === 0" class="notif-empty">
+          <i class="pi pi-check-circle"></i>
+          <span>No notifications</span>
+        </div>
+        <div *ngFor="let n of notifications" class="notif-item" [class.notif-unread]="!n.isRead" (click)="markAsRead(n)">
+          <div class="notif-item-dot" *ngIf="!n.isRead"></div>
+          <div class="notif-item-content">
+            <div class="notif-item-title">{{ getNotifTitle(n) }}</div>
+            <div class="notif-item-message">{{ getNotifMessage(n) }}</div>
+            <div class="notif-item-time">{{ getNotifTime(n) }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="notif-panel-footer" (click)="goToNotifications()">
+        View All Notifications
+      </div>
+    </div>
+    <div class="notif-overlay" *ngIf="showNotifPanel" (click)="showNotifPanel = false"></div>
+
     <router-outlet></router-outlet>
   </div>
-
 </div>
 <ng-template #loginTemplate>
   <!-- <app-login></app-login> -->

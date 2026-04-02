@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { TextareaModule } from 'primeng/textarea';
 import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { Assets } from '../../services/assets/assets';
 import { Branches } from '../../services/branches/branches';
@@ -26,7 +27,8 @@ import { Branches } from '../../services/branches/branches';
     InputTextModule,
     FloatLabelModule,
     TextareaModule,
-    TagModule
+    TagModule,
+    TooltipModule
   ],
   templateUrl: './master-settings.html',
   styleUrl: './master-settings.css',

@@ -1,0 +1,62 @@
+.page-container { padding: 1.5rem; }
+.page-header { margin-bottom: 1.25rem; }
+.page-header h2 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.subtitle { margin: 0.25rem 0 0; color: var(--text-color-secondary); font-size: 0.9rem; }
+
+/* View toggle / tabs */
+.view-toggle { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.toggle-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem; border: 1px solid var(--surface-border); border-radius: 20px; background: var(--surface-0); color: var(--text-color-secondary); font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
+.toggle-btn:hover { background: var(--surface-100); }
+.toggle-btn.active { background: #DBFFE8; border-color: #00A23D; color: #00A23D; font-weight: 600; }
+.badge { background: #dc2626; color: #fff; border-radius: 10px; padding: 1px 7px; font-size: 0.72rem; font-weight: 700; }
+
+/* Section header */
+.section-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+.section-title { font-size: 1rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 0.4rem; }
+
+/* Code badge */
+.code-badge { background: #e0f2fe; color: #0369a1; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 600; }
+
+/* Stock filter row */
+.stock-filter-row { display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem; }
+
+/* Form grid */
+.form-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+.form-field { display: flex; flex-direction: column; gap: 0.3rem; }
+.form-field label { font-size: 0.85rem; font-weight: 500; color: var(--text-color-secondary); }
+
+/* Transfer items */
+.transfer-items-section { border: 1px solid var(--surface-border); border-radius: 8px; padding: 0.75rem; margin-top: 0.25rem; }
+.transfer-item-row { display: flex; gap: 0.75rem; align-items: flex-end; margin-bottom: 0.5rem; }
+
+/* Hierarchy tree */
+.hierarchy-section { margin-top: 1rem; }
+.hierarchy-tree { border: 1px solid var(--surface-border); border-radius: 10px; padding: 1rem; background: var(--surface-0); }
+.tree-node { padding: 0.4rem 0; }
+.tree-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+.tree-children { margin-left: 1.5rem; border-left: 2px solid var(--surface-border); padding-left: 1rem; }
+.tree-node.child { font-size: 0.85rem; color: var(--text-color-secondary); }
+
+/* Alert row */
+.alert-row.critical { background: #fef2f2; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-color-secondary); display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.empty-state p { font-size: 1rem; }
+
+.text-center { text-align: center; padding: 2rem; color: var(--text-color-secondary); }
+
+.value-low { color: #dc2626 !important; }
+.value-warn { color: #d97706 !important; }
+
+/* Detail dialog */
+.detail-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1.5rem; }
+.detail-info-item { display: flex; flex-direction: column; gap: 0.15rem; }
+.info-label { font-size: 0.75rem; color: var(--text-color-secondary); font-weight: 500; }
+.info-value { font-size: 0.9rem; font-weight: 500; color: var(--text-color); }
+.empty-state-sm { text-align: center; padding: 1.5rem; color: var(--text-color-secondary); font-size: 0.88rem; border: 1px dashed var(--surface-border); border-radius: 8px; margin-top: 0.5rem; }
+.empty-state-sm i { font-size: 1.25rem; display: block; margin-bottom: 0.4rem; }
+
+::ng-deep .p-datatable .p-datatable-thead > tr > th { background: transparent !important; box-shadow: none !important; }
+::ng-deep .p-datatable .p-datatable-wrapper { border: 1px solid var(--table-border-color) !important; border-radius: 12px; overflow: hidden; }
+::ng-deep .p-datatable-table { font-size: 14px; }

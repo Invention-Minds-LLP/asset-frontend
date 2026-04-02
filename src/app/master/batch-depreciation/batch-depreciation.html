@@ -68,11 +68,11 @@
           <ng-template pTemplate="body" let-d>
             <tr>
               <td>{{ d.asset?.assetName || '—' }}</td>
-              <td>{{ formatCurrency(d.originalCost || d.asset?.originalCost) }}</td>
+              <td>{{ formatCurrency(d.purchaseCost || d.asset?.purchaseCost) }}</td>
               <td>{{ formatCurrency(d.currentBookValue) }}</td>
               <td>{{ formatCurrency(d.depreciationAmount) }}</td>
               <td>{{ d.depreciationMethod }}</td>
-              <td>{{ d.usefulLifeYears }} yrs</td>
+              <td>{{ d.expectedLifeYears }} yrs</td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">

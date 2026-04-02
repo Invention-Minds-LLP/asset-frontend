@@ -1,0 +1,437 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-warehouse"></i> Store & Inventory Management</h2>
+      <p class="subtitle">Stores, Stock Position, Inter-Store Transfers & Low Stock Alerts</p>
+    </div>
+  </div>
+
+  <!-- Tab toggle -->
+  <div class="view-toggle">
+    <button class="toggle-btn" [class.active]="activeTab === 'stores'" (click)="activeTab = 'stores'">
+      <i class="pi pi-building"></i> Stores
+    </button>
+    <button class="toggle-btn" [class.active]="activeTab === 'stock'" (click)="activeTab = 'stock'">
+      <i class="pi pi-box"></i> Stock Position
+    </button>
+    <button class="toggle-btn" [class.active]="activeTab === 'transfers'" (click)="activeTab = 'transfers'">
+      <i class="pi pi-arrows-h"></i> Transfers
+    </button>
+    <button class="toggle-btn" [class.active]="activeTab === 'alerts'" (click)="activeTab = 'alerts'">
+      <i class="pi pi-exclamation-triangle"></i> Alerts
+      @if (lowStockAlerts.length) { <span class="badge">{{ lowStockAlerts.length }}</span> }
+    </button>
+  </div>
+
+  <!-- ═══════════════════════ STORES TAB ═══════════════════════ -->
+  @if (activeTab === 'stores') {
+    <div class="section-header">
+      <span class="section-title"><i class="pi pi-building"></i> Store List</span>
+      <span style="flex:1"></span>
+      <p-button label="Create Store" icon="pi pi-plus" (onClick)="openCreateStore()" size="small"></p-button>
+    </div>
+
+    <p-table [value]="stores" [loading]="loadingStores" [paginator]="true" [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]" stripedRows>
+      <ng-template #header>
+        <tr>
+          <th>Name</th>
+          <th>Code</th>
+          <th>Type</th>
+          <th>Parent</th>
+          <th>Locations</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row>
+        <tr>
+          <td>{{ row.name }}</td>
+          <td><span class="code-badge">{{ row.code || '—' }}</span></td>
+          <td><p-tag [value]="getStoreTypeLabel(row.storeType)" [severity]="getStoreTypeSeverity(row.storeType)"></p-tag></td>
+          <td>{{ row.parentStore?.name || '—' }}</td>
+          <td>{{ row._count?.locations ?? 0 }}</td>
+          <td>
+            <p-button icon="pi pi-eye" [rounded]="true" [text]="true" size="small" pTooltip="View Details" tooltipPosition="top" (onClick)="viewStoreDetail(row)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="6" class="text-center">No stores found.</td></tr>
+      </ng-template>
+    </p-table>
+
+    <!-- Hierarchy tree -->
+    @if (storeHierarchy) {
+      <div class="hierarchy-section">
+        <div class="section-header" style="margin-top: 1.5rem;">
+          <span class="section-title"><i class="pi pi-sitemap"></i> Store Hierarchy</span>
+        </div>
+        <div class="hierarchy-tree">
+          @for (node of storeHierarchy; track node.id) {
+            <div class="tree-node">
+              <span class="tree-label"><i class="pi pi-building"></i> {{ node.name }} <span class="code-badge">{{ node.code }}</span></span>
+              @if (node.children?.length) {
+                <div class="tree-children">
+                  @for (child of node.children; track child.id) {
+                    <div class="tree-node child">
+                      <span class="tree-label"><i class="pi pi-chevron-right"></i> {{ child.name }} <span class="code-badge">{{ child.code }}</span></span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Create Store Dialog -->
+    <p-dialog header="Create Store" [(visible)]="showCreateStoreDialog" [modal]="true" [style]="{'width': '480px'}">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Store Name *</label>
+          <input pInputText [(ngModel)]="storeForm.name" placeholder="Enter store name" />
+        </div>
+        <div class="form-field">
+          <label>Store Code *</label>
+          <input pInputText [(ngModel)]="storeForm.code" placeholder="e.g. MAIN-01" />
+        </div>
+        <div class="form-field">
+          <label>Type</label>
+          <p-select [options]="storeTypeOptions" [(ngModel)]="storeForm.storeType" placeholder="Select type" appendTo="body"></p-select>
+        </div>
+        <div class="form-field">
+          <label>Parent Store</label>
+          <p-select [options]="storeOptions" [(ngModel)]="storeForm.parentStoreId" placeholder="None (top-level)" [showClear]="true" appendTo="body"></p-select>
+        </div>
+        <div class="form-field">
+          <label>Address / Description</label>
+          <textarea pTextarea [(ngModel)]="storeForm.address" rows="3" placeholder="Optional description"></textarea>
+        </div>
+      </div>
+      <ng-template #footer>
+        <p-button label="Cancel" [text]="true" (onClick)="showCreateStoreDialog = false"></p-button>
+        <p-button label="Create" icon="pi pi-check" (onClick)="createStore()" [loading]="savingStore"
+          [disabled]="!storeForm.name || !storeForm.code"></p-button>
+      </ng-template>
+    </p-dialog>
+
+    <!-- Store Detail Dialog -->
+    <p-dialog [header]="selectedStore?.name || 'Store Details'" [(visible)]="showDetailDialog" [modal]="true" [style]="{'width': '640px'}">
+      @if (selectedStore) {
+        <div class="detail-info-grid">
+          <div class="detail-info-item">
+            <span class="info-label">Code</span>
+            <span class="info-value"><span class="code-badge">{{ selectedStore.code || '—' }}</span></span>
+          </div>
+          <div class="detail-info-item">
+            <span class="info-label">Type</span>
+            <span class="info-value">
+              <p-tag [value]="getStoreTypeLabel(selectedStore.storeType)" [severity]="getStoreTypeSeverity(selectedStore.storeType)"></p-tag>
+            </span>
+          </div>
+          <div class="detail-info-item">
+            <span class="info-label">Parent Store</span>
+            <span class="info-value">{{ selectedStore.parentStore?.name || 'None (top-level)' }}</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="info-label">Address</span>
+            <span class="info-value">{{ selectedStore.address || '—' }}</span>
+          </div>
+        </div>
+
+        <!-- Locations -->
+        <div class="section-header" style="margin-top: 1.25rem;">
+          <span class="section-title"><i class="pi pi-map-marker"></i> Locations (Rack / Shelf / Bin)</span>
+          <span style="flex:1"></span>
+          <p-button label="Add Location" icon="pi pi-plus" size="small" (onClick)="openAddLocation()"></p-button>
+        </div>
+
+        @if (storeLocations.length) {
+          <p-table [value]="storeLocations" styleClass="p-datatable-sm p-datatable-striped" [rows]="10" [paginator]="storeLocations.length > 10">
+            <ng-template #header>
+              <tr>
+                <th>Rack</th>
+                <th>Shelf</th>
+                <th>Bin</th>
+                <th>Label</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-loc>
+              <tr>
+                <td>{{ loc.rack || '—' }}</td>
+                <td>{{ loc.shelf || '—' }}</td>
+                <td>{{ loc.bin || '—' }}</td>
+                <td>{{ loc.label || '—' }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        } @else {
+          <div class="empty-state-sm">
+            <i class="pi pi-map-marker"></i>
+            No locations defined yet. Click <strong>Add Location</strong> to define rack/shelf/bin positions.
+          </div>
+        }
+      }
+    </p-dialog>
+
+    <!-- Add Location Dialog -->
+    <p-dialog header="Add Location" [(visible)]="showAddLocationDialog" [modal]="true" [style]="{'width': '420px'}">
+      <div class="form-grid">
+        <div style="display: flex; gap: 0.75rem;flex-direction: column;">
+          <div class="form-field" style="flex:1">
+            <label>Rack</label>
+            <input pInputText [(ngModel)]="locationForm.rack" placeholder="e.g. R1" />
+          </div>
+          <div class="form-field" style="flex:1">
+            <label>Shelf</label>
+            <input pInputText [(ngModel)]="locationForm.shelf" placeholder="e.g. S2" />
+          </div>
+          <div class="form-field" style="flex:1">
+            <label>Bin</label>
+            <input pInputText [(ngModel)]="locationForm.bin" placeholder="e.g. B3" />
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Label (optional)</label>
+          <input pInputText [(ngModel)]="locationForm.label" placeholder="e.g. R1-S2-B3 Medical Supplies" />
+        </div>
+      </div>
+      <ng-template #footer>
+        <p-button label="Cancel" [text]="true" (onClick)="showAddLocationDialog = false"></p-button>
+        <p-button label="Add" icon="pi pi-check" (onClick)="addLocation()" [loading]="addingLocation"
+          [disabled]="!locationForm.rack && !locationForm.shelf && !locationForm.bin"></p-button>
+      </ng-template>
+    </p-dialog>
+  }
+
+  <!-- ═══════════════════════ STOCK POSITION TAB ═══════════════════════ -->
+  @if (activeTab === 'stock') {
+    <div class="stock-filter-row">
+      <p-select [options]="storeOptions" [(ngModel)]="selectedStoreId"
+        placeholder="Select a store to view stock..." [filter]="true"
+        [style]="{'width': '380px'}" (onChange)="onStoreSelect()" appendTo="body"></p-select>
+      @if (selectedStoreId) {
+        <p-button label="Add / Adjust Stock" icon="pi pi-plus-circle" (onClick)="openAdjustStock()" size="small"></p-button>
+      }
+    </div>
+
+    @if (selectedStoreId) {
+      <p-table [value]="stockPositions" [loading]="loadingStock" [paginator]="true" [rows]="15"
+        [rowsPerPageOptions]="[15, 30, 50]" stripedRows>
+        <ng-template #header>
+          <tr>
+            <th>Item Type</th>
+            <th>Item Name</th>
+            <th style="text-align:right">Current Qty</th>
+            <th style="text-align:right">Reserved</th>
+            <th style="text-align:right">Available</th>
+            <th style="text-align:right">Reorder Level</th>
+            <th>Status</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-row>
+          <tr>
+            <td>{{ row.itemType || row.category || '—' }}</td>
+            <td>{{ row.itemName || row.name }}</td>
+            <td style="text-align:right; font-weight: 600;">{{ row.currentQty }}</td>
+            <td style="text-align:right">{{ row.reservedQty ?? 0 }}</td>
+            <td style="text-align:right; font-weight: 600;">{{ (row.currentQty ?? 0) - (row.reservedQty ?? 0) }}</td>
+            <td style="text-align:right">{{ row.reorderLevel ?? '—' }}</td>
+            <td><p-tag [value]="getStockStatus(row)" [severity]="getStockSeverity(row)"></p-tag></td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr><td colspan="7" class="text-center">No stock items found for this store.</td></tr>
+        </ng-template>
+      </p-table>
+    } @else {
+      <div class="empty-state">
+        <i class="pi pi-box" style="font-size: 2.5rem; color: var(--text-color-secondary);"></i>
+        <p>Select a store to view its stock position.</p>
+      </div>
+    }
+
+    <!-- Add / Adjust Stock Dialog -->
+    <p-dialog header="Add or Adjust Stock" [(visible)]="showAdjustDialog" [modal]="true" [style]="{'width': '480px'}">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Item Type *</label>
+          <p-select [options]="itemTypeOptions" [(ngModel)]="adjustForm.itemType" placeholder="Select item type" appendTo="body"></p-select>
+        </div>
+        @if (adjustForm.itemType === 'SPARE_PART') {
+          <div class="form-field">
+            <label>Spare Part *</label>
+            <p-select [options]="sparePartOptions" [(ngModel)]="adjustForm.sparePartId" appendTo="body"
+              placeholder="Select spare part" [filter]="true" [showClear]="true"></p-select>
+          </div>
+        }
+        @if (adjustForm.itemType === 'CONSUMABLE') {
+          <div class="form-field">
+            <label>Consumable *</label>
+            <p-select [options]="consumableOptions" [(ngModel)]="adjustForm.consumableId"
+              placeholder="Select consumable" [filter]="true" [showClear]="true" appendTo="body"></p-select>
+          </div>
+        }
+        <div class="form-field">
+          <label>Quantity (use negative to reduce) *</label>
+          <p-inputNumber [(ngModel)]="adjustForm.adjustmentQty" [showButtons]="true" [min]="-9999" [max]="99999" placeholder="e.g. 50 or -10"></p-inputNumber>
+        </div>
+        <div class="form-field">
+          <label>Reason *</label>
+          <textarea pTextarea [(ngModel)]="adjustForm.reason" rows="2" placeholder="e.g. Initial stock setup, Physical count correction"></textarea>
+        </div>
+      </div>
+      <ng-template #footer>
+        <p-button label="Cancel" [text]="true" (onClick)="showAdjustDialog = false"></p-button>
+        <p-button label="Submit" icon="pi pi-check" (onClick)="adjustStock()" [loading]="adjustingStock"
+          [disabled]="!adjustForm.reason || !adjustForm.adjustmentQty || (adjustForm.itemType === 'SPARE_PART' && !adjustForm.sparePartId) || (adjustForm.itemType === 'CONSUMABLE' && !adjustForm.consumableId)"></p-button>
+      </ng-template>
+    </p-dialog>
+  }
+
+  <!-- ═══════════════════════ TRANSFERS TAB ═══════════════════════ -->
+  @if (activeTab === 'transfers') {
+    <div class="section-header">
+      <span class="section-title"><i class="pi pi-arrows-h"></i> Transfer Requests</span>
+      <span style="flex:1"></span>
+      <p-button label="New Transfer" icon="pi pi-plus" (onClick)="openCreateTransfer()" size="small"></p-button>
+    </div>
+
+    <p-table [value]="transfers" [loading]="loadingTransfers" [paginator]="true" [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]" stripedRows>
+      <ng-template #header>
+        <tr>
+          <th>Transfer #</th>
+          <th>From Store</th>
+          <th>To Store</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Requested Date</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row>
+        <tr>
+          <td><span class="code-badge">{{ row.transferNumber || row.id }}</span></td>
+          <td>{{ row.fromStore?.name || row.fromStoreName || '—' }}</td>
+          <td>{{ row.toStore?.name || row.toStoreName || '—' }}</td>
+          <td>{{ row.transferType || '—' }}</td>
+          <td><p-tag [value]="row.status" [severity]="getTransferStatusSeverity(row.status)"></p-tag></td>
+          <td>{{ row.createdAt | date:'mediumDate' }}</td>
+          <td>
+            @if (row.status === 'PENDING' && isRole('HOD', 'ADMIN')) {
+              <p-button icon="pi pi-check" [rounded]="true" [text]="true" size="small" pTooltip="Approve" tooltipPosition="top" severity="success" (onClick)="approveTransfer(row.id)" [loading]="approvingTransfer"></p-button>
+            }
+            @if ((row.status === 'APPROVED' || row.status === 'IN_TRANSIT') && isRole('HOD', 'SUPERVISOR', 'ADMIN')) {
+              <p-button icon="pi pi-inbox" [rounded]="true" [text]="true" size="small" pTooltip="Receive" tooltipPosition="top" severity="info" (onClick)="receiveTransfer(row.id)" [loading]="receivingTransfer"></p-button>
+            }
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="7" class="text-center">No transfers found.</td></tr>
+      </ng-template>
+    </p-table>
+
+    <!-- Create Transfer Dialog -->
+    <p-dialog header="Create Transfer" [(visible)]="showCreateTransferDialog" [modal]="true" [style]="{'width': '700px'}">
+      <div class="form-grid">
+        <div style="display:flex; gap:1rem;">
+          <div class="form-field" style="flex:1">
+            <label>From Store *</label>
+            <p-select [options]="storeOptions" [(ngModel)]="transferForm.fromStoreId" placeholder="Select source store" appendTo="body"></p-select>
+          </div>
+          <div class="form-field" style="flex:1">
+            <label>To Store *</label>
+            <p-select [options]="storeOptions" [(ngModel)]="transferForm.toStoreId" placeholder="Select destination store" appendTo="body"></p-select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Transfer Type</label>
+          <p-select [options]="transferTypeOptions" [(ngModel)]="transferForm.transferType" appendTo="body"></p-select>
+        </div>
+        <div class="form-field">
+          <label>Notes</label>
+          <textarea pTextarea [(ngModel)]="transferForm.remarks" rows="2" placeholder="Optional notes"></textarea>
+        </div>
+
+        <div class="transfer-items-section">
+          <div class="section-header">
+            <span class="section-title">Items</span>
+            <span style="flex:1"></span>
+            <p-button label="Add Item" icon="pi pi-plus" (onClick)="addTransferItem()" size="small" [text]="true"></p-button>
+          </div>
+          @for (item of transferForm.items; track $index) {
+            <div class="transfer-item-row">
+              <div class="form-field" style="flex:1">
+                <label>Type</label>
+                <p-select [options]="itemTypeOptions" [(ngModel)]="item.itemType" placeholder="Item Type" (onChange)="item.sparePartId = null; item.consumableId = null" appendTo="body"></p-select>
+              </div>
+              <div class="form-field" style="flex:2">
+                <label>Item</label>
+                @if (item.itemType === 'SPARE_PART') {
+                  <p-select [options]="sparePartOptions" [(ngModel)]="item.sparePartId" placeholder="Select spare part" [filter]="true" appendTo="body"></p-select>
+                } @else if (item.itemType === 'CONSUMABLE') {
+                  <p-select [options]="consumableOptions" [(ngModel)]="item.consumableId" placeholder="Select consumable" [filter]="true" appendTo="body"></p-select>
+                } @else {
+                  <p-select [options]="[]" placeholder="Select item type first" [disabled]="true" appendTo="body"></p-select>
+                }
+              </div>
+              <div class="form-field" style="flex:0.7">
+                <label>Qty</label>
+                <p-inputNumber [(ngModel)]="item.quantity" [min]="1" [showButtons]="true" appendTo="body"></p-inputNumber>
+              </div>
+              @if (transferForm.items.length > 1) {
+                <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" size="small" pTooltip="Remove Item" tooltipPosition="top" (onClick)="removeTransferItem($index)" styleClass="align-self: flex-end; margin-bottom: 0.3rem;"></p-button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+      <ng-template #footer>
+        <p-button label="Cancel" [text]="true" (onClick)="showCreateTransferDialog = false"></p-button>
+        <p-button label="Create Transfer" icon="pi pi-check" (onClick)="createTransfer()" [loading]="savingTransfer"
+          [disabled]="!transferForm.fromStoreId || !transferForm.toStoreId"></p-button>
+      </ng-template>
+    </p-dialog>
+  }
+
+  <!-- ═══════════════════════ ALERTS TAB ═══════════════════════ -->
+  @if (activeTab === 'alerts') {
+    <div class="section-header">
+      <span class="section-title"><i class="pi pi-exclamation-triangle"></i> Low Stock Alerts</span>
+    </div>
+
+    <p-table [value]="lowStockAlerts" [loading]="loadingAlerts" [paginator]="true" [rows]="15"
+      [rowsPerPageOptions]="[15, 30, 50]" stripedRows>
+      <ng-template #header>
+        <tr>
+          <th>Store</th>
+          <th>Item</th>
+          <th style="text-align:right">Current Qty</th>
+          <th style="text-align:right">Reorder Level</th>
+          <th style="text-align:right">Deficit</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row>
+        <tr class="alert-row" [class.critical]="row.currentQty <= 0">
+          <td>{{ row.storeName || row.store?.name || '—' }}</td>
+          <td>{{ row.itemName || row.name }}</td>
+          <td style="text-align:right; font-weight: 600;" [class.value-low]="row.currentQty <= 0" [class.value-warn]="row.currentQty > 0">
+            {{ row.currentQty }}
+          </td>
+          <td style="text-align:right">{{ row.reorderLevel }}</td>
+          <td style="text-align:right; font-weight: 700; color: #dc2626;">
+            {{ (row.reorderLevel ?? 0) - (row.currentQty ?? 0) }}
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="5" class="text-center">No low stock alerts. All items are sufficiently stocked.</td></tr>
+      </ng-template>
+    </p-table>
+  }
+</div>

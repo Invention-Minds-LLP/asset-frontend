@@ -1,0 +1,68 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Department Assets</h2>
+      <p>{{ departmentName || 'Your Department' }} — all assets at a glance.</p>
+    </div>
+    <div class="header-actions">
+      <p-select [options]="statusOptions" optionLabel="label" optionValue="value"
+        [(ngModel)]="statusFilter" (onChange)="load()" placeholder="Filter by status" />
+      <p-button icon="pi pi-refresh" severity="secondary" (onClick)="load()" pTooltip="Refresh" tooltipPosition="top" />
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  @if (!loading) {
+  <div class="summary-row">
+    <div class="summary-card">
+      <span class="summary-count">{{ summary.total ?? 0 }}</span>
+      <span class="summary-label">Total</span>
+    </div>
+    <div class="summary-card active">
+      <span class="summary-count">{{ summary.active ?? 0 }}</span>
+      <span class="summary-label">Active</span>
+    </div>
+    <div class="summary-card warn">
+      <span class="summary-count">{{ summary.underMaintenance ?? 0 }}</span>
+      <span class="summary-label">Under Maintenance</span>
+    </div>
+    <div class="summary-card info">
+      <span class="summary-count">{{ summary.inStore ?? 0 }}</span>
+      <span class="summary-label">In Store</span>
+    </div>
+    <div class="summary-card danger">
+      <span class="summary-count">{{ summary.disposed ?? 0 }}</span>
+      <span class="summary-label">Disposed</span>
+    </div>
+  </div>
+  }
+
+  <p-table [value]="assets" [loading]="loading" [paginator]="true" [rows]="15"
+    [rowsPerPageOptions]="[15,30,50]" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Asset ID</th>
+        <th>Asset Name</th>
+        <th>Category</th>
+        <th>Type</th>
+        <th>Allotted To</th>
+        <th>Status</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-a>
+      <tr>
+        <td><strong>{{ a.assetId || '—' }}</strong></td>
+        <td>{{ a.assetName }}</td>
+        <td>{{ a.assetCategory?.name || '—' }}</td>
+        <td>{{ a.assetType || '—' }}</td>
+        <td>{{ a.allottedTo?.name || 'Unassigned' }}</td>
+        <td><p-tag [value]="a.status" [severity]="getStatusSeverity(a.status)" /></td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="6" style="text-align:center;padding:2rem">No assets found.</td></tr>
+    </ng-template>
+  </p-table>
+</div>

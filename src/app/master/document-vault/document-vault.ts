@@ -7,13 +7,14 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { DocumentsService } from '../../services/documents/documents';
 
 @Component({
   selector: 'app-document-vault',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule, ToastModule, InputTextModule, SelectModule],
+  imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule, ToastModule, InputTextModule, SelectModule, TooltipModule],
   templateUrl: './document-vault.html',
   styleUrl: './document-vault.css',
   providers: [MessageService]
@@ -99,10 +100,4 @@ export class DocumentVault implements OnInit {
     }
   }
 
-  formatSize(bytes: number): string {
-    if (!bytes) return '—';
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / 1048576).toFixed(1) + ' MB';
-  }
 }

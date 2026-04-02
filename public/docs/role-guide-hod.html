@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Smart Assets — HOD (Head of Department) Guide</title>
+<style>
+  @media print { .no-print { display: none !important; } @page { margin: 15mm; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', -apple-system, sans-serif; color: #1e293b; line-height: 1.6; padding: 40px; max-width: 900px; margin: 0 auto; }
+  .print-btn { position: fixed; top: 15px; right: 15px; padding: 10px 20px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; z-index: 100; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+  .print-btn:hover { background: #1d4ed8; }
+  .header { border-bottom: 4px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+  .header h1 { font-size: 28px; color: #2563eb; margin-bottom: 4px; }
+  .header .role-badge { display: inline-block; background: #2563eb; color: #fff; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .header p { color: #64748b; font-size: 14px; }
+  h2 { font-size: 20px; color: #0f172a; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; }
+  h3 { font-size: 16px; color: #334155; margin: 20px 0 8px; }
+  p, li { font-size: 14px; margin-bottom: 6px; }
+  ul, ol { padding-left: 24px; margin-bottom: 12px; }
+  .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+  .module-card { padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+  .module-card .mod-name { font-weight: 600; color: #2563eb; font-size: 13px; }
+  .module-card .mod-desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .access-yes { color: #16a34a; font-weight: 600; }
+  .access-no { color: #dc2626; font-weight: 600; }
+  .workflow-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px; margin: 10px 0; }
+  .workflow-box h4 { color: #1d4ed8; font-size: 14px; margin-bottom: 8px; }
+  .workflow-box ol { padding-left: 20px; }
+  .workflow-box li { font-size: 13px; margin-bottom: 4px; }
+  .note { background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; padding: 10px; font-size: 13px; color: #854d0e; margin: 10px 0; }
+  .restricted { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 10px; margin: 10px 0; }
+  .restricted h4 { color: #dc2626; font-size: 13px; margin-bottom: 6px; }
+  .restricted li { font-size: 12px; color: #7f1d1d; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #f1f5f9; color: #475569; padding: 8px; text-align: left; border: 1px solid #e2e8f0; font-weight: 600; }
+  td { padding: 8px; border: 1px solid #e2e8f0; }
+  .footer { margin-top: 40px; padding-top: 15px; border-top: 2px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center; }
+</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">Print / Save as PDF</button>
+
+<div class="header">
+  <span class="role-badge">HOD</span>
+  <h1>Head of Department (HOD) Guide</h1>
+  <p>You are the department-level authority responsible for approving work orders, asset transfers, disposals, and indents for your department.</p>
+</div>
+
+<h2>Modules You Can Access</h2>
+<p>You have access to everything a Supervisor can access, plus approval capabilities and additional modules:</p>
+<div class="module-grid">
+  <div class="module-card">
+    <div class="mod-name">Dashboard</div>
+    <div class="mod-desc">Department-level KPIs: open tickets, pending approvals, PM compliance.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Asset Master (Full)</div>
+    <div class="mod-desc">View Assets, Assignments, Transfer, Department Assets, Revenue Log, Asset Disposal.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Asset Indent</div>
+    <div class="mod-desc">Approve or reject asset indent requests from your department.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Store &amp; Inventory</div>
+    <div class="mod-desc">Approve store transfers within your department.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Maintenance (Full)</div>
+    <div class="mod-desc">Repair Tickets, Work Orders, Preventive Maintenance, Calibration, PM Checklists.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Contracts &amp; Coverage</div>
+    <div class="mod-desc">Warranty, Insurance, Service Contracts, Vendor Performance.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Finance &amp; Analytics &gt; Reports</div>
+    <div class="mod-desc">View department-specific asset and maintenance reports.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Operations (Full)</div>
+    <div class="mod-desc">Gate Pass, Acknowledgement, Physical Audit, Employee Exit, Document Vault, Knowledge Base.</div>
+  </div>
+</div>
+
+<h2>What You Can Do</h2>
+<ul>
+  <li><span class="access-yes">&#10003;</span> <strong>Approve/Reject Repair Tickets</strong> raised by your department members</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Approve/Reject Work Orders</strong> and issue Work Completion Certificates (WCC)</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Approve Asset Indents</strong> from your department</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Approve Asset Transfers</strong> in and out of your department</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Approve Store Transfers</strong> between locations</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Approve Service Visit Charges</strong> from external vendors</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Send assets for Disposal</strong> (initiates committee review)</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Complete Physical Audits</strong> for your department</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Approve Gate Pass</strong> requests for asset movement</li>
+  <li><span class="access-yes">&#10003;</span> View department-specific <strong>Reports</strong></li>
+  <li><span class="access-yes">&#10003;</span> All Supervisor capabilities (execute work orders, PM, etc.)</li>
+</ul>
+
+<div class="restricted">
+  <h4>What You CANNOT Do</h4>
+  <ul>
+    <li>Access Financial Dashboard, CFO Dashboard, or Batch Depreciation</li>
+    <li>Access Decision Engine or Cost Analysis</li>
+    <li>Configure SLA Matrix, Escalation Matrix, or Support Matrix</li>
+    <li>Manage users, module access, system config, or email templates</li>
+    <li>Access Master Settings or Inventory Master (admin-only)</li>
+    <li>Final-approve disposals (committee/CEO level)</li>
+  </ul>
+</div>
+
+<h2>Step-by-Step Workflows</h2>
+
+
+<div class="workflow-box">
+  <h4>Workflow 1: Work Order Approval and WCC Issuance</h4>
+  <ol>
+    <li>Navigate to <strong>Maintenance &gt; Work Orders</strong> in the sidebar.</li>
+    <li>Filter by status <strong>Pending Approval</strong>.</li>
+    <li>Review the work order details: asset, issue description, estimated cost, and assigned technician.</li>
+    <li>Click <strong>Approve</strong> to authorize the work, or <strong>Reject</strong> with remarks.</li>
+    <li>Once the supervisor completes the work order, it returns to you for WCC issuance.</li>
+    <li>Open the completed work order and review the work log and materials consumed.</li>
+    <li>Click <strong>Issue WCC</strong> (Work Completion Certificate) to formally close the work order.</li>
+    <li>The WCC is recorded and linked to the asset's maintenance history.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 2: Asset Indent Approval</h4>
+  <ol>
+    <li>Navigate to <strong>Asset Indent</strong> in the sidebar.</li>
+    <li>View pending indent requests from your department.</li>
+    <li>Review the requested asset type, justification, estimated budget, and urgency.</li>
+    <li>Click <strong>Approve</strong> to forward the indent for processing, or <strong>Reject</strong> with a reason.</li>
+    <li>Approved indents proceed for further processing.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 3: Asset Disposal Workflow</h4>
+  <ol>
+    <li>Navigate to <strong>Asset Master &gt; Asset Disposal</strong> in the sidebar.</li>
+    <li>Click <strong>New Disposal Request</strong> or find an existing draft.</li>
+    <li>Select the asset(s) to be disposed of.</li>
+    <li>Enter the <strong>Reason for Disposal</strong> (end-of-life, beyond repair, obsolete, etc.).</li>
+    <li>Submit the request &mdash; it is sent to the disposal committee for review.</li>
+    <li>The committee (Operations/CEO) will make the final decision.</li>
+    <li>Track disposal status on this same screen.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 4: How to Use the Department Dashboard</h4>
+  <ol>
+    <li>Navigate to <strong>Dashboard</strong> in the sidebar.</li>
+    <li>The dashboard displays department-level KPIs by default.</li>
+    <li>Review key metrics: <strong>Open Tickets</strong>, <strong>Pending Approvals</strong>, <strong>PM Compliance %</strong>, <strong>Asset Utilization</strong>.</li>
+    <li>Click on any KPI card to drill down into the detailed list.</li>
+    <li>Use the date range filter to compare performance across periods.</li>
+    <li>Check the <strong>Pending Approvals</strong> widget daily to stay on top of action items.</li>
+  </ol>
+</div>
+
+<div class="note">
+  <strong>Tip:</strong> Pending approvals are time-sensitive. Delayed WO approvals can trigger SLA breaches and escalations. Check <strong>Dashboard &gt; Pending Approvals</strong> at the start of each day.
+</div>
+
+<div class="footer">Smart Assets &mdash; Role-Based User Guide &bull; Confidential &bull; Generated April 2026</div>
+</body>
+</html>

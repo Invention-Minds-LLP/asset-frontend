@@ -10,6 +10,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
+import { DialogModule } from 'primeng/dialog';
+import { CheckboxModule } from 'primeng/checkbox';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { CalibrationService } from '../../services/calibration/calibration';
 import { Assets } from '../../services/assets/assets';
@@ -30,7 +33,10 @@ import { DatePicker } from "primeng/datepicker";
     FloatLabelModule,
     SelectModule,
     TextareaModule,
-    DatePicker
+    DialogModule,
+    CheckboxModule,
+    DatePicker,
+    TooltipModule
 ],
   templateUrl: './calibration.html',
   styleUrl: './calibration.css',
@@ -68,7 +74,20 @@ export class Calibration implements OnInit {
     { label: 'N/A', value: 'NA' }
   ];
 
-  today: any = new Date()
+  today: any = new Date();
+
+  // ── Template Items ─────────────────────────────────────────────────────────
+  showItemsDialog = false;
+  selectedTemplate: any = null;
+  templateItems: any[] = [];
+  newItem = this.getEmptyItem();
+  savingItem = false;
+
+  // ── History tab ────────────────────────────────────────────────────────────
+  historyAssetId: number | null = null;
+  historyRecords: any[] = [];
+  historyLoading = false;
+
   constructor(
     private calibrationService: CalibrationService,
     private assetsService: Assets,
@@ -95,6 +114,10 @@ export class Calibration implements OnInit {
 
   getEmptyHistoryForm() {
     return { assetId: null as number | null, scheduleId: null as number | null, calibratedAt: '', result: 'PASS', calibratedByType: 'INTERNAL', calibratedByName: '', vendorId: null as number | null, certificateNo: '', remarks: '' };
+  }
+
+  getEmptyItem() {
+    return { title: '', description: '', expectedValue: '', unit: '', isRequired: true, sortOrder: 0 };
   }
 
   loadSchedules() {
@@ -221,13 +244,92 @@ export class Calibration implements OnInit {
     this.templateForm = this.getEmptyTemplateForm();
   }
 
+  // ── Template Items ─────────────────────────────────────────────────────────
+  openItemsDialog(template: any) {
+    this.selectedTemplate = template;
+    this.templateItems = template.items ? [...template.items] : [];
+    this.newItem = this.getEmptyItem();
+    this.showItemsDialog = true;
+  }
+
+  addItem() {
+    if (!this.newItem.title.trim()) {
+      this.toast('warn', 'Item title is required');
+      return;
+    }
+    this.savingItem = true;
+    this.calibrationService.addTemplateItems(this.selectedTemplate.id, [this.newItem]).subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          this.savingItem = false;
+          this.toast('success', 'Item added');
+          // Refresh template items from the returned template
+          const added = Array.isArray(res) ? res : (res.items || []);
+          if (added.length) this.templateItems.push(...added);
+          this.newItem = this.getEmptyItem();
+          // also refresh templates list so count updates
+          this.loadTemplates();
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => {
+        setTimeout(() => {
+          this.savingItem = false;
+          this.toast('error', err?.error?.message || 'Failed to add item');
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
+
+  // ── History tab ────────────────────────────────────────────────────────────
+  loadHistory() {
+    if (!this.historyAssetId) {
+      this.toast('warn', 'Select an asset to view history');
+      return;
+    }
+    this.historyLoading = true;
+    this.calibrationService.getHistoryByAsset(this.historyAssetId).subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          this.historyRecords = res || [];
+          this.historyLoading = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        setTimeout(() => {
+          this.historyLoading = false;
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
+
   logHistory() {
     if (!this.historyForm.assetId) { this.toast('warn', 'Asset is required'); return; }
     const payload = { ...this.historyForm, assetId: Number(this.historyForm.assetId) };
     this.calibrationService.logHistory(payload).subscribe({
-      next: () => { setTimeout(() => { this.toast('success', 'History logged'); this.showHistoryForm = false; this.historyForm = this.getEmptyHistoryForm(); this.loadSchedules(); this.loadDue(); this.cdr.detectChanges(); }); },
+      next: () => {
+        setTimeout(() => {
+          this.toast('success', 'History logged');
+          this.showHistoryForm = false;
+          this.historyForm = this.getEmptyHistoryForm();
+          this.loadSchedules();
+          this.loadDue();
+          // Refresh history tab if same asset
+          if (this.historyAssetId === payload.assetId) this.loadHistory();
+          this.cdr.detectChanges();
+        });
+      },
       error: (err) => this.toast('error', err?.error?.message || 'Failed')
     });
+  }
+
+  getResultSeverity(result: string): 'success' | 'danger' | 'secondary' {
+    if (result === 'PASS') return 'success';
+    if (result === 'FAIL') return 'danger';
+    return 'secondary';
   }
 
   toast(severity: 'success' | 'error' | 'warn', detail: string) {

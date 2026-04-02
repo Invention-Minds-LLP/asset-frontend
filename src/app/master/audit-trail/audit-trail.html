@@ -67,11 +67,11 @@
             [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
           </p-button>
         </td>
-        <td>{{ log.performedAt | date:'medium' }}</td>
+        <td>{{ log.createdAt | date:'medium' }}</td>
         <td>{{ log.entityType }}</td>
         <td>{{ log.entityId }}</td>
         <td><p-tag [value]="log.action" [severity]="getActionSeverity(log.action)"></p-tag></td>
-        <td>{{ log.performedByName || ('User #' + log.performedById) }}</td>
+        <td>{{ log.performedBy || ('User #' + log.performedById) }}</td>
         <td class="summary-cell">{{ log.description || '—' }}</td>
       </tr>
     </ng-template>
@@ -79,24 +79,26 @@
     <ng-template pTemplate="rowexpansion" let-log>
       <tr>
         <td colspan="7">
-          <div class="changes-detail" *ngIf="parseChanges(log.changes) as changes">
+          <div class="changes-detail" *ngIf="log.oldValue || log.newValue">
             <h4>Change Details</h4>
             <table class="changes-table">
               <thead>
                 <tr>
                   <th>Field</th>
-                  <th>Value</th>
+                  <th>Old Value</th>
+                  <th>New Value</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let key of getChangeKeys(log.changes)">
+                <tr *ngFor="let key of getChangedFields(log)">
                   <td class="field-name">{{ key }}</td>
-                  <td class="field-value">{{ changes[key] | json }}</td>
+                  <td class="field-value">{{ parseJson(log.oldValue)?.[key] | json }}</td>
+                  <td class="field-value">{{ parseJson(log.newValue)?.[key] | json }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div *ngIf="!parseChanges(log.changes)" class="no-changes">
+          <div *ngIf="!log.oldValue && !log.newValue" class="no-changes">
             No change details available.
           </div>
         </td>

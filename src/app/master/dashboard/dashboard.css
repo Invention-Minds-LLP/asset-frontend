@@ -105,6 +105,46 @@
 ::ng-deep .custom-tabs .p-tabview-nav:before {
   display: none !important;
 }
+/* Dashboard header */
+.dash-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+.dash-header h2 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.subtitle { margin: 0.25rem 0 0; color: var(--text-color-secondary); font-size: 0.88rem; }
+.dash-header-actions { display: flex; gap: 0.5rem; }
+
+/* Clickable tiles */
+.stat-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+.stat-card.clickable:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+
+/* Quick stats row */
+.quick-stats-row { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.quick-stat { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border: 1px solid var(--surface-border); border-radius: 10px; background: var(--surface-0); cursor: pointer; transition: background 0.15s; flex: 1; min-width: 160px; }
+.quick-stat:hover { background: var(--surface-100); }
+.quick-stat i { font-size: 1rem; color: var(--text-color-secondary); }
+.qs-value { font-size: 1.1rem; font-weight: 700; color: var(--text-color); }
+.qs-label { font-size: 0.75rem; color: var(--text-color-secondary); }
+
+/* Tab controls row */
+.tab-controls { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+.tab-controls-label { font-size: 0.85rem; color: var(--text-color-secondary); font-weight: 500; }
+
+/* Tab header actions (export button) */
+.tab-header-actions { display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+
+/* Expiry filter inline */
+.expiry-filter { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+
+/* Distribution bars */
+.bar-container { width: 100%; height: 8px; background: var(--surface-200); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; background: #2563eb; border-radius: 4px; min-width: 2px; transition: width 0.3s; }
+.bar-fill.bar-ticket { background: #d97706; }
+
+/* Drill-down dialog */
+.drill-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.drill-count { font-size: 0.82rem; color: var(--text-color-secondary); font-weight: 500; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 2rem; color: var(--text-color-secondary); display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+
 ::ng-deep .p-datatable .p-datatable-thead > tr > th {
   background: transparent !important;
   box-shadow: none !important;

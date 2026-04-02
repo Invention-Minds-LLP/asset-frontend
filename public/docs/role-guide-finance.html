@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Smart Assets — Finance &amp; Accounts Guide</title>
+<style>
+  @media print { .no-print { display: none !important; } @page { margin: 15mm; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', -apple-system, sans-serif; color: #1e293b; line-height: 1.6; padding: 40px; max-width: 900px; margin: 0 auto; }
+  .print-btn { position: fixed; top: 15px; right: 15px; padding: 10px 20px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; z-index: 100; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+  .print-btn:hover { background: #1d4ed8; }
+  .header { border-bottom: 4px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+  .header h1 { font-size: 28px; color: #2563eb; margin-bottom: 4px; }
+  .header .role-badge { display: inline-block; background: #2563eb; color: #fff; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .header p { color: #64748b; font-size: 14px; }
+  h2 { font-size: 20px; color: #0f172a; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; }
+  h3 { font-size: 16px; color: #334155; margin: 20px 0 8px; }
+  p, li { font-size: 14px; margin-bottom: 6px; }
+  ul, ol { padding-left: 24px; margin-bottom: 12px; }
+  .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+  .module-card { padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+  .module-card .mod-name { font-weight: 600; color: #2563eb; font-size: 13px; }
+  .module-card .mod-desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .access-yes { color: #16a34a; font-weight: 600; }
+  .access-no { color: #dc2626; font-weight: 600; }
+  .workflow-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px; margin: 10px 0; }
+  .workflow-box h4 { color: #1d4ed8; font-size: 14px; margin-bottom: 8px; }
+  .workflow-box ol { padding-left: 20px; }
+  .workflow-box li { font-size: 13px; margin-bottom: 4px; }
+  .note { background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; padding: 10px; font-size: 13px; color: #854d0e; margin: 10px 0; }
+  .restricted { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 10px; margin: 10px 0; }
+  .restricted h4 { color: #dc2626; font-size: 13px; margin-bottom: 6px; }
+  .restricted li { font-size: 12px; color: #7f1d1d; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #f1f5f9; color: #475569; padding: 8px; text-align: left; border: 1px solid #e2e8f0; font-weight: 600; }
+  td { padding: 8px; border: 1px solid #e2e8f0; }
+  .footer { margin-top: 40px; padding-top: 15px; border-top: 2px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center; }
+</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">Print / Save as PDF</button>
+
+<div class="header">
+  <span class="role-badge">FINANCE</span>
+  <h1>Finance &amp; Accounts Guide</h1>
+  <p>You manage the financial side of asset management &mdash; depreciation, cost analysis, insurance, and financial reporting via the CFO Dashboard.</p>
+</div>
+
+<h2>Modules You Can Access</h2>
+<div class="module-grid">
+  <div class="module-card">
+    <div class="mod-name">Dashboard</div>
+    <div class="mod-desc">Financial KPIs: CapEx vs OpEx, depreciation, pending approvals.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Asset Master &gt; View Assets</div>
+    <div class="mod-desc">View all assets with financial details (purchase cost, book value, depreciation).</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Asset Master &gt; Revenue Log</div>
+    <div class="mod-desc">Review revenue log entries for financial reporting.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Asset Master &gt; Asset Disposal</div>
+    <div class="mod-desc">View disposal records and their financial impact.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Contracts &amp; Coverage (Full)</div>
+    <div class="mod-desc">Warranty, Insurance, Service Contracts, Vendor Performance.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Finance &amp; Analytics &gt; Financial Dashboard</div>
+    <div class="mod-desc">Comprehensive financial overview: asset values, depreciation trends, spend analysis.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Finance &amp; Analytics &gt; CFO Dashboard</div>
+    <div class="mod-desc">Executive-level financial summary: CapEx/OpEx, ROI, budget utilization.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Finance &amp; Analytics &gt; Cost Analysis</div>
+    <div class="mod-desc">Total Cost of Ownership (TCO) analysis per asset or category.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Finance &amp; Analytics &gt; Batch Depreciation</div>
+    <div class="mod-desc">Run depreciation calculations across all assets in batch.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Finance &amp; Analytics &gt; Reports</div>
+    <div class="mod-desc">Generate financial and asset reports.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Finance &amp; Analytics &gt; Decision Engine</div>
+    <div class="mod-desc">Review maintain-vs-replace recommendations (read-only).</div>
+  </div>
+</div>
+
+<h2>What You Can Do</h2>
+<ul>
+  <li><span class="access-yes">&#10003;</span> <strong>Run Batch Depreciation</strong> &mdash; calculate depreciation for all assets in a period</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Review TCO</strong> (Total Cost of Ownership) via Cost Analysis</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Access CFO Dashboard</strong> for executive-level financial summaries</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Access Financial Dashboard</strong> for detailed financial metrics</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Manage Insurance</strong> records &mdash; add, renew, and track coverage</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Review Revenue Logs</strong> for financial accuracy</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Generate Reports</strong> &mdash; financial, depreciation, and asset valuation reports</li>
+  <li><span class="access-yes">&#10003;</span> <strong>View Vendor Performance</strong> scores and contract values</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Review Decision Engine</strong> recommendations for maintain-vs-replace decisions</li>
+</ul>
+
+<div class="restricted">
+  <h4>What You CANNOT Do</h4>
+  <ul>
+    <li>Approve or reject repair tickets or work orders (operational items)</li>
+    <li>Start or complete work orders or preventive maintenance tasks</li>
+    <li>Approve asset transfers or assignments</li>
+    <li>Manage store inventory or issue materials</li>
+    <li>Configure SLA Matrix, Escalation Matrix, or Support Matrix</li>
+    <li>Create or manage users, module access, or system configuration</li>
+    <li>Edit email templates or master settings</li>
+  </ul>
+</div>
+
+<h2>Step-by-Step Workflows</h2>
+
+
+<div class="workflow-box">
+  <h4>Workflow 1: How to Run Batch Depreciation</h4>
+  <ol>
+    <li>Navigate to <strong>Finance &amp; Analytics &gt; Batch Depreciation</strong> in the sidebar.</li>
+    <li>Select the <strong>Depreciation Period</strong> (month/quarter/year).</li>
+    <li>Choose the <strong>Depreciation Method</strong> if not already set per asset (Straight Line, Reducing Balance, etc.).</li>
+    <li>Click <strong>Preview</strong> to see the calculated depreciation for all applicable assets.</li>
+    <li>Review the preview: check asset count, total depreciation amount, and any warnings for assets with missing data.</li>
+    <li>Click <strong>Run Batch Depreciation</strong> to process and commit the depreciation entries.</li>
+    <li>Download the <strong>Depreciation Report</strong> for accounting records.</li>
+    <li>The updated book values will reflect across all asset views and financial dashboards.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 2: How to Review TCO for an Asset</h4>
+  <ol>
+    <li>Navigate to <strong>Finance &amp; Analytics &gt; Cost Analysis</strong> in the sidebar.</li>
+    <li>Search for the asset by name, code, or category.</li>
+    <li>The TCO view shows: <strong>Purchase Cost</strong>, <strong>Maintenance Cost</strong>, <strong>Insurance Cost</strong>, <strong>Depreciation</strong>, and <strong>Revenue Generated</strong>.</li>
+    <li>Review the cost breakdown chart to understand where money is being spent.</li>
+    <li>Compare the asset's TCO against similar assets using the comparison feature.</li>
+    <li>Check the <strong>Cost Per Usage Hour</strong> metric to evaluate efficiency.</li>
+    <li>Use the <strong>Decision Engine</strong> link to see whether the system recommends maintaining or replacing the asset.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 3: How to Use the CFO Dashboard</h4>
+  <ol>
+    <li>Navigate to <strong>Finance &amp; Analytics &gt; CFO Dashboard</strong> in the sidebar.</li>
+    <li>The dashboard displays: <strong>Total Asset Value</strong>, <strong>Monthly Depreciation</strong>, <strong>CapEx vs OpEx Split</strong>, <strong>Budget Utilization</strong>.</li>
+    <li>Use the <strong>Date Range</strong> selector to view data for specific periods.</li>
+    <li>Click on <strong>CapEx</strong> or <strong>OpEx</strong> sections to drill down into spending details.</li>
+    <li>Review the <strong>Top Spending Departments</strong> chart for cost distribution.</li>
+    <li>Check <strong>Upcoming Insurance Renewals</strong> and <strong>Warranty Expirations</strong> for proactive planning.</li>
+    <li>Export the dashboard data using the <strong>Export</strong> button for board presentations.</li>
+  </ol>
+</div>
+
+<div class="note">
+  <strong>Tip:</strong> Run Batch Depreciation at the end of each month before closing the books. Always preview first to catch any missing asset data. The CFO Dashboard auto-refreshes after depreciation runs.
+</div>
+
+<div class="footer">Smart Assets &mdash; Role-Based User Guide &bull; Confidential &bull; Generated April 2026</div>
+</body>
+</html>

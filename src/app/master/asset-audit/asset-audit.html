@@ -25,17 +25,17 @@
 
       <ng-template pTemplate="body" let-audit>
         <tr>
-          <td>{{ audit.name }}</td>
+          <td>{{ audit.auditName }}</td>
           <td class="desc-cell">{{ audit.description || '—' }}</td>
           <td><p-tag [value]="audit.status" [severity]="getAuditStatusSeverity(audit.status)"></p-tag></td>
-          <td>{{ audit.items?.length || audit._count?.items || '—' }}</td>
+          <td>{{ audit.totalAssets || audit._count?.items || '—' }}</td>
           <td>{{ audit.createdAt | date:'mediumDate' }}</td>
           <td class="action-cell">
             <p-button icon="pi pi-eye" label="View" size="small" severity="info" (onClick)="viewAudit(audit)"></p-button>
             <p-button *ngIf="audit.status === 'PLANNED'" icon="pi pi-play" label="Start" size="small"
-              severity="success" (onClick)="startAudit(audit)"></p-button>
-            <p-button *ngIf="audit.status === 'IN_PROGRESS'" icon="pi pi-check" label="Complete" size="small"
-              severity="warn" (onClick)="completeAudit(audit)"></p-button>
+              severity="success" (onClick)="startAudit(audit)" [loading]="startingAudit"></p-button>
+            <p-button *ngIf="audit.status === 'IN_PROGRESS' && isRole('HOD', 'ADMIN')" icon="pi pi-check" label="Complete" size="small"
+              severity="warn" (onClick)="completeAudit(audit)" [loading]="completingAudit"></p-button>
           </td>
         </tr>
       </ng-template>
@@ -50,10 +50,10 @@
   <div *ngIf="showDetail">
     <div class="detail-header">
       <p-button icon="pi pi-arrow-left" label="Back to List" severity="secondary" (onClick)="backToList()"></p-button>
-      <h2>{{ selectedAudit?.name }}</h2>
+      <h2>{{ selectedAudit?.auditName }}</h2>
       <p-tag [value]="selectedAudit?.status" [severity]="getAuditStatusSeverity(selectedAudit?.status)"></p-tag>
-      <p-button *ngIf="selectedAudit?.status === 'IN_PROGRESS'" icon="pi pi-check" label="Complete Audit"
-        severity="success" (onClick)="completeAudit(selectedAudit)"></p-button>
+      <p-button *ngIf="selectedAudit?.status === 'IN_PROGRESS' && isRole('HOD', 'ADMIN')" icon="pi pi-check" label="Complete Audit"
+        severity="success" (onClick)="completeAudit(selectedAudit)" [loading]="completingAudit"></p-button>
     </div>
 
     <!-- Progress bar -->
@@ -121,7 +121,7 @@
           <td>{{ item.actualLocation || '—' }}</td>
           <td class="remarks-cell">{{ item.remarks || '—' }}</td>
           <td>
-            <p-button *ngIf="item.status === 'PENDING' && selectedAudit?.status === 'IN_PROGRESS'"
+            <p-button *ngIf="item.status === 'PENDING' && selectedAudit?.status === 'IN_PROGRESS' && isRole('HOD', 'SUPERVISOR', 'ADMIN')"
               icon="pi pi-check-square" label="Verify" size="small" (onClick)="openVerifyDialog(item)"></p-button>
           </td>
         </tr>
@@ -135,15 +135,19 @@
 </div>
 
 <!-- Create Audit Dialog -->
-<p-dialog header="Create New Audit" [(visible)]="showCreateDialog" [style]="{ width: '450px' }" [modal]="true">
+<p-dialog header="Create New Audit" [(visible)]="showCreateDialog" [style]="{ width: '480px' }" [modal]="true">
   <div class="form-grid">
     <div class="form-field">
       <label>Audit Name *</label>
-      <input pInputText [(ngModel)]="createForm.name" placeholder="e.g. Q1 2025 Physical Audit" style="width:100%" />
+      <input pInputText [(ngModel)]="createForm.auditName" placeholder="e.g. Q1 2025 Physical Audit" style="width:100%" />
+    </div>
+    <div class="form-field">
+      <label>Audit Date *</label>
+      <p-datepicker [(ngModel)]="createForm.auditDate" dateFormat="dd-mm-yy" appendTo="body" [style]="{'width':'100%'}" />
     </div>
     <div class="form-field">
       <label>Description</label>
-      <textarea pTextarea [(ngModel)]="createForm.description" rows="3" style="width:100%"></textarea>
+      <textarea pTextarea [(ngModel)]="createForm.description" rows="2" style="width:100%"></textarea>
     </div>
   </div>
   <ng-template pTemplate="footer">
@@ -160,10 +164,12 @@
       <p-select [options]="verifyStatusOptions" [(ngModel)]="verifyForm.status" [style]="{'width':'100%'}"></p-select>
     </div>
     <div class="form-field checkbox-row">
-      <p-checkbox [(ngModel)]="verifyForm.locationMatch" [binary]="true" label="Location Matches"></p-checkbox>
+      <p-checkbox [(ngModel)]="verifyForm.locationMatch" [binary]="true" inputId="locMatch"></p-checkbox>
+      <label for="locMatch" style="cursor:pointer; margin-left:0.5rem;">Location Matches</label>
     </div>
     <div class="form-field checkbox-row">
-      <p-checkbox [(ngModel)]="verifyForm.conditionMatch" [binary]="true" label="Condition Matches"></p-checkbox>
+      <p-checkbox [(ngModel)]="verifyForm.conditionMatch" [binary]="true" inputId="condMatch"></p-checkbox>
+      <label for="condMatch" style="cursor:pointer; margin-left:0.5rem;">Condition Matches</label>
     </div>
     <div class="form-field">
       <label>Actual Location</label>

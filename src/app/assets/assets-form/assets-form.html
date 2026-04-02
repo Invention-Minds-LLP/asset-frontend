@@ -177,6 +177,63 @@
                                     [disabled]="!canEditBasicDetails" />
                                 <label>Estimated Value</label>
                             </p-floatlabel>
+
+                            <!-- Inspection sub-section -->
+                            <h5 class="subsection-title">Physical &amp; Functional Inspection</h5>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <input pInputText [(ngModel)]="asset.inspectionDoneBy" name="don_inspDoneBy"
+                                        [disabled]="!canEditBasicDetails" />
+                                    <label>Inspected By</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <p-select [options]="inspectionConditionOptions" optionLabel="label"
+                                        optionValue="value" [(ngModel)]="asset.inspectionCondition"
+                                        name="don_inspCondition" appendTo="body" [disabled]="!canEditBasicDetails" />
+                                    <label>Condition</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <p-select [options]="inspectionPassFailOptions" optionLabel="label"
+                                        optionValue="value" [(ngModel)]="asset.physicalInspectionStatus"
+                                        name="don_physStatus" appendTo="body" [disabled]="!canEditBasicDetails" />
+                                    <label>Physical Inspection</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.physicalInspectionDate" name="don_physDate"
+                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy" />
+                                    <label>Physical Inspection Date</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <p-select [options]="inspectionPassFailOptions" optionLabel="label"
+                                        optionValue="value" [(ngModel)]="asset.functionalInspectionStatus"
+                                        name="don_funcStatus" appendTo="body" [disabled]="!canEditBasicDetails" />
+                                    <label>Functional Inspection</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.functionalInspectionDate" name="don_funcDate"
+                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy" />
+                                    <label>Functional Inspection Date</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <textarea pInputTextarea rows="2" [(ngModel)]="asset.inspectionRemark"
+                                    name="don_inspRemark" [disabled]="!canEditBasicDetails"></textarea>
+                                <label>Inspection Remarks</label>
+                            </p-floatlabel>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <textarea pInputTextarea rows="2" [(ngModel)]="asset.functionalTestNotes"
+                                    name="don_funcNotes" [disabled]="!canEditBasicDetails"></textarea>
+                                <label>Functional Test Notes</label>
+                            </p-floatlabel>
                         </div>
 
 
@@ -212,6 +269,57 @@
                                 <input pInputText type="number" name="leaseAmount" [(ngModel)]="asset.leaseAmount"
                                     [disabled]="!canEditBasicDetails" />
                                 <label>Lease Amount</label>
+                            </p-floatlabel>
+
+                            <!-- Inspection sub-section -->
+                            <h5 class="subsection-title">Physical &amp; Functional Inspection</h5>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <input pInputText [(ngModel)]="asset.inspectionDoneBy" name="lease_inspDoneBy"
+                                        [disabled]="!canEditBasicDetails" />
+                                    <label>Inspected By</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <p-select [options]="inspectionConditionOptions" optionLabel="label"
+                                        optionValue="value" [(ngModel)]="asset.inspectionCondition"
+                                        name="lease_inspCondition" appendTo="body" [disabled]="!canEditBasicDetails" />
+                                    <label>Condition</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <p-select [options]="inspectionPassFailOptions" optionLabel="label"
+                                        optionValue="value" [(ngModel)]="asset.physicalInspectionStatus"
+                                        name="lease_physStatus" appendTo="body" [disabled]="!canEditBasicDetails" />
+                                    <label>Physical Inspection</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.physicalInspectionDate" name="lease_physDate"
+                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy" />
+                                    <label>Physical Inspection Date</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <p-select [options]="inspectionPassFailOptions" optionLabel="label"
+                                        optionValue="value" [(ngModel)]="asset.functionalInspectionStatus"
+                                        name="lease_funcStatus" appendTo="body" [disabled]="!canEditBasicDetails" />
+                                    <label>Functional Inspection</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.functionalInspectionDate" name="lease_funcDate"
+                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy" />
+                                    <label>Functional Inspection Date</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <textarea pInputTextarea rows="2" [(ngModel)]="asset.inspectionRemark"
+                                    name="lease_inspRemark" [disabled]="!canEditBasicDetails"></textarea>
+                                <label>Inspection Remarks</label>
                             </p-floatlabel>
                         </div>
 
@@ -250,6 +358,57 @@
                                     [disabled]="!canEditBasicDetails" />
                                 <label>Rent Amount</label>
                             </p-floatlabel>
+
+                            <!-- Inspection sub-section -->
+                            <h5 class="subsection-title">Physical &amp; Functional Inspection</h5>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <input pInputText [(ngModel)]="asset.inspectionDoneBy" name="rent_inspDoneBy"
+                                        [disabled]="!canEditBasicDetails" />
+                                    <label>Inspected By</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <p-select [options]="inspectionConditionOptions" optionLabel="label"
+                                        optionValue="value" [(ngModel)]="asset.inspectionCondition"
+                                        name="rent_inspCondition" appendTo="body" [disabled]="!canEditBasicDetails" />
+                                    <label>Condition</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <p-select [options]="inspectionPassFailOptions" optionLabel="label"
+                                        optionValue="value" [(ngModel)]="asset.physicalInspectionStatus"
+                                        name="rent_physStatus" appendTo="body" [disabled]="!canEditBasicDetails" />
+                                    <label>Physical Inspection</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.physicalInspectionDate" name="rent_physDate"
+                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy" />
+                                    <label>Physical Inspection Date</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <p-select [options]="inspectionPassFailOptions" optionLabel="label"
+                                        optionValue="value" [(ngModel)]="asset.functionalInspectionStatus"
+                                        name="rent_funcStatus" appendTo="body" [disabled]="!canEditBasicDetails" />
+                                    <label>Functional Inspection</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.functionalInspectionDate" name="rent_funcDate"
+                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy" />
+                                    <label>Functional Inspection Date</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <textarea pInputTextarea rows="2" [(ngModel)]="asset.inspectionRemark"
+                                    name="rent_inspRemark" [disabled]="!canEditBasicDetails"></textarea>
+                                <label>Inspection Remarks</label>
+                            </p-floatlabel>
                         </div>
 
 
@@ -278,14 +437,37 @@
 
                         <p-floatlabel variant="on" class="full-field">
                             <p-select [options]="inspectionStatuses" optionLabel="label" optionValue="value"
-                                [(ngModel)]="asset.inspectionStatus" name="inspectionStatus" required appendTo="body"
+                                [(ngModel)]="asset.inspectionStatus" name="inspectionStatus" appendTo="body"
                                 [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
-                            <label>Inspection Status *</label>
+                            <label>Inspection Status</label>
                         </p-floatlabel>
 
-                        <textarea pInputTextarea rows="2" [(ngModel)]="asset.inspectionRemarks"
-                            placeholder="Inspection Remarks" name="inspectionRemarks"
-                            [disabled]="!canEditBasicDetails"></textarea>
+                        <p-floatlabel variant="on" class="full-field">
+                            <p-select [options]="serviceCoverageOptions" optionLabel="label" optionValue="value"
+                                [(ngModel)]="asset.serviceCoverageType" name="serviceCoverageType" appendTo="body"
+                                [disabled]="!canEditBasicDetails" [showClear]="true"></p-select>
+                            <label>Service Coverage Type</label>
+                        </p-floatlabel>
+
+                        <!-- ====================== -->
+                        <!-- CREATION CHECKLIST -->
+                        <!-- ====================== -->
+                        <h3 class="section-title">
+                            Store Receipt Checklist
+                            <span class="checklist-badge" [class.done]="allCreationItemsChecked">
+                                {{ allCreationItemsChecked ? '✓ Complete' : 'Required before saving' }}
+                            </span>
+                        </h3>
+
+                        <div class="creation-checklist">
+                            @for (item of creationChecklist; track item.key) {
+                            <div class="checklist-item" [class.checked]="creationChecklistDone[item.key]">
+                                <p-checkbox [(ngModel)]="creationChecklistDone[item.key]" [binary]="true"
+                                    [name]="'chk_' + item.key" [inputId]="'chk_' + item.key" />
+                                <label [for]="'chk_' + item.key">{{ item.label }}</label>
+                            </div>
+                            }
+                        </div>
 
                         <!-- ====================== -->
                         <!-- DEPARTMENT ASSIGNMENT -->
@@ -539,7 +721,8 @@
                     <h3 class="section-title" style="margin-top: 20px;">Specification List</h3>
 
                     <div class="table-shell">
-                        <p-table [value]="specifications" [paginator]="true" [rows]="5" responsiveLayout="scroll" class="pretty-table">
+                        <p-table [value]="specifications" [paginator]="true" [rows]="5" responsiveLayout="scroll"
+                            class="pretty-table">
                             <ng-template pTemplate="header">
                                 <tr>
                                     <th>Key</th>
@@ -555,8 +738,8 @@
                                 <tr>
                                     <td>{{ s.key }}</td>
                                     <td>{{ s.value }}</td>
-                                    <td>{{ s.specificationGroup || '-' }}</td>
                                     <td>{{ s.unit || '-' }}</td>
+                                    <td>{{ s.specificationGroup || '-' }}</td>
                                     <td>{{ s.isMandatory ? 'Yes' : 'No' }}</td>
                                     <td>
                                         <button pButton type="button" label="Edit" (click)="editSpecification(s)">
@@ -620,13 +803,15 @@
                     <h3 class="section-title">Sub Assets</h3>
 
                     <div class="table-shell">
-                        <p-table [value]="subAssets" [paginator]="true" [rows]="5" responsiveLayout="scroll" class="pretty-table">
+                        <p-table [value]="subAssets" [paginator]="true" [rows]="5" responsiveLayout="scroll"
+                            class="pretty-table">
                             <ng-template pTemplate="header">
                                 <tr>
                                     <th>Asset ID</th>
                                     <th>Name</th>
                                     <th>Serial</th>
                                     <th>Status</th>
+                                    <th>Action</th>
                                 </tr>
                             </ng-template>
 
@@ -636,6 +821,11 @@
                                     <td>{{ a.assetName }}</td>
                                     <td>{{ a.serialNumber || '-' }}</td>
                                     <td>{{ a.status || '-' }}</td>
+                                    <td>
+                                        <p-button icon="pi pi-sync" size="small" severity="warn"
+                                            pTooltip="Replace Component" tooltipPosition="top"
+                                            (onClick)="openReplaceDialog(a)" />
+                                    </td>
                                 </tr>
                             </ng-template>
 
@@ -659,85 +849,7 @@
 
         </p-tabPanel>
         <!-- TAB 3 – DEPRECIATION -->
-        <p-tabPanel header="Depreciation" *ngIf="canAccessDepartmentTabs">
 
-            <div class="tab-section">
-
-                <h3 class="section-title">Depreciation Setup</h3>
-
-                <div class="two-fields">
-                    <p-floatlabel variant="on">
-                        <p-select [options]="depreciationMethods" optionLabel="label" optionValue="value"
-                            name="depreciationMethods" [(ngModel)]="depreciationForm.depreciationMethod" appendTo="body"
-                            [filter]="true"></p-select>
-                        <label>Method *</label>
-                    </p-floatlabel>
-
-                    <p-floatlabel variant="on">
-                        <input type="number" name="depreciationRate" pInputText
-                            [(ngModel)]="depreciationForm.depreciationRate" />
-                        <label>Rate (%) *</label>
-                    </p-floatlabel>
-                </div>
-
-                <div class="two-fields">
-                    <p-floatlabel variant="on">
-                        <input type="number" pInputText name="expectedLifeYears"
-                            [(ngModel)]="depreciationForm.expectedLifeYears" />
-                        <label>Expected Life (Years) *</label>
-                    </p-floatlabel>
-
-                    <p-floatlabel variant="on">
-                        <p-datepicker [(ngModel)]="depreciationForm.depreciationStart" name="depreciationStartDate"
-                            appendTo="body"></p-datepicker>
-                        <label>Depreciation Start Date</label>
-                    </p-floatlabel>
-                </div>
-
-                <p-floatlabel variant="on">
-                    <input type="number" pInputText [(ngModel)]="depreciationForm.salvageValue" name="salvageValue" />
-                    <label>Salvage Value</label>
-                </p-floatlabel>
-
-                <button pButton [label]="depreciationButtonLabel" style="margin-top: 10px;"
-                    [disabled]="!depreciationForm.depreciationMethod || !depreciationForm.depreciationRate || !depreciationForm.expectedLifeYears"
-                    (click)="saveDepreciation()">
-                </button>
-
-                <div class="depreciation-summary-card" *ngIf="depreciationResult">
-                    <div class="summary-header">
-                        <h3>Depreciation Summary</h3>
-                        <span class="summary-badge" [ngClass]="getDepStatusClass(depreciationResult)">
-                            {{ getDepStatus(depreciationResult) }}
-                        </span>
-                    </div>
-
-                    <div class="summary-grid">
-                        <div class="summary-item">
-                            <span class="summary-label">Purchase Cost</span>
-                            <p class="summary-value">{{ depreciationResult.purchaseCost | number:'1.2-2' }}</p>
-                        </div>
-
-                        <div class="summary-item">
-                            <span class="summary-label">Book Value</span>
-                            <p class="summary-value">{{ depreciationResult.bookValue | number:'1.2-2' }}</p>
-                        </div>
-
-                        <div class="summary-item">
-                            <span class="summary-label">Depreciation Till Date</span>
-                            <p class="summary-value">{{ depreciationResult.depreciationTillDate | number:'1.2-2' }}</p>
-                        </div>
-
-                        <div class="summary-item">
-                            <span class="summary-label">Years Used</span>
-                            <p class="summary-value">{{ depreciationResult.yearsUsed | number:'1.2-2' }}</p>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-        </p-tabPanel>
 
 
         <!-- TAB 4 – INSURANCE -->
@@ -860,223 +972,7 @@
             </p-table>
 
         </p-tabPanel> -->
-        <p-tabPanel header="Insurance Info" *ngIf="canAccessDepartmentTabs">
 
-            <div class="insurance-layout">
-
-                <!-- LEFT: FORM + CURRENT POLICY -->
-                <div class="insurance-left">
-
-                    <div class="insurance-card">
-                        <div class="card-header">
-                            <h3 class="section-title">Insurance Details</h3>
-
-                            <div class="status-row" *ngIf="asset.insurance?.id">
-                                <span class="muted">Status:</span>
-                                <span class="status-pill" [ngClass]="getInsuranceStatusClass(asset.insurance)">
-                                    {{ getInsuranceStatus(asset.insurance) }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="form-grid">
-                            <p-floatlabel variant="on" class="full-field">
-                                <input pInputText [(ngModel)]="asset.insuranceProvider" name="insuranceProvider" />
-                                <label>Provider</label>
-                            </p-floatlabel>
-
-                            <div class="two-fields">
-                                <p-floatlabel variant="on">
-                                    <input pInputText [(ngModel)]="asset.policyNumber" name="policyNumber" />
-                                    <label>Policy Number</label>
-                                </p-floatlabel>
-
-                                <p-floatlabel variant="on">
-                                    <input pInputText type="number" [(ngModel)]="asset.coverageAmount"
-                                        name="coverageAmount" />
-                                    <label>Coverage Amount</label>
-                                </p-floatlabel>
-                            </div>
-
-                            <div class="two-fields">
-                                <p-floatlabel variant="on">
-                                    <p-datepicker [(ngModel)]="asset.insuranceStartDate" name="insuranceStartDate"
-                                        appendTo="body"></p-datepicker>
-                                    <label>Insurance Start Date</label>
-                                </p-floatlabel>
-
-                                <p-floatlabel variant="on">
-                                    <p-datepicker [(ngModel)]="asset.insuranceEndDate" name="insuranceEndDate"
-                                        appendTo="body"></p-datepicker>
-                                    <label>Insurance End Date</label>
-                                </p-floatlabel>
-                            </div>
-
-                            <div class="two-fields">
-                                <p-floatlabel>
-                                    <p-select [options]="policyTypes" optionLabel="label" optionValue="value"
-                                        [(ngModel)]="asset.policyType" appendTo="body" [filter]="true"></p-select>
-                                    <label>Policy Type</label>
-                                </p-floatlabel>
-
-                                <p-floatlabel>
-                                    <input type="number" pInputText [(ngModel)]="asset.renewalReminderDays" />
-                                    <label>Reminder Days</label>
-                                </p-floatlabel>
-                            </div>
-
-                            <p-floatlabel variant="on" class="full-field">
-                                <textarea pInputTextarea rows="3" [(ngModel)]="asset.notes" name="notes"></textarea>
-                                <label>Notes</label>
-                            </p-floatlabel>
-
-                            <div class="btn-row insurance-actions">
-                                <button pButton label="Save Insurance" (click)="saveInsurance()"></button>
-
-                                <button pButton *ngIf="asset.insurance?.id" label="Renew Policy"
-                                    class="p-button-secondary" (click)="openRenewDialog()">
-                                </button>
-
-                                <button pButton label="Raise Claim" class="p-button-warning"
-                                    (click)="openClaimDialog()"></button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CURRENT POLICY SUMMARY -->
-                    <div class="insurance-card" *ngIf="asset.insurance?.id">
-                        <h3 class="section-title">Current Policy</h3>
-
-                        <div class="policy-summary">
-                            <div class="summary-item">
-                                <span class="muted">Policy</span>
-                                <b>{{ asset.policyNumber }}</b>
-                            </div>
-
-                            <div class="summary-item">
-                                <span class="muted">Provider</span>
-                                <b>{{ asset.insuranceProvider }}</b>
-                            </div>
-
-                            <div class="summary-item">
-                                <span class="muted">Coverage</span>
-                                <b>{{ asset.coverageAmount }}</b>
-                            </div>
-
-                            <div class="summary-item">
-                                <span class="muted">Period</span>
-                                <b>{{ asset.insuranceStartDate | date:'dd-MMM-yyyy' }} → {{ asset.insuranceEndDate |
-                                    date:'dd-MMM-yyyy' }}</b>
-                            </div>
-
-                            <div class="summary-item">
-                                <span class="muted">Status</span>
-                                <span class="status-pill" [ngClass]="getInsuranceStatusClass(asset.insurance)">
-                                    {{ getInsuranceStatus(asset.insurance) }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- RIGHT: SUB-TABS (HISTORY / CLAIMS) -->
-                <div class="insurance-right">
-
-                    <div class="insurance-card">
-                        <p-tabView class="insurance-subtabs">
-
-                            <p-tabPanel header="Policy History">
-                                <div class="table-shell">
-                                    <p-table [value]="insuranceHistory" responsiveLayout="scroll" class="pretty-table"
-                                        styleClass="pretty-table">
-
-                                        <ng-template pTemplate="header">
-                                            <tr>
-                                                <th style="width:70px;">No</th>
-                                                <th>Provider</th>
-                                                <th>Policy</th>
-                                                <th>Start</th>
-                                                <th>End</th>
-                                                <th style="width:140px;">Status</th>
-                                            </tr>
-                                        </ng-template>
-
-                                        <ng-template pTemplate="body" let-ins let-i="rowIndex">
-                                            <tr>
-                                                <td>{{ (i+1) | number:'2.0' }}</td>
-                                                <td>{{ ins.provider }}</td>
-                                                <td>{{ ins.policyNumber }}</td>
-                                                <td>{{ ins.startDate | date:'dd/MM/yyyy' }}</td>
-                                                <td>{{ ins.endDate | date:'dd/MM/yyyy' }}</td>
-                                                <td>
-                                                    <span class="mini-pill" [ngClass]="{
-                  'pill-green': ins.policyStatus==='ACTIVE',
-                  'pill-red': ins.policyStatus==='EXPIRED',
-                  'pill-orange': ins.policyStatus==='EXPIRING_SOON'
-                }">
-                                                        {{ ins.policyStatus }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        </ng-template>
-                                        <ng-template pTemplate="emptymessage">
-                                            <tr>
-                                                <td colspan="6" class="no-record-row">
-                                                    No records found
-                                                </td>
-                                            </tr>
-                                        </ng-template>
-
-
-                                    </p-table>
-                                </div>
-                            </p-tabPanel>
-
-                            <p-tabPanel header="Claims">
-                                <div class="table-shell">
-                                    <p-table [value]="claims" responsiveLayout="scroll" styleClass="pretty-table">
-
-                                        <ng-template pTemplate="header">
-                                            <tr>
-                                                <th style="width:70px;">No</th>
-                                                <th style="width:140px;">Claim Date</th>
-                                                <th>Remarks</th>
-                                                <th style="width:160px; text-align:right;">File</th>
-                                            </tr>
-                                        </ng-template>
-
-                                        <ng-template pTemplate="body" let-c let-i="rowIndex">
-                                            <tr>
-                                                <td>{{ (i+1) | number:'2.0' }}</td>
-                                                <td>{{ c.claimDate | date:'dd/MM/yyyy' }}</td>
-
-                                                <!-- Remarks with ellipsis -->
-                                                <td class="ellipsis-cell" [title]="c.reason || ''">
-                                                    {{ c.reason || '-' }}
-                                                </td>
-
-                                                <!-- Action button right aligned -->
-                                                <td class="actions-cell">
-                                                    <button pButton type="button" icon="pi pi-download" label="Download"
-                                                        class="download-pill" (click)="downloadClaimFile(c)">
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </ng-template>
-
-                                    </p-table>
-                                </div>
-                            </p-tabPanel>
-
-                        </p-tabView>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </p-tabPanel>
         <p-tabPanel header="Warranty & AMC" *ngIf="canAccessDepartmentTabs">
 
             <ng-container *ngIf="asset.id; else saveAssetFirst">
@@ -1382,6 +1278,302 @@
             </div>
 
         </p-tabPanel>
+        <p-tabPanel header="Insurance Info" *ngIf="canAccessDepartmentTabs">
+
+            <div class="insurance-layout">
+
+                <!-- LEFT: FORM + CURRENT POLICY -->
+                <div class="insurance-left">
+
+                    <div class="insurance-card">
+                        <div class="card-header">
+                            <h3 class="section-title">Insurance Details</h3>
+
+                            <div class="status-row" *ngIf="asset.insurance?.id">
+                                <span class="muted">Status:</span>
+                                <span class="status-pill" [ngClass]="getInsuranceStatusClass(asset.insurance)">
+                                    {{ getInsuranceStatus(asset.insurance) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <p-floatlabel variant="on" class="full-field">
+                                <input pInputText [(ngModel)]="asset.insuranceProvider" name="insuranceProvider" />
+                                <label>Provider</label>
+                            </p-floatlabel>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <input pInputText [(ngModel)]="asset.policyNumber" name="policyNumber" />
+                                    <label>Policy Number</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on">
+                                    <input pInputText type="number" [(ngModel)]="asset.coverageAmount"
+                                        name="coverageAmount" />
+                                    <label>Coverage Amount</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.insuranceStartDate" name="insuranceStartDate"
+                                        appendTo="body"></p-datepicker>
+                                    <label>Insurance Start Date</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.insuranceEndDate" name="insuranceEndDate"
+                                        appendTo="body"></p-datepicker>
+                                    <label>Insurance End Date</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <div class="two-fields">
+                                <p-floatlabel>
+                                    <p-select [options]="policyTypes" optionLabel="label" optionValue="value"
+                                        [(ngModel)]="asset.policyType" appendTo="body" [filter]="true"></p-select>
+                                    <label>Policy Type</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel>
+                                    <input type="number" pInputText [(ngModel)]="asset.renewalReminderDays" />
+                                    <label>Reminder Days</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <textarea pInputTextarea rows="3" [(ngModel)]="asset.notes" name="notes"></textarea>
+                                <label>Notes</label>
+                            </p-floatlabel>
+
+                            <div class="btn-row insurance-actions">
+                                <button pButton label="Save Insurance" (click)="saveInsurance()"></button>
+
+                                <button pButton *ngIf="asset.insurance?.id" label="Renew Policy"
+                                    class="p-button-secondary" (click)="openRenewDialog()">
+                                </button>
+
+                                <button pButton label="Raise Claim" class="p-button-warning"
+                                    (click)="openClaimDialog()"></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CURRENT POLICY SUMMARY -->
+                    <div class="insurance-card" *ngIf="asset.insurance?.id">
+                        <h3 class="section-title">Current Policy</h3>
+
+                        <div class="policy-summary">
+                            <div class="summary-item">
+                                <span class="muted">Policy</span>
+                                <b>{{ asset.policyNumber }}</b>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="muted">Provider</span>
+                                <b>{{ asset.insuranceProvider }}</b>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="muted">Coverage</span>
+                                <b>{{ asset.coverageAmount }}</b>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="muted">Period</span>
+                                <b>{{ asset.insuranceStartDate | date:'dd-MMM-yyyy' }} → {{ asset.insuranceEndDate |
+                                    date:'dd-MMM-yyyy' }}</b>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="muted">Status</span>
+                                <span class="status-pill" [ngClass]="getInsuranceStatusClass(asset.insurance)">
+                                    {{ getInsuranceStatus(asset.insurance) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT: SUB-TABS (HISTORY / CLAIMS) -->
+                <div class="insurance-right">
+
+                    <div class="insurance-card">
+                        <p-tabView class="insurance-subtabs">
+
+                            <p-tabPanel header="Policy History">
+                                <div class="table-shell">
+                                    <p-table [value]="insuranceHistory" responsiveLayout="scroll" class="pretty-table"
+                                        styleClass="pretty-table">
+
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th style="width:70px;">No</th>
+                                                <th>Provider</th>
+                                                <th>Policy</th>
+                                                <th>Start</th>
+                                                <th>End</th>
+                                                <th style="width:140px;">Status</th>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="body" let-ins let-i="rowIndex">
+                                            <tr>
+                                                <td>{{ (i+1) | number:'2.0' }}</td>
+                                                <td>{{ ins.provider }}</td>
+                                                <td>{{ ins.policyNumber }}</td>
+                                                <td>{{ ins.startDate | date:'dd/MM/yyyy' }}</td>
+                                                <td>{{ ins.endDate | date:'dd/MM/yyyy' }}</td>
+                                                <td>
+                                                    <span class="mini-pill" [ngClass]="{
+                  'pill-green': ins.policyStatus==='ACTIVE',
+                  'pill-red': ins.policyStatus==='EXPIRED',
+                  'pill-orange': ins.policyStatus==='EXPIRING_SOON'
+                }">
+                                                        {{ ins.policyStatus }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+                                        <ng-template pTemplate="emptymessage">
+                                            <tr>
+                                                <td colspan="6" class="no-record-row">
+                                                    No records found
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+
+
+                                    </p-table>
+                                </div>
+                            </p-tabPanel>
+
+                            <p-tabPanel header="Claims">
+                                <div class="table-shell">
+                                    <p-table [value]="claims" responsiveLayout="scroll" styleClass="pretty-table">
+
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th style="width:70px;">No</th>
+                                                <th style="width:140px;">Claim Date</th>
+                                                <th>Remarks</th>
+                                                <th style="width:160px; text-align:right;">File</th>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="body" let-c let-i="rowIndex">
+                                            <tr>
+                                                <td>{{ (i+1) | number:'2.0' }}</td>
+                                                <td>{{ c.claimDate | date:'dd/MM/yyyy' }}</td>
+
+                                                <!-- Remarks with ellipsis -->
+                                                <td class="ellipsis-cell" [title]="c.reason || ''">
+                                                    {{ c.reason || '-' }}
+                                                </td>
+
+                                                <!-- Action button right aligned -->
+                                                <td class="actions-cell">
+                                                    <button pButton type="button" icon="pi pi-download" label="Download"
+                                                        class="download-pill" (click)="downloadClaimFile(c)">
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+
+                                    </p-table>
+                                </div>
+                            </p-tabPanel>
+
+                        </p-tabView>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </p-tabPanel>
+        <p-tabPanel header="Depreciation" *ngIf="canAccessDepartmentTabs">
+
+            <div class="tab-section">
+
+                <h3 class="section-title">Depreciation Setup</h3>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <p-select [options]="depreciationMethods" optionLabel="label" optionValue="value"
+                            name="depreciationMethods" [(ngModel)]="depreciationForm.depreciationMethod" appendTo="body"
+                            [filter]="true"></p-select>
+                        <label>Method *</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <input type="number" name="depreciationRate" pInputText
+                            [(ngModel)]="depreciationForm.depreciationRate" />
+                        <label>Rate (%) *</label>
+                    </p-floatlabel>
+                </div>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <input type="number" pInputText name="expectedLifeYears"
+                            [(ngModel)]="depreciationForm.expectedLifeYears" />
+                        <label>Expected Life (Years) *</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="on">
+                        <p-datepicker [(ngModel)]="depreciationForm.depreciationStart" name="depreciationStartDate"
+                            appendTo="body"></p-datepicker>
+                        <label>Depreciation Start Date</label>
+                    </p-floatlabel>
+                </div>
+
+                <p-floatlabel variant="on">
+                    <input type="number" pInputText [(ngModel)]="depreciationForm.salvageValue" name="salvageValue" />
+                    <label>Salvage Value</label>
+                </p-floatlabel>
+
+                <button pButton [label]="depreciationButtonLabel" style="margin-top: 10px;"
+                    [disabled]="!depreciationForm.depreciationMethod || !depreciationForm.depreciationRate || !depreciationForm.expectedLifeYears"
+                    (click)="saveDepreciation()">
+                </button>
+
+                <div class="depreciation-summary-card" *ngIf="depreciationResult">
+                    <div class="summary-header">
+                        <h3>Depreciation Summary</h3>
+                        <span class="summary-badge" [ngClass]="getDepStatusClass(depreciationResult)">
+                            {{ getDepStatus(depreciationResult) }}
+                        </span>
+                    </div>
+
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-label">Purchase Cost</span>
+                            <p class="summary-value">{{ depreciationResult.purchaseCost | number:'1.2-2' }}</p>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-label">Book Value</span>
+                            <p class="summary-value">{{ depreciationResult.bookValue | number:'1.2-2' }}</p>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-label">Depreciation Till Date</span>
+                            <p class="summary-value">{{ depreciationResult.depreciationTillDate | number:'1.2-2' }}</p>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-label">Years Used</span>
+                            <p class="summary-value">{{ depreciationResult.yearsUsed | number:'1.2-2' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </p-tabPanel>
 
     </p-tabView>
 
@@ -1399,10 +1591,67 @@
                   { label: 'Internal', value: 'INTERNAL' },
                   { label: 'External', value: 'EXTERNAL' }
                 ]" [(ngModel)]="transfer.transferType" appendTo="body" [filter]="true"
-                    (onChange)="transfer.externalType = null; transfer.toBranchId = null">
+                    (onChange)="transfer.externalType = null; transfer.toBranchId = null; transfer.temporary = false">
                 </p-select>
                 <label>Transfer Type</label>
             </p-floatlabel>
+
+            <!-- Permanent / Temporary at top so it's always visible -->
+            <!-- <div class="checkbox-row" *ngIf="transfer.transferType && transfer.externalType !== 'DEAD'">
+                <p-checkbox binary="true" inputId="temp" [(ngModel)]="transfer.temporary"></p-checkbox>
+                <label class="p-checkbox-label" for="temp">Temporary Transfer</label>
+                <span class="transfer-badge permanent" *ngIf="!transfer.temporary">
+                    Permanent
+                </span>
+
+                <span class="transfer-badge temporary" *ngIf="transfer.temporary">
+                    Temporary
+                </span>
+            </div> -->
+            <!-- Transfer Type Toggle -->
+<div class="transfer-mode-card" *ngIf="transfer.transferType && transfer.externalType !== 'DEAD'">
+  <div class="transfer-mode-left">
+    <div class="icon-wrap">
+      <i class="pi pi-sync"></i>
+    </div>
+
+    <div class="transfer-mode-text">
+      <div class="transfer-mode-title">Transfer Type</div>
+      <div class="transfer-mode-subtitle">
+        Choose whether this transfer is temporary or permanent
+      </div>
+    </div>
+  </div>
+
+  <div class="transfer-mode-right">
+    <div class="transfer-toggle">
+      <p-checkbox
+        binary="true"
+        inputId="temp"
+        [(ngModel)]="transfer.temporary">
+      </p-checkbox>
+      <label class="p-checkbox-label toggle-label" for="temp">
+        Temporary Transfer
+      </label>
+    </div>
+
+    <span class="transfer-badge permanent" *ngIf="!transfer.temporary">
+      Permanent
+    </span>
+
+    <span class="transfer-badge temporary" *ngIf="transfer.temporary">
+      Temporary
+    </span>
+  </div>
+</div>
+
+            <div class="expires-container" *ngIf="transfer.temporary">
+                <p-floatlabel variant="on" class="full-field">
+                    <p-datepicker name="expiresAt" [(ngModel)]="transfer.expiresAt" appendTo="body">
+                    </p-datepicker>
+                    <label>Expected Return Date</label>
+                </p-floatlabel>
+            </div>
 
             <div *ngIf="transfer.transferType === 'INTERNAL'">
                 <p-floatlabel variant="on" class="full-field">
@@ -1494,20 +1743,6 @@
                 </div>
             </div>
 
-            <div class="checkbox-row" *ngIf="transfer.externalType !== 'DEAD'">
-                <p-checkbox binary="true" inputId="temp" [(ngModel)]="transfer.temporary">
-                </p-checkbox>
-                <label class="p-checkbox-label" for="temp">Temporary</label>
-            </div>
-
-            <div class="expires-container" *ngIf="transfer.temporary">
-                <p-floatlabel variant="on" class="full-field">
-                    <p-datepicker name="expiresAt" [(ngModel)]="transfer.expiresAt" appendTo="body">
-                    </p-datepicker>
-                    <label>Expected Return Date</label>
-                </p-floatlabel>
-            </div>
-
             <p-floatlabel variant="on" class="full-field" style="margin-top: 10px;">
                 <textarea pTextarea rows="3" [(ngModel)]="transfer.reason"></textarea>
                 <label>Reason</label>
@@ -1523,6 +1758,7 @@
 
         </div>
     </p-dialog>
+
     <p-dialog header="Renew Insurance Policy" [(visible)]="showRenewDialog" modal="true" [style]="{ width: '520px' }">
 
         <div class="modal-body">
@@ -1577,158 +1813,114 @@
 
         </div>
     </p-dialog>
-    <p-dialog
-  header="Complete Asset Return"
-  [(visible)]="showReturnChecklistDialog"
-  [modal]="true"
-  [draggable]="false"
-  [resizable]="false"
-  [style]="{ width: '650px' }"
-  [contentStyle]="{ overflow: 'auto' }"
->
-  <div class="ack-dialog">
+    <p-dialog header="Complete Asset Return" [(visible)]="showReturnChecklistDialog" [modal]="true" [draggable]="false"
+        [resizable]="false" [style]="{ width: '650px' }" [contentStyle]="{ overflow: 'auto' }">
+        <div class="ack-dialog">
 
-    <div class="asset-info-card" *ngIf="selectedReturnTransfer">
-      <div class="info-row">
-        <span class="info-label">Transfer ID</span>
-        <span class="info-value">{{ selectedReturnTransfer.id || '-' }}</span>
-      </div>
+            <div class="asset-info-card" *ngIf="selectedReturnTransfer">
+                <div class="info-row">
+                    <span class="info-label">Transfer ID</span>
+                    <span class="info-value">{{ selectedReturnTransfer.id || '-' }}</span>
+                </div>
 
-      <div class="info-row">
-        <span class="info-label">Status</span>
-        <span class="info-value">{{ selectedReturnTransfer.status || '-' }}</span>
-      </div>
+                <div class="info-row">
+                    <span class="info-label">Status</span>
+                    <span class="info-value">{{ selectedReturnTransfer.status || '-' }}</span>
+                </div>
 
-      <div class="info-row">
-        <span class="info-label">Transfer Type</span>
-        <span class="info-value">{{ selectedReturnTransfer.transferType || '-' }}</span>
-      </div>
+                <div class="info-row">
+                    <span class="info-label">Transfer Type</span>
+                    <span class="info-value">{{ selectedReturnTransfer.transferType || '-' }}</span>
+                </div>
 
-      <div class="info-row">
-        <span class="info-label">Reason</span>
-        <span class="info-value">
-          {{ selectedReturnTransfer.returnReason || selectedReturnTransfer.reason || '-' }}
-        </span>
-      </div>
-    </div>
-
-    <div *ngIf="returnError" class="ack-error">
-      {{ returnError }}
-    </div>
-
-    <!-- Note -->
-    <div class="field">
-      <label class="lbl">Return Note</label>
-      <textarea
-        pInputTextarea
-        rows="3"
-        class="w-full"
-        [(ngModel)]="returnNote"
-        placeholder="Enter return note"
-      ></textarea>
-    </div>
-
-    <!-- Checklist -->
-    <div class="field">
-      <label class="lbl">Checklist</label>
-
-      <div *ngIf="returnChecklistLoading">Loading checklist...</div>
-
-      <div *ngIf="!returnChecklistLoading && returnChecklistItems.length === 0" class="hint">
-        No return checklist available for this asset.
-      </div>
-
-      <div
-        class="checklist-box"
-        *ngFor="let item of returnChecklistResponses; let i = index"
-      >
-        <div class="checklist-row">
-          <input
-            type="checkbox"
-            [(ngModel)]="item.checked"
-            [ngModelOptions]="{ standalone: true }"
-          />
-
-          <div class="checklist-content">
-            <div class="title">
-              {{ returnChecklistItems[i]?.title }}
-              <span *ngIf="returnChecklistItems[i]?.isRequired" class="required-star">*</span>
+                <div class="info-row">
+                    <span class="info-label">Reason</span>
+                    <span class="info-value">
+                        {{ selectedReturnTransfer.returnReason || selectedReturnTransfer.reason || '-' }}
+                    </span>
+                </div>
             </div>
 
-            <div class="desc" *ngIf="returnChecklistItems[i]?.description">
-              {{ returnChecklistItems[i]?.description }}
+            <div *ngIf="returnError" class="ack-error">
+                {{ returnError }}
             </div>
 
-            <textarea
-              pInputTextarea
-              rows="2"
-              [(ngModel)]="item.remarks"
-              [ngModelOptions]="{ standalone: true }"
-              placeholder="Remarks"
-            ></textarea>
-          </div>
+            <!-- Note -->
+            <div class="field">
+                <label class="lbl">Return Note</label>
+                <textarea pInputTextarea rows="3" class="w-full" [(ngModel)]="returnNote"
+                    placeholder="Enter return note"></textarea>
+            </div>
+
+            <!-- Checklist -->
+            <div class="field">
+                <label class="lbl">Checklist</label>
+
+                <div *ngIf="returnChecklistLoading">Loading checklist...</div>
+
+                <div *ngIf="!returnChecklistLoading && returnChecklistItems.length === 0" class="hint">
+                    No return checklist available for this asset.
+                </div>
+
+                <div class="checklist-box" *ngFor="let item of returnChecklistResponses; let i = index">
+                    <div class="checklist-row">
+                        <input type="checkbox" [(ngModel)]="item.checked" [ngModelOptions]="{ standalone: true }" />
+
+                        <div class="checklist-content">
+                            <div class="title">
+                                {{ returnChecklistItems[i]?.title }}
+                                <span *ngIf="returnChecklistItems[i]?.isRequired" class="required-star">*</span>
+                            </div>
+
+                            <div class="desc" *ngIf="returnChecklistItems[i]?.description">
+                                {{ returnChecklistItems[i]?.description }}
+                            </div>
+
+                            <textarea pInputTextarea rows="2" [(ngModel)]="item.remarks"
+                                [ngModelOptions]="{ standalone: true }" placeholder="Remarks"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signature -->
+            <div class="field">
+                <div class="row-between">
+                    <label class="lbl">Signature</label>
+                    <button pButton type="button" label="Clear Signature" class="p-button-text clear-link"
+                        (click)="clearReturnSignature()"></button>
+                </div>
+
+                <canvas #returnSignatureCanvas width="540" height="170" class="signature-box"></canvas>
+                <small class="hint">Sign inside the box using mouse / touch.</small>
+            </div>
+
+            <!-- Upload -->
+            <div class="field">
+                <label class="lbl">Upload Photo</label>
+
+                <div class="upload-row">
+                    <label class="upload-btn">
+                        <input type="file" accept="image/*" (change)="onReturnFileSelect($event)" />
+                        Choose File
+                    </label>
+
+                    <span class="file-name">
+                        {{ returnSelectedFile?.name || 'No file chosen' }}
+                    </span>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Signature -->
-    <div class="field">
-      <div class="row-between">
-        <label class="lbl">Signature</label>
-        <button
-          pButton
-          type="button"
-          label="Clear Signature"
-          class="p-button-text clear-link"
-          (click)="clearReturnSignature()"
-        ></button>
-      </div>
-
-      <canvas
-        #returnSignatureCanvas
-        width="540"
-        height="170"
-        class="signature-box"
-      ></canvas>
-      <small class="hint">Sign inside the box using mouse / touch.</small>
-    </div>
-
-    <!-- Upload -->
-    <div class="field">
-      <label class="lbl">Upload Photo</label>
-
-      <div class="upload-row">
-        <label class="upload-btn">
-          <input type="file" accept="image/*" (change)="onReturnFileSelect($event)" />
-          Choose File
-        </label>
-
-        <span class="file-name">
-          {{ returnSelectedFile?.name || 'No file chosen' }}
-        </span>
-      </div>
-    </div>
-  </div>
-
-  <ng-template pTemplate="footer">
-    <div class="footer-actions">
-      <button
-        pButton
-        type="button"
-        label="Cancel"
-        class="btn-cancel"
-        (click)="closeReturnChecklistDialog()"
-      ></button>
-      <button
-        pButton
-        type="button"
-        label="Submit Return"
-        class="btn-submit"
-        (click)="completeReturnWithChecklist()"
-      ></button>
-    </div>
-  </ng-template>
-</p-dialog>
+        <ng-template pTemplate="footer">
+            <div class="footer-actions">
+                <button pButton type="button" label="Cancel" class="btn-cancel"
+                    (click)="closeReturnChecklistDialog()"></button>
+                <button pButton type="button" label="Submit Return" class="btn-submit"
+                    (click)="completeReturnWithChecklist()"></button>
+            </div>
+        </ng-template>
+    </p-dialog>
 
 
     <p-dialog header="Raise Insurance Claim" [(visible)]="showClaimDialog" modal="true" [style]="{ width: '520px' }">
@@ -2086,6 +2278,108 @@
             </div>
 
         </div>
+    </p-dialog>
+
+    <!-- Replace Sub-Asset Dialog -->
+    <p-dialog header="Replace Component" [(visible)]="showReplaceDialog" [modal]="true" [style]="{width:'600px'}">
+        <div class="dialog-body" *ngIf="replaceTarget">
+            <div class="replace-info-row">
+                <span class="replace-label">Replacing:</span>
+                <span class="replace-chip">{{ replaceTarget.assetId }} — {{ replaceTarget.assetName }}</span>
+            </div>
+
+            <div class="form-row" style="margin-top:1rem;">
+                <label>Replacement Source *</label>
+                <p-select [options]="subAssetSourceOptions" optionLabel="label" optionValue="value"
+                    [(ngModel)]="replaceForm.sourceType" (onChange)="onReplaceSourceChange()" appendTo="body" />
+            </div>
+
+            @if (replaceForm.sourceType === 'INVENTORY_SPARE') {
+            <div class="form-row">
+                <label>Spare Part *</label>
+                <p-select [options]="sparePartOptions" optionLabel="label" optionValue="value"
+                    [(ngModel)]="replaceForm.sparePartId" [filter]="true" appendTo="body" />
+            </div>
+            <div class="two-fields">
+                <div class="form-row">
+                    <label>Serial No *</label>
+                    <input pInputText [(ngModel)]="replaceForm.serialNumber" />
+                </div>
+                <div class="form-row">
+                    <label>Category *</label>
+                    <p-select [options]="categoryOptions" optionLabel="label" optionValue="value"
+                        [(ngModel)]="replaceForm.assetCategoryId" [filter]="true" appendTo="body" />
+                </div>
+            </div>
+            }
+
+            @if (replaceForm.sourceType === 'NEW') {
+            <div class="two-fields">
+                <div class="form-row">
+                    <label>Component Name *</label>
+                    <input pInputText [(ngModel)]="replaceForm.assetName" />
+                </div>
+                <div class="form-row">
+                    <label>Serial No *</label>
+                    <input pInputText [(ngModel)]="replaceForm.serialNumber" />
+                </div>
+            </div>
+            <div class="two-fields">
+                <div class="form-row">
+                    <label>Asset Type *</label>
+                    <p-select [options]="assetTypeOptions" optionLabel="label" optionValue="value"
+                        [(ngModel)]="replaceForm.assetType" [filter]="true" appendTo="body" />
+                </div>
+                <div class="form-row">
+                    <label>Category *</label>
+                    <p-select [options]="categoryOptions" optionLabel="label" optionValue="value"
+                        [(ngModel)]="replaceForm.assetCategoryId" [filter]="true" appendTo="body" />
+                </div>
+            </div>
+            <div class="two-fields">
+                <div class="form-row">
+                    <label>Procurement Mode *</label>
+                    <p-select [options]="procurementOptions" optionLabel="label" optionValue="value"
+                        [(ngModel)]="replaceForm.modeOfProcurement" appendTo="body" />
+                </div>
+                <div class="form-row">
+                    <label>Purchase Cost</label>
+                    <input pInputText type="number" [(ngModel)]="replaceForm.purchaseCost" />
+                </div>
+            </div>
+            <div class="two-fields">
+                <div class="form-row">
+                    <label>Invoice No</label>
+                    <input pInputText [(ngModel)]="replaceForm.invoiceNumber" />
+                </div>
+                <div class="form-row">
+                    <label>Purchase Date</label>
+                    <p-datepicker [(ngModel)]="replaceForm.purchaseDate" appendTo="body" dateFormat="dd-mm-yy" />
+                </div>
+            </div>
+            }
+
+            <div class="two-fields" style="margin-top:0.75rem;">
+                <div class="form-row">
+                    <label>Replacement Cost</label>
+                    <input pInputText type="number" [(ngModel)]="replaceForm.cost" />
+                </div>
+                <div class="form-row">
+                    <label>Working Condition</label>
+                    <p-select [options]="conditionOptions" optionLabel="label" optionValue="value"
+                        [(ngModel)]="replaceForm.workingCondition" appendTo="body" />
+                </div>
+            </div>
+            <div class="form-row">
+                <label>Reason for Replacement</label>
+                <textarea pInputTextarea rows="2" [(ngModel)]="replaceForm.reason" style="width:100%"></textarea>
+            </div>
+        </div>
+        <ng-template pTemplate="footer">
+            <p-button label="Cancel" severity="secondary" (onClick)="showReplaceDialog=false" />
+            <p-button label="Replace" icon="pi pi-sync" severity="warn" (onClick)="submitReplace()"
+                [loading]="replaceSaving" />
+        </ng-template>
     </p-dialog>
 </div>
 <ng-template #loadingTpl>

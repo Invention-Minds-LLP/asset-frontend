@@ -57,6 +57,14 @@ export class Transferr {
       `${this.api}/assets/transfer/my-pending-approvals`
     );
   }
+  managementApproveTransfer(id: number, payload: { decision: string; remarks?: string }): Observable<any> {
+    return this.http.post(`${this.api}/assets/transfer/${id}/management-approve`, payload);
+  }
+
+  getPendingMgmtApprovals(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/assets/transfer/pending-mgmt-approvals`);
+  }
+
   approveReturnTransfer(id: number, body: any) {
   return this.http.post(`${this.api}/assets/transfer/${id}/approve-return`, body);
 }

@@ -57,12 +57,12 @@
               <td>{{ p.policyNumber }}</td>
               <td>{{ p.asset?.assetName || '—' }}</td>
               <td>{{ p.provider }}</td>
-              <td>{{ p.insuranceType }}</td>
+              <td>{{ p.policyType }}</td>
               <td>{{ formatCurrency(p.premiumAmount) }}</td>
               <td>{{ formatCurrency(p.coverageAmount) }}</td>
               <td>{{ p.startDate | date:'mediumDate' }}</td>
               <td>{{ p.endDate | date:'mediumDate' }}</td>
-              <td><p-tag [value]="p.status" [severity]="getStatusSeverity(p.status)"></p-tag></td>
+              <td><p-tag [value]="p.policyStatus" [severity]="getStatusSeverity(p.policyStatus)"></p-tag></td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">
@@ -88,7 +88,7 @@
             <tr>
               <th>Claim No</th>
               <th>Asset</th>
-              <th>Incident Date</th>
+              <th>Claimed Date</th>
               <th>Claim Amount</th>
               <th>Settled Amount</th>
               <th>Status</th>
@@ -97,11 +97,11 @@
           <ng-template pTemplate="body" let-c>
             <tr>
               <td>{{ c.claimNumber }}</td>
-              <td>{{ c.insurance?.asset?.assetName || '—' }}</td>
-              <td>{{ c.incidentDate | date:'mediumDate' }}</td>
+              <td>{{ c?.asset?.assetName || '—' }}</td>
+              <td>{{ c.claimDate | date:'mediumDate' }}</td>
               <td>{{ formatCurrency(c.claimAmount) }}</td>
               <td>{{ formatCurrency(c.settledAmount) }}</td>
-              <td><p-tag [value]="c.status" [severity]="getStatusSeverity(c.status)"></p-tag></td>
+              <td><p-tag [value]="c.claimStatus" [severity]="getStatusSeverity(c.claimStatus)"></p-tag></td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">

@@ -3,14 +3,139 @@
 <div class="page-container">
   <div class="page-header">
     <h2><i class="pi pi-file-edit"></i> Service Contracts</h2>
+    <p-button [label]="showForm ? 'Cancel' : 'Add Contract'" [icon]="showForm ? 'pi pi-times' : 'pi pi-plus'"
+      (onClick)="showForm ? resetForm() : (showForm = true)"></p-button>
   </div>
 
-  <div class="kpi-grid" *ngIf="stats.total != null">
+  <!-- Create / Edit Form -->
+  @if (showForm) {
+  <div class="form-card">
+    <h3>{{ editingId ? 'Edit Contract' : 'New Service Contract' }}</h3>
+
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="assetOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.assetId" name="scAsset" appendTo="body" [filter]="true" />
+          <label>Asset *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="vendorOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.vendorId" name="scVendor" appendTo="body" [filter]="true" [showClear]="true" />
+          <label>Vendor</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="formTypeOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.contractType" name="scType" appendTo="body" />
+          <label>Contract Type *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.contractNumber" name="scContractNo" />
+          <label>Contract Number</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="date" [(ngModel)]="form.startDate" name="scStart" />
+          <label>Start Date *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="date" [(ngModel)]="form.endDate" name="scEnd" />
+          <label>End Date *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-inputnumber [(ngModel)]="form.cost" name="scCost" mode="decimal" />
+          <label>Contract Cost</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-inputnumber [(ngModel)]="form.regularVisitsPerYear" name="scRegVisits" [useGrouping]="false" [min]="0" />
+          <label>Regular (PM) Visits / Year</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-inputnumber [(ngModel)]="form.emergencyVisitsPerYear" name="scEmerVisits" [useGrouping]="false" [min]="0" />
+          <label>Emergency Visits / Year</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field checkbox-row">
+        <p-checkbox [(ngModel)]="form.includesParts" [binary]="true" name="scParts" inputId="scParts" />
+        <label for="scParts">Includes Parts</label>
+        <p-checkbox [(ngModel)]="form.includesLabor" [binary]="true" name="scLabor" inputId="scLabor" />
+        <label for="scLabor">Includes Labor</label>
+      </div>
+    </div>
+
+    <!-- Vendor SLA Section -->
+    <div class="section-divider">
+      <span>Vendor SLA Commitments <small>(contractual response &amp; resolution times — stored separately from internal SLA policy)</small></span>
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-inputnumber [(ngModel)]="form.vendorResponseValue" name="scVendorRespVal" [useGrouping]="false" />
+          <label>Vendor Response Time</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="timeUnitOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.vendorResponseUnit" name="scVendorRespUnit" appendTo="body" />
+          <label>Response Unit</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-inputnumber [(ngModel)]="form.vendorResolutionValue" name="scVendorResVal" [useGrouping]="false" />
+          <label>Vendor Resolution Time</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="timeUnitOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.vendorResolutionUnit" name="scVendorResUnit" appendTo="body" />
+          <label>Resolution Unit</label>
+        </p-floatlabel>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" (onClick)="resetForm()"></p-button>
+      <p-button [label]="editingId ? 'Update Contract' : 'Create Contract'" icon="pi pi-save" (onClick)="saveContract()" [loading]="savingContract"></p-button>
+    </div>
+  </div>
+  }
+
+
+  @if (stats.total != null) {
+  <div class="kpi-grid">
     <div class="kpi-card"><span class="kpi-label">Total Contracts</span><span class="kpi-value">{{ stats.total }}</span></div>
     <div class="kpi-card"><span class="kpi-label">Active</span><span class="kpi-value">{{ stats.active }}</span></div>
-    <div class="kpi-card kpi-danger"><span class="kpi-label">Expiring Soon</span><span class="kpi-value">{{ stats.expiringSoon }}</span></div>
+    <div class="kpi-card kpi-danger"><span class="kpi-label">Expiring 30 days</span><span class="kpi-value">{{ stats.expiring30 }}</span></div>
     <div class="kpi-card"><span class="kpi-label">Expired</span><span class="kpi-value">{{ stats.expired }}</span></div>
   </div>
+  }
 
   <div class="toolbar">
     <input pInputText placeholder="Search contracts..." [(ngModel)]="search" (keyup.enter)="loadContracts()" />
@@ -33,6 +158,8 @@
         <th>Start</th>
         <th>End</th>
         <th>Status</th>
+        <th>Vendor SLA</th>
+        <th></th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-c>
@@ -41,14 +168,102 @@
         <td>{{ c.asset?.assetName || '—' }}</td>
         <td>{{ c.vendor?.name || '—' }}</td>
         <td>{{ c.contractType }}</td>
-        <td>{{ formatCurrency(c.contractCost) }}</td>
+        <td>{{ formatCurrency(c.cost) }}</td>
         <td>{{ c.startDate | date:'mediumDate' }}</td>
         <td>{{ c.endDate | date:'mediumDate' }}</td>
         <td><p-tag [value]="c.status" [severity]="getStatusSeverity(c.status)"></p-tag></td>
+        <td class="sla-cell">
+          @if (c.vendorResolutionValue) {
+            <span class="sla-badge">Res: {{ c.vendorResolutionValue }}{{ c.vendorResolutionUnit === 'HOURS' ? 'h' : 'd' }}</span>
+          } @else {
+            <span class="no-sla">Not set</span>
+          }
+          @if (c.vendorResponseValue) {
+            <span class="sla-badge secondary">Resp: {{ c.vendorResponseValue }}{{ c.vendorResponseUnit === 'HOURS' ? 'h' : 'd' }}</span>
+          }
+        </td>
+        <td>
+          <div style="display:flex;gap:0.4rem">
+            <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="editContract(c)" pTooltip="Edit" tooltipPosition="top"></p-button>
+            <p-button icon="pi pi-wrench" size="small" severity="info" (onClick)="openVisits(c)" pTooltip="Service Visits" tooltipPosition="top"></p-button>
+          </div>
+        </td>
       </tr>
     </ng-template>
     <ng-template pTemplate="emptymessage">
-      <tr><td colspan="8" class="text-center">No contracts found.</td></tr>
+      <tr><td colspan="10" class="text-center">No contracts found.</td></tr>
     </ng-template>
   </p-table>
 </div>
+
+<!-- Service Visit Dialog -->
+<p-dialog header="Service Visits" [(visible)]="showVisitDialog" [modal]="true" [style]="{width:'720px'}">
+  <div class="visit-form">
+    <h4 style="margin:0 0 1rem">Log New Visit</h4>
+    <div class="visit-form-grid">
+      <p-floatlabel variant="on">
+        <p-select [options]="visitTypeOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="visitForm.visitType" appendTo="body" />
+        <label>Visit Type</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <p-datepicker [(ngModel)]="visitForm.visitDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <label>Visit Date *</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on" class="visit-full">
+        <textarea pInputTextarea rows="2" [(ngModel)]="visitForm.workDone"></textarea>
+        <label>Work Done</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on" class="visit-full">
+        <textarea pInputTextarea rows="2" [(ngModel)]="visitForm.partsReplaced"></textarea>
+        <label>Parts Replaced</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <p-inputnumber [(ngModel)]="visitForm.chargeAmount" mode="currency" currency="INR" locale="en-IN" />
+        <label>Charge Amount (if any)</label>
+      </p-floatlabel>
+    </div>
+    <div style="margin-top:1rem;text-align:right">
+      <p-button label="Log Visit" icon="pi pi-save" (onClick)="logVisit()" [loading]="loggingVisit" />
+    </div>
+  </div>
+
+  <p-table [value]="visits" styleClass="p-datatable-sm visit-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Date</th><th>Type</th><th>Work Done</th><th>Chargeable</th><th>Charge</th><th>Approval</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-v>
+      <tr>
+        <td>{{ v.visitDate | date:'dd MMM yyyy' }}</td>
+        <td><p-tag [value]="v.visitType === 'PREVENTIVE_MAINTENANCE' ? 'PM' : 'Repair'"
+          [severity]="v.visitType === 'PREVENTIVE_MAINTENANCE' ? 'success' : 'warn'" /></td>
+        <td>{{ v.workDone || '—' }}</td>
+        <td>
+          @if (v.isChargeable) { <p-tag value="Yes" severity="danger" /> }
+          @else { <p-tag value="No" severity="secondary" /> }
+        </td>
+        <td>{{ v.chargeAmount ? ('₹' + (v.chargeAmount | number)) : '—' }}</td>
+        <td>
+          @if (v.chargeApprovalStatus === 'PENDING' && isRole('HOD', 'ADMIN')) {
+            <div style="display:flex;gap:0.3rem">
+              <p-button label="Approve" size="small" severity="success" (onClick)="approveCharge(v, 'APPROVED')" [loading]="approvingCharge" />
+              <p-button label="Reject" size="small" severity="danger" (onClick)="approveCharge(v, 'REJECTED')" [loading]="approvingCharge" />
+            </div>
+          } @else {
+            <p-tag [value]="v.chargeApprovalStatus || 'N/A'"
+              [severity]="v.chargeApprovalStatus === 'APPROVED' ? 'success' : v.chargeApprovalStatus === 'REJECTED' ? 'danger' : 'secondary'" />
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="6" class="text-center">No visits logged yet.</td></tr>
+    </ng-template>
+  </p-table>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Close" severity="secondary" (onClick)="showVisitDialog = false" />
+  </ng-template>
+</p-dialog>

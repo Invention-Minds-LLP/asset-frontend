@@ -1,0 +1,325 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-truck"></i> Goods Receipt (GRA/GRN)</h2>
+      <p class="subtitle">Receive goods against purchase orders, inspect and accept deliveries</p>
+    </div>
+  </div>
+
+  <!-- View toggle -->
+  <div class="view-toggle">
+    <button class="toggle-btn" [class.active]="activeView === 'list'" (click)="activeView = 'list'">
+      <i class="pi pi-list"></i> List
+    </button>
+    <button class="toggle-btn" [class.active]="activeView === 'create'" (click)="openCreate()">
+      <i class="pi pi-plus"></i> Create New
+    </button>
+  </div>
+
+  <!-- ═══════════════════════ LIST VIEW ═══════════════════════ -->
+  @if (activeView === 'list') {
+    <div class="filter-bar">
+      <p-select [options]="statusOptions" [(ngModel)]="filters.status"
+        placeholder="Status" [style]="{'width':'200px'}" (onChange)="applyFilters()" appendTo="body"></p-select>
+      <p-select [options]="poOptions" [(ngModel)]="filters.purchaseOrderId"
+        placeholder="Purchase Order" [filter]="true" [showClear]="true"
+        [style]="{'width':'280px'}" (onChange)="applyFilters()" appendTo="body"></p-select>
+      <p-button icon="pi pi-filter-slash" label="Reset" severity="secondary" [text]="true"
+        (onClick)="resetFilters()" appendTo="body"></p-button>
+    </div>
+
+    <p-table [value]="gras" [loading]="loading" [lazy]="true" [paginator]="true"
+      [rows]="limit" [totalRecords]="totalRecords" (onLazyLoad)="onPageChange($event)"
+      styleClass="p-datatable-sm p-datatable-striped" [rowHover]="true">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>GRN Number</th>
+          <th>Date</th>
+          <th>PO Number</th>
+          <th>Vendor</th>
+          <th>Status</th>
+          <th style="text-align:right">Total Value</th>
+          <th style="text-align:center">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-gra>
+        <tr>
+          <td><strong>{{ gra.graNumber || gra.grnNumber || 'GRN-' + gra.id }}</strong></td>
+          <td>{{ gra.receiptDate || gra.createdAt | date:'mediumDate' }}</td>
+          <td>{{ gra.purchaseOrder?.poNumber || gra.poNumber || '--' }}</td>
+          <td>{{ gra.purchaseOrder?.vendor?.name || gra.vendorName || '--' }}</td>
+          <td>
+            <p-tag [value]="getStatusLabel(gra.status)" [severity]="getStatusSeverity(gra.status)"></p-tag>
+          </td>
+          <td style="text-align:right"><strong>{{ formatCurrency(gra.totalValue) }}</strong></td>
+          <td style="text-align:center">
+            <p-button icon="pi pi-eye" [text]="true" [rounded]="true" severity="info"
+              pTooltip="View Details" tooltipPosition="top" (onClick)="viewDetail(gra)"></p-button>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="7" class="text-center">No goods receipts found.</td></tr>
+      </ng-template>
+    </p-table>
+  }
+
+  <!-- ═══════════════════════ CREATE VIEW ═══════════════════════ -->
+  @if (activeView === 'create') {
+    <div class="create-card">
+      <div class="section-header">
+        <div class="section-title"><i class="pi pi-file-plus"></i> New Goods Receipt</div>
+      </div>
+
+      <div class="form-grid-2col">
+        <div class="form-field">
+          <label>Purchase Order *</label>
+          <p-select [options]="poOptions" [(ngModel)]="graForm.purchaseOrderId"
+            placeholder="Select PO" [filter]="true" [style]="{'width':'100%'}"
+            (onChange)="selectPO($event.value)" appendTo="body"></p-select>
+        </div>
+        <div class="form-field">
+          <label>Receipt Date</label>
+          <p-datePicker [(ngModel)]="graForm.receiptDate" [showIcon]="true"
+            dateFormat="dd/mm/yy" placeholder="Select date" [style]="{'width':'100%'}" appendTo="body"></p-datePicker>
+        </div>
+        <div class="form-field">
+          <label>Delivery Challan No.</label>
+          <input pInputText [(ngModel)]="graForm.deliveryChallanNo" placeholder="Challan number" style="width:100%" />
+        </div>
+        <div class="form-field">
+          <label>Invoice No.</label>
+          <input pInputText [(ngModel)]="graForm.invoiceNo" placeholder="Invoice number" style="width:100%" />
+        </div>
+        <div class="form-field full-width">
+          <label>Notes</label>
+          <textarea pTextarea [(ngModel)]="graForm.notes" [rows]="2" placeholder="Additional notes..." style="width:100%"></textarea>
+        </div>
+      </div>
+
+      <!-- ── Lines Table ── -->
+      <div class="section-header" style="margin-top:1.5rem">
+        <div class="section-title"><i class="pi pi-list"></i> Receipt Lines</div>
+        <p-button icon="pi pi-plus" label="Add Line" size="small" severity="secondary"
+          (onClick)="addLine()"></p-button>
+      </div>
+
+      <p-table [value]="graForm.lines" styleClass="p-datatable-sm" [style]="{'margin-top':'0.5rem'}">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width:3rem">#</th>
+            <th>Description</th>
+            <th style="width:140px">Item Type</th>
+            <th style="width:90px">Received Qty</th>
+            <th style="width:180px">Store</th>
+            <th style="width:130px">Unit Price</th>
+            <th style="width:150px">Serial Number</th>
+            <th style="width:120px;text-align:right">Line Total</th>
+            <th style="width:3rem"></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-line let-i="rowIndex">
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td>
+              <input pInputText [(ngModel)]="line.description" placeholder="Item description" style="width:100%" />
+            </td>
+            <td>
+              <p-select [options]="itemTypeOptions" [(ngModel)]="line.itemType"
+                [style]="{'width':'100%'}" appendTo="body"></p-select>
+            </td>
+            <td>
+              <p-inputNumber [(ngModel)]="line.receivedQty" [min]="1" [style]="{'width':'100%'}"
+                [showButtons]="true" buttonLayout="compact" incrementButtonClass="p-button-text"
+                decrementButtonClass="p-button-text"></p-inputNumber>
+            </td>
+            <td>
+              <p-select [options]="storeOptions" [(ngModel)]="line.storeId"
+                placeholder="Select store" [filter]="true" [showClear]="true"
+                [style]="{'width':'100%'}" appendTo="body"></p-select>
+            </td>
+            <td>
+              <p-inputNumber [(ngModel)]="line.unitPrice" [min]="0" mode="decimal"
+                [minFractionDigits]="2" [style]="{'width':'100%'}"></p-inputNumber>
+            </td>
+            <td>
+              <input pInputText [(ngModel)]="line.serialNumber" placeholder="S/N" style="width:100%" />
+            </td>
+            <td style="text-align:right; font-weight:600">
+              {{ formatCurrency(getLineTotal(line)) }}
+            </td>
+            <td>
+              <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
+                pTooltip="Remove Line" tooltipPosition="top" [disabled]="graForm.lines.length <= 1" (onClick)="removeLine(i)"></p-button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <!-- Totals Summary -->
+      <div class="totals-summary">
+        <div class="total-row grand">
+          <span>Grand Total</span>
+          <strong>{{ formatCurrency(grandTotal) }}</strong>
+        </div>
+      </div>
+
+      <!-- Save button -->
+      <div class="form-actions">
+        <p-button label="Cancel" severity="secondary" icon="pi pi-times" (onClick)="activeView = 'list'"></p-button>
+        <p-button label="Save Goods Receipt" icon="pi pi-check" (onClick)="saveGRA()" [loading]="savingGRA"></p-button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ═══════════════════════ DETAIL DIALOG ═══════════════════════ -->
+<p-dialog header="Goods Receipt Details" [(visible)]="showDetailDialog" [style]="{'width':'800px'}" [modal]="true">
+  @if (detailGRA) {
+    <!-- GRA Header Info -->
+    <div class="detail-header">
+      <div class="detail-header-left">
+        <h3>{{ detailGRA.graNumber || detailGRA.grnNumber || 'GRN-' + detailGRA.id }}</h3>
+        <p-tag [value]="getStatusLabel(detailGRA.status)" [severity]="getStatusSeverity(detailGRA.status)"
+          [style]="{'font-size':'0.9rem','padding':'0.3rem 0.75rem'}"></p-tag>
+      </div>
+      <div class="detail-header-right">
+        <div class="detail-meta">
+          <span><strong>Date:</strong> {{ detailGRA.receiptDate || detailGRA.createdAt | date:'mediumDate' }}</span>
+          <span><strong>PO:</strong> {{ detailGRA.purchaseOrder?.poNumber || '--' }}</span>
+          <span><strong>Vendor:</strong> {{ detailGRA.purchaseOrder?.vendor?.name || detailGRA.vendorName || '--' }}</span>
+        </div>
+      </div>
+    </div>
+
+    @if (detailGRA.deliveryChallanNo) {
+      <div class="detail-info-row">
+        <span><strong>Delivery Challan:</strong> {{ detailGRA.deliveryChallanNo }}</span>
+      </div>
+    }
+    @if (detailGRA.invoiceNo) {
+      <div class="detail-info-row">
+        <span><strong>Invoice No:</strong> {{ detailGRA.invoiceNo }}</span>
+      </div>
+    }
+    @if (detailGRA.notes) {
+      <div class="detail-info-row">
+        <span><strong>Notes:</strong> {{ detailGRA.notes }}</span>
+      </div>
+    }
+
+    <!-- Lines Table (with inspection) -->
+    <div class="section-header" style="margin-top:1rem">
+      <div class="section-title">Receipt Lines</div>
+    </div>
+
+    @if (detailGRA.lines?.length) {
+      <p-table [value]="detailGRA.lines" styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>#</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Received Qty</th>
+            <th style="text-align:right">Unit Price</th>
+            <th style="text-align:right">Total</th>
+            <th>Serial No.</th>
+            <th>Inspection</th>
+            @if (canInspect()) {
+              <th>Accepted</th>
+              <th>Rejected</th>
+            }
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-line let-i="rowIndex">
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td>{{ line.description }}</td>
+            <td>{{ line.itemType }}</td>
+            <td>{{ line.receivedQty || line.quantity }}</td>
+            <td style="text-align:right">{{ formatCurrency(line.unitPrice) }}</td>
+            <td style="text-align:right"><strong>{{ formatCurrency((line.receivedQty || line.quantity || 0) * (line.unitPrice || 0)) }}</strong></td>
+            <td>{{ line.serialNumber || '--' }}</td>
+            <td>
+              @if (canInspect()) {
+                <p-select
+                  [options]="[{label:'Pass',value:'PASS'},{label:'Fail',value:'FAIL'},{label:'Partial',value:'PARTIAL'}]"
+                  [(ngModel)]="line.inspectionStatus"
+                  placeholder="Result" [style]="{'width':'110px'}" appendTo="body"></p-select>
+              } @else {
+                <p-tag [value]="line.inspectionStatus || line.inspectionResult || 'Pending'"
+                  [severity]="getInspectionSeverity(line.inspectionStatus || line.inspectionResult)"></p-tag>
+              }
+            </td>
+            @if (canInspect()) {
+              <td>
+                <p-inputNumber [(ngModel)]="line.acceptedQty" [min]="0" [max]="line.receivedQty"
+                  [style]="{'width':'80px'}" [showButtons]="true" buttonLayout="compact"
+                  incrementButtonClass="p-button-text" decrementButtonClass="p-button-text"></p-inputNumber>
+              </td>
+              <td>
+                <p-inputNumber [(ngModel)]="line.rejectedQty" [min]="0" [max]="line.receivedQty"
+                  [style]="{'width':'80px'}" [showButtons]="true" buttonLayout="compact"
+                  incrementButtonClass="p-button-text" decrementButtonClass="p-button-text"></p-inputNumber>
+              </td>
+            }
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+
+    <!-- Detail Totals -->
+    <div class="detail-totals">
+      <span><strong>Total Value:</strong> {{ formatCurrency(detailGRA.totalValue) }}</span>
+    </div>
+
+    <!-- Created Assets -->
+    @if (detailGRA.createdAssets?.length) {
+      <div class="section-header" style="margin-top:1rem">
+        <div class="section-title"><i class="pi pi-box"></i> Created Assets</div>
+      </div>
+      <p-table [value]="detailGRA.createdAssets" styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Asset ID</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Serial Number</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-asset>
+          <tr>
+            <td><strong>{{ asset.assetId }}</strong></td>
+            <td>{{ asset.assetName || asset.name }}</td>
+            <td>{{ asset.category?.name || asset.categoryName || '--' }}</td>
+            <td>{{ asset.serialNumber || '--' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  }
+
+  <ng-template pTemplate="footer">
+    <div class="dialog-actions">
+      <div class="dialog-actions-left">
+        @if (canReject()) {
+          <p-button label="Reject" icon="pi pi-times-circle" severity="danger" [outlined]="true"
+            (onClick)="rejectGRA()" [loading]="rejectingGRA"></p-button>
+        }
+      </div>
+      <div class="dialog-actions-right">
+        @if (canInspect()) {
+          <p-button label="Submit Inspection" icon="pi pi-search" severity="info"
+            (onClick)="inspectGRA()" [loading]="inspectingGRA"></p-button>
+        }
+        @if (canAccept()) {
+          <p-button label="Accept" icon="pi pi-check-circle" severity="success"
+            (onClick)="acceptGRA()" [loading]="acceptingGRA"></p-button>
+        }
+        <p-button label="Close" severity="secondary" (onClick)="showDetailDialog = false"></p-button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

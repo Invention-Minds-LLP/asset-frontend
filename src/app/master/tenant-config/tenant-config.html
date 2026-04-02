@@ -1,0 +1,63 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-cog"></i> System Configuration</h2>
+      <p class="subtitle">Manage feature flags and system settings</p>
+    </div>
+    @if (!configs.length && !loading) {
+      <p-button label="Seed Defaults" icon="pi pi-database" (onClick)="seedDefaults()" severity="secondary"></p-button>
+    }
+  </div>
+
+  @if (loading) {
+    <div class="text-center"><i class="pi pi-spin pi-spinner" style="font-size:2rem"></i></div>
+  }
+
+  @if (!loading && configs.length) {
+    @for (group of configGroups; track group) {
+      @if (getConfigsByGroup(group).length) {
+        <div class="config-group">
+          <div class="group-header">
+            <i [class]="getGroupIcon(group)"></i>
+            <span>{{ group }}</span>
+          </div>
+          <div class="config-list">
+            @for (config of getConfigsByGroup(group); track config.key) {
+              <div class="config-item">
+                <div class="config-info">
+                  <div class="config-key">{{ config.label || config.key }}</div>
+                  @if (config.description) {
+                    <div class="config-description">{{ config.description }}</div>
+                  }
+                </div>
+                <div class="config-control">
+                  @if (isBoolean(config)) {
+                    <button class="toggle-switch" [class.on]="getBoolValue(config)" (click)="toggleConfig(config)" [disabled]="saving[config.key]">
+                      <span class="toggle-knob"></span>
+                      <span class="toggle-label">{{ getBoolValue(config) ? 'ON' : 'OFF' }}</span>
+                    </button>
+                  } @else {
+                    <div class="text-input-group">
+                      <input pInputText [(ngModel)]="config.value" [style]="{'width': '220px'}" />
+                      <p-button icon="pi pi-check" (onClick)="updateConfig(config.key, config.value)"
+                        [loading]="saving[config.key]" size="small" severity="success" [rounded]="true"></p-button>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  }
+
+  @if (!loading && !configs.length) {
+    <div class="empty-state">
+      <i class="pi pi-cog" style="font-size: 2.5rem; color: var(--text-color-secondary);"></i>
+      <p>No configurations found. Click "Seed Defaults" to create initial configuration entries.</p>
+    </div>
+  }
+</div>

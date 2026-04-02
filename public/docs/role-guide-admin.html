@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Smart Assets — System Administrator Guide</title>
+<style>
+  @media print { .no-print { display: none !important; } @page { margin: 15mm; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', -apple-system, sans-serif; color: #1e293b; line-height: 1.6; padding: 40px; max-width: 900px; margin: 0 auto; }
+  .print-btn { position: fixed; top: 15px; right: 15px; padding: 10px 20px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; z-index: 100; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+  .print-btn:hover { background: #1d4ed8; }
+  .header { border-bottom: 4px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+  .header h1 { font-size: 28px; color: #2563eb; margin-bottom: 4px; }
+  .header .role-badge { display: inline-block; background: #2563eb; color: #fff; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .header p { color: #64748b; font-size: 14px; }
+  h2 { font-size: 20px; color: #0f172a; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; }
+  h3 { font-size: 16px; color: #334155; margin: 20px 0 8px; }
+  p, li { font-size: 14px; margin-bottom: 6px; }
+  ul, ol { padding-left: 24px; margin-bottom: 12px; }
+  .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+  .module-card { padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+  .module-card .mod-name { font-weight: 600; color: #2563eb; font-size: 13px; }
+  .module-card .mod-desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .access-yes { color: #16a34a; font-weight: 600; }
+  .access-no { color: #dc2626; font-weight: 600; }
+  .workflow-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px; margin: 10px 0; }
+  .workflow-box h4 { color: #1d4ed8; font-size: 14px; margin-bottom: 8px; }
+  .workflow-box ol { padding-left: 20px; }
+  .workflow-box li { font-size: 13px; margin-bottom: 4px; }
+  .note { background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; padding: 10px; font-size: 13px; color: #854d0e; margin: 10px 0; }
+  .restricted { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 10px; margin: 10px 0; }
+  .restricted h4 { color: #dc2626; font-size: 13px; margin-bottom: 6px; }
+  .restricted li { font-size: 12px; color: #7f1d1d; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #f1f5f9; color: #475569; padding: 8px; text-align: left; border: 1px solid #e2e8f0; font-weight: 600; }
+  td { padding: 8px; border: 1px solid #e2e8f0; }
+  .footer { margin-top: 40px; padding-top: 15px; border-top: 2px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center; }
+</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">Print / Save as PDF</button>
+
+<div class="header">
+  <span class="role-badge">ADMIN</span>
+  <h1>System Administrator Guide</h1>
+  <p>You have full system control. This guide covers user management, module access configuration, system settings, email templates, master data, and all administrative tasks.</p>
+</div>
+
+<h2>Modules You Can Access</h2>
+<p>As an Admin, you have access to <strong>every module</strong> in the system. The sidebar shows all items without filtering. Key administration modules are highlighted below:</p>
+
+<div class="module-grid">
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; Master Settings</div>
+    <div class="mod-desc">Manage departments, categories, sub-categories, vendors, branches, locations, and approval thresholds.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; Module Access</div>
+    <div class="mod-desc">Configure which modules and sub-items each role can access.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; System Config</div>
+    <div class="mod-desc">Tenant-level configuration: org name, logo, currency, date format, SMTP settings.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; Email Templates</div>
+    <div class="mod-desc">Create and edit email templates for notifications (ticket raised, WO completed, etc.).</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; Inventory Master</div>
+    <div class="mod-desc">Manage inventory item catalog: add items, set categories, define units.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; SLA Matrix</div>
+    <div class="mod-desc">Define response and resolution SLA timelines by priority and category.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; Escalation Matrix</div>
+    <div class="mod-desc">Configure escalation levels, timings, and notification recipients.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; Support Matrix</div>
+    <div class="mod-desc">Map support teams to asset categories and locations.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; User Activity</div>
+    <div class="mod-desc">Monitor user login activity and session history.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; Audit Trail</div>
+    <div class="mod-desc">View complete audit trail of all system actions.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; Notifications</div>
+    <div class="mod-desc">View and manage system-wide notifications.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; Notification Preferences</div>
+    <div class="mod-desc">Configure notification channels and preferences per event type.</div>
+  </div>
+</div>
+
+<h3>Plus All Operational Modules</h3>
+<p>You also have full access to: Dashboard, My Assets, Asset Master (all sub-items), Asset Indent, Store &amp; Inventory, Maintenance (all sub-items), Contracts &amp; Coverage (all sub-items), Finance &amp; Analytics (all sub-items), and Operations (all sub-items).</p>
+
+<h2>What You Can Do</h2>
+<ul>
+  <li><span class="access-yes">&#10003;</span> <strong>Create and manage users</strong> &mdash; add new users, assign roles, set departments</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Configure Module Access</strong> &mdash; define which sidebar modules each role can see</li>
+  <li><span class="access-yes">&#10003;</span> <strong>System Config</strong> &mdash; set organization name, logo, currency, SMTP, and tenant settings</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Email Templates</strong> &mdash; create/edit email templates for all system events</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Master Settings</strong> &mdash; manage departments, categories, vendors, branches, locations</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Approval Configuration</strong> &mdash; set approval thresholds for HOD, Finance, CEO</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Inventory Master</strong> &mdash; define inventory items, categories, and units of measure</li>
+  <li><span class="access-yes">&#10003;</span> <strong>SLA / Escalation / Support Matrix</strong> &mdash; configure all operational matrices</li>
+  <li><span class="access-yes">&#10003;</span> <strong>User Activity &amp; Audit Trail</strong> &mdash; monitor all user actions and system changes</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Notification Preferences</strong> &mdash; configure what triggers notifications and through which channels</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Import Assets</strong> &mdash; bulk import assets via spreadsheet upload</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Seed Default Data</strong> &mdash; populate system with default categories, departments, and configurations</li>
+  <li><span class="access-yes">&#10003;</span> Everything that every other role can do</li>
+</ul>
+
+<div class="note">
+  <strong>Important:</strong> With great power comes great responsibility. Admin actions (user deletion, module access changes, system config edits) are logged in the <strong>Audit Trail</strong> and cannot be undone. Always double-check before making changes.
+</div>
+
+<h2>Step-by-Step Workflows</h2>
+
+<div class="workflow-box">
+  <h4>Workflow 1: How to Create a New User</h4>
+  <ol>
+    <li>Navigate to <strong>Administration &gt; Master Settings</strong> in the sidebar.</li>
+    <li>Go to the <strong>Users</strong> section.</li>
+    <li>Click <strong>Add User</strong>.</li>
+    <li>Fill in: <strong>Name</strong>, <strong>Email</strong>, <strong>Employee ID</strong>, <strong>Phone Number</strong>.</li>
+    <li>Select the <strong>Role</strong> (Executive, Supervisor, HOD, Operations, Finance, CEO_COO, or Admin).</li>
+    <li>Select the <strong>Department</strong> and <strong>Branch/Location</strong>.</li>
+    <li>Set an initial <strong>Password</strong> (the user will be prompted to change it on first login).</li>
+    <li>Click <strong>Save</strong> to create the user account.</li>
+    <li>The user receives a welcome email with login credentials (if SMTP is configured).</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 2: How to Configure Module Access for a Role</h4>
+  <ol>
+    <li>Navigate to <strong>Administration &gt; Module Access</strong> in the sidebar.</li>
+    <li>Select the <strong>Role</strong> you want to configure from the role dropdown.</li>
+    <li>The screen displays all available modules and sub-items as a checklist.</li>
+    <li>Check or uncheck modules to grant or revoke access for that role.</li>
+    <li>For modules with sub-items (e.g., Asset Master), expand to configure individual sub-item access.</li>
+    <li>Click <strong>Save</strong> to apply the changes.</li>
+    <li>Users with this role will see the updated sidebar on their next login or page refresh.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 3: How to Set Up Email Templates</h4>
+  <ol>
+    <li>Navigate to <strong>Administration &gt; Email Templates</strong> in the sidebar.</li>
+    <li>View the list of system events that trigger emails (e.g., Ticket Raised, WO Completed, Asset Transferred).</li>
+    <li>Click on a template to edit it, or click <strong>Add Template</strong> for a new event.</li>
+    <li>Edit the <strong>Subject Line</strong> using placeholder variables (e.g., <code>{{ticketNumber}}</code>, <code>{{assetName}}</code>).</li>
+    <li>Edit the <strong>Email Body</strong> using the rich text editor. Insert variables where dynamic data should appear.</li>
+    <li>Use <strong>Preview</strong> to see how the email will look with sample data.</li>
+    <li>Click <strong>Save</strong> to activate the template.</li>
+    <li>Ensure SMTP is configured under <strong>System Config</strong> for emails to be sent.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 4: How to Configure Approval Thresholds</h4>
+  <ol>
+    <li>Navigate to <strong>Administration &gt; Master Settings</strong> in the sidebar.</li>
+    <li>Go to the <strong>Approval Configuration</strong> section.</li>
+    <li>Define the amount thresholds for each approval level:</li>
+    <li>&mdash; <strong>HOD Level</strong>: Items up to this amount require only HOD approval.</li>
+    <li>&mdash; <strong>Finance Level</strong>: Items between HOD threshold and this amount require Finance approval.</li>
+    <li>&mdash; <strong>CEO/COO Level</strong>: Items above the Finance threshold require CEO/COO approval.</li>
+    <li>Click <strong>Save</strong> to apply the new thresholds.</li>
+    <li>All future approvals will follow the updated routing.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 5: How to Seed Default System Data</h4>
+  <ol>
+    <li>Navigate to <strong>Administration &gt; System Config</strong> in the sidebar.</li>
+    <li>Look for the <strong>Seed Data</strong> section (typically available during initial setup).</li>
+    <li>Select the data categories to seed: <strong>Departments</strong>, <strong>Asset Categories</strong>, <strong>Sub-Categories</strong>, <strong>Units of Measure</strong>, <strong>Priority Levels</strong>.</li>
+    <li>Click <strong>Seed Default Data</strong> to populate the system with standard values.</li>
+    <li>Review the seeded data under <strong>Master Settings</strong> and adjust as needed for your organization.</li>
+    <li>Add your organization-specific departments, branches, and vendor records.</li>
+  </ol>
+</div>
+
+<h2>Administration Quick Reference</h2>
+<table>
+  <tr><th>Task</th><th>Module</th><th>Path</th></tr>
+  <tr><td>Create/edit users</td><td>Master Settings</td><td>Administration &gt; Master Settings &gt; Users</td></tr>
+  <tr><td>Set role permissions</td><td>Module Access</td><td>Administration &gt; Module Access</td></tr>
+  <tr><td>Configure SMTP</td><td>System Config</td><td>Administration &gt; System Config</td></tr>
+  <tr><td>Edit email templates</td><td>Email Templates</td><td>Administration &gt; Email Templates</td></tr>
+  <tr><td>Manage departments</td><td>Master Settings</td><td>Administration &gt; Master Settings &gt; Departments</td></tr>
+  <tr><td>Manage vendors</td><td>Master Settings</td><td>Administration &gt; Master Settings &gt; Vendors</td></tr>
+  <tr><td>Manage categories</td><td>Master Settings</td><td>Administration &gt; Master Settings &gt; Categories</td></tr>
+  <tr><td>Set approval thresholds</td><td>Master Settings</td><td>Administration &gt; Master Settings &gt; Approval Config</td></tr>
+  <tr><td>Define inventory items</td><td>Inventory Master</td><td>Administration &gt; Inventory Master</td></tr>
+  <tr><td>Monitor user activity</td><td>User Activity</td><td>Administration &gt; User Activity</td></tr>
+  <tr><td>View audit trail</td><td>Audit Trail</td><td>Administration &gt; Audit Trail</td></tr>
+</table>
+
+<div class="footer">Smart Assets &mdash; Role-Based User Guide &bull; Confidential &bull; Generated April 2026</div>
+</body>
+</html>

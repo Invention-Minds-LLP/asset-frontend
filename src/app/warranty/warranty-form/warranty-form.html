@@ -61,7 +61,7 @@
                     </div>
 
                     <div class="form-field half">
-                        <label class="field-label">Warranty Reference</label>
+                        <label class="field-label">Warranty ID/ Customer ID</label>
                         <input pInputText class="w-full" name="warrantyReference"
                             [(ngModel)]="warranty.warrantyReference" />
                     </div>
@@ -220,22 +220,55 @@
                     </div>
 
                     <div class="form-field half">
-                        <label class="field-label">Included Visits Per Year</label>
-                        <input pInputText class="w-full" type="number" name="visitsPerYear"
-                            [(ngModel)]="contractForm.visitsPerYear" />
-                        <small class="help-text">Example: 4 means quarterly visits included in contract</small>
+                        <label class="field-label">Regular Visits / Year</label>
+                        <input pInputText class="w-full" type="number" name="regularVisitsPerYear"
+                            [(ngModel)]="contractForm.regularVisitsPerYear" placeholder="e.g. 4 (quarterly)" />
+                        <small class="help-text">Planned preventive maintenance visits per year</small>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-field half">
-                        <label class="field-label">Cost</label>
-                        <input pInputText class="w-full" type="number" name="cost" [(ngModel)]="contractForm.cost" />
+                        <label class="field-label">Emergency Visits / Year</label>
+                        <input pInputText class="w-full" type="number" name="emergencyVisitsPerYear"
+                            [(ngModel)]="contractForm.emergencyVisitsPerYear" placeholder="e.g. 12" />
+                        <small class="help-text">Emergency call-out visits included in contract</small>
                     </div>
 
                     <div class="form-field half">
-                        <label class="field-label">Currency</label>
-                        <input pInputText class="w-full" name="currency" [(ngModel)]="contractForm.currency" />
+                        <label class="field-label">Cost</label>
+                        <input pInputText class="w-full" type="number" name="cost" [(ngModel)]="contractForm.cost" />
+                    </div>
+                </div>
+
+                <!-- Vendor SLA -->
+                <div class="form-row">
+                    <div class="form-field half">
+                        <label class="field-label">Vendor Response Time</label>
+                        <div style="display:flex; gap:0.5rem; align-items:center;">
+                            <input pInputText type="number" name="vendorResponseValue"
+                                [(ngModel)]="contractForm.vendorResponseValue" placeholder="e.g. 4"
+                                style="width:100px;" />
+                            <p-select name="vendorResponseUnit" [(ngModel)]="contractForm.vendorResponseUnit"
+                                [options]="slaUnitOptions" optionLabel="label" optionValue="value" appendTo="body"
+                                [style]="{'min-width':'130px'}">
+                            </p-select>
+                        </div>
+                        <small class="help-text">How quickly vendor must respond after issue reported</small>
+                    </div>
+
+                    <div class="form-field half">
+                        <label class="field-label">Vendor Resolution Time</label>
+                        <div style="display:flex; gap:0.5rem; align-items:center;">
+                            <input pInputText type="number" name="vendorResolutionValue"
+                                [(ngModel)]="contractForm.vendorResolutionValue" placeholder="e.g. 24"
+                                style="width:100px;" />
+                            <p-select name="vendorResolutionUnit" [(ngModel)]="contractForm.vendorResolutionUnit"
+                                [options]="slaUnitOptions" optionLabel="label" optionValue="value" appendTo="body"
+                                [style]="{'min-width':'130px'}">
+                            </p-select>
+                        </div>
+                        <small class="help-text">How quickly vendor must resolve the issue</small>
                     </div>
                 </div>
 
@@ -271,23 +304,50 @@
                 <p-table [value]="contracts" [paginator]="true" [rows]="5" class="p-datatable-sm">
                     <ng-template pTemplate="header">
                         <tr>
+                            <th>Contract #</th>
                             <th>Type</th>
+                            <th>Vendor</th>
+                            <th>Cost</th>
                             <th>Start</th>
                             <th>End</th>
                             <th>Status</th>
-                            <th>Vendor</th>
+                            <th>Visits</th>
+                            <th>Vendor SLA</th>
                             <th>Actions</th>
                         </tr>
                     </ng-template>
                     <ng-template pTemplate="body" let-c>
                         <tr>
-                            <td>{{ c.contractType }}</td>
+                            <td>{{ c.contractNumber || c.id }}</td>
+                            <td><strong>{{ c.contractType }}</strong></td>
+                            <td>{{ c.vendor?.name || '-' }}</td>
+                            <td>{{ c.cost ? ('₹' + c.cost) : '-' }}</td>
                             <td>{{ c.startDate | date:'dd.MM.yyyy' }}</td>
                             <td>{{ c.endDate | date:'dd.MM.yyyy' }}</td>
-                            <td>{{ c.status }}</td>
-                            <td>{{ c.vendor?.name || '-' }}</td>
                             <td>
-                                <button pButton type="button" label="Edit" (click)="editContract(c)"></button>
+                                <span [style.color]="c.status === 'ACTIVE' ? '#16a34a' : c.status === 'EXPIRED' ? '#dc2626' : '#d97706'"
+                                    style="font-weight:600">{{ c.status || '-' }}</span>
+                            </td>
+                            <td>
+                                <span *ngIf="c.regularVisitsPerYear" style="font-size:0.82rem">
+                                    <strong>{{ c.regularVisitsPerYear }}</strong> regular
+                                </span>
+                                <span *ngIf="c.emergencyVisitsPerYear" style="font-size:0.82rem; margin-left:0.3rem">
+                                    + <strong>{{ c.emergencyVisitsPerYear }}</strong> emergency
+                                </span>
+                                <span *ngIf="!c.regularVisitsPerYear && !c.emergencyVisitsPerYear">-</span>
+                            </td>
+                            <td>
+                                <span *ngIf="c.vendorResponseValue" style="font-size:0.78rem; display:block">
+                                    Resp: {{ c.vendorResponseValue }}{{ c.vendorResponseUnit === 'HOURS' ? 'h' : 'd' }}
+                                </span>
+                                <span *ngIf="c.vendorResolutionValue" style="font-size:0.78rem; display:block">
+                                    Res: {{ c.vendorResolutionValue }}{{ c.vendorResolutionUnit === 'HOURS' ? 'h' : 'd' }}
+                                </span>
+                                <span *ngIf="!c.vendorResponseValue && !c.vendorResolutionValue">-</span>
+                            </td>
+                            <td>
+                                <button pButton type="button" label="Edit" size="small" severity="secondary" (click)="editContract(c)"></button>
                             </td>
                         </tr>
                     </ng-template>
@@ -298,7 +358,98 @@
 
     <!-- TAB 3: SERVICE VISITS -->
     <p-tabPanel header="Service Visits">
+        <!-- Vendor Visits Section (from ServiceVisit model) -->
+        <div class="tab-card" style="margin-bottom: 1.5rem;">
+            <h4 style="margin:0 0 1rem; display:flex; align-items:center; gap:0.5rem;">
+                <i class="pi pi-wrench"></i> Vendor Visits
+                <span style="font-size:0.78rem; color:var(--text-color-secondary); font-weight:400;">(from service contracts)</span>
+            </h4>
+
+            <!-- Log new vendor visit form -->
+            <div class="form-row" *ngIf="contractSelectOptions.length">
+                <div class="form-field half">
+                    <label class="field-label">Contract *</label>
+                    <p-select class="w-full" [options]="contractSelectOptions" optionLabel="label" optionValue="value"
+                        [(ngModel)]="visitForm.contractId" placeholder="Select contract" appendTo="body" [filter]="true">
+                    </p-select>
+                </div>
+                <div class="form-field half">
+                    <label class="field-label">Visit Type</label>
+                    <p-select class="w-full" [options]="visitTypeOptions" optionLabel="label" optionValue="value"
+                        [(ngModel)]="visitForm.visitType" appendTo="body">
+                    </p-select>
+                </div>
+            </div>
+            <div class="form-row" *ngIf="contractSelectOptions.length">
+                <div class="form-field half">
+                    <label class="field-label">Visit Date *</label>
+                    <p-datepicker class="w-full" [(ngModel)]="visitForm.visitDate" dateFormat="mm/dd/yy"
+                        [showIcon]="true" appendTo="body"></p-datepicker>
+                </div>
+                <div class="form-field half">
+                    <label class="field-label">Charge Amount (if any)</label>
+                    <input pInputText class="w-full" type="number" [(ngModel)]="visitForm.chargeAmount" placeholder="0" />
+                </div>
+            </div>
+            <div class="form-row" *ngIf="contractSelectOptions.length">
+                <div class="form-field half">
+                    <label class="field-label">Work Done</label>
+                    <textarea pTextarea class="w-full textarea" rows="2" [(ngModel)]="visitForm.workDone" placeholder="Describe work performed..."></textarea>
+                </div>
+                <div class="form-field half">
+                    <label class="field-label">Parts Replaced</label>
+                    <textarea pTextarea class="w-full textarea" rows="2" [(ngModel)]="visitForm.partsReplaced" placeholder="List parts replaced..."></textarea>
+                </div>
+            </div>
+            <div class="btn-row" *ngIf="contractSelectOptions.length">
+                <button pButton type="button" label="Log Vendor Visit" icon="pi pi-save" [disabled]="loggingVisit || !visitForm.contractId || !visitForm.visitDate"
+                    [loading]="loggingVisit" (click)="logVendorVisit()"></button>
+            </div>
+
+            <p-message *ngIf="!contractSelectOptions.length" severity="info" text="No service contracts found. Create a contract in the Service Contracts tab first."></p-message>
+
+            <!-- Vendor visits table -->
+            <div class="table-wrap" *ngIf="serviceVisits.length" style="margin-top:1rem;">
+                <p-table [value]="serviceVisits" [paginator]="true" [rows]="5" class="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>Date</th>
+                            <th>Contract</th>
+                            <th>Type</th>
+                            <th>Work Done</th>
+                            <th>Chargeable</th>
+                            <th>Charge</th>
+                            <th>Approval</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-v>
+                        <tr>
+                            <td>{{ v.visitDate | date:'dd.MM.yyyy' }}</td>
+                            <td>{{ v.contractNumber || v.serviceContractId }} ({{ v.contractType || '—' }})</td>
+                            <td>
+                                <span [style.color]="v.visitType === 'PREVENTIVE_MAINTENANCE' ? '#16a34a' : '#d97706'" style="font-weight:600">
+                                    {{ v.visitType === 'PREVENTIVE_MAINTENANCE' ? 'PM' : 'Repair' }}
+                                </span>
+                            </td>
+                            <td class="ellipsis">{{ v.workDone || '-' }}</td>
+                            <td>{{ v.isChargeable ? 'Yes' : 'No' }}</td>
+                            <td>{{ v.chargeAmount ? ('₹' + v.chargeAmount) : '-' }}</td>
+                            <td>
+                                <span [style.color]="v.chargeApprovalStatus === 'APPROVED' ? '#16a34a' : v.chargeApprovalStatus === 'REJECTED' ? '#dc2626' : '#d97706'" style="font-weight:500">
+                                    {{ v.chargeApprovalStatus || 'N/A' }}
+                                </span>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+
+        <!-- Maintenance History / Service Reports Section (existing) -->
         <div class="tab-card">
+            <h4 style="margin:0 0 1rem; display:flex; align-items:center; gap:0.5rem;">
+                <i class="pi pi-history"></i> Maintenance History & Service Reports
+            </h4>
             <form [formGroup]="serviceForm" (ngSubmit)="uploadServiceReport()">
                 <div class="form-row">
                     <div class="form-field half">

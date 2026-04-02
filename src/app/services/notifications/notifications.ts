@@ -71,11 +71,30 @@ export class NotificationsService {
     return this.http.put<any>(`${this.apiUrl}/email-templates`, template);
   }
 
+  seedEmailTemplates(): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/email-templates/seed`, {});
+  }
+
   getSmtpConfig(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/smtp-config`);
   }
 
   upsertSmtpConfig(config: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/smtp-config`, config);
+  }
+
+  sendManualEmail(payload: {
+    to?: string[];
+    cc?: string[];
+    bcc?: string[];
+    subject?: string;
+    body?: string;
+    templateCode?: string;
+    templateData?: Record<string, string>;
+    employeeIds?: number[];
+    ccEmployeeIds?: number[];
+    bccEmployeeIds?: number[];
+  }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/send-email`, payload);
   }
 }

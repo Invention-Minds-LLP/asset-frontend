@@ -10,6 +10,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { NotificationsService } from '../../services/notifications/notifications';
 
@@ -27,7 +28,8 @@ import { NotificationsService } from '../../services/notifications/notifications
     InputTextModule,
     FloatLabelModule,
     SelectModule,
-    TextareaModule
+    TextareaModule,
+    TooltipModule
   ],
   templateUrl: './notifications.html',
   styleUrl: './notifications.css',

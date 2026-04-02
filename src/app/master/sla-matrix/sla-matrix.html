@@ -2,8 +2,8 @@
   <div class="sla-card">
     <div class="sla-card-header">
       <div>
-        <h2>Asset SLA Matrix Master</h2>
-        <p>Create and manage SLA rules by asset category and escalation level.</p>
+        <h2>Internal SLA Policy</h2>
+        <p>Define <strong>internal hospital SLA targets</strong> by asset category and priority. These govern how quickly your own engineering/maintenance team must respond and resolve issues. Separate from vendor contractual SLA (set in Service Contracts).</p>
       </div>
     </div>
 
@@ -34,7 +34,7 @@
             appendTo="body"
             [filter]="true">
           </p-select>
-          <label>SLA Category</label>
+          <label>Priority (LOW / MEDIUM / HIGH)</label>
         </p-floatlabel>
       </div>
 
@@ -122,7 +122,7 @@
       <ng-template pTemplate="header">
         <tr>
           <th>Category</th>
-          <th>SLA Category</th>
+          <th>Priority</th>
           <th>Level</th>
           <th>Response</th>
           <th>Resolution</th>

@@ -1,0 +1,41 @@
+.page-container { padding: 1.5rem; }
+.page-header { margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; }
+.page-header h2 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.subtitle { margin: 0.25rem 0 0; color: var(--text-color-secondary); font-size: 0.9rem; }
+
+/* Config group */
+.config-group { margin-bottom: 1.5rem; }
+.group-header { display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; font-weight: 600; color: var(--text-color); padding: 0.6rem 1rem; background: var(--surface-100); border-radius: 8px 8px 0 0; border: 1px solid var(--surface-border); border-bottom: none; }
+.config-list { border: 1px solid var(--surface-border); border-radius: 0 0 8px 8px; overflow: hidden; }
+
+/* Config item */
+.config-item { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--surface-border); background: var(--surface-0); transition: background 0.15s; }
+.config-item:last-child { border-bottom: none; }
+.config-item:hover { background: var(--surface-50, var(--surface-0)); }
+
+.config-info { flex: 1; min-width: 0; }
+.config-key { font-size: 0.9rem; font-weight: 500; color: var(--text-color); }
+.config-description { font-size: 0.8rem; color: var(--text-color-secondary); margin-top: 0.15rem; }
+
+.config-control { flex-shrink: 0; margin-left: 1.5rem; }
+
+/* Toggle switch */
+.toggle-switch { display: inline-flex; align-items: center; gap: 0.5rem; padding: 4px 8px 4px 4px; border: 1px solid var(--surface-border); border-radius: 20px; background: var(--surface-200, #e2e8f0); cursor: pointer; transition: all 0.25s; min-width: 72px; position: relative; }
+.toggle-switch.on { background: #DBFFE8; border-color: #00A23D; }
+.toggle-knob { width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.15); transition: transform 0.25s; }
+.toggle-switch.on .toggle-knob { transform: translateX(24px); }
+.toggle-label { font-size: 0.78rem; font-weight: 600; color: var(--text-color-secondary); }
+.toggle-switch.on .toggle-label { color: #00A23D; }
+
+/* Text input group */
+.text-input-group { display: flex; gap: 0.5rem; align-items: center; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-color-secondary); display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.empty-state p { font-size: 1rem; }
+
+.text-center { text-align: center; padding: 2rem; color: var(--text-color-secondary); }
+
+::ng-deep .p-datatable .p-datatable-thead > tr > th { background: transparent !important; box-shadow: none !important; }
+::ng-deep .p-datatable .p-datatable-wrapper { border: 1px solid var(--table-border-color) !important; border-radius: 12px; overflow: hidden; }
+::ng-deep .p-datatable-table { font-size: 14px; }

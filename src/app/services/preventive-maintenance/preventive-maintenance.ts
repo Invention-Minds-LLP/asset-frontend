@@ -13,12 +13,28 @@ export class PreventiveMaintenanceService {
     return this.http.get<any[]>(`${this.base}/calendar?month=${month}&year=${year}`);
   }
 
-  reschedule(id: number, newDate: string, reason: string): Observable<any> {
-    return this.http.put<any>(`${this.base}/schedule/${id}/reschedule`, { newDate, reason });
+  getAllSchedules(): Observable<any> {
+    return this.http.get<any>(`${this.base}/schedule`);
+  }
+
+  getDueSchedules(): Observable<any> {
+    return this.http.get<any>(`${this.base}/schedule/due`);
+  }
+
+  createSchedule(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.base}/schedule`, payload);
   }
 
   updateSchedule(id: number, data: any): Observable<any> {
     return this.http.put<any>(`${this.base}/schedule/${id}`, data);
+  }
+
+  reschedule(id: number, newDueDate: string, reason: string): Observable<any> {
+    return this.http.put<any>(`${this.base}/schedule/${id}/reschedule`, { newDueDate, reason });
+  }
+
+  executeMaintenance(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.base}/execute`, payload);
   }
 
   getAllHistory(params: any = {}): Observable<any> {

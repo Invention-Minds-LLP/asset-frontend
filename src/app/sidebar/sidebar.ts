@@ -8,13 +8,16 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { Router, RouterLink } from '@angular/router';
 import { ModuleAccessService } from '../services/module-access/module-access';
 import { TableModule } from "primeng/table";
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, ButtonModule, InputSwitchModule, PanelMenuModule, FormsModule, SelectButtonModule, RouterLink, TableModule],
+  imports: [CommonModule, ButtonModule, InputSwitchModule, PanelMenuModule, FormsModule, SelectButtonModule, RouterLink, TableModule, ConfirmDialogModule],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.css'
+  styleUrl: './sidebar.css',
+  providers: [ConfirmationService]
 })
 export class Sidebar implements OnInit {
   @Output() collapsedChange = new EventEmitter<boolean>();
@@ -26,77 +29,126 @@ export class Sidebar implements OnInit {
   // Full hardcoded list — used as base and for admin / fallback
   private readonly allMenuItems = [
 
+    // ── Overview ──────────────────────────────────────────
     {
       icon: 'pi pi-chart-bar', label: 'Dashboard',
       path: '/master-dashboard', route: '/master-dashboard', hasDropdown: false
     },
     {
-      icon: 'pi pi-database', label: 'Assets Master',
-      path: '/assets',
-      hasDropdown: true,
+      icon: 'pi pi-id-card', label: 'My Assets',
+      path: '/my-assets', route: '/my-assets', hasDropdown: false
+    },
+
+    // ── Asset Management ──────────────────────────────────
+    {
+      icon: 'pi pi-database', label: 'Asset Master',
+      path: '/assets', hasDropdown: true,
       dropdownItems: [
-        { label: 'View', route: '/assets/view', icon: 'pi pi-eye' },
-        { label: 'New', route: '/assets/new', icon: 'pi pi-plus' },
+        { label: 'View Assets', route: '/assets/view', icon: 'pi pi-eye' },
+        { label: 'New Asset', route: '/assets/new', icon: 'pi pi-plus' },
         { label: 'Assignments', route: '/assets/assignments', icon: 'pi pi-user' },
         { label: 'Transfer', route: '/transfer', icon: 'pi pi-arrows-h' },
         { label: 'Import', route: '/import', icon: 'pi pi-upload' },
+        { label: 'Sub-Assets', route: '/sub-assets', icon: 'pi pi-sitemap' },
+        { label: 'Department Assets', route: '/department-assets', icon: 'pi pi-building' },
+        { label: 'Revenue Log', route: '/revenue-log', icon: 'pi pi-chart-line' },
+        { label: 'Asset Disposal', route: '/disposal', icon: 'pi pi-trash' },
       ]
     },
     {
-      icon: 'pi pi-wrench', label: 'Ticket for Repair', path: '/ticket', hasDropdown: true,
-      dropdownItems: [
-        { label: 'View', route: '/ticket/view', icon: 'pi pi-eye' },
-        { label: 'New', route: '/ticket/new', icon: 'pi pi-plus' },
-      ]
+      icon: 'pi pi-list-check', label: 'Asset Indent',
+      path: '/asset-indent', route: '/asset-indent', hasDropdown: false
     },
+
+    // ── Procurement ───────────────────────────────────────
+    // {
+    //   icon: 'pi pi-shopping-cart', label: 'Procurement',
+    //   path: '/procurement', hasDropdown: true,
+    //   dropdownItems: [
+    //     { label: 'Purchase Orders', route: '/purchase-orders', icon: 'pi pi-file-edit' },
+    //     { label: 'Goods Receipt (GRA)', route: '/goods-receipts', icon: 'pi pi-inbox' },
+    //   ]
+    // },
+
+    // ── Store & Inventory ─────────────────────────────────
     {
-      icon: 'pi pi-cog', label: 'Operations', path: '/operations', hasDropdown: true,
+      icon: 'pi pi-warehouse', label: 'Store & Inventory',
+      path: '/store-management', route: '/store-management', hasDropdown: false
+    },
+
+    // ── Maintenance & Service ─────────────────────────────
+    {
+      icon: 'pi pi-wrench', label: 'Maintenance',
+      path: '/maintenance', hasDropdown: true,
       dropdownItems: [
+        { label: 'Repair Tickets', route: '/ticket/view', icon: 'pi pi-wrench' },
+        { label: 'New Ticket', route: '/ticket/new', icon: 'pi pi-plus' },
+        { label: 'Work Orders', route: '/work-orders', icon: 'pi pi-briefcase' },
+        { label: 'Preventive Maintenance', route: '/preventive-maintenance', icon: 'pi pi-calendar' },
         { label: 'Calibration', route: '/calibration', icon: 'pi pi-sliders-h' },
+        { label: 'PM Checklists', route: '/pm-checklist', icon: 'pi pi-list-check' },
+      ]
+    },
+
+    // ── Contracts & Coverage ──────────────────────────────
+    {
+      icon: 'pi pi-verified', label: 'Contracts & Coverage',
+      path: '/contracts', hasDropdown: true,
+      dropdownItems: [
+        { label: 'Warranty', route: '/warranty-management', icon: 'pi pi-verified' },
+        { label: 'Insurance', route: '/insurance-management', icon: 'pi pi-shield' },
+        { label: 'Service Contracts', route: '/service-contracts', icon: 'pi pi-file-edit' },
+        { label: 'Vendor Performance', route: '/vendor-performance', icon: 'pi pi-star' },
+      ]
+    },
+
+    // ── Finance & Analytics ───────────────────────────────
+    {
+      icon: 'pi pi-indian-rupee', label: 'Finance & Analytics',
+      path: '/finance', hasDropdown: true,
+      dropdownItems: [
+        { label: 'Financial Dashboard', route: '/financial-dashboard', icon: 'pi pi-indian-rupee' },
+        { label: 'CFO Dashboard', route: '/cfo-dashboard', icon: 'pi pi-chart-pie' },
+        { label: 'COO Dashboard', route: '/coo-dashboard', icon: 'pi pi-gauge' },
+        { label: 'Cost Analysis', route: '/cost-analysis', icon: 'pi pi-chart-bar' },
+        { label: 'Decision Engine', route: '/decision-engine', icon: 'pi pi-microchip' },
+        { label: 'Batch Depreciation', route: '/batch-depreciation', icon: 'pi pi-chart-line' },
+        { label: 'Reports', route: '/reports', icon: 'pi pi-file' },
+      ]
+    },
+
+    // ── Operations ────────────────────────────────────────
+    {
+      icon: 'pi pi-cog', label: 'Operations',
+      path: '/operations', hasDropdown: true,
+      dropdownItems: [
         { label: 'Gate Pass', route: '/gate-pass', icon: 'pi pi-id-card' },
         { label: 'Acknowledgement', route: '/acknowledgement', icon: 'pi pi-check-square' },
+        { label: 'Physical Audit', route: '/asset-audit', icon: 'pi pi-clipboard' },
+        { label: 'Employee Exit', route: '/employee-exit', icon: 'pi pi-sign-out' },
+        { label: 'Document Vault', route: '/document-vault', icon: 'pi pi-folder-open' },
+        { label: 'Knowledge Base', route: '/knowledge-base', icon: 'pi pi-book' },
       ]
     },
+
+    // ── Administration ────────────────────────────────────
     {
-      icon: 'pi pi-shield', label: 'Configuration', path: '/config', hasDropdown: true,
+      icon: 'pi pi-shield', label: 'Administration',
+      path: '/admin', hasDropdown: true,
       dropdownItems: [
         { label: 'SLA Matrix', route: '/sla', icon: 'pi pi-clock' },
         { label: 'Escalation Matrix', route: '/escalation', icon: 'pi pi-sort-alt' },
         { label: 'Support Matrix', route: '/support-matrix', icon: 'pi pi-users' },
-        { label: 'Inventory', route: '/master', icon: 'pi pi-box' },
+        { label: 'Master Settings', route: '/master-settings', icon: 'pi pi-cog' },
+        { label: 'Module Access', route: '/module-access', icon: 'pi pi-lock' },
+        { label: 'System Config', route: '/tenant-config', icon: 'pi pi-sliders-v' },
+        { label: 'User Activity', route: '/user-activity', icon: 'pi pi-users' },
+        { label: 'Audit Trail', route: '/audit-trail', icon: 'pi pi-history' },
+        { label: 'Notifications', route: '/notifications', icon: 'pi pi-bell' },
+        { label: 'Notification Preferences', route: '/notification-preferences', icon: 'pi pi-sliders-h' },
+        { label: 'Email Templates', route: '/email-templates', icon: 'pi pi-envelope' },
+        { label: 'Inventory Master', route: '/master', icon: 'pi pi-box' },
       ]
-    },
-    {
-      icon: 'pi pi-bell', label: 'Notifications',
-      path: '/notifications', route: '/notifications', hasDropdown: false
-    },
-    {
-      icon: 'pi pi-cog', label: 'Master Settings',
-      path: '/master-settings', route: '/master-settings', hasDropdown: false
-    },
-    {
-      icon: 'pi pi-lock', label: 'Module Access',
-      path: '/module-access', route: '/module-access', hasDropdown: false
-    },
-    {
-      icon: 'pi pi-indian-rupee', label: 'Financial Dashboard',
-      path: '/financial-dashboard', route: '/financial-dashboard', hasDropdown: false
-    },
-    {
-      icon: 'pi pi-file', label: 'Reports',
-      path: '/reports', route: '/reports', hasDropdown: false
-    },
-    {
-      icon: 'pi pi-trash', label: 'Asset Disposal',
-      path: '/disposal', route: '/disposal', hasDropdown: false
-    },
-    {
-      icon: 'pi pi-clipboard', label: 'Physical Audit',
-      path: '/asset-audit', route: '/asset-audit', hasDropdown: false
-    },
-    {
-      icon: 'pi pi-history', label: 'Audit Trail',
-      path: '/audit-trail', route: '/audit-trail', hasDropdown: false
     },
   ];
 
@@ -105,7 +157,7 @@ export class Sidebar implements OnInit {
   activeItem = this.menuItems[0];
   name: string = localStorage.getItem('name') || ''
 
-  constructor(private router: Router, private moduleAccessService: ModuleAccessService, private cdr: ChangeDetectorRef) {
+  constructor(private router: Router, private moduleAccessService: ModuleAccessService, private cdr: ChangeDetectorRef, private confirmationService: ConfirmationService) {
     this.router.events.subscribe(() => {
       const currentRoute = this.router.url;
 
@@ -229,5 +281,18 @@ export class Sidebar implements OnInit {
     }
   }
 
-
+  logout() {
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to logout?',
+      header: 'Confirm Logout',
+      icon: 'pi pi-sign-out',
+      acceptLabel: 'Logout',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        localStorage.clear();
+        this.router.navigate(['/login']);
+      }
+    });
+  }
 }

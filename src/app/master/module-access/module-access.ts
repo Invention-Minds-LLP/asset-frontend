@@ -45,9 +45,12 @@ export class ModuleAccess implements OnInit {
   selectedEmployeeLabel: string = '';
 
   roleOptions = [
+    { label: 'CEO / COO', value: 'CEO_COO' },
     { label: 'HOD', value: 'HOD' },
     { label: 'Supervisor', value: 'SUPERVISOR' },
-    { label: 'Executive', value: 'EXECUTIVE' }
+    { label: 'Executive', value: 'EXECUTIVE' },
+    { label: 'Finance', value: 'FINANCE' },
+    { label: 'Operations', value: 'OPERATIONS' },
   ];
 
   filterTypeOptions = [

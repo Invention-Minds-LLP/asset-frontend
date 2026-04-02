@@ -96,11 +96,15 @@ getTransferHistory(ticketId: number) {
 getTicketMetrics(ticketDbId: number) {
   return this.http.get<any>(`${this.ticketUrl}/${ticketDbId}/metrics`);
 }
-completeWork(ticketId: number, note: string) {
-  return this.http.patch(`${this.ticketUrl}/${ticketId}/complete-work`, { note });
+completeWork(ticketId: number, note: string, rootCause?: string, resolutionSummary?: string) {
+  return this.http.patch(`${this.ticketUrl}/${ticketId}/complete-work`, { note, rootCause, resolutionSummary });
 }
 
 resolveTicketByHod(ticketId: number, note: string) {
   return this.http.patch(`${this.ticketUrl}/${ticketId}/resolve`, { note });
+}
+
+addCollectionNote(ticketId: number, payload: { collectionNotes: string; collectionHandoverRemarks?: string }) {
+  return this.http.post(`${this.ticketUrl}/${ticketId}/collection-note`, payload);
 }
 }

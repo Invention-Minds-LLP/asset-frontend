@@ -121,8 +121,8 @@
         <td>{{ row.escalationTime ? row.escalationTime + ' ' + row.escalationUnit : '—' }}</td>
         <td>
           <div class="action-buttons">
-            <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="edit(row)" />
-            <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="delete(row)" />
+            <p-button icon="pi pi-pencil" size="small" severity="secondary" pTooltip="Edit" tooltipPosition="top" (onClick)="edit(row)" />
+            <p-button icon="pi pi-trash" size="small" severity="danger" pTooltip="Delete" tooltipPosition="top" (onClick)="delete(row)" />
           </div>
         </td>
       </tr>

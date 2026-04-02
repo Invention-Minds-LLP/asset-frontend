@@ -3,47 +3,296 @@
 <div class="page-container">
   <div class="page-header">
     <h2><i class="pi pi-verified"></i> Warranty Management</h2>
+    <p class="subtitle">Track warranties, linked service contracts, vendor visits & maintenance history</p>
   </div>
 
   <div class="kpi-grid" *ngIf="stats.active != null">
-    <div class="kpi-card"><span class="kpi-label">Active</span><span class="kpi-value">{{ stats.active }}</span></div>
+    <div class="kpi-card kpi-success"><span class="kpi-label">Active</span><span class="kpi-value">{{ stats.active }}</span></div>
     <div class="kpi-card kpi-danger"><span class="kpi-label">Expired</span><span class="kpi-value">{{ stats.expired }}</span></div>
-    <div class="kpi-card"><span class="kpi-label">Expiring in 30d</span><span class="kpi-value">{{ stats.expiringIn30 }}</span></div>
-    <div class="kpi-card"><span class="kpi-label">Expiring in 60d</span><span class="kpi-value">{{ stats.expiringIn60 }}</span></div>
+    <div class="kpi-card kpi-warn"><span class="kpi-label">Expiring in 30d</span><span class="kpi-value">{{ stats.expiring30 }}</span></div>
+    <div class="kpi-card"><span class="kpi-label">Expiring in 60d</span><span class="kpi-value">{{ stats.expiring60 }}</span></div>
   </div>
 
   <div class="toolbar">
     <input pInputText placeholder="Search warranties..." [(ngModel)]="search" (keyup.enter)="loadWarranties()" />
-    <p-select [options]="statusOptions" [(ngModel)]="status" (onChange)="loadWarranties()" placeholder="Status"></p-select>
+    <p-select [options]="statusOptions" [(ngModel)]="status" (onChange)="loadWarranties()" placeholder="Status" appendTo="body"></p-select>
     <p-button label="Search" icon="pi pi-search" (onClick)="loadWarranties()"></p-button>
     <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportCsv()"></p-button>
   </div>
 
   <p-table [value]="warranties" [loading]="loading" [paginator]="true" [rows]="15"
     [rowsPerPageOptions]="[10,15,25,50]" [totalRecords]="totalRecords"
-    styleClass="p-datatable-sm p-datatable-striped">
+    styleClass="p-datatable-sm p-datatable-striped" [rowHover]="true">
     <ng-template pTemplate="header">
       <tr>
         <th>Asset</th>
         <th>Vendor</th>
+        <th>Type</th>
         <th>Start Date</th>
         <th>End Date</th>
-        <th>Type</th>
+        <th>Days Left</th>
         <th>Status</th>
+        <th>Actions</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-w>
       <tr>
-        <td>{{ w.asset?.assetName || '—' }}</td>
-        <td>{{ w.asset?.vendor?.name || '—' }}</td>
-        <td>{{ w.warrantyStartDate | date:'mediumDate' }}</td>
-        <td>{{ w.warrantyEndDate | date:'mediumDate' }}</td>
+        <td><strong>{{ w.asset?.assetName || '—' }}</strong></td>
+        <td>{{ w.vendor?.name || w.warrantyProvider || '—' }}</td>
         <td>{{ w.warrantyType || '—' }}</td>
+        <td>{{ w.warrantyStart | date:'mediumDate' }}</td>
+        <td>{{ w.warrantyEnd | date:'mediumDate' }}</td>
+        <td>
+          @if (getDaysLeft(w) < 0) {
+            <span style="color:#dc2626; font-weight:600">Expired {{ getDaysLeft(w) * -1 }}d ago</span>
+          } @else if (getDaysLeft(w) <= 30) {
+            <span style="color:#d97706; font-weight:600">{{ getDaysLeft(w) }}d left</span>
+          } @else {
+            <span>{{ getDaysLeft(w) }}d left</span>
+          }
+        </td>
         <td><p-tag [value]="getStatusLabel(w)" [severity]="getStatusSeverity(w)"></p-tag></td>
+        <td>
+          <p-button icon="pi pi-eye" [text]="true" [rounded]="true" severity="info"
+            pTooltip="View Details" tooltipPosition="top" (onClick)="viewWarranty(w)"></p-button>
+        </td>
       </tr>
     </ng-template>
     <ng-template pTemplate="emptymessage">
-      <tr><td colspan="6" class="text-center">No warranties found.</td></tr>
+      <tr><td colspan="8" class="text-center">No warranties found.</td></tr>
     </ng-template>
   </p-table>
 </div>
+
+<!-- ═══════════════════════ DETAIL DIALOG ═══════════════════════ -->
+<p-dialog header="Warranty Details" [(visible)]="showDetailDialog" [modal]="true" [style]="{'width':'780px', 'max-height':'85vh'}">
+  @if (selectedWarranty) {
+    <!-- Warranty header -->
+    <div class="detail-header-row">
+      <div>
+        <h3 style="margin:0">{{ selectedWarranty.asset?.assetName || '—' }}</h3>
+        <span class="detail-asset-id">{{ selectedWarranty.asset?.assetId }}</span>
+      </div>
+      <div style="text-align:right">
+        <p-tag [value]="getStatusLabel(selectedWarranty)" [severity]="getStatusSeverity(selectedWarranty)"
+          [style]="{'font-size':'0.9rem','padding':'0.3rem 0.8rem'}"></p-tag>
+        <div class="detail-days-left">
+          @if (getDaysLeft(selectedWarranty) < 0) {
+            <span class="text-danger">Expired {{ getDaysLeft(selectedWarranty) * -1 }} days ago</span>
+          } @else {
+            <span>{{ getDaysLeft(selectedWarranty) }} days remaining</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab buttons -->
+    <div class="view-toggle" style="margin:1rem 0 0.75rem">
+      <button class="toggle-btn" [class.active]="detailTab === 'info'" (click)="detailTab = 'info'">
+        <i class="pi pi-info-circle"></i> Warranty Info
+      </button>
+      <button class="toggle-btn" [class.active]="detailTab === 'contracts'" (click)="detailTab = 'contracts'">
+        <i class="pi pi-file-edit"></i> Contracts
+        @if (linkedContracts.length) { <span class="badge-sm">{{ linkedContracts.length }}</span> }
+      </button>
+      <button class="toggle-btn" [class.active]="detailTab === 'visits'" (click)="detailTab = 'visits'">
+        <i class="pi pi-wrench"></i> Service Visits
+      </button>
+      <button class="toggle-btn" [class.active]="detailTab === 'history'" (click)="detailTab = 'history'">
+        <i class="pi pi-history"></i> Maintenance History
+      </button>
+      <button class="toggle-btn" [class.active]="detailTab === 'renew'" (click)="openRenew()">
+        <i class="pi pi-refresh"></i> Renew
+      </button>
+    </div>
+
+    <!-- TAB: Warranty Info -->
+    @if (detailTab === 'info') {
+      <div class="detail-info-grid">
+        <div class="info-item">
+          <span class="info-label">Warranty Type</span>
+          <span class="info-value">{{ selectedWarranty.warrantyType || '—' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Provider</span>
+          <span class="info-value">{{ selectedWarranty.warrantyProvider || selectedWarranty.vendor?.name || '—' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Start Date</span>
+          <span class="info-value">{{ selectedWarranty.warrantyStart | date:'mediumDate' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">End Date</span>
+          <span class="info-value">{{ selectedWarranty.warrantyEnd | date:'mediumDate' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Vendor</span>
+          <span class="info-value">{{ selectedWarranty.vendor?.name || '—' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Support Contact</span>
+          <span class="info-value">{{ selectedWarranty.supportContact || '—' }}</span>
+        </div>
+      </div>
+      @if (selectedWarranty.coverageDetails) {
+        <div class="detail-section">
+          <div class="section-title">Coverage Details</div>
+          <p style="font-size:0.88rem; color:var(--text-color);">{{ selectedWarranty.coverageDetails }}</p>
+        </div>
+      }
+      @if (selectedWarranty.exclusions) {
+        <div class="detail-section">
+          <div class="section-title">Exclusions</div>
+          <p style="font-size:0.88rem; color:var(--text-color);">{{ selectedWarranty.exclusions }}</p>
+        </div>
+      }
+    }
+
+    <!-- TAB: Linked Service Contracts -->
+    @if (detailTab === 'contracts') {
+      @if (linkedContracts.length) {
+        <p-table [value]="linkedContracts" styleClass="p-datatable-sm p-datatable-striped" [rows]="10" [paginator]="linkedContracts.length > 10">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Contract #</th>
+              <th>Type</th>
+              <th>Vendor</th>
+              <th>Cost</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Status</th>
+              <th>Visits</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-c>
+            <tr>
+              <td><strong>{{ c.contractNumber || c.id }}</strong></td>
+              <td>{{ c.contractType }}</td>
+              <td>{{ c.vendor?.name || '—' }}</td>
+              <td>{{ formatCurrency(c.cost) }}</td>
+              <td>{{ c.startDate | date:'mediumDate' }}</td>
+              <td>{{ c.endDate | date:'mediumDate' }}</td>
+              <td><p-tag [value]="c.status" [severity]="getContractStatusSeverity(c.status)"></p-tag></td>
+              <td>
+                <p-button icon="pi pi-wrench" label="Visits" size="small" [text]="true" severity="info"
+                  pTooltip="View service visits" tooltipPosition="top" (onClick)="openContractVisits(c)"></p-button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <div class="empty-state-sm">
+          <i class="pi pi-file-edit"></i>
+          No service contracts found for this asset.
+        </div>
+      }
+    }
+
+    <!-- TAB: Service Visits -->
+    @if (detailTab === 'visits') {
+      @if (linkedVisits.length) {
+        <p-table [value]="linkedVisits" styleClass="p-datatable-sm p-datatable-striped" [rows]="10" [paginator]="linkedVisits.length > 10">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Work Done</th>
+              <th>Parts Replaced</th>
+              <th>Chargeable</th>
+              <th>Charge</th>
+              <th>Approval</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-v>
+            <tr>
+              <td>{{ v.visitDate | date:'mediumDate' }}</td>
+              <td><p-tag [value]="v.visitType === 'PREVENTIVE_MAINTENANCE' ? 'PM' : 'Repair'"
+                [severity]="v.visitType === 'PREVENTIVE_MAINTENANCE' ? 'success' : 'warn'"></p-tag></td>
+              <td>{{ v.workDone || '—' }}</td>
+              <td>{{ v.partsReplaced || '—' }}</td>
+              <td>
+                @if (v.isChargeable) { <p-tag value="Yes" severity="danger"></p-tag> }
+                @else { <p-tag value="No" severity="secondary"></p-tag> }
+              </td>
+              <td>{{ v.chargeAmount ? formatCurrency(v.chargeAmount) : '—' }}</td>
+              <td><p-tag [value]="v.chargeApprovalStatus || 'N/A'"
+                [severity]="v.chargeApprovalStatus === 'APPROVED' ? 'success' : v.chargeApprovalStatus === 'REJECTED' ? 'danger' : 'secondary'"></p-tag></td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <div class="empty-state-sm">
+          <i class="pi pi-wrench"></i>
+          No service visits found. Select a contract from the Contracts tab to view its visits.
+        </div>
+      }
+    }
+
+    <!-- TAB: Maintenance History -->
+    @if (detailTab === 'history') {
+      @if (maintenanceHistory.length) {
+        <p-table [value]="maintenanceHistory" styleClass="p-datatable-sm p-datatable-striped" [rows]="10" [paginator]="maintenanceHistory.length > 10">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Date</th>
+              <th>Service Type</th>
+              <th>Performed By</th>
+              <th>Service Cost</th>
+              <th>Parts Cost</th>
+              <th>Total</th>
+              <th>Notes</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-h>
+            <tr>
+              <td>{{ h.actualDoneAt | date:'mediumDate' }}</td>
+              <td><p-tag [value]="h.serviceType || '—'"
+                [severity]="h.serviceType === 'WARRANTY' ? 'success' : h.serviceType === 'AMC' || h.serviceType === 'CMC' ? 'info' : 'secondary'"></p-tag></td>
+              <td>{{ h.performedBy || '—' }}</td>
+              <td>{{ formatCurrency(h.serviceCost) }}</td>
+              <td>{{ formatCurrency(h.partsCost) }}</td>
+              <td><strong>{{ formatCurrency(h.totalCost) }}</strong></td>
+              <td>{{ h.notes || '—' }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <div class="empty-state-sm">
+          <i class="pi pi-history"></i>
+          No maintenance history found for this asset.
+        </div>
+      }
+    }
+
+    <!-- TAB: Renew Warranty -->
+    @if (detailTab === 'renew') {
+      <div class="form-grid" style="max-width:480px">
+        <div class="form-field">
+          <label>New Warranty End Date *</label>
+          <p-datePicker [(ngModel)]="renewForm.warrantyEnd" [showIcon]="true"
+            dateFormat="dd/mm/yy" placeholder="Select new end date" [style]="{'width':'100%'}" appendTo="body"></p-datePicker>
+        </div>
+        <div class="form-field">
+          <label>Warranty Provider</label>
+          <input pInputText [(ngModel)]="renewForm.warrantyProvider" placeholder="Provider name" style="width:100%" />
+        </div>
+        <div class="form-field">
+          <label>Coverage Details</label>
+          <textarea pTextarea [(ngModel)]="renewForm.coverageDetails" rows="2" placeholder="What does the renewed warranty cover?" style="width:100%"></textarea>
+        </div>
+        <div class="form-field">
+          <label>Notes</label>
+          <textarea pTextarea [(ngModel)]="renewForm.notes" rows="2" placeholder="Any additional notes..." style="width:100%"></textarea>
+        </div>
+        <div>
+          <p-button label="Renew Warranty" icon="pi pi-refresh" (onClick)="submitRenew()"
+            [loading]="renewingWarranty" [disabled]="!renewForm.warrantyEnd"></p-button>
+        </div>
+      </div>
+    }
+  }
+
+  <ng-template pTemplate="footer">
+    <p-button label="Close" severity="secondary" (onClick)="showDetailDialog = false"></p-button>
+  </ng-template>
+</p-dialog>

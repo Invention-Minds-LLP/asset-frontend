@@ -1,0 +1,142 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-left">
+      <h2><i class="pi pi-envelope"></i> Email Templates</h2>
+      <span class="template-count" *ngIf="templates.length">{{ templates.length }} template{{ templates.length === 1 ? '' : 's' }}</span>
+    </div>
+    <div class="header-actions">
+      <p-button *ngIf="templates.length === 0 && !loading" label="Seed Defaults" icon="pi pi-download" severity="secondary" (onClick)="seedDefaults()" [loading]="seedingTemplates" pTooltip="Create default email templates" tooltipPosition="top"></p-button>
+      <p-button label="Send Email" icon="pi pi-send" severity="info" (onClick)="openSendEmail()" pTooltip="Compose and send an email using a template" tooltipPosition="top"></p-button>
+      <p-button label="New Template" icon="pi pi-plus" (onClick)="openEdit()" pTooltip="Create a new template" tooltipPosition="top"></p-button>
+    </div>
+  </div>
+
+  <p-table [value]="templates" [loading]="loading" styleClass="p-datatable-sm p-datatable-striped" [paginator]="templates.length > 10" [rows]="10">
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 160px">Code</th>
+        <th>Name</th>
+        <th>Subject</th>
+        <th style="width: 100px; text-align: center">Status</th>
+        <th style="width: 120px; text-align: center">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-t>
+      <tr>
+        <td><span class="code-badge">{{ t.code }}</span></td>
+        <td>{{ t.name }}</td>
+        <td><span class="subject-text" [innerHTML]="highlightPlaceholders(t.subject)"></span></td>
+        <td style="text-align: center">
+          <p-inputSwitch [(ngModel)]="t.isActive" (onChange)="toggleActive(t)" pTooltip="Toggle active status" tooltipPosition="top"></p-inputSwitch>
+        </td>
+        <td style="text-align: center">
+          <p-button icon="pi pi-eye" [rounded]="true" [text]="true" size="small" pTooltip="Preview" tooltipPosition="top" (onClick)="previewTemplate(t)"></p-button>
+          <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openEdit(t)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center">
+          No email templates configured. Click "Seed Defaults" to create standard templates.
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Edit Dialog -->
+<p-dialog header="{{ selectedTemplate ? 'Edit Template' : 'New Template' }}" [(visible)]="showEditDialog" [modal]="true" [style]="{ width: '700px' }" [draggable]="false" [resizable]="false">
+  <div class="edit-form">
+    <div class="form-field">
+      <label>Code</label>
+      <input pInputText [(ngModel)]="editForm.code" [disabled]="!!selectedTemplate" placeholder="e.g. WARRANTY_EXPIRY" style="width: 100%; font-family: monospace" />
+      <small *ngIf="!selectedTemplate" class="field-hint">Unique identifier. Cannot be changed after creation.</small>
+    </div>
+
+    <div class="form-field">
+      <label>Name</label>
+      <input pInputText [(ngModel)]="editForm.name" placeholder="e.g. Warranty Expiry Notification" style="width: 100%" />
+    </div>
+
+    <div class="form-field">
+      <label>Subject</label>
+      <input pInputText [(ngModel)]="editForm.subject" placeholder="e.g. Warranty expiring for { {assetName} }" style="width: 100%" />
+      <small class="field-hint" [innerHTML]="placeholderHint"></small>
+    </div>
+
+    <div class="form-field">
+      <label>Body HTML</label>
+      <textarea pTextarea [(ngModel)]="editForm.bodyHtml" rows="15" style="width: 100%; font-family: monospace; font-size: 0.85rem" placeholder="Enter HTML body with placeholders like { {name} }, { {assetName} }"></textarea>
+    </div>
+
+    <div class="form-field">
+      <label>Body Text <span class="optional-label">(optional fallback)</span></label>
+      <textarea pTextarea [(ngModel)]="editForm.bodyText" rows="5" style="width: 100%; font-family: monospace; font-size: 0.85rem" placeholder="Plain text fallback with placeholders like { {name} }, { {assetName} }"></textarea>
+    </div>
+
+    <div class="form-field toggle-field">
+      <label>Active</label>
+      <p-inputSwitch [(ngModel)]="editForm.isActive"></p-inputSwitch>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer">
+      <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showEditDialog = false"></p-button>
+      <p-button label="Save Template" icon="pi pi-save" (onClick)="saveTemplate()" [loading]="saving"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Preview Dialog -->
+<p-dialog header="Template Preview" [(visible)]="showPreviewDialog" [modal]="true" [style]="{ width: '600px' }" [draggable]="false" [resizable]="false">
+  <div class="preview-notice">
+    <i class="pi pi-info-circle"></i> Placeholders replaced with sample data for preview purposes.
+  </div>
+  <div class="preview-frame" [innerHTML]="previewHtml"></div>
+</p-dialog>
+
+<!-- Send Email Dialog -->
+<p-dialog header="Send Email" [(visible)]="showSendDialog" [modal]="true" [style]="{ width: '680px' }">
+  <div class="send-form">
+    <div class="form-field">
+      <label>To (recipients) *</label>
+      <input pInputText [(ngModel)]="sendForm.toEmails" placeholder="email1@example.com, email2@example.com" style="width:100%" />
+      <small class="help-text">Comma-separated email addresses</small>
+    </div>
+    <div style="display:flex; gap:1rem;">
+      <div class="form-field" style="flex:1">
+        <label>CC</label>
+        <input pInputText [(ngModel)]="sendForm.ccEmails" placeholder="cc@example.com" style="width:100%" />
+      </div>
+      <div class="form-field" style="flex:1">
+        <label>BCC</label>
+        <input pInputText [(ngModel)]="sendForm.bccEmails" placeholder="bcc@example.com" style="width:100%" />
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Use Template</label>
+      <p-select [options]="templateOptions" [(ngModel)]="sendForm.templateCode"
+        placeholder="Select a template (optional)" [showClear]="true"
+        [style]="{'width':'100%'}" appendTo="body" (onChange)="onTemplateSelect()"></p-select>
+      <small class="help-text">Select a template to auto-fill subject and body. Placeholders will be replaced with sample data.</small>
+    </div>
+    <div class="form-field">
+      <label>Subject *</label>
+      <input pInputText [(ngModel)]="sendForm.subject" placeholder="Email subject" style="width:100%" />
+    </div>
+    <div class="form-field">
+      <label>Body (HTML)</label>
+      <textarea pTextarea [(ngModel)]="sendForm.body" rows="10" placeholder="<p>Email body content...</p>" style="width:100%; font-family:monospace; font-size:0.85rem;"></textarea>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showSendDialog = false"></p-button>
+    <p-button label="Send Email" icon="pi pi-send" (onClick)="submitSendEmail()"
+      [loading]="sendingEmail" [disabled]="!sendForm.toEmails?.trim() || (!sendForm.subject && !sendForm.templateCode)"></p-button>
+  </ng-template>
+</p-dialog>

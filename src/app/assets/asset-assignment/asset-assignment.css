@@ -434,3 +434,22 @@ line-height: normal;
   border-radius: 8px;
   margin-bottom: 12px;
 }
+
+.optional-tag {
+  font-size: 0.75rem;
+  color: var(--text-color-secondary, #6b7280);
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.photo-guidelines {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-color-secondary, #6b7280);
+  background: var(--surface-100, #f3f4f6);
+  border-left: 3px solid var(--primary-color, #3b82f6);
+  padding: 6px 10px;
+  border-radius: 0 4px 4px 0;
+  margin-top: 4px;
+  line-height: 1.5;
+}

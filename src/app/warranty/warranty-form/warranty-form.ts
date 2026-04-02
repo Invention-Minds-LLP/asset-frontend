@@ -83,14 +83,24 @@ export class WarrantyForm {
       endDate: null,
       vendorId: null,
       contractNumber: '',
-      visitsPerYear: null,
+      regularVisitsPerYear: null,
+      emergencyVisitsPerYear: null,
       cost: null,
       currency: 'INR',
       terms: '',
       includesParts: false,
       includesLabor: true,
+      vendorResponseValue: null,
+      vendorResponseUnit: 'HOURS',
+      vendorResolutionValue: null,
+      vendorResolutionUnit: 'HOURS',
       document: null,
    };
+
+   slaUnitOptions = [
+      { label: 'Hours', value: 'HOURS' },
+      { label: 'Days', value: 'DAYS' },
+   ];
    contractFile: File | null = null;
 
    vendors: any[] = [];
@@ -99,6 +109,16 @@ export class WarrantyForm {
    maintenanceHistory: any[] = [];
    serviceForm!: FormGroup;
    selectedFile: File | null = null;
+
+   // Service Visits (from ServiceVisit model under contracts)
+   serviceVisits: any[] = [];
+   loadingVisits = false;
+   loggingVisit = false;
+   visitForm: any = { visitType: 'PREVENTIVE_MAINTENANCE', visitDate: null, workDone: '', partsReplaced: '', chargeAmount: null, contractId: null };
+   visitTypeOptions = [
+     { label: 'Preventive Maintenance', value: 'PREVENTIVE_MAINTENANCE' },
+     { label: 'Repair', value: 'REPAIR' },
+   ];
 
    contractSelectOptions: { label: string; value: number }[] = [];
    performedByTypeOptions = [
@@ -170,8 +190,64 @@ export class WarrantyForm {
       this.loadContracts();
       this.loadMaintenance();
       this.loadVendors();
+      this.loadServiceVisits();
+   }
 
+   loadServiceVisits() {
+      if (!this.contracts.length) {
+         // Contracts not loaded yet — will retry after contracts load
+         setTimeout(() => this.loadServiceVisits(), 500);
+         return;
+      }
+      this.loadingVisits = true;
+      this.serviceVisits = [];
+      let completed = 0;
+      const total = this.contracts.length;
+      if (total === 0) { this.loadingVisits = false; return; }
 
+      this.contracts.forEach((c: any) => {
+         this.contractApi.getVisits(c.id).subscribe({
+            next: (res: any) => {
+               const visits = Array.isArray(res) ? res : (res?.data ?? []);
+               this.serviceVisits.push(...visits.map((v: any) => ({ ...v, contractNumber: c.contractNumber || c.id, contractType: c.contractType })));
+               completed++;
+               if (completed >= total) {
+                  this.serviceVisits.sort((a: any, b: any) => new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime());
+                  this.loadingVisits = false;
+                  this.cdr.detectChanges();
+               }
+            },
+            error: () => { completed++; if (completed >= total) { this.loadingVisits = false; this.cdr.detectChanges(); } }
+         });
+      });
+   }
+
+   logVendorVisit() {
+      if (!this.visitForm.contractId || !this.visitForm.visitDate) {
+         this.msg.add({ severity: 'warn', summary: 'Required', detail: 'Contract and visit date are required' });
+         return;
+      }
+      this.loggingVisit = true;
+      this.contractApi.logVisit(this.visitForm.contractId, {
+         visitType: this.visitForm.visitType,
+         visitDate: new Date(this.visitForm.visitDate).toISOString(),
+         workDone: this.visitForm.workDone,
+         partsReplaced: this.visitForm.partsReplaced,
+         chargeAmount: this.visitForm.chargeAmount,
+      }).subscribe({
+         next: () => {
+            this.loggingVisit = false;
+            this.msg.add({ severity: 'success', summary: 'Logged', detail: 'Vendor visit logged successfully' });
+            this.visitForm = { visitType: 'PREVENTIVE_MAINTENANCE', visitDate: null, workDone: '', partsReplaced: '', chargeAmount: null, contractId: null };
+            this.loadServiceVisits();
+            this.cdr.detectChanges();
+         },
+         error: (err: any) => {
+            this.loggingVisit = false;
+            this.msg.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || 'Failed to log visit' });
+            this.cdr.detectChanges();
+         }
+      });
    }
    fmt(d: any) {
       return d ? new Date(d).toLocaleDateString() : '-';
@@ -494,12 +570,17 @@ export class WarrantyForm {
          endDate: c.endDate ? new Date(c.endDate) : null,
          vendorId: c.vendorId ?? null,
          contractNumber: c.contractNumber || '',
-         visitsPerYear: c.visitsPerYear ?? null,
+         regularVisitsPerYear: c.regularVisitsPerYear ?? c.visitsPerYear ?? null,
+         emergencyVisitsPerYear: c.emergencyVisitsPerYear ?? null,
          cost: c.cost ?? null,
          currency: c.currency || 'INR',
          terms: c.terms || '',
          includesParts: c.includesParts ?? false,
          includesLabor: c.includesLabor ?? true,
+         vendorResponseValue: c.vendorResponseValue ?? null,
+         vendorResponseUnit: c.vendorResponseUnit || 'HOURS',
+         vendorResolutionValue: c.vendorResolutionValue ?? null,
+         vendorResolutionUnit: c.vendorResolutionUnit || 'HOURS',
          document: c.document || null,
          status: c.status || 'ACTIVE',
          reason: c.reason || '',

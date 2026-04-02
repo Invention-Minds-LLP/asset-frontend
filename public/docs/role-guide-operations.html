@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Smart Assets — Operations Guide</title>
+<style>
+  @media print { .no-print { display: none !important; } @page { margin: 15mm; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', -apple-system, sans-serif; color: #1e293b; line-height: 1.6; padding: 40px; max-width: 900px; margin: 0 auto; }
+  .print-btn { position: fixed; top: 15px; right: 15px; padding: 10px 20px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; z-index: 100; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+  .print-btn:hover { background: #1d4ed8; }
+  .header { border-bottom: 4px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+  .header h1 { font-size: 28px; color: #2563eb; margin-bottom: 4px; }
+  .header .role-badge { display: inline-block; background: #2563eb; color: #fff; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .header p { color: #64748b; font-size: 14px; }
+  h2 { font-size: 20px; color: #0f172a; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; }
+  h3 { font-size: 16px; color: #334155; margin: 20px 0 8px; }
+  p, li { font-size: 14px; margin-bottom: 6px; }
+  ul, ol { padding-left: 24px; margin-bottom: 12px; }
+  .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+  .module-card { padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+  .module-card .mod-name { font-weight: 600; color: #2563eb; font-size: 13px; }
+  .module-card .mod-desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .access-yes { color: #16a34a; font-weight: 600; }
+  .access-no { color: #dc2626; font-weight: 600; }
+  .workflow-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px; margin: 10px 0; }
+  .workflow-box h4 { color: #1d4ed8; font-size: 14px; margin-bottom: 8px; }
+  .workflow-box ol { padding-left: 20px; }
+  .workflow-box li { font-size: 13px; margin-bottom: 4px; }
+  .note { background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; padding: 10px; font-size: 13px; color: #854d0e; margin: 10px 0; }
+  .restricted { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 10px; margin: 10px 0; }
+  .restricted h4 { color: #dc2626; font-size: 13px; margin-bottom: 6px; }
+  .restricted li { font-size: 12px; color: #7f1d1d; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #f1f5f9; color: #475569; padding: 8px; text-align: left; border: 1px solid #e2e8f0; font-weight: 600; }
+  td { padding: 8px; border: 1px solid #e2e8f0; }
+  .footer { margin-top: 40px; padding-top: 15px; border-top: 2px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center; }
+</style>
+</head>
+<body>
+<button class="print-btn no-print" onclick="window.print()">Print / Save as PDF</button>
+
+<div class="header">
+  <span class="role-badge">OPERATIONS</span>
+  <h1>Operations Guide</h1>
+  <p>You manage operational workflows across departments &mdash; material requests, store inventory, preventive maintenance compliance, SLA monitoring, and escalation handling.</p>
+</div>
+
+<h2>Modules You Can Access</h2>
+<div class="module-grid">
+  <div class="module-card">
+    <div class="mod-name">Dashboard</div>
+    <div class="mod-desc">Operational KPIs across all departments: SLA compliance, PM status, open tickets.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Asset Master (Full)</div>
+    <div class="mod-desc">View Assets, Assignments, Transfer, Department Assets, Revenue Log, Asset Disposal.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Asset Indent</div>
+    <div class="mod-desc">Review and process asset indent requests.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Store &amp; Inventory</div>
+    <div class="mod-desc">Full store management: stock levels, transfers, material issue approvals.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Maintenance (Full)</div>
+    <div class="mod-desc">Repair Tickets, Work Orders, Preventive Maintenance, Calibration, PM Checklists.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Contracts &amp; Coverage</div>
+    <div class="mod-desc">Warranty, Insurance, Service Contracts, Vendor Performance.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Operations (Full)</div>
+    <div class="mod-desc">Gate Pass, Acknowledgement, Physical Audit, Employee Exit, Document Vault, Knowledge Base.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Finance &amp; Analytics &gt; Reports</div>
+    <div class="mod-desc">Operational and cross-department reports.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; SLA Matrix</div>
+    <div class="mod-desc">Configure and monitor SLA timelines for ticket resolution.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; Escalation Matrix</div>
+    <div class="mod-desc">Configure escalation levels for SLA breaches and repeat failures.</div>
+  </div>
+  <div class="module-card">
+    <div class="mod-name">Administration &gt; Support Matrix</div>
+    <div class="mod-desc">Define support team assignments by category and location.</div>
+  </div>
+</div>
+
+<h2>What You Can Do</h2>
+<ul>
+  <li><span class="access-yes">&#10003;</span> <strong>Approve Material Requests</strong> from repair tickets with delivery timeframes</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Manage Store Inventory</strong> &mdash; stock in, stock out, inter-store transfers</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Monitor PM Compliance</strong> across all departments</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Handle SLA Breach Escalations</strong> using the Escalation Matrix</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Configure SLA Matrix</strong> &mdash; define response and resolution timelines</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Configure Escalation Matrix</strong> &mdash; set escalation hierarchy for breaches</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Configure Support Matrix</strong> &mdash; assign support teams by category</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Manage Gate Passes</strong> for asset movement in/out of facility</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Conduct Physical Audits</strong> across departments</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Process Employee Exit</strong> asset returns</li>
+  <li><span class="access-yes">&#10003;</span> <strong>Oversee Vendor Performance</strong> tracking and scoring</li>
+  <li><span class="access-yes">&#10003;</span> View cross-department <strong>Reports</strong></li>
+</ul>
+
+<div class="restricted">
+  <h4>What You CANNOT Do</h4>
+  <ul>
+    <li>Run Batch Depreciation or access Cost Analysis</li>
+    <li>Access CFO Dashboard or Financial Dashboard</li>
+    <li>Access Decision Engine</li>
+    <li>Manage users, module access, or system configuration</li>
+    <li>Edit email templates or master settings</li>
+    <li>Final-approve high-value disposals (CEO/COO level)</li>
+  </ul>
+</div>
+
+<h2>Step-by-Step Workflows</h2>
+
+<div class="workflow-box">
+  <h4>Workflow 1: How to Approve a Material Request</h4>
+  <ol>
+    <li>You receive a notification when a repair ticket includes a material request.</li>
+    <li>Navigate to <strong>Maintenance &gt; Repair Tickets</strong> in the sidebar.</li>
+    <li>Filter tickets by <strong>Material Requested</strong> status.</li>
+    <li>Open the ticket and scroll to the <strong>Material Request</strong> section.</li>
+    <li>Review the requested items, quantities, and justification.</li>
+    <li>Check availability in <strong>Store &amp; Inventory</strong> (open in a new tab if needed).</li>
+    <li>Enter the <strong>Expected Delivery Date</strong> for each item.</li>
+    <li>Click <strong>Approve Material Request</strong> or <strong>Reject</strong> with a reason.</li>
+    <li>Approved requests trigger store issuance or reorder if stock is insufficient.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 2: How to Manage Store Inventory</h4>
+  <ol>
+    <li>Navigate to <strong>Store &amp; Inventory</strong> in the sidebar.</li>
+    <li>The main view shows all inventory items with current stock levels.</li>
+    <li>Use filters to find items by category, location, or stock status (Low Stock, Out of Stock).</li>
+    <li>To receive stock: click <strong>Stock In</strong>, select the item, enter quantity and source.</li>
+    <li>To issue stock: click <strong>Issue Material</strong>, link to a work order or ticket, enter quantity.</li>
+    <li>To transfer between stores: click <strong>Store Transfer</strong>, select source/destination, pick items and quantities.</li>
+    <li>Review the <strong>Stock Movement</strong> history to audit all transactions.</li>
+    <li>Set <strong>Reorder Levels</strong> for critical items to receive low-stock alerts.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 3: How to Monitor PM Compliance</h4>
+  <ol>
+    <li>Navigate to <strong>Maintenance &gt; Preventive Maintenance</strong> in the sidebar.</li>
+    <li>The PM dashboard shows compliance percentage across departments.</li>
+    <li>Filter by <strong>Department</strong>, <strong>Date Range</strong>, or <strong>Status</strong> (Scheduled, Overdue, Completed).</li>
+    <li>Identify overdue PMs &mdash; these are highlighted in red.</li>
+    <li>Click on an overdue PM to see assigned technician and department.</li>
+    <li>Send reminders or escalate to the department HOD if PMs are significantly delayed.</li>
+    <li>Review the <strong>PM Compliance Report</strong> under <strong>Finance &amp; Analytics &gt; Reports</strong> for trend analysis.</li>
+  </ol>
+</div>
+
+<div class="workflow-box">
+  <h4>Workflow 4: How to Handle SLA Breach Escalations</h4>
+  <ol>
+    <li>Navigate to <strong>Administration &gt; SLA Matrix</strong> to review configured SLA timelines.</li>
+    <li>Navigate to <strong>Administration &gt; Escalation Matrix</strong> to review escalation levels.</li>
+    <li>When an SLA breach occurs, the system sends escalation notifications based on the configured hierarchy.</li>
+    <li>Go to <strong>Maintenance &gt; Repair Tickets</strong> and filter by <strong>SLA Breached</strong>.</li>
+    <li>Open the breached ticket to see the escalation timeline and current level.</li>
+    <li>Take action: reassign the ticket, allocate additional resources, or contact the vendor.</li>
+    <li>If the issue is a repeat failure, check the asset's maintenance history for patterns.</li>
+    <li>Update the SLA or Escalation Matrix if the current configuration needs adjustment.</li>
+  </ol>
+</div>
+
+<div class="note">
+  <strong>Tip:</strong> Review the <strong>SLA Matrix</strong> and <strong>Escalation Matrix</strong> quarterly. As your organization grows, response/resolution times and escalation hierarchies may need updating to reflect current team structures.
+</div>
+
+<div class="footer">Smart Assets &mdash; Role-Based User Guide &bull; Confidential &bull; Generated April 2026</div>
+</body>
+</html>

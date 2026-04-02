@@ -82,6 +82,14 @@
 
       <div class="field">
         <p-floatlabel variant="on">
+          <p-select [options]="vehicleTypeOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.vehicleType" name="vehicleType" appendTo="body" [showClear]="true" />
+          <label>Vehicle Type</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
           <input pInputText [(ngModel)]="form.courierDetails" name="courierDetails" />
           <label>Courier Details</label>
         </p-floatlabel>
@@ -137,12 +145,12 @@
             <td><p-tag [value]="row.status" [severity]="getStatusSeverity(row.status)" /></td>
             <td>
               <div class="action-buttons">
-                <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="edit(row)" pTooltip="Edit" />
+                <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="edit(row)" pTooltip="Edit" tooltipPosition="top" />
                 <p-button *ngIf="row.status === 'ISSUED'" icon="pi pi-undo" size="small" severity="success"
-                  (onClick)="updateStatus(row, 'RETURNED')" pTooltip="Mark Returned" />
+                  (onClick)="updateStatus(row, 'RETURNED')" pTooltip="Mark Returned" tooltipPosition="top" />
                 <p-button *ngIf="row.status === 'ISSUED'" icon="pi pi-times-circle" size="small" severity="warn"
-                  (onClick)="updateStatus(row, 'CANCELLED')" pTooltip="Cancel" />
-                <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="delete(row)" pTooltip="Delete" />
+                  (onClick)="updateStatus(row, 'CANCELLED')" pTooltip="Cancel" tooltipPosition="top" />
+                <p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="delete(row)" pTooltip="Delete" tooltipPosition="top" />
               </div>
             </td>
           </tr>

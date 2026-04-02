@@ -1,0 +1,437 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-gauge"></i> COO Dashboard</h2>
+      <p class="subtitle">Operational Efficiency & Performance Intelligence</p>
+    </div>
+    <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadDashboard()"
+      [loading]="loading" size="small" severity="secondary"></p-button>
+  </div>
+
+  <!-- Date Range Filter + View Toggle -->
+  <div class="filter-bar">
+    <div class="date-filters">
+      <div class="filter-field">
+        <label>From</label>
+        <p-datepicker [(ngModel)]="dateFrom" dateFormat="dd/mm/yy" [showIcon]="true" [maxDate]="dateTo" appendTo="body"></p-datepicker>
+      </div>
+      <div class="filter-field">
+        <label>To</label>
+        <p-datepicker [(ngModel)]="dateTo" dateFormat="dd/mm/yy" [showIcon]="true" [minDate]="dateFrom" appendTo="body"></p-datepicker>
+      </div>
+      <p-button label="Apply" icon="pi pi-check" (onClick)="applyDateFilter()" size="small" severity="primary"></p-button>
+    </div>
+    <p-selectbutton [options]="viewOptions" [(ngModel)]="viewMode" optionLabel="label" optionValue="value"></p-selectbutton>
+  </div>
+
+  @if (data) {
+    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- OPERATIONS VIEW                                         -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    @if (viewMode === 'operations') {
+      <!-- Row 1: Fleet Health KPIs -->
+      <div class="kpi-grid kpi-4">
+        <div class="kpi-card" pTooltip="Total number of assets excluding disposed and scrapped" tooltipPosition="top">
+          <div class="kpi-label">Total Assets</div>
+          <div class="kpi-value accent">{{ formatNum(fleet.totalAssets) }}</div>
+        </div>
+        <div class="kpi-card" pTooltip="Assets currently in active operational use" tooltipPosition="top">
+          <div class="kpi-label">Active</div>
+          <div class="kpi-value good">{{ formatNum(fleet.activeAssets) }}</div>
+        </div>
+        <div class="kpi-card" pTooltip="Assets currently undergoing maintenance or repair" tooltipPosition="top">
+          <div class="kpi-label">In Maintenance</div>
+          <div class="kpi-value warn">{{ formatNum(fleet.inMaintenanceAssets) }}</div>
+        </div>
+        <div class="kpi-card" pTooltip="Assets held in store, not yet deployed" tooltipPosition="top">
+          <div class="kpi-label">In Store</div>
+          <div class="kpi-value">{{ formatNum(fleet.inStoreAssets) }}</div>
+        </div>
+      </div>
+      <div class="kpi-grid kpi-4">
+        <div class="kpi-card" pTooltip="Assets placed under observation for monitoring" tooltipPosition="top">
+          <div class="kpi-label">Under Observation</div>
+          <div class="kpi-value warn">{{ formatNum(fleet.underObservationAssets) }}</div>
+        </div>
+        <div class="kpi-card" pTooltip="Assets that have been retired from service" tooltipPosition="top">
+          <div class="kpi-label">Retired</div>
+          <div class="kpi-value muted">{{ formatNum(fleet.retiredAssets) }}</div>
+        </div>
+        <div class="kpi-card subtle" pTooltip="Assets formally disposed of" tooltipPosition="top">
+          <div class="kpi-label">Disposed</div>
+          <div class="kpi-value muted">{{ formatNum(fleet.disposedAssets) }}</div>
+        </div>
+        <div class="kpi-card" pTooltip="Percentage of active assets relative to total fleet" tooltipPosition="top">
+          <div class="kpi-label">Fleet Availability</div>
+          <div class="kpi-value" [class.good]="fleet.fleetAvailabilityPct >= 80" [class.warn]="fleet.fleetAvailabilityPct >= 50 && fleet.fleetAvailabilityPct < 80" [class.danger]="fleet.fleetAvailabilityPct < 50">
+            {{ formatPct(fleet.fleetAvailabilityPct) }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Operations KPIs (4 cards) -->
+      <div class="kpi-grid kpi-4">
+        <div class="kpi-card subtle" pTooltip="Tickets currently open or in progress" tooltipPosition="top">
+          <div class="kpi-label">Open Tickets</div>
+          <div class="kpi-value warn">{{ formatNum(tickets.openTickets) }}</div>
+        </div>
+        <div class="kpi-card subtle" pTooltip="Tickets that breached their SLA within the selected period" tooltipPosition="top">
+          <div class="kpi-label">SLA Breaches</div>
+          <div class="kpi-value danger">{{ formatNum(tickets.slaBreachedTickets) }}</div>
+        </div>
+        <div class="kpi-card subtle" pTooltip="Work orders awaiting action or approval" tooltipPosition="top">
+          <div class="kpi-label">Pending Work Orders</div>
+          <div class="kpi-value warn">{{ formatNum(workOrders.pendingWOs) }}</div>
+        </div>
+        <div class="kpi-card subtle" pTooltip="Percentage of PM schedules completed on time" tooltipPosition="top">
+          <div class="kpi-label">PM Compliance</div>
+          <div class="kpi-value" [class.good]="pm.pmCompliancePct >= 90" [class.warn]="pm.pmCompliancePct >= 70 && pm.pmCompliancePct < 90" [class.danger]="pm.pmCompliancePct < 70">
+            {{ formatPct(pm.pmCompliancePct) }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Ticket Operations -->
+      <div class="dashboard-section">
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-wrench"></i> Ticket Operations</span>
+        </div>
+        <div class="kpi-grid kpi-4 compact">
+          <div class="kpi-card mini" pTooltip="Low priority open tickets" tooltipPosition="top">
+            <div class="kpi-label">Low Priority</div>
+            <div class="kpi-value info">{{ formatNum(tickets.ticketsByPriority?.LOW) }}</div>
+          </div>
+          <div class="kpi-card mini" pTooltip="Medium priority open tickets" tooltipPosition="top">
+            <div class="kpi-label">Medium Priority</div>
+            <div class="kpi-value">{{ formatNum(tickets.ticketsByPriority?.MEDIUM) }}</div>
+          </div>
+          <div class="kpi-card mini" pTooltip="High priority open tickets" tooltipPosition="top">
+            <div class="kpi-label">High Priority</div>
+            <div class="kpi-value warn">{{ formatNum(tickets.ticketsByPriority?.HIGH) }}</div>
+          </div>
+          <div class="kpi-card mini" pTooltip="Critical priority open tickets requiring immediate attention" tooltipPosition="top">
+            <div class="kpi-label">Critical Priority</div>
+            <div class="kpi-value danger">{{ formatNum(tickets.ticketsByPriority?.CRITICAL) }}</div>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-label">Resolved</span>
+            <span class="stat-value good">{{ formatNum(tickets.resolvedTickets30d) }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Avg Resolution Time</span>
+            <span class="stat-value">{{ formatHours(tickets.avgResolutionHours) }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">SLA Breach Rate</span>
+            <span class="stat-value" [class.danger]="slaBreachRate > 10" [class.warn]="slaBreachRate > 5 && slaBreachRate <= 10">{{ formatPct(slaBreachRate) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Work Order Throughput -->
+      <div class="dashboard-section">
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-briefcase"></i> Work Order Throughput</span>
+        </div>
+        <div class="kpi-grid kpi-4 compact">
+          <div class="kpi-card mini" pTooltip="Total work orders created in the selected period" tooltipPosition="top">
+            <div class="kpi-label">Total WOs</div>
+            <div class="kpi-value">{{ formatNum(workOrders.totalWOs30d) }}</div>
+          </div>
+          <div class="kpi-card mini" pTooltip="Work orders completed in the selected period" tooltipPosition="top">
+            <div class="kpi-label">Completed</div>
+            <div class="kpi-value good">{{ formatNum(workOrders.completedWOs30d) }}</div>
+          </div>
+          <div class="kpi-card mini" pTooltip="Work orders still pending completion" tooltipPosition="top">
+            <div class="kpi-label">Pending</div>
+            <div class="kpi-value warn">{{ formatNum(workOrders.pendingWOs) }}</div>
+          </div>
+          <div class="kpi-card mini" pTooltip="Average days to complete a work order" tooltipPosition="top">
+            <div class="kpi-label">Avg Completion</div>
+            <div class="kpi-value">{{ formatDays(workOrders.avgCompletionDays) }}</div>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-label">OpEx Work Orders</span>
+            <p-tag [value]="formatNum(workOrders.woByType?.opex)" severity="info"></p-tag>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">CapEx Work Orders</span>
+            <p-tag [value]="formatNum(workOrders.woByType?.capex)" severity="warn"></p-tag>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: PM Compliance -->
+      <div class="dashboard-section">
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-calendar"></i> Preventive Maintenance Compliance</span>
+        </div>
+        <div class="pm-summary">
+          <div class="pm-compliance-bar">
+            <div class="compliance-label">Compliance: {{ formatPct(pm.pmCompliancePct) }}</div>
+            <div class="progress-bar-container">
+              <div class="progress-bar" [class]="getComplianceClass()" [style.width.%]="pm.pmCompliancePct ?? 0"></div>
+            </div>
+          </div>
+          <div class="pm-stats">
+            <span>Total Schedules: <strong>{{ formatNum(pm.totalSchedules) }}</strong></span>
+            <span>Overdue: <strong class="danger">{{ formatNum(pm.overdueSchedules) }}</strong></span>
+            <span>Upcoming (7d): <strong class="warn">{{ formatNum(pm.upcomingSchedules) }}</strong></span>
+          </div>
+        </div>
+        @if (pm.overdueList?.length) {
+          <p-table [value]="pm.overdueList" stripedRows>
+            <ng-template #header>
+              <tr>
+                <th>Asset Name</th>
+                <th>Asset Code</th>
+                <th>Frequency</th>
+                <th>Due Date</th>
+                <th style="text-align:right">Days Overdue</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-row>
+              <tr>
+                <td>{{ row.assetName }}</td>
+                <td><span class="code-badge">{{ row.assetCode }}</span></td>
+                <td>{{ row.frequencyUnit }}</td>
+                <td>{{ row.nextDueAt | date:'dd MMM yyyy' }}</td>
+                <td style="text-align:right; font-weight:700;" class="danger">{{ row.daysOverdue }}</td>
+              </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+              <tr><td colspan="5" class="text-center">No overdue schedules.</td></tr>
+            </ng-template>
+          </p-table>
+        }
+      </div>
+
+      <!-- Section: Department Performance -->
+      @if (deptPerformance.length) {
+        <div class="dashboard-section">
+          <div class="section-header">
+            <span class="section-title"><i class="pi pi-building"></i> Department Performance</span>
+          </div>
+          <p-table [value]="deptPerformance" stripedRows [paginator]="deptPerformance.length > 10" [rows]="10">
+            <ng-template #header>
+              <tr>
+                <th>Department</th>
+                <th style="text-align:right">Tickets</th>
+                <th style="text-align:right">Resolved</th>
+                <th style="text-align:right">Avg Resolution (hrs)</th>
+                <th style="text-align:right">SLA Breaches</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-row>
+              <tr>
+                <td>{{ row.departmentName }}</td>
+                <td style="text-align:right">{{ row.ticketCount }}</td>
+                <td style="text-align:right">{{ row.resolvedCount }}</td>
+                <td style="text-align:right">{{ row.avgResolutionHours?.toFixed(1) ?? '0' }}</td>
+                <td style="text-align:right; font-weight:700;" [class.danger]="row.slaBreaches > 0">{{ row.slaBreaches }}</td>
+              </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+              <tr><td colspan="5" class="text-center">No data available.</td></tr>
+            </ng-template>
+          </p-table>
+        </div>
+      }
+    }
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- FINANCIAL VIEW                                          -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    @if (viewMode === 'financial') {
+      <div class="kpi-grid kpi-3">
+        <div class="kpi-card" pTooltip="Sum of purchase cost for all active assets" tooltipPosition="top">
+          <div class="kpi-label">Total Purchase Value</div>
+          <div class="kpi-value accent">{{ formatCurrency(financial.totalPurchaseCost) }}</div>
+        </div>
+        <div class="kpi-card" pTooltip="Sum of ticket costs within the selected date range" tooltipPosition="top">
+          <div class="kpi-label">Maintenance Cost (Period)</div>
+          <div class="kpi-value warn">{{ formatCurrency(financial.totalMaintenanceCost30d) }}</div>
+        </div>
+        <div class="kpi-card" pTooltip="Total value of purchase orders in Draft, Submitted, or HOD Approved status" tooltipPosition="top">
+          <div class="kpi-label">Pending PO Value</div>
+          <div class="kpi-value danger">{{ formatCurrency(financial.pendingPOValue) }}</div>
+        </div>
+      </div>
+
+      <!-- Fleet Health breakdown in financial view -->
+      <div class="dashboard-section">
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-chart-bar"></i> Fleet Status Breakdown</span>
+        </div>
+        <div class="kpi-grid kpi-4 compact">
+          <div class="kpi-card mini" pTooltip="Active assets in use" tooltipPosition="top">
+            <div class="kpi-label">Active</div>
+            <div class="kpi-value good">{{ formatNum(fleet.activeAssets) }}</div>
+          </div>
+          <div class="kpi-card mini" pTooltip="Assets currently in store" tooltipPosition="top">
+            <div class="kpi-label">In Store</div>
+            <div class="kpi-value">{{ formatNum(fleet.inStoreAssets) }}</div>
+          </div>
+          <div class="kpi-card mini" pTooltip="Assets under maintenance" tooltipPosition="top">
+            <div class="kpi-label">In Maintenance</div>
+            <div class="kpi-value warn">{{ formatNum(fleet.inMaintenanceAssets) }}</div>
+          </div>
+          <div class="kpi-card mini" pTooltip="Assets retired or scrapped" tooltipPosition="top">
+            <div class="kpi-label">Retired / Scrapped</div>
+            <div class="kpi-value muted">{{ formatNum((fleet.retiredAssets ?? 0) + (fleet.scrappedAssets ?? 0)) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Department Performance in financial view -->
+      @if (deptPerformance.length) {
+        <div class="dashboard-section">
+          <div class="section-header">
+            <span class="section-title"><i class="pi pi-building"></i> Department Performance</span>
+          </div>
+          <p-table [value]="deptPerformance" stripedRows [paginator]="deptPerformance.length > 10" [rows]="10">
+            <ng-template #header>
+              <tr>
+                <th>Department</th>
+                <th style="text-align:right">Tickets</th>
+                <th style="text-align:right">Resolved</th>
+                <th style="text-align:right">Avg Resolution (hrs)</th>
+                <th style="text-align:right">SLA Breaches</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-row>
+              <tr>
+                <td>{{ row.departmentName }}</td>
+                <td style="text-align:right">{{ row.ticketCount }}</td>
+                <td style="text-align:right">{{ row.resolvedCount }}</td>
+                <td style="text-align:right">{{ row.avgResolutionHours?.toFixed(1) ?? '0' }}</td>
+                <td style="text-align:right; font-weight:700;" [class.danger]="row.slaBreaches > 0">{{ row.slaBreaches }}</td>
+              </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+              <tr><td colspan="5" class="text-center">No data available.</td></tr>
+            </ng-template>
+          </p-table>
+        </div>
+      }
+    }
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- SHARED: Critical Alerts (always visible)                -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    <div class="dashboard-section">
+      <div class="section-header">
+        <span class="section-title"><i class="pi pi-exclamation-triangle"></i> Critical Alerts</span>
+      </div>
+      <div class="kpi-grid kpi-4">
+        <div class="kpi-card alert-card" [class]="getAlertClass(alerts.assetsNeedingAttention)" pTooltip="Assets with Not Working or Partial working condition" tooltipPosition="top">
+          <div class="kpi-label">Assets Needing Attention</div>
+          <div class="kpi-value">{{ formatNum(alerts.assetsNeedingAttention) }}</div>
+          <div class="alert-sub">Not Working / Partial</div>
+        </div>
+        <div class="kpi-card alert-card" [class]="getAlertClass(alerts.expiredWarranties)" pTooltip="Warranties past end date but still marked as covered" tooltipPosition="top">
+          <div class="kpi-label">Expired Warranties</div>
+          <div class="kpi-value">{{ formatNum(alerts.expiredWarranties) }}</div>
+          <div class="alert-sub">Still marked as covered</div>
+        </div>
+        <div class="kpi-card alert-card" [class]="getAlertClass(alerts.pendingTransfers)" pTooltip="Asset transfers in Requested or In Transit status" tooltipPosition="top">
+          <div class="kpi-label">Pending Transfers</div>
+          <div class="kpi-value">{{ formatNum(alerts.pendingTransfers) }}</div>
+          <div class="alert-sub">Requested / In Transit</div>
+        </div>
+        <div class="kpi-card alert-card" [class]="getAlertClass(alerts.pendingApprovals)" pTooltip="Purchase orders and work orders awaiting approval" tooltipPosition="top">
+          <div class="kpi-label">Pending Approvals</div>
+          <div class="kpi-value">{{ formatNum(alerts.pendingApprovals) }}</div>
+          <div class="alert-sub">POs + Work Orders</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- Health Alerts (Hierarchy Config — Point 3)              -->
+    <!-- ════════════════════════════════════════════════════════ -->
+
+    <!-- Repeat Failure Assets -->
+    @if (repeatTickets.length) {
+      <div class="dashboard-section">
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-replay"></i> Repeat Failure Assets</span>
+          <span class="section-sub">Assets with 2+ tickets in the last 90 days</span>
+        </div>
+        <p-table [value]="repeatTickets" stripedRows [paginator]="repeatTickets.length > 10" [rows]="10">
+          <ng-template #header>
+            <tr>
+              <th>Asset Code</th>
+              <th>Asset Name</th>
+              <th>Department</th>
+              <th style="text-align:right">Tickets (90d)</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-row>
+            <tr>
+              <td><span class="code-badge">{{ row.assetId }}</span></td>
+              <td>{{ row.assetName }}</td>
+              <td>{{ row.department }}</td>
+              <td style="text-align:right; font-weight:700;" class="danger">{{ row.ticketCount }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr><td colspan="4" class="text-center">No repeat failure assets found.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    }
+
+    <!-- SLA Breach Escalation -->
+    @if (slaBreachAlerts && slaBreachAlerts.totalBreachedTickets > 0) {
+      <div class="dashboard-section">
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-exclamation-circle"></i> SLA Breach Escalation</span>
+          <span class="section-sub">{{ slaBreachAlerts.totalBreachedTickets }} active breached tickets</span>
+        </div>
+        @for (dept of slaBreachAlerts.departments; track dept.departmentId) {
+          <div class="breach-dept-group">
+            <div class="breach-dept-header">
+              <strong>{{ dept.departmentName }}</strong>
+              <p-tag [value]="dept.tickets.length + ' breached'" severity="danger"></p-tag>
+            </div>
+            <p-table [value]="dept.tickets" stripedRows>
+              <ng-template #header>
+                <tr>
+                  <th>Ticket #</th>
+                  <th>Title</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Asset</th>
+                  <th>Created</th>
+                </tr>
+              </ng-template>
+              <ng-template #body let-row>
+                <tr>
+                  <td><span class="code-badge">{{ row.ticketNumber }}</span></td>
+                  <td>{{ row.title }}</td>
+                  <td>
+                    <p-tag [value]="row.priority"
+                      [severity]="row.priority === 'CRITICAL' ? 'danger' : row.priority === 'HIGH' ? 'warn' : 'info'"></p-tag>
+                  </td>
+                  <td>{{ row.status }}</td>
+                  <td>{{ row.assetName }}</td>
+                  <td>{{ row.createdAt | date:'dd MMM yyyy' }}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        }
+      </div>
+    }
+
+  } @else if (loading) {
+    <div class="text-center"><i class="pi pi-spin pi-spinner" style="font-size:2rem"></i></div>
+  }
+</div>

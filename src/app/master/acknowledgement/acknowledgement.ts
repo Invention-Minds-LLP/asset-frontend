@@ -10,6 +10,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { AcknowledgementService } from '../../services/acknowledgement/acknowledgement';
 import { Assets } from '../../services/assets/assets';
@@ -28,7 +29,8 @@ import { Assets } from '../../services/assets/assets';
     InputTextModule,
     FloatLabelModule,
     SelectModule,
-    TextareaModule
+    TextareaModule,
+    TooltipModule
   ],
   templateUrl: './acknowledgement.html',
   styleUrl: './acknowledgement.css',

@@ -41,8 +41,8 @@
           <td>{{ i + 1 }}</td>
           <td>{{ dept.name }}</td>
           <td>
-            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" (onClick)="openDeptForm(dept)" />
-            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="deleteDept(dept)" />
+            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openDeptForm(dept)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteDept(dept)" />
           </td>
         </tr>
       </ng-template>
@@ -87,8 +87,8 @@
           <td>{{ i + 1 }}</td>
           <td>{{ branch.name }}</td>
           <td>
-            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" (onClick)="openBranchForm(branch)" />
-            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="deleteBranch(branch)" />
+            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openBranchForm(branch)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteBranch(branch)" />
           </td>
         </tr>
       </ng-template>
@@ -133,8 +133,8 @@
           <td>{{ i + 1 }}</td>
           <td>{{ cat.name }}</td>
           <td>
-            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" (onClick)="openCategoryForm(cat)" />
-            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="deleteCategory(cat)" />
+            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openCategoryForm(cat)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteCategory(cat)" />
           </td>
         </tr>
       </ng-template>
@@ -191,8 +191,8 @@
           <td>{{ vendor.contact || '-' }}</td>
           <td>{{ vendor.email || '-' }}</td>
           <td>
-            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" (onClick)="openVendorForm(vendor)" />
-            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="deleteVendor(vendor)" />
+            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openVendorForm(vendor)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteVendor(vendor)" />
           </td>
         </tr>
       </ng-template>
