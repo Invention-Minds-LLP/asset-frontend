@@ -272,6 +272,7 @@
             <th>Certificate No</th>
             <th>Remarks</th>
             <th>Logged By</th>
+            <th></th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-row>
@@ -283,10 +284,16 @@
             <td>{{ row.certificateNo || '—' }}</td>
             <td class="remarks-cell">{{ row.remarks || '—' }}</td>
             <td>{{ row.createdBy?.name || '—' }}</td>
+            <td>
+              <p-button icon="pi pi-file-pdf" severity="danger" size="small" [text]="true"
+                pTooltip="Download Certificate" tooltipPosition="left"
+                (onClick)="downloadHistoryPdf(row.id)">
+              </p-button>
+            </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="7" class="text-center">{{ historyAssetId ? 'No history found for this asset' : 'Select an asset and click Load History' }}</td></tr>
+          <tr><td colspan="8" class="text-center">{{ historyAssetId ? 'No history found for this asset' : 'Select an asset and click Load History' }}</td></tr>
         </ng-template>
       </p-table>
     </p-tabPanel>

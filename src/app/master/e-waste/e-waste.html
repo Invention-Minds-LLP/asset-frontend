@@ -1,0 +1,430 @@
+<p-toast></p-toast>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- LIST VIEW                                                  -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page-container" *ngIf="!showDetail">
+
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-recycle"></i> E-Waste Management</h2>
+      <p class="subtitle">Post-scrap 3-stage sign-off chain for disposed assets</p>
+    </div>
+    <p-button icon="pi pi-refresh" label="Refresh" severity="secondary" size="small"
+      (onClick)="loadRecords()" [loading]="loading"></p-button>
+  </div>
+
+  <!-- Status filter -->
+  <div class="filter-row">
+    <p-select [options]="statusOptions" optionLabel="label" optionValue="value"
+      [(ngModel)]="statusFilter" placeholder="All Statuses"
+      (ngModelChange)="page=1; loadRecords()" appendTo="body" [showClear]="true"></p-select>
+  </div>
+
+  <!-- Table -->
+  <p-table [value]="records" [loading]="loading" stripedRows>
+    <ng-template #header>
+      <tr>
+        <th style="width:150px">Ref No</th>
+        <th>Asset</th>
+        <th>Category</th>
+        <th>Department</th>
+        <th style="width:160px">Status</th>
+        <th style="width:160px">Sign-off Progress</th>
+        <th style="width:160px">Created</th>
+        <th style="width:60px"></th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td><span class="ref-badge">{{ row.eWasteRefNo }}</span></td>
+        <td>
+          <div class="asset-cell">
+            <span class="asset-id">{{ row.asset?.assetId }}</span>
+            <span class="asset-name">{{ row.asset?.assetName }}</span>
+          </div>
+        </td>
+        <td>{{ row.asset?.assetCategory?.name || '—' }}</td>
+        <td>{{ row.asset?.department?.name || '—' }}</td>
+        <td>
+          <span class="status-chip status-{{ row.status?.toLowerCase() }}">
+            {{ stageLabel(row.status) }}
+          </span>
+        </td>
+        <td>
+          <div class="signoff-progress">
+            <span class="signoff-step" [class.done]="row.hodSignedAt"
+              pTooltip="{{ row.hodSignedAt ? 'HOD: ' + row.hodSignedBy?.name : 'HOD: Pending' }}" tooltipPosition="top">
+              <i class="pi" [class.pi-check-circle]="row.hodSignedAt" [class.pi-circle]="!row.hodSignedAt"></i>
+              <span>HOD</span>
+            </span>
+            <span class="signoff-arrow">›</span>
+            <span class="signoff-step" [class.done]="row.operationsSignedAt"
+              pTooltip="{{ row.operationsSignedAt ? 'Ops: ' + row.operationsSignedBy?.name : 'Operations: Pending' }}" tooltipPosition="top">
+              <i class="pi" [class.pi-check-circle]="row.operationsSignedAt" [class.pi-circle]="!row.operationsSignedAt"></i>
+              <span>Ops</span>
+            </span>
+            <span class="signoff-arrow">›</span>
+            <span class="signoff-step" [class.done]="row.securitySignedAt"
+              pTooltip="{{ row.securitySignedAt ? 'Security: ' + row.securitySignedBy?.name : 'Security: Pending' }}" tooltipPosition="top">
+              <i class="pi" [class.pi-check-circle]="row.securitySignedAt" [class.pi-circle]="!row.securitySignedAt"></i>
+              <span>Sec</span>
+            </span>
+          </div>
+        </td>
+        <td style="font-size:0.8rem;color:var(--text-color-secondary);white-space:nowrap">{{ formatDate(row.createdAt) }}</td>
+        <td>
+          <p-button icon="pi pi-eye" [text]="true" size="small" pTooltip="View Details"
+            (onClick)="openDetail(row)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-color-secondary)">No e-waste records found.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- DETAIL VIEW                                                -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page-container" *ngIf="showDetail">
+
+  <div class="page-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <p-button icon="pi pi-arrow-left" [text]="true" (onClick)="showDetail=false"></p-button>
+      <div>
+        <h2 style="margin:0"><i class="pi pi-recycle"></i> {{ selectedRecord?.eWasteRefNo }}</h2>
+        <p class="subtitle" style="margin:0">{{ selectedRecord?.asset?.assetName }}</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px" *ngIf="selectedRecord?.status === 'CLOSED'">
+      <p-button icon="pi pi-print" label="Print Certificate" severity="success" size="small"
+        (onClick)="printCertificate()"></p-button>
+    </div>
+  </div>
+
+  <div *ngIf="detailLoading" style="text-align:center;padding:3rem">
+    <i class="pi pi-spin pi-spinner" style="font-size:2rem"></i>
+  </div>
+
+  <div *ngIf="!detailLoading && selectedRecord">
+
+    <!-- Asset info strip -->
+    <div class="info-strip">
+      <div class="info-item"><span class="il">Asset ID</span><span class="iv">{{ selectedRecord.asset?.assetId }}</span></div>
+      <div class="info-item"><span class="il">Asset Name</span><span class="iv">{{ selectedRecord.asset?.assetName }}</span></div>
+      <div class="info-item"><span class="il">Category</span><span class="iv">{{ selectedRecord.asset?.assetCategory?.name || '—' }}</span></div>
+      <div class="info-item"><span class="il">Department</span><span class="iv">{{ selectedRecord.asset?.department?.name || '—' }}</span></div>
+      <div class="info-item"><span class="il">Disposal Ref</span><span class="iv">#{{ selectedRecord.assetDisposal?.id }}</span></div>
+      <div class="info-item"><span class="il">Scrap Value</span><span class="iv">₹{{ selectedRecord.assetDisposal?.actualSaleValue || '—' }}</span></div>
+    </div>
+
+    <!-- Recycler / condition info -->
+    <div class="detail-card" *ngIf="selectedRecord.recyclerName || selectedRecord.dataWiped">
+      <h3 class="card-title"><i class="pi pi-building"></i> Recycler & Condition Details</h3>
+      <div class="detail-grid">
+        <div *ngIf="selectedRecord.assetCondition"><span class="dl">Asset Condition</span><span class="dv">{{ selectedRecord.assetCondition }}</span></div>
+        <div *ngIf="selectedRecord.dataWiped != null"><span class="dl">Data Wiped</span><span class="dv">{{ selectedRecord.dataWiped ? 'Yes' : 'No' }}</span></div>
+        <div *ngIf="selectedRecord.dataWipeMethod"><span class="dl">Wipe Method</span><span class="dv">{{ selectedRecord.dataWipeMethod }}</span></div>
+        <div *ngIf="selectedRecord.recyclerName"><span class="dl">Recycler</span><span class="dv">{{ selectedRecord.recyclerName }}</span></div>
+        <div *ngIf="selectedRecord.recyclerAuthNo"><span class="dl">Auth No (CPCB)</span><span class="dv">{{ selectedRecord.recyclerAuthNo }}</span></div>
+        <div *ngIf="selectedRecord.recyclerContact"><span class="dl">Recycler Contact</span><span class="dv">{{ selectedRecord.recyclerContact }}</span></div>
+        <div *ngIf="selectedRecord.handoverDate"><span class="dl">Handover Date</span><span class="dv">{{ formatDate(selectedRecord.handoverDate) }}</span></div>
+        <div *ngIf="selectedRecord.gatePassNo"><span class="dl">Gate Pass No</span><span class="dv">{{ selectedRecord.gatePassNo }}</span></div>
+      </div>
+
+      <!-- Recycler Certificate Upload -->
+      <div class="cert-upload-row">
+        <div class="cert-upload-label">
+          <i class="pi pi-file-pdf"></i>
+          <span>Recycler-Issued Certificate</span>
+        </div>
+        <div class="cert-upload-actions">
+          <a *ngIf="recyclerCertUrl" [href]="recyclerCertUrl" target="_blank" class="cert-view-link">
+            <i class="pi pi-eye"></i> View Certificate
+          </a>
+          <label class="cert-upload-btn" [class.loading]="certUploading">
+            <i class="pi" [class.pi-upload]="!certUploading" [class.pi-spin]="certUploading" [class.pi-spinner]="certUploading"></i>
+            {{ recyclerCertUrl ? 'Replace' : 'Upload Certificate' }}
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="uploadRecyclerCert($event)" [disabled]="certUploading" hidden />
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3-Stage Stepper ── -->
+    <div class="stepper">
+
+      <!-- Stage 1: HOD -->
+      <div class="step" [class.step-done]="selectedRecord.hodSignedAt"
+           [class.step-active]="selectedRecord.status === 'PENDING_HOD'">
+        <div class="step-connector-top"></div>
+        <div class="step-icon">
+          <i class="pi" [class.pi-check]="selectedRecord.hodSignedAt"
+             [class.pi-user]="!selectedRecord.hodSignedAt"></i>
+        </div>
+        <div class="step-body">
+          <div class="step-header">
+            <span class="step-title">Stage 1 — Asset HOD</span>
+            <span *ngIf="selectedRecord.hodSignedAt" class="step-done-badge">Signed</span>
+            <span *ngIf="!selectedRecord.hodSignedAt && selectedRecord.status === 'PENDING_HOD'" class="step-pending-badge">Awaiting</span>
+          </div>
+
+          <!-- Signed: show signature image + details -->
+          <div class="sign-result" *ngIf="selectedRecord.hodSignedAt">
+            <img [src]="selectedRecord.hodSignature" class="signature-img" alt="HOD Signature" />
+            <div class="sign-meta">
+              <strong>{{ selectedRecord.hodSignedBy?.name }}</strong>
+              <span>{{ formatDate(selectedRecord.hodSignedAt) }}</span>
+              <span *ngIf="selectedRecord.hodRemarks" class="sign-remarks">"{{ selectedRecord.hodRemarks }}"</span>
+            </div>
+          </div>
+
+          <!-- Not yet signed: show sign button -->
+          <div *ngIf="!selectedRecord.hodSignedAt">
+            <p class="step-desc">Verify asset condition, confirm data wipe, and approve handover to recycler.</p>
+            <p-button *ngIf="canSignHOD()" label="Sign & Seal" icon="pi pi-pencil"
+              (onClick)="openSignDialog('HOD')" size="small"></p-button>
+            <p class="waiting-msg" *ngIf="!canSignHOD()">Waiting for HOD to sign.</p>
+          </div>
+        </div>
+        <div class="step-connector-bottom"></div>
+      </div>
+
+      <!-- Stage 2: Operations -->
+      <div class="step" [class.step-done]="selectedRecord.operationsSignedAt"
+           [class.step-active]="selectedRecord.status === 'PENDING_OPERATIONS'">
+        <div class="step-connector-top"></div>
+        <div class="step-icon">
+          <i class="pi" [class.pi-check]="selectedRecord.operationsSignedAt"
+             [class.pi-cog]="!selectedRecord.operationsSignedAt"></i>
+        </div>
+        <div class="step-body">
+          <div class="step-header">
+            <span class="step-title">Stage 2 — Operations</span>
+            <span *ngIf="selectedRecord.operationsSignedAt" class="step-done-badge">Signed</span>
+            <span *ngIf="!selectedRecord.operationsSignedAt && selectedRecord.status === 'PENDING_OPERATIONS'" class="step-pending-badge">Awaiting</span>
+          </div>
+
+          <div class="sign-result" *ngIf="selectedRecord.operationsSignedAt">
+            <img [src]="selectedRecord.operationsSignature" class="signature-img" alt="Operations Signature" />
+            <div class="sign-meta">
+              <strong>{{ selectedRecord.operationsSignedBy?.name }}</strong>
+              <span>{{ formatDate(selectedRecord.operationsSignedAt) }}</span>
+              <span *ngIf="selectedRecord.operationsRemarks" class="sign-remarks">"{{ selectedRecord.operationsRemarks }}"</span>
+            </div>
+          </div>
+
+          <div *ngIf="!selectedRecord.operationsSignedAt">
+            <p class="step-desc">Confirm physical decommissioning and verify recycler authorization details.</p>
+            <p-button *ngIf="canSignOperations()" label="Sign & Seal" icon="pi pi-pencil"
+              (onClick)="openSignDialog('OPERATIONS')" size="small"></p-button>
+            <p class="waiting-msg" *ngIf="!canSignOperations()">
+              {{ selectedRecord.status === 'PENDING_HOD' ? 'Waiting for HOD to sign first.' : 'Waiting for Operations to sign.' }}
+            </p>
+          </div>
+        </div>
+        <div class="step-connector-bottom"></div>
+      </div>
+
+      <!-- Stage 3: Security -->
+      <div class="step" [class.step-done]="selectedRecord.securitySignedAt"
+           [class.step-active]="selectedRecord.status === 'PENDING_SECURITY'">
+        <div class="step-connector-top"></div>
+        <div class="step-icon">
+          <i class="pi" [class.pi-check]="selectedRecord.securitySignedAt"
+             [class.pi-shield]="!selectedRecord.securitySignedAt"></i>
+        </div>
+        <div class="step-body">
+          <div class="step-header">
+            <span class="step-title">Stage 3 — Security</span>
+            <span *ngIf="selectedRecord.securitySignedAt" class="step-done-badge">Signed</span>
+            <span *ngIf="!selectedRecord.securitySignedAt && selectedRecord.status === 'PENDING_SECURITY'" class="step-pending-badge">Awaiting</span>
+          </div>
+
+          <div class="sign-result" *ngIf="selectedRecord.securitySignedAt">
+            <img [src]="selectedRecord.securitySignature" class="signature-img" alt="Security Signature" />
+            <div class="sign-meta">
+              <strong>{{ selectedRecord.securitySignedBy?.name }}</strong>
+              <span>{{ formatDate(selectedRecord.securitySignedAt) }}</span>
+              <span *ngIf="selectedRecord.gatePassNo" class="sign-remarks">Gate Pass: {{ selectedRecord.gatePassNo }}</span>
+              <span *ngIf="selectedRecord.securityRemarks" class="sign-remarks">"{{ selectedRecord.securityRemarks }}"</span>
+            </div>
+          </div>
+
+          <div *ngIf="!selectedRecord.securitySignedAt">
+            <p class="step-desc">Confirm asset has physically left premises. Record gate pass number.</p>
+            <p-button *ngIf="canSignSecurity()" label="Sign & Seal" icon="pi pi-pencil"
+              (onClick)="openSignDialog('SECURITY')" size="small"></p-button>
+            <p class="waiting-msg" *ngIf="!canSignSecurity()">
+              {{ selectedRecord.status !== 'PENDING_SECURITY' ? 'Waiting for earlier stages to complete.' : 'Waiting for Security to sign.' }}
+            </p>
+          </div>
+        </div>
+        <div class="step-connector-bottom" style="display:none"></div>
+      </div>
+
+    </div><!-- /stepper -->
+
+    <!-- Closed banner -->
+    <div class="closed-banner" *ngIf="selectedRecord.status === 'CLOSED'">
+      <i class="pi pi-check-circle"></i>
+      <div>
+        <strong>E-Waste Record Closed</strong>
+        <span>All three stages signed. Closed on {{ formatDate(selectedRecord.closedAt) }}</span>
+      </div>
+      <p-button icon="pi pi-print" label="Print Certificate" severity="success" size="small"
+        (onClick)="printCertificate()" [ngStyle]="{'margin-left': 'auto'}"></p-button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- SIGN DIALOG                                                -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<p-dialog [(visible)]="showSignDialog" [modal]="true" [style]="{width:'580px'}"
+  [header]="'Sign & Seal — Stage ' + (signStage === 'HOD' ? '1 (HOD)' : signStage === 'OPERATIONS' ? '2 (Operations)' : '3 (Security)')"
+  [closable]="!signSaving" (onHide)="onSignDialogHide()">
+
+  <div class="sign-dialog-body">
+
+    <!-- HOD-specific fields -->
+    <div *ngIf="signStage === 'HOD'" class="sign-fields">
+      <div class="two-fields">
+        <p-floatlabel variant="on">
+          <p-select [options]="assetConditionOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="signAssetCondition" appendTo="body"></p-select>
+          <label>Asset Condition</label>
+        </p-floatlabel>
+        <div class="checkbox-row">
+          <p-checkbox [(ngModel)]="signDataWiped" [binary]="true" inputId="dw"></p-checkbox>
+          <label for="dw">Data Wiped / Sanitised</label>
+        </div>
+      </div>
+      <p-floatlabel variant="on" class="full-field" *ngIf="signDataWiped">
+        <p-select [options]="dataWipeMethodOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="signDataWipeMethod" appendTo="body"></p-select>
+        <label>Wipe Method</label>
+      </p-floatlabel>
+      <div class="two-fields">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="signRecyclerName" name="recyclerName" />
+          <label>Recycler Name</label>
+        </p-floatlabel>
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="signRecyclerAuthNo" name="recyclerAuthNo" />
+          <label>CPCB Auth No</label>
+        </p-floatlabel>
+      </div>
+      <div class="two-fields">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="signRecyclerContact" name="recyclerContact" />
+          <label>Recycler Contact</label>
+        </p-floatlabel>
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="signHandoverDate" appendTo="body" dateFormat="dd/mm/yy"></p-datepicker>
+          <label>Handover Date</label>
+        </p-floatlabel>
+      </div>
+    </div>
+
+    <!-- Security-specific field -->
+    <div *ngIf="signStage === 'SECURITY'" class="sign-fields">
+      <p-floatlabel variant="on" class="full-field">
+        <input pInputText [(ngModel)]="signGatePassNo" name="gatePassNo" />
+        <label>Gate Pass Number *</label>
+      </p-floatlabel>
+    </div>
+
+    <!-- Remarks (all stages) -->
+    <p-floatlabel variant="on" class="full-field" style="margin-bottom:16px">
+      <input pInputText [(ngModel)]="signRemarks" name="remarks" />
+      <label>Remarks</label>
+    </p-floatlabel>
+
+    <!-- Signature pad -->
+    <div class="sig-pad-label">Draw your signature below</div>
+    <div class="sig-pad-container">
+      <canvas #sigCanvas class="sig-canvas"></canvas>
+    </div>
+    <div class="sig-pad-actions">
+      <p-button icon="pi pi-eraser" label="Clear" severity="secondary" [text]="true"
+        size="small" (onClick)="clearPad()"></p-button>
+      <small class="sig-hint">Use mouse or touch to draw your signature</small>
+    </div>
+
+  </div>
+
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" [text]="true"
+      (onClick)="showSignDialog=false" [disabled]="signSaving"></p-button>
+    <p-button label="Sign & Seal" icon="pi pi-check" [loading]="signSaving"
+      [disabled]="isSignEmpty" (onClick)="submitSign()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- PRINTABLE CERTIFICATE (hidden until print)                 -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="certificate-wrapper ewaste-print-target" *ngIf="showCertificate && selectedRecord?.status === 'CLOSED'">
+  <div class="certificate">
+    <div class="cert-header">
+      <h1>E-Waste Disposal Certificate</h1>
+      <p>This certifies that the asset described below has been disposed of as e-waste in compliance with applicable regulations.</p>
+    </div>
+
+    <div class="cert-ref-row">
+      <span><strong>Ref No:</strong> {{ selectedRecord.eWasteRefNo }}</span>
+      <span><strong>Closed On:</strong> {{ formatDate(selectedRecord.closedAt) }}</span>
+    </div>
+
+    <table class="cert-table">
+      <tr><td class="ct-label">Asset ID</td><td>{{ selectedRecord.asset?.assetId }}</td>
+          <td class="ct-label">Asset Name</td><td>{{ selectedRecord.asset?.assetName }}</td></tr>
+      <tr><td class="ct-label">Category</td><td>{{ selectedRecord.asset?.assetCategory?.name }}</td>
+          <td class="ct-label">Department</td><td>{{ selectedRecord.asset?.department?.name }}</td></tr>
+      <tr><td class="ct-label">Condition</td><td>{{ selectedRecord.assetCondition || '—' }}</td>
+          <td class="ct-label">Data Wiped</td><td>{{ selectedRecord.dataWiped ? 'Yes — ' + (selectedRecord.dataWipeMethod || '') : 'No' }}</td></tr>
+      <tr><td class="ct-label">Recycler</td><td>{{ selectedRecord.recyclerName || '—' }}</td>
+          <td class="ct-label">CPCB Auth No</td><td>{{ selectedRecord.recyclerAuthNo || '—' }}</td></tr>
+      <tr><td class="ct-label">Handover Date</td><td>{{ formatDate(selectedRecord.handoverDate) }}</td>
+          <td class="ct-label">Gate Pass No</td><td>{{ selectedRecord.gatePassNo || '—' }}</td></tr>
+    </table>
+
+    <!-- Signature block -->
+    <div class="cert-sign-row">
+
+      <div class="cert-sign-block">
+        <div class="cert-sign-title">Stage 1 — Asset HOD</div>
+        <img [src]="selectedRecord.hodSignature" class="cert-sig-img" alt="HOD Signature" />
+        <div class="cert-sign-name">{{ selectedRecord.hodSignedBy?.name }}</div>
+        <div class="cert-sign-date">{{ formatDate(selectedRecord.hodSignedAt) }}</div>
+        <div class="cert-sign-remarks" *ngIf="selectedRecord.hodRemarks">{{ selectedRecord.hodRemarks }}</div>
+      </div>
+
+      <div class="cert-sign-block">
+        <div class="cert-sign-title">Stage 2 — Operations</div>
+        <img [src]="selectedRecord.operationsSignature" class="cert-sig-img" alt="Operations Signature" />
+        <div class="cert-sign-name">{{ selectedRecord.operationsSignedBy?.name }}</div>
+        <div class="cert-sign-date">{{ formatDate(selectedRecord.operationsSignedAt) }}</div>
+        <div class="cert-sign-remarks" *ngIf="selectedRecord.operationsRemarks">{{ selectedRecord.operationsRemarks }}</div>
+      </div>
+
+      <div class="cert-sign-block">
+        <div class="cert-sign-title">Stage 3 — Security</div>
+        <img [src]="selectedRecord.securitySignature" class="cert-sig-img" alt="Security Signature" />
+        <div class="cert-sign-name">{{ selectedRecord.securitySignedBy?.name }}</div>
+        <div class="cert-sign-date">{{ formatDate(selectedRecord.securitySignedAt) }}</div>
+        <div class="cert-sign-remarks" *ngIf="selectedRecord.securityRemarks">{{ selectedRecord.securityRemarks }}</div>
+      </div>
+
+    </div>
+
+    <div class="cert-footer">
+      <span *ngIf="recyclerCertUrl">Recycler certificate on file: {{ recyclerCertUrl }} &nbsp;|&nbsp;</span>
+      This document is auto-generated by the Smart Assets system and constitutes an official record of e-waste disposal.
+    </div>
+  </div>
+</div>

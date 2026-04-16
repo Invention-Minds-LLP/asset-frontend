@@ -60,6 +60,93 @@
     padding: 2rem;
     color: var(--text-color-secondary);
 }
+
+.num-r {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.dep-amt {
+    color: #e53935;
+    font-weight: 600;
+}
+
+.kpi-card.kpi-warn {
+    border-left: 4px solid #f59e0b;
+}
+
+.access-notice {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 1.25rem;
+    color: #795548;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.access-notice.small {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+.draft-note {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 1rem;
+    color: #1565c0;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.action-btns {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Reject dialog overlay */
+.reject-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reject-dialog {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 420px;
+    max-width: 95vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+
+.reject-dialog h3 {
+    margin: 0 0 0.75rem 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.15rem;
+}
+
+.reject-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 1rem;
+}
 ::ng-deep .custom-tabs .p-tabview-nav {
   display: flex !important;
   justify-content: center;
@@ -137,3 +224,44 @@
   font-weight: 400 !important;
   text-transform: capitalize;
 }
+
+/* ── WDV Schedule ─────────────────────────────────────── */
+.wdv-info { background:#e3f2fd; border-left:4px solid #1565C0; padding:0.6rem 1rem; border-radius:4px; margin-bottom:1rem; font-size:0.88rem; display:flex; align-items:center; gap:8px; }
+
+.roundoff-badge { display:inline-flex; align-items:center; gap:6px; padding:0.35rem 0.8rem; border-radius:20px; font-size:0.82rem; font-weight:600; margin-bottom:0.75rem; background:#f5f5f5; color:#888; border:1px solid #ddd; }
+.roundoff-badge.roundoff-on { background:#e8f5e9; color:#2e7d32; border-color:#a5d6a7; }
+
+.schedule-legend { display:flex; gap:1.25rem; margin-bottom:0.5rem; font-size:0.8rem; }
+.legend-item { display:flex; align-items:center; gap:4px; }
+.legend-item.completed { color:#2e7d32; }
+.legend-item.current   { color:#e65100; font-weight:700; }
+.legend-item.future    { color:#888; }
+
+/* Row colouring via ngClass */
+::ng-deep .row-completed td { background:#f1f8e9 !important; color:#558b2f; }
+::ng-deep .row-current   td { background:#fff3e0 !important; font-weight:700; color:#e65100; }
+::ng-deep .row-future    td { color:#9e9e9e; }
+
+/* Round-off row in asset form */
+.roundoff-row { display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap; padding:0.5rem 0; }
+.roundoff-toggle { display:flex; align-items:center; gap:0.5rem; }
+.roundoff-toggle label { cursor:pointer; font-size:0.88rem; }
+.roundoff-hint { display:block; font-size:0.75rem; font-weight:400; color:#aaa; }
+
+/* ── Round-off Impact ─────────────────────────────────── */
+.raw-amt { font-family: monospace; color: #555; }
+
+.impact-banner { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
+  gap:0.75rem; padding:0.85rem 1.1rem; border-radius:8px; margin-bottom:1rem;
+  border-left:4px solid #aaa; background:#f9f9f9; }
+.impact-banner.impact-low    { background:#e8f5e9; border-color:#2e7d32; }
+.impact-banner.impact-medium { background:#fff8e1; border-color:#f9a825; }
+.impact-banner.impact-high   { background:#fce4ec; border-color:#c62828; }
+
+.impact-banner-left  { display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; font-size:0.88rem; }
+.impact-banner-right { display:flex; flex-direction:column; gap:0.3rem; font-size:0.82rem; }
+
+.rounding-stat        { display:flex; align-items:center; gap:5px; }
+.rounding-stat.up     { color:#c62828; }
+.rounding-stat.down   { color:#2e7d32; }
+.rounding-stat.exact  { color:#888; }

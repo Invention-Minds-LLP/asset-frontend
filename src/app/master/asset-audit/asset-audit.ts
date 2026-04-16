@@ -46,8 +46,14 @@ export class AssetAudit implements OnInit {
 
   // Create dialog
   showCreateDialog = false;
-  createForm: any = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null };
+  createForm: any = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null, floor: null, block: null, room: null };
   createLoading = false;
+
+  // Location options
+  locationFloors: string[] = [];
+  locationBlocks: string[] = [];
+  locationRooms: string[] = [];
+  locationsLoading = false;
 
   startingAudit = false;
   completingAudit = false;
@@ -79,6 +85,22 @@ export class AssetAudit implements OnInit {
 
   ngOnInit() {
     this.loadAudits();
+    this.loadLocationOptions();
+  }
+
+  loadLocationOptions() {
+    this.locationsLoading = true;
+    this.auditService.getLocationOptions().subscribe({
+      next: (res: any) => {
+        const d = res.data || res;
+        this.locationFloors = d.floors || [];
+        this.locationBlocks = d.blocks || [];
+        this.locationRooms  = d.rooms  || [];
+        this.locationsLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.locationsLoading = false; }
+    });
   }
 
   loadAudits() {
@@ -104,7 +126,7 @@ export class AssetAudit implements OnInit {
 
   // Create
   openCreateDialog() {
-    this.createForm = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null };
+    this.createForm = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null, floor: null, block: null, room: null };
     this.showCreateDialog = true;
   }
 
@@ -293,6 +315,12 @@ export class AssetAudit implements OnInit {
       case 'PENDING': return 'warn';
       default: return 'secondary';
     }
+  }
+
+  getScopeLabel(): string {
+    return [this.createForm.floor, this.createForm.block, this.createForm.room]
+      .filter(v => v != null && v !== '')
+      .join(' / ');
   }
 
   getProgressPercent(): number {

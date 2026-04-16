@@ -9,6 +9,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { DatePickerModule } from 'primeng/datepicker';
 import { MessageService } from 'primeng/api';
+import { RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics/analytics';
 import { forkJoin } from 'rxjs';
 
@@ -16,7 +17,7 @@ import { forkJoin } from 'rxjs';
   selector: 'app-coo-dashboard',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
+    CommonModule, FormsModule, RouterLink, ButtonModule, TableModule, TagModule,
     ToastModule, TooltipModule, SelectButtonModule, DatePickerModule,
   ],
   templateUrl: './coo-dashboard.html',
@@ -85,7 +86,6 @@ export class CooDashboard implements OnInit {
   get fleet(): any { return this.data?.fleetHealth ?? {}; }
   get financial(): any { return this.data?.financialSummary ?? {}; }
   get tickets(): any { return this.data?.ticketOperations ?? {}; }
-  get workOrders(): any { return this.data?.workOrderThroughput ?? {}; }
   get pm(): any { return this.data?.pmCompliance ?? {}; }
   get deptPerformance(): any[] { return this.data?.departmentPerformance ?? []; }
   get alerts(): any { return this.data?.criticalAlerts ?? {}; }

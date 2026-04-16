@@ -1,0 +1,48 @@
+.je-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; }
+h2 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.subtitle { color: var(--p-text-muted-color, #6b7280); font-size: 0.9rem; margin: 0.25rem 0 0; }
+.divider-container { margin: 1rem 0; }
+.divider { border: none; border-top: 1px solid var(--p-content-border-color, #e5e7eb); }
+.filters-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.empty-msg { text-align: center; color: #6b7280; padding: 2rem; }
+.narration-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.dialog-form { display: flex; flex-direction: column; gap: 1.2rem; padding: 0.5rem 0; }
+.two-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.lines-section { border: 1px solid var(--p-content-border-color, #e5e7eb); border-radius: 8px; overflow: hidden; }
+.lines-header { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem; background: var(--p-content-hover-background, #f9fafb); }
+.lines-title { font-weight: 600; font-size: 0.9rem; }
+.lines-table { width: 100%; border-collapse: collapse; }
+.lines-table th { padding: 0.5rem 0.75rem; font-size: 0.8rem; background: var(--p-content-hover-background, #f9fafb); text-align: left; border-bottom: 1px solid var(--p-content-border-color, #e5e7eb); }
+.lines-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--p-content-border-color, #e5e7eb); }
+.amount-input { width: 100px; }
+.narr-input { width: 120px; }
+.total-label { font-weight: 600; padding: 0.6rem 0.75rem; }
+.totals-row { display: flex; gap: 1rem; align-items: center; }
+.total-item { font-size: 0.85rem; font-weight: 500; }
+.balance-indicator { font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 4px; }
+.balance-indicator.balanced { color: #16a34a; background: #dcfce7; }
+.balance-indicator.unbalanced { color: #dc2626; background: #fee2e2; }
+
+.detail-meta { margin-bottom: 1rem; }
+.narration-text { color: #6b7280; font-size: 0.9rem; margin-top: 0.3rem; }
+.text-right { text-align: right; }
+input[pInputText],
+.p-inputtext,
+.p-select,
+.p-dropdown,
+.p-datepicker {
+  width: 100% !important;
+  height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+
+.p-textarea {
+  width: 100% !important;
+  min-height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}

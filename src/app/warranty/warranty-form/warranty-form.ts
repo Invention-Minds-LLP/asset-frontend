@@ -1,16 +1,13 @@
 import { Component, Input } from '@angular/core';
 import { InputTextModule } from 'primeng/inputtext';
-import { FormsModule, NgForm, NgModel, Validators } from '@angular/forms';
-import { FloatLabel } from 'primeng/floatlabel';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, Validators } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
 import { CommonModule } from '@angular/common';
 import { FormBuilder } from '@angular/forms';
-import { CalendarModule } from 'primeng/calendar'; // Changed from DatePicker to CalendarModule
+import { CalendarModule } from 'primeng/calendar';
 import { SelectModule } from 'primeng/select';
-import { DragAndDrop } from '../../drag-and-drop/drag-and-drop';
-import { ActivatedRoute } from '@angular/router';
 import { Warranty } from '../../services/warranty/warranty';
 import { ChangeDetectorRef } from '@angular/core';
 import { MessageService } from 'primeng/api'; // Import MessageService for notifications
@@ -22,21 +19,16 @@ import { MaintenanceHistory } from '../../services/maintenance-history/maintenan
 import { TabViewModule } from 'primeng/tabview';
 import { MessageModule } from 'primeng/message';
 import { TextareaModule } from 'primeng/textarea';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { SimpleChanges } from '@angular/core';
 import { Assets } from '../../services/assets/assets';
 
 
-interface SelectOption {
-   name: string;
-   value: boolean;
-}
-
-
 @Component({
    selector: 'app-warranty-form',
-   imports: [FormsModule, InputTextModule, FloatLabel, ReactiveFormsModule, ButtonModule, DatePicker, CommonModule,
-      CalendarModule, SelectModule, ToastModule, DragAndDrop, DividerModule, TableModule, TabViewModule, MessageModule,
-      TextareaModule,],
+   imports: [FormsModule, InputTextModule, ReactiveFormsModule, ButtonModule, DatePicker, CommonModule,
+      CalendarModule, SelectModule, ToastModule, DividerModule, TableModule, TabViewModule, MessageModule,
+      TextareaModule, InputNumberModule,],
    templateUrl: './warranty-form.html',
    styleUrl: './warranty-form.css'
 })
@@ -122,8 +114,17 @@ export class WarrantyForm {
 
    contractSelectOptions: { label: string; value: number }[] = [];
    performedByTypeOptions = [
-      { label: 'Vendor', value: 'VENDOR' },
-      { label: 'Internal Staff', value: 'INTERNAL' },
+      { label: 'Internal Staff',          value: 'INTERNAL' },
+      { label: 'Vendor (master record)',   value: 'VENDOR' },
+      { label: 'External Service Center', value: 'EXTERNAL_SERVICE' },
+   ];
+
+   serviceTypeOptions = [
+      { label: 'Warranty',  value: 'WARRANTY' },
+      { label: 'AMC',       value: 'AMC' },
+      { label: 'CMC',       value: 'CMC' },
+      { label: 'Paid',      value: 'PAID' },
+      { label: 'Internal',  value: 'INTERNAL' },
    ];
    yesNoTriOptions = [
       { label: 'Yes', value: true },
@@ -156,13 +157,17 @@ export class WarrantyForm {
       if (!this.assetId) return;
 
       this.serviceForm = this.fb.group({
-         scheduledDue: [null],
-         actualDoneAt: [null, Validators.required],
-         performedByType: ['VENDOR', Validators.required],
-         performedById: [null],
-         performedByName: [''],
-         notes: [''],
-         serviceContractId: [null], // optional 
+         scheduledDue:         [null],
+         actualDoneAt:         [null, Validators.required],
+         performedByType:      ['VENDOR', Validators.required],
+         performedById:        [null],
+         performedByName:      [''],
+         externalServiceCenter:[''],
+         serviceType:          [null],
+         serviceCost:          [null],
+         partsCost:            [null],
+         notes:                [''],
+         serviceContractId:    [null],
       });
 
       // this.loadAll();
@@ -513,30 +518,47 @@ export class WarrantyForm {
 
       const v = this.serviceForm.value;
 
+      // Resolve performedBy display name
       let performedBy = '';
       if (v.performedByType === 'VENDOR') {
-         const vendor = this.vendors.find(x => x.id === v.performedById);
+         const vendor = this.vendors.find((x: any) => x.id === v.performedById);
          performedBy = vendor?.name || '';
+         if (!performedBy) {
+            this.msg.add({ severity: 'warn', summary: 'Required', detail: 'Please select a vendor' });
+            return;
+         }
+      } else if (v.performedByType === 'EXTERNAL_SERVICE') {
+         performedBy = (v.externalServiceCenter || '').trim();
+         if (!performedBy) {
+            this.msg.add({ severity: 'warn', summary: 'Required', detail: 'Please enter the service center name' });
+            return;
+         }
       } else {
          performedBy = (v.performedByName || '').trim();
-      }
-
-      if (!performedBy) {
-         this.msg.add({ severity: 'warn', summary: 'Required', detail: 'Performed By is required' });
-         return;
+         if (!performedBy) {
+            this.msg.add({ severity: 'warn', summary: 'Required', detail: 'Please enter the staff name' });
+            return;
+         }
       }
 
       const formData = new FormData();
-      formData.append('assetId', this.assetId); // ✅ string assetId
+      formData.append('assetId', this.assetId);
       formData.append('scheduledDue', v.scheduledDue ? new Date(v.scheduledDue).toISOString() : new Date().toISOString());
       formData.append('actualDoneAt', new Date(v.actualDoneAt).toISOString());
       formData.append('performedBy', performedBy);
+      formData.append('performedByType', v.performedByType);
       formData.append('notes', v.notes || '');
-      formData.append('wasLate', 'false'); // backend can compute too if you want
 
-      if (v.serviceContractId) {
-         formData.append('serviceContractId', String(v.serviceContractId)); // ✅ if backend accepts it
+      if (v.performedByType === 'VENDOR' && v.performedById) {
+         formData.append('vendorId', String(v.performedById));
       }
+      if (v.performedByType === 'EXTERNAL_SERVICE' && v.externalServiceCenter) {
+         formData.append('externalServiceCenter', v.externalServiceCenter);
+      }
+      if (v.serviceType)   formData.append('serviceType', v.serviceType);
+      if (v.serviceCost != null) formData.append('serviceCost', String(v.serviceCost));
+      if (v.partsCost  != null)  formData.append('partsCost',   String(v.partsCost));
+      if (v.serviceContractId)   formData.append('serviceContractId', String(v.serviceContractId));
 
       if (this.selectedFile) {
          formData.append('file', this.selectedFile);

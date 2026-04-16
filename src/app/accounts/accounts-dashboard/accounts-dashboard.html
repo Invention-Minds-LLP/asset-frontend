@@ -1,0 +1,127 @@
+<div class="accounts-dashboard-container">
+  <h2>Accounts Dashboard</h2>
+  <p class="subtitle">Overview of all financial vouchers and entries</p>
+  <div class="divider-container"><hr class="divider" /></div>
+
+  <div *ngIf="loading" class="loading-msg">Loading summary...</div>
+
+  <div *ngIf="!loading && summary" class="kpi-grid">
+    <!-- Purchase Vouchers KPI -->
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="pi pi-file-edit"></i></div>
+      <div class="kpi-content">
+        <div class="kpi-label">Purchase Vouchers</div>
+        <div class="kpi-value">{{ summary.purchaseVouchers.total }}</div>
+        <div class="kpi-sub">Posted: {{ summary.purchaseVouchers.posted }} &nbsp;|&nbsp; Pending: {{ summary.purchaseVouchers.pending }}</div>
+        <div class="kpi-amount">₹{{ summary.purchaseVouchers.postedAmount | number:'1.2-2' }}</div>
+      </div>
+    </div>
+
+    <!-- Payment Vouchers KPI -->
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="pi pi-credit-card"></i></div>
+      <div class="kpi-content">
+        <div class="kpi-label">Payment Vouchers</div>
+        <div class="kpi-value">{{ summary.paymentVouchers.total }}</div>
+        <div class="kpi-sub">Posted: {{ summary.paymentVouchers.posted }} &nbsp;|&nbsp; Pending: {{ summary.paymentVouchers.pending }}</div>
+        <div class="kpi-amount">₹{{ summary.paymentVouchers.postedAmount | number:'1.2-2' }}</div>
+      </div>
+    </div>
+
+    <!-- Journal Entries KPI -->
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="pi pi-book"></i></div>
+      <div class="kpi-content">
+        <div class="kpi-label">Journal Entries</div>
+        <div class="kpi-value">{{ summary.journalEntries.total }}</div>
+        <div class="kpi-sub">Auto + Manual entries</div>
+      </div>
+    </div>
+
+    <!-- Chart of Accounts KPI -->
+    <div class="kpi-card">
+      <div class="kpi-icon"><i class="pi pi-list"></i></div>
+      <div class="kpi-content">
+        <div class="kpi-label">Chart of Accounts</div>
+        <div class="kpi-value">{{ summary.chartOfAccounts.total }}</div>
+        <div class="kpi-sub">Active accounts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick navigation cards -->
+  <div class="quick-nav-grid">
+    <a routerLink="/accounts/chart-of-accounts" class="quick-nav-card">
+      <i class="pi pi-list"></i>
+      <span>Chart of Accounts</span>
+    </a>
+    <a routerLink="/accounts/purchase-vouchers" class="quick-nav-card">
+      <i class="pi pi-file-edit"></i>
+      <span>Purchase Vouchers</span>
+    </a>
+    <a routerLink="/accounts/payment-vouchers" class="quick-nav-card">
+      <i class="pi pi-credit-card"></i>
+      <span>Payment Vouchers</span>
+    </a>
+    <a routerLink="/accounts/journal-entries" class="quick-nav-card">
+      <i class="pi pi-book"></i>
+      <span>Journal Entries</span>
+    </a>
+    <a routerLink="/accounts/ledger" class="quick-nav-card">
+      <i class="pi pi-chart-bar"></i>
+      <span>Account Ledger</span>
+    </a>
+  </div>
+
+  <!-- Recent Purchase Vouchers -->
+  <div *ngIf="summary?.recentPurchaseVouchers?.length" class="recent-table-section">
+    <h3>Recent Purchase Vouchers</h3>
+    <p-table [value]="summary.recentPurchaseVouchers" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Voucher No</th>
+          <th>Date</th>
+          <th>Vendor</th>
+          <th>Amount</th>
+          <th>Status</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-pv>
+        <tr>
+          <td>{{ pv.voucherNo }}</td>
+          <td>{{ pv.voucherDate | date:'dd/MM/yyyy' }}</td>
+          <td>{{ pv.vendor?.name || '-' }}</td>
+          <td>₹{{ pv.amount | number:'1.2-2' }}</td>
+          <td><p-tag [value]="pv.status" [severity]="getStatusSeverity(pv.status)" /></td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Recent Payment Vouchers -->
+  <div *ngIf="summary?.recentPaymentVouchers?.length" class="recent-table-section">
+    <h3>Recent Payment Vouchers</h3>
+    <p-table [value]="summary.recentPaymentVouchers" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Voucher No</th>
+          <th>Date</th>
+          <th>Vendor</th>
+          <th>Amount</th>
+          <th>Mode</th>
+          <th>Status</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-pmt>
+        <tr>
+          <td>{{ pmt.voucherNo }}</td>
+          <td>{{ pmt.voucherDate | date:'dd/MM/yyyy' }}</td>
+          <td>{{ pmt.vendor?.name || '-' }}</td>
+          <td>₹{{ pmt.amount | number:'1.2-2' }}</td>
+          <td>{{ pmt.paymentMode }}</td>
+          <td><p-tag [value]="pmt.status" [severity]="getStatusSeverity(pmt.status)" /></td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

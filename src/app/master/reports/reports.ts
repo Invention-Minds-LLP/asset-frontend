@@ -8,6 +8,7 @@ import { ToastModule } from 'primeng/toast';
 import { TabViewModule } from 'primeng/tabview';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
+import { DatePickerModule } from 'primeng/datepicker';
 import { MessageService } from 'primeng/api';
 import { ReportsService } from '../../services/reports/reports';
 
@@ -16,7 +17,7 @@ import { ReportsService } from '../../services/reports/reports';
   standalone: true,
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule,
-    TagModule, ToastModule, TabViewModule, InputTextModule, SelectModule
+    TagModule, ToastModule, TabViewModule, InputTextModule, SelectModule, DatePickerModule
   ],
   templateUrl: './reports.html',
   styleUrl: './reports.css',
@@ -25,6 +26,7 @@ import { ReportsService } from '../../services/reports/reports';
 export class Reports implements OnInit {
   // Tab index
   activeTab = 0;
+  today = new Date();
 
   // Asset Register
   assetRegisterData: any[] = [];
@@ -55,11 +57,40 @@ export class Reports implements OnInit {
   inventoryData: any[] = [];
   inventoryLoading = false;
 
+  // Consolidated
+  consolidatedData: any[] = [];
+  consolidatedLoading = false;
+  consolidatedTotal = 0;
+  consolidatedPage = 1;
+  consolidatedLimit = 25;
+
   // Filters
   filterCategory = '';
   filterDepartment = '';
   filterStatus = '';
   expiryDays = 90;
+
+  // Date range filter
+  filterDateFrom: Date | null = null;
+  filterDateTo: Date | null = null;
+  filterDateField: 'purchaseDate' | 'installedAt' = 'purchaseDate';
+  dateFieldOptions = [
+    { label: 'Purchase Date', value: 'purchaseDate' },
+    { label: 'Installed At',  value: 'installedAt'  },
+  ];
+
+  // Status filter options
+  statusOptions = [
+    { label: 'All Statuses',       value: '' },
+    { label: 'Active',             value: 'ACTIVE' },
+    { label: 'In Store',           value: 'IN_STORE' },
+    { label: 'In Maintenance',     value: 'IN_MAINTENANCE' },
+    { label: 'Under Observation',  value: 'UNDER_OBSERVATION' },
+    { label: 'Retired',            value: 'RETIRED' },
+    { label: 'Disposed',           value: 'DISPOSED' },
+    { label: 'Scrapped',           value: 'SCRAPPED' },
+    { label: 'Condemned',          value: 'CONDEMNED' },
+  ];
 
   constructor(
     private reportsService: ReportsService,
@@ -80,15 +111,46 @@ export class Reports implements OnInit {
       case 3: if (!this.expiryWarranties.length) this.loadExpiryReport(); break;
       case 4: if (!this.depreciationData.length) this.loadDepreciation(); break;
       case 5: if (!this.inventoryData.length) this.loadInventoryStock(); break;
+      case 6: if (!this.consolidatedData.length) this.loadConsolidated(); break;
     }
+  }
+
+  // Build shared filter object (date range + status + category + department)
+  private buildFilters(extra: any = {}): any {
+    const f: any = { ...extra };
+    if (this.filterCategory)   f.categoryId   = this.filterCategory;
+    if (this.filterDepartment) f.departmentId  = this.filterDepartment;
+    if (this.filterStatus)     f.status        = this.filterStatus;
+    if (this.filterDateFrom)   f.dateFrom      = this.filterDateFrom.toISOString().split('T')[0];
+    if (this.filterDateTo)     f.dateTo        = this.filterDateTo.toISOString().split('T')[0];
+    if (this.filterDateFrom || this.filterDateTo) f.dateField = this.filterDateField;
+    return f;
+  }
+
+  applyFilters() {
+    // Re-run whichever tab is active
+    switch (this.activeTab) {
+      case 0: this.loadAssetRegister(); break;
+      case 1: this.loadMaintenanceCost(); break;
+      case 4: this.loadDepreciation(); break;
+      case 6: this.loadConsolidated(); break;
+      default: this.loadAssetRegister(); break;
+    }
+  }
+
+  clearFilters() {
+    this.filterCategory = '';
+    this.filterDepartment = '';
+    this.filterStatus = '';
+    this.filterDateFrom = null;
+    this.filterDateTo = null;
+    this.filterDateField = 'purchaseDate';
+    this.applyFilters();
   }
 
   loadAssetRegister() {
     this.assetRegisterLoading = true;
-    const filters: any = {};
-    if (this.filterCategory) filters.categoryId = this.filterCategory;
-    if (this.filterDepartment) filters.departmentId = this.filterDepartment;
-    if (this.filterStatus) filters.status = this.filterStatus;
+    const filters = this.buildFilters();
 
     this.reportsService.getAssetRegister(filters).subscribe({
       next: (res) => {
@@ -175,7 +237,7 @@ export class Reports implements OnInit {
 
   loadDepreciation() {
     this.depreciationLoading = true;
-    this.reportsService.getDepreciationReport({}).subscribe({
+    this.reportsService.getDepreciationReport(this.buildFilters()).subscribe({
       next: (res) => {
         setTimeout(() => {
           this.depreciationData = res.data || res;
@@ -211,6 +273,33 @@ export class Reports implements OnInit {
         });
       }
     });
+  }
+
+  loadConsolidated() {
+    this.consolidatedLoading = true;
+    const filters = this.buildFilters({ page: this.consolidatedPage, limit: this.consolidatedLimit });
+
+    this.reportsService.getConsolidatedReport(filters).subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          this.consolidatedData = res.data || res;
+          this.consolidatedTotal = res.pagination?.total ?? this.consolidatedData.length;
+          this.consolidatedLoading = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        setTimeout(() => {
+          this.consolidatedLoading = false;
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load consolidated report' });
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
+
+  isExpired(date: any): boolean {
+    return !!date && new Date(date) < this.today;
   }
 
   getStockSeverity(item: any): "success" | "danger" | "warn" {

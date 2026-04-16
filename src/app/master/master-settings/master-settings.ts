@@ -7,6 +7,7 @@ import { ToastModule } from 'primeng/toast';
 import { TabViewModule } from 'primeng/tabview';
 import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabelModule } from 'primeng/floatlabel';
+import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
@@ -26,6 +27,7 @@ import { Branches } from '../../services/branches/branches';
     TabViewModule,
     InputTextModule,
     FloatLabelModule,
+    SelectModule,
     TextareaModule,
     TagModule,
     TooltipModule
@@ -55,9 +57,20 @@ export class MasterSettings implements OnInit {
 
   // ── Vendors ──────────────────────────────────────────────────────────────
   vendors: any[] = [];
-  vendorForm = { name: '', contact: '', email: '' };
+  vendorForm: any = {
+    name: '', contact: '', email: '', contactPerson: '', alternatePhone: '',
+    vendorType: null, address: '', city: '', state: '', pincode: '',
+    gstNumber: '', panNumber: '', bankName: '', bankAccount: '', bankIfsc: '', notes: ''
+  };
   editingVendorId: number | null = null;
   showVendorForm = false;
+  vendorTypeOptions = [
+    { label: 'OEM', value: 'OEM' },
+    { label: 'Distributor', value: 'DISTRIBUTOR' },
+    { label: 'Service Provider', value: 'SERVICE_PROVIDER' },
+    { label: 'Reseller', value: 'RESELLER' },
+    { label: 'Other', value: 'OTHER' },
+  ];
 
   loading = false;
 
@@ -228,10 +241,31 @@ export class MasterSettings implements OnInit {
   openVendorForm(vendor?: any) {
     if (vendor) {
       this.editingVendorId = vendor.id;
-      this.vendorForm = { name: vendor.name, contact: vendor.contact || '', email: vendor.email || '' };
+      this.vendorForm = {
+        name: vendor.name || '',
+        contact: vendor.contact || '',
+        email: vendor.email || '',
+        contactPerson: vendor.contactPerson || '',
+        alternatePhone: vendor.alternatePhone || '',
+        vendorType: vendor.vendorType || null,
+        address: vendor.address || '',
+        city: vendor.city || '',
+        state: vendor.state || '',
+        pincode: vendor.pincode || '',
+        gstNumber: vendor.gstNumber || '',
+        panNumber: vendor.panNumber || '',
+        bankName: vendor.bankName || '',
+        bankAccount: vendor.bankAccount || '',
+        bankIfsc: vendor.bankIfsc || '',
+        notes: vendor.notes || '',
+      };
     } else {
       this.editingVendorId = null;
-      this.vendorForm = { name: '', contact: '', email: '' };
+      this.vendorForm = {
+        name: '', contact: '', email: '', contactPerson: '', alternatePhone: '',
+        vendorType: null, address: '', city: '', state: '', pincode: '',
+        gstNumber: '', panNumber: '', bankName: '', bankAccount: '', bankIfsc: '', notes: ''
+      };
     }
     this.showVendorForm = true;
   }

@@ -145,6 +145,35 @@
 .trigger-label { font-size: 0.82rem; font-weight: 600; color: var(--text-color); }
 .trigger-detail { font-size: 0.75rem; color: var(--text-color-secondary); font-family: monospace; }
 
+/* ── Score Calculation Breakdown ── */
+.threshold-legend { display: flex; gap: 0.4rem; margin: 0.75rem 0; flex-wrap: wrap; }
+.threshold-band { flex: 1; min-width: 110px; border-radius: 8px; padding: 0.4rem 0.6rem; display: flex; flex-direction: column; align-items: center; border: 2px solid transparent; opacity: 0.55; transition: opacity 0.2s; }
+.threshold-band.band-active { opacity: 1; border-color: currentColor; font-weight: 700; }
+.band-range { font-size: 0.85rem; font-weight: 700; }
+.band-label { font-size: 0.72rem; text-align: center; }
+.band-green  { background: #f0fdf4; color: #16a34a; }
+.band-yellow { background: #eff6ff; color: #2563eb; }
+.band-orange { background: #fffbeb; color: #d97706; }
+.band-red    { background: #fef2f2; color: #dc2626; }
+
+.calc-table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.82rem; }
+.calc-table th { text-align: left; padding: 0.4rem 0.6rem; background: var(--surface-100); border-bottom: 2px solid var(--surface-border); color: var(--text-color-secondary); font-weight: 600; }
+.calc-table td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--surface-border); vertical-align: middle; }
+.calc-table tfoot td { padding-top: 0.55rem; font-size: 0.85rem; background: var(--surface-50); }
+.calc-total-row { font-weight: 600; }
+.calc-desc { color: var(--text-color-secondary); font-size: 0.76rem; }
+.signal-pill { display: inline-block; padding: 1px 8px; border-radius: 12px; font-size: 0.78rem; font-weight: 700; }
+.signal-pill.score-healthy  { background: #f0fdf4; color: #16a34a; }
+.signal-pill.score-monitor  { background: #eff6ff; color: #2563eb; }
+.signal-pill.score-warning  { background: #fffbeb; color: #d97706; }
+.signal-pill.score-critical { background: #fef2f2; color: #dc2626; }
+
+.cost-sources-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-top: 0.75rem; padding: 0.6rem 0.8rem; background: var(--surface-50); border-radius: 8px; font-size: 0.8rem; }
+.cost-source-label { color: var(--text-color-secondary); font-weight: 600; }
+.cost-source-item { display: flex; align-items: center; gap: 0.3rem; color: var(--text-color); padding: 0.2rem 0.6rem; background: var(--surface-0); border: 1px solid var(--surface-border); border-radius: 6px; }
+.cost-source-item i { color: var(--text-color-secondary); font-size: 0.75rem; }
+.cost-source-total { font-weight: 700; color: var(--text-color); margin-left: 0.25rem; }
+
 /* ── Responsive ── */
 @media (max-width: 1200px) {
   .kpi-grid { grid-template-columns: repeat(3, 1fr); }

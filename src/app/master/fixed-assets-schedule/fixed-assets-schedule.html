@@ -1,0 +1,87 @@
+<p-toast></p-toast>
+
+<div class="fas-container">
+  <div class="page-header">
+    <div class="header-left">
+      <h2><i class="pi pi-table"></i> Fixed Assets Schedule</h2>
+      @if (fyLabel) {
+        <span class="fy-badge">{{ fyLabel }}</span>
+      }
+    </div>
+    <div class="header-actions">
+      <p-select [options]="yearOptions" [(ngModel)]="selectedYear"
+        optionLabel="label" optionValue="value" styleClass="fy-select"></p-select>
+      <p-button label="Load" icon="pi pi-search" severity="secondary" (onClick)="load()" [loading]="loading"></p-button>
+      <p-button label="Export Excel" icon="pi pi-file-excel" severity="success" (onClick)="exportExcel()"></p-button>
+    </div>
+  </div>
+
+  <div class="schedule-wrapper">
+    <p-table [value]="rows" [loading]="loading" styleClass="p-datatable-sm fas-table">
+      <ng-template pTemplate="header">
+        <!-- Row 1: Group headers -->
+        <tr class="group-header-row">
+          <th rowspan="2" class="col-particulars">Particulars</th>
+          <th colspan="4" class="group-gross">GROSS BLOCK</th>
+          <th colspan="4" class="group-dep">DEPRECIATION</th>
+          <th colspan="2" class="group-net">NET BLOCK</th>
+        </tr>
+        <!-- Row 2: Sub-column headers -->
+        <tr class="sub-header-row">
+          <th class="col-gross">Opening</th>
+          <th class="col-gross">Additions</th>
+          <th class="col-gross">Deletions</th>
+          <th class="col-gross col-closing">Closing</th>
+          <th class="col-dep">Rate %</th>
+          <th class="col-dep">Opening Dep.</th>
+          <th class="col-dep">For Period</th>
+          <th class="col-dep col-closing">Closing Dep.</th>
+          <th class="col-net col-closing">Current Year</th>
+          <th class="col-net">Prev. Year</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-row>
+        <tr class="data-row">
+          <td class="col-particulars">{{ row.category }}</td>
+          <td class="col-gross num-r">{{ fmt(row.openingGross) }}</td>
+          <td class="col-gross num-r add-val">{{ fmt(row.additions) }}</td>
+          <td class="col-gross num-r del-val">{{ fmt(row.deletions) }}</td>
+          <td class="col-gross num-r col-closing fw-bold">{{ fmt(row.closingGross) }}</td>
+          <td class="col-dep num-r">{{ row.rate > 0 ? row.rate + '%' : '—' }}</td>
+          <td class="col-dep num-r">{{ fmt(row.openingDep) }}</td>
+          <td class="col-dep num-r dep-period">{{ fmt(row.periodDep) }}</td>
+          <td class="col-dep num-r col-closing fw-bold">{{ fmt(row.closingDep) }}</td>
+          <td class="col-net num-r col-closing fw-bold net-curr">{{ fmt(row.netCurrent) }}</td>
+          <td class="col-net num-r">{{ fmt(row.netPrevious) }}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+        @if (grandTotal) {
+        <tr class="total-row">
+          <td class="col-particulars">TOTAL</td>
+          <td class="col-gross num-r">{{ fmt(grandTotal.openingGross) }}</td>
+          <td class="col-gross num-r add-val">{{ fmt(grandTotal.additions) }}</td>
+          <td class="col-gross num-r del-val">{{ fmt(grandTotal.deletions) }}</td>
+          <td class="col-gross num-r col-closing">{{ fmt(grandTotal.closingGross) }}</td>
+          <td class="col-dep num-r">—</td>
+          <td class="col-dep num-r">{{ fmt(grandTotal.openingDep) }}</td>
+          <td class="col-dep num-r dep-period">{{ fmt(grandTotal.periodDep) }}</td>
+          <td class="col-dep num-r col-closing">{{ fmt(grandTotal.closingDep) }}</td>
+          <td class="col-net num-r col-closing net-curr">{{ fmt(grandTotal.netCurrent) }}</td>
+          <td class="col-net num-r">{{ fmt(grandTotal.netPrevious) }}</td>
+        </tr>
+        }
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="11" class="text-center">
+            Select a fiscal year and click Load to generate the schedule.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

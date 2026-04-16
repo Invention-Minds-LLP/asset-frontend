@@ -474,7 +474,7 @@
                             [filter]="true"></p-select>
                     </div>
 
-                    <!-- If vendor -->
+                    <!-- VENDOR: select from master -->
                     <div class="form-field half" *ngIf="serviceForm.value.performedByType === 'VENDOR'">
                         <label class="field-label">Vendor <span class="req">*</span></label>
                         <p-select class="w-full" [options]="vendorOptions" optionLabel="label" optionValue="value"
@@ -482,21 +482,45 @@
                             [filter]="true"></p-select>
                     </div>
 
-                    <!-- If internal -->
+                    <!-- INTERNAL: free-text staff name -->
                     <div class="form-field half" *ngIf="serviceForm.value.performedByType === 'INTERNAL'">
-                        <label class="field-label">Performed By Name <span class="req">*</span></label>
-                        <input pInputText class="w-full" formControlName="performedByName" placeholder="Staff Name" />
+                        <label class="field-label">Staff Name <span class="req">*</span></label>
+                        <input pInputText class="w-full" formControlName="performedByName" placeholder="e.g. Ramesh Kumar" />
+                    </div>
+
+                    <!-- EXTERNAL_SERVICE: ad-hoc service center name -->
+                    <div class="form-field half" *ngIf="serviceForm.value.performedByType === 'EXTERNAL_SERVICE'">
+                        <label class="field-label">Service Center Name <span class="req">*</span></label>
+                        <input pInputText class="w-full" formControlName="externalServiceCenter"
+                            placeholder="e.g. Sri Balaji Electronics" />
                     </div>
                 </div>
 
                 <div class="form-row">
+                    <div class="form-field half">
+                        <label class="field-label">Service Type</label>
+                        <p-select class="w-full" [options]="serviceTypeOptions" optionLabel="label" optionValue="value"
+                            formControlName="serviceType" placeholder="Select type" appendTo="body"></p-select>
+                    </div>
 
                     <div class="form-field half">
                         <label class="field-label">Link to Contract (optional)</label>
                         <p-select class="w-full" [options]="contractSelectOptions" optionLabel="label"
                             optionValue="value" placeholder="Select" formControlName="serviceContractId" appendTo="body"
-                            [filter]="true">
-                        </p-select>
+                            [filter]="true"></p-select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-field half">
+                        <label class="field-label">Service Cost (₹)</label>
+                        <p-inputNumber class="w-full" formControlName="serviceCost" mode="decimal" [min]="0"
+                            placeholder="0"></p-inputNumber>
+                    </div>
+                    <div class="form-field half">
+                        <label class="field-label">Parts Cost (₹)</label>
+                        <p-inputNumber class="w-full" formControlName="partsCost" mode="decimal" [min]="0"
+                            placeholder="0"></p-inputNumber>
                     </div>
                 </div>
 
@@ -523,17 +547,47 @@
                 <p-table [value]="maintenanceHistory" [paginator]="true" [rows]="5" class="p-datatable-sm">
                     <ng-template pTemplate="header">
                         <tr>
-                            <th>No</th>
-                            <th>Actual Done</th>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Performed By</th>
+                            <th>Type</th>
+                            <th>Service Cost</th>
+                            <th>Parts Cost</th>
+                            <th>Total</th>
+                            <th>Late?</th>
                             <th>Notes</th>
-                            <th>File</th>
+                            <th>Report</th>
                         </tr>
                     </ng-template>
 
                     <ng-template pTemplate="body" let-h let-i="rowIndex">
                         <tr>
                             <td>{{ i + 1 }}</td>
-                            <td>{{ h.actualDoneAt | date:'dd.MM.yyyy' }}</td>
+                            <td>{{ h.actualDoneAt | date:'dd/MM/yyyy' }}</td>
+                            <td>
+                                <span *ngIf="h.performedByType === 'VENDOR'">
+                                    <i class="pi pi-building" style="font-size:0.75rem;"></i>
+                                    {{ h.vendor?.name || h.performedBy }}
+                                </span>
+                                <span *ngIf="h.performedByType === 'INTERNAL'">
+                                    <i class="pi pi-user" style="font-size:0.75rem;"></i>
+                                    {{ h.performedBy }}
+                                </span>
+                                <span *ngIf="h.performedByType === 'EXTERNAL_SERVICE'">
+                                    <i class="pi pi-wrench" style="font-size:0.75rem;"></i>
+                                    {{ h.externalServiceCenter || h.performedBy }}
+                                </span>
+                                <span *ngIf="!h.performedByType">{{ h.performedBy }}</span>
+                            </td>
+                            <td>{{ h.serviceType || '-' }}</td>
+                            <td>{{ h.serviceCost != null ? ('₹' + h.serviceCost) : '-' }}</td>
+                            <td>{{ h.partsCost  != null ? ('₹' + h.partsCost)  : '-' }}</td>
+                            <td><strong>{{ h.totalCost != null ? ('₹' + h.totalCost) : '-' }}</strong></td>
+                            <td>
+                                <span [style.color]="h.wasLate ? '#dc2626' : '#16a34a'">
+                                    {{ h.wasLate ? 'Yes' : 'No' }}
+                                </span>
+                            </td>
                             <td class="ellipsis">{{ h.notes || '-' }}</td>
                             <td>
                                 <a *ngIf="h.serviceReport" [href]="h.serviceReport" target="_blank">Download</a>

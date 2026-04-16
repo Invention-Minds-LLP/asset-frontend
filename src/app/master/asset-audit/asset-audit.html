@@ -135,7 +135,7 @@
 </div>
 
 <!-- Create Audit Dialog -->
-<p-dialog header="Create New Audit" [(visible)]="showCreateDialog" [style]="{ width: '480px' }" [modal]="true">
+<p-dialog header="Create New Audit" [(visible)]="showCreateDialog" [style]="{ width: '520px' }" [modal]="true">
   <div class="form-grid">
     <div class="form-field">
       <label>Audit Name *</label>
@@ -145,6 +145,43 @@
       <label>Audit Date *</label>
       <p-datepicker [(ngModel)]="createForm.auditDate" dateFormat="dd-mm-yy" appendTo="body" [style]="{'width':'100%'}" />
     </div>
+
+    <div class="form-field">
+      <label><i class="pi pi-map-marker"></i> Scope by Location <span class="optional-hint">(leave blank to include all assets)</span></label>
+      <div class="location-scope-grid">
+        <div>
+          <label class="sub-label">Floor</label>
+          <p-select [options]="locationFloors" [(ngModel)]="createForm.floor"
+            placeholder="All floors" [showClear]="true" appendTo="body" [style]="{'width':'100%'}"
+            [loading]="locationsLoading"></p-select>
+        </div>
+        <div>
+          <label class="sub-label">Block / Wing</label>
+          <p-select [options]="locationBlocks" [(ngModel)]="createForm.block"
+            placeholder="All blocks" [showClear]="true" appendTo="body" [style]="{'width':'100%'}"
+            [loading]="locationsLoading"></p-select>
+        </div>
+        <div>
+          <label class="sub-label">Room</label>
+          <p-select [options]="locationRooms" [(ngModel)]="createForm.room"
+            placeholder="All rooms" [showClear]="true" appendTo="body" [style]="{'width':'100%'}"
+            [loading]="locationsLoading"></p-select>
+        </div>
+      </div>
+      @if (createForm.floor || createForm.block || createForm.room) {
+        <div class="scope-preview">
+          <i class="pi pi-info-circle"></i>
+          Only assets currently located at
+          <strong>{{ getScopeLabel() }}</strong>
+          will be included in this audit.
+        </div>
+      } @else {
+        <div class="scope-preview scope-all">
+          <i class="pi pi-globe"></i> All active assets will be included.
+        </div>
+      }
+    </div>
+
     <div class="form-field">
       <label>Description</label>
       <textarea pTextarea [(ngModel)]="createForm.description" rows="2" style="width:100%"></textarea>

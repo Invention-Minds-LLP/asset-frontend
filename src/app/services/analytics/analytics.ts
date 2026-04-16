@@ -41,6 +41,18 @@ export class AnalyticsService {
     return this.http.get<any>(`${this.base}/in-store-aging`);
   }
 
+  getUncoveredAssets(filters: any = {}): Observable<any> {
+    return this.http.get<any>(`${this.base}/uncovered-assets`, { params: this.buildParams(filters) });
+  }
+
+  getMaintenanceByCategory(filters: any = {}): Observable<any> {
+    return this.http.get<any>(`${this.base}/maintenance-by-category`, { params: this.buildParams(filters) });
+  }
+
+  getAssetValueBuckets(): Observable<any> {
+    return this.http.get<any>(`${this.base}/asset-value-buckets`);
+  }
+
   private buildParams(obj: any): HttpParams {
     let params = new HttpParams();
     for (const key of Object.keys(obj)) {

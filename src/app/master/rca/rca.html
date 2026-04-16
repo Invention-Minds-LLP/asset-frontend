@@ -1,0 +1,108 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-search-minus"></i> Root Cause Analysis</h2>
+    <p-button label="Refresh" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="loadAll()" [loading]="loading"></p-button>
+  </div>
+
+  <div class="info-note">
+    <i class="pi pi-info-circle"></i>
+    RCA records are created per ticket. Select a record to view its Five Whys or 6M analysis.
+  </div>
+
+  <p-table [value]="rcas" [loading]="loading" [paginator]="true" [rows]="20"
+    styleClass="p-datatable-sm p-datatable-striped" [globalFilterFields]="['ticketId']">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Ticket</th>
+        <th>Framework</th>
+        <th>Status</th>
+        <th>Summary</th>
+        <th>Corrective Action</th>
+        <th>Performed At</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-rca>
+      <tr>
+        <td><strong>#{{ rca.ticketId }}</strong></td>
+        <td><p-tag [value]="rca.framework" [severity]="getFrameworkSeverity(rca.framework)"></p-tag></td>
+        <td><p-tag [value]="rca.status" [severity]="getStatusSeverity(rca.status)"></p-tag></td>
+        <td class="text-truncate">{{ rca.summary || '—' }}</td>
+        <td class="text-truncate">{{ rca.correctiveAction || '—' }}</td>
+        <td>{{ formatDate(rca.performedAt) }}</td>
+        <td>{{ formatDate(rca.createdAt) }}</td>
+        <td>
+          <p-button icon="pi pi-eye" size="small" severity="secondary" (onClick)="viewRca(rca)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="8" class="text-center">No RCA records found.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Detail Dialog -->
+<p-dialog header="RCA Detail" [(visible)]="showDetailDialog" [modal]="true" [style]="{'width':'700px'}" [closable]="true">
+  @if (selectedRca) {
+  <div class="rca-detail">
+    <div class="detail-grid">
+      <div><span class="label">Ticket</span><strong>#{{ selectedRca.ticketId }}</strong></div>
+      <div><span class="label">Framework</span><p-tag [value]="selectedRca.framework" [severity]="getFrameworkSeverity(selectedRca.framework)"></p-tag></div>
+      <div><span class="label">Status</span><p-tag [value]="selectedRca.status" [severity]="getStatusSeverity(selectedRca.status)"></p-tag></div>
+      <div><span class="label">Performed At</span><strong>{{ formatDate(selectedRca.performedAt) }}</strong></div>
+    </div>
+
+    @if (selectedRca.summary) {
+      <div class="detail-section"><h4>Summary</h4><p>{{ selectedRca.summary }}</p></div>
+    }
+    @if (selectedRca.conclusion) {
+      <div class="detail-section"><h4>Conclusion</h4><p>{{ selectedRca.conclusion }}</p></div>
+    }
+    @if (selectedRca.correctiveAction) {
+      <div class="detail-section"><h4>Corrective Action</h4><p>{{ selectedRca.correctiveAction }}</p></div>
+    }
+    @if (selectedRca.preventiveAction) {
+      <div class="detail-section"><h4>Preventive Action</h4><p>{{ selectedRca.preventiveAction }}</p></div>
+    }
+
+    @if (selectedRca.fiveWhys?.length) {
+      <div class="detail-section">
+        <h4><i class="pi pi-question-circle"></i> Five Whys</h4>
+        <div class="five-whys">
+          @for (w of selectedRca.fiveWhys; track w.id) {
+            <div class="why-row">
+              <span class="why-num">Why {{ w.whyNumber }}</span>
+              <div>
+                <div class="why-q">{{ w.question }}</div>
+                <div class="why-a">→ {{ w.answer }}</div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (selectedRca.sixMItems?.length) {
+      <div class="detail-section">
+        <h4><i class="pi pi-chart-scatter"></i> 6M Analysis</h4>
+        <p-table [value]="selectedRca.sixMItems" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr><th>Category</th><th>Cause</th><th>Root?</th></tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td><p-tag [value]="item.category" severity="secondary"></p-tag></td>
+              <td>{{ item.cause }}</td>
+              <td>@if (item.isRoot) { <p-tag value="ROOT" severity="danger"></p-tag> }</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    }
+  </div>
+  }
+</p-dialog>

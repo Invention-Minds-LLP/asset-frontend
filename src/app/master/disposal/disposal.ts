@@ -72,6 +72,17 @@ export class Disposal implements OnInit {
   approvingDisposal = false;
   rejectingDisposal = false;
 
+  // Sub-asset resolution dialog
+  showSubAssetDialog = false;
+  pendingApprovalDisposal: any = null;
+  subAssetsForResolution: any[] = [];   // sub-assets that need a decision
+  resolutionOptions = [
+    { label: 'Condemn (mark as condemned)', value: 'CONDEMN' },
+    { label: 'Move to Store', value: 'MOVE_TO_STORE' },
+    { label: 'Re-link to another asset', value: 'RELINK' },
+  ];
+  relinkAssetOptions: { label: string; value: number }[] = [];
+
   // Complete dialog
   showCompleteDialog = false;
   completeForm: any = { actualSaleValue: null, buyerName: '', buyerContact: '', disposalCertificate: '' };
@@ -87,6 +98,11 @@ export class Disposal implements OnInit {
   ngOnInit() {
     this.loadDisposals();
     this.loadAssets();
+    this.assetService.getAllAssetsForDropdown().subscribe({
+      next: (list: any[]) => {
+        this.relinkAssetOptions = list.map(a => ({ label: `${a.assetId} — ${a.assetName}`, value: a.id }));
+      }
+    });
   }
 
   loadDisposals() {
@@ -198,10 +214,38 @@ export class Disposal implements OnInit {
     });
   }
 
-  // Approve
+  // Approve — first check for sub-assets
   approveDisposal(disposal: any) {
+    this.disposalService.getSubAssets(disposal.id).subscribe({
+      next: (res: any) => {
+        if (res.count > 0) {
+          this.pendingApprovalDisposal = disposal;
+          this.subAssetsForResolution = res.subAssets.map((s: any) => ({
+            ...s, resolution: 'CONDEMN', newParentAssetId: null
+          }));
+          this.showSubAssetDialog = true;
+        } else {
+          this._doApprove(disposal.id, []);
+        }
+      },
+      error: () => this._doApprove(disposal.id, [])
+    });
+  }
+
+  confirmApproveWithResolutions() {
+    if (!this.pendingApprovalDisposal) return;
+    const resolutions = this.subAssetsForResolution.map(s => ({
+      subAssetId: s.id,
+      action: s.resolution,
+      newParentAssetId: s.resolution === 'RELINK' ? s.newParentAssetId : undefined,
+    }));
+    this.showSubAssetDialog = false;
+    this._doApprove(this.pendingApprovalDisposal.id, resolutions);
+  }
+
+  private _doApprove(disposalId: number, subAssetResolutions: any[]) {
     this.approvingDisposal = true;
-    this.disposalService.approve(disposal.id, {}).subscribe({
+    this.disposalService.approve(disposalId, { subAssetResolutions }).subscribe({
       next: () => {
         setTimeout(() => {
           this.approvingDisposal = false;

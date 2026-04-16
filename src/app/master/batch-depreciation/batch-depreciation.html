@@ -1,115 +1,646 @@
 <p-toast></p-toast>
 <p-confirmDialog></p-confirmDialog>
 
+<!-- Reject Dialog -->
+@if (showRejectDialog) {
+<div class="reject-overlay">
+  <div class="reject-dialog">
+    <h3><i class="pi pi-times-circle" style="color:#e53935"></i> Reject Batch Run</h3>
+    <p>Provide a reason for rejection:</p>
+    <textarea [(ngModel)]="rejectReason" rows="3"
+      placeholder="Reason for rejection..."
+      style="width:100%; resize:vertical; padding:8px; border:1px solid #ccc; border-radius:6px"></textarea>
+    <div class="reject-actions">
+      <p-button label="Cancel" severity="secondary" (onClick)="showRejectDialog = false"></p-button>
+      <p-button label="Confirm Reject" severity="danger" icon="pi pi-times" (onClick)="submitReject()"></p-button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Per-Asset Run Dialog -->
+@if (showAssetRunDialog && assetRunTarget) {
+<div class="reject-overlay">
+  <div class="reject-dialog asset-run-dialog">
+    <h3><i class="pi pi-play" style="color:#1565C0"></i> Run Depreciation — {{ assetRunTarget.assetName }}</h3>
+
+    <div class="asset-run-info">
+      <div class="run-info-row"><span>Method</span><strong>{{ assetRunTarget.method }}</strong></div>
+      <div class="run-info-row"><span>Frequency</span><strong>{{ assetRunTarget.frequency }}</strong></div>
+      <div class="run-info-row"><span>Current Book Value</span><strong>{{ formatCurrency(assetRunTarget.currentBookValue) }}</strong></div>
+      <div class="run-info-row"><span>Next Period Due</span>
+        <p-tag [value]="getDueLabel(assetRunTarget)" [severity]="getDueSeverity(assetRunTarget)"></p-tag>
+      </div>
+    </div>
+
+    @if (!assetRunTarget.isDue) {
+      <div class="override-notice">
+        <i class="pi pi-exclamation-triangle"></i>
+        <div>
+          <strong>This asset is not yet due.</strong>
+          <p>Next period ends {{ formatDate(assetRunTarget.nextPeriodEnd) }}. You can force-run it as a manual override (e.g. partial-year adjustment, asset disposal preparation).</p>
+          <label class="toggle-label" style="margin-top:0.5rem">
+            <input type="checkbox" [(ngModel)]="assetRunForce" />
+            <span>Force override — run even though period is not complete</span>
+          </label>
+        </div>
+      </div>
+    }
+
+    <p class="dialog-note"><i class="pi pi-info-circle"></i> A DRAFT run will be created. FINANCE must approve it before values are committed.</p>
+
+    <div class="reject-actions">
+      <p-button label="Cancel" severity="secondary" (onClick)="showAssetRunDialog = false"></p-button>
+      <p-button label="Create Draft Run" icon="pi pi-play" severity="warn"
+        [disabled]="!assetRunTarget.isDue && !assetRunForce"
+        [loading]="assetRunning"
+        (onClick)="confirmAssetRun()"></p-button>
+    </div>
+  </div>
+</div>
+}
+
 <div class="page-container">
   <div class="page-header">
-    <h2><i class="pi pi-chart-line"></i> Batch Depreciation</h2>
+    <h2>
+      <i class="pi pi-chart-line"></i> Batch Depreciation
+      @if (isFinance) {
+        <span style="margin-left:8px"><p-tag value="FINANCE" severity="success"></p-tag></span>
+      } @else {
+        <span style="margin-left:8px"><p-tag value="View Only" severity="secondary"></p-tag></span>
+      }
+    </h2>
   </div>
 
+  @if (!isFinance) {
+  <div class="access-notice">
+    <i class="pi pi-lock"></i>
+    Only the <strong>FINANCE</strong> role can create or approve depreciation runs.
+    You can view existing runs and records below.
+  </div>
+  }
+
   <p-tabview (onChange)="onTabChange($event)" class="custom-tabs">
-    <!-- Preview & Run -->
-    <p-tabpanel header="Preview & Run">
+
+    <!-- Tab 1: Batch Preview & Run -->
+    <p-tabpanel header="Batch Preview & Run">
       <div class="tab-content">
-        <div class="kpi-grid" *ngIf="previewSummary.totalAssets != null">
-          <div class="kpi-card"><span class="kpi-label">Eligible Assets</span><span class="kpi-value">{{ previewSummary.totalAssets }}</span></div>
-          <div class="kpi-card"><span class="kpi-label">Total Depreciation</span><span class="kpi-value">{{ formatCurrency(previewSummary.totalDepreciation) }}</span></div>
-        </div>
+        @if (!isFinance) {
+          <div class="access-notice small"><i class="pi pi-info-circle"></i> Restricted to FINANCE role.</div>
+        }
 
+        @if (isFinance) {
+          <!-- Scope filters -->
+          <div class="scope-bar">
+            <span class="scope-label"><i class="pi pi-filter"></i> Scope this run:</span>
+            <p-dropdown [options]="departments" [(ngModel)]="batchFilterDept"
+              placeholder="All Departments" [showClear]="true" [style]="{'width':'210px'}"></p-dropdown>
+            <p-dropdown [options]="categories" [(ngModel)]="batchFilterCat"
+              placeholder="All Categories" [showClear]="true" [style]="{'width':'210px'}"></p-dropdown>
+            <p-button label="Preview" icon="pi pi-search" severity="secondary" size="small"
+              (onClick)="loadPreview()" [loading]="previewLoading"></p-button>
+            @if (batchFilterDept != null || batchFilterCat != null) {
+              <p-tag value="FILTERED" severity="warn"></p-tag>
+            } @else {
+              <p-tag value="ALL ASSETS" severity="info"></p-tag>
+            }
+          </div>
+
+          @if (previewSummary.count != null) {
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-label">Eligible Assets</span>
+              <span class="kpi-value">{{ previewSummary.count }}</span>
+            </div>
+            <div class="kpi-card kpi-warn">
+              <span class="kpi-label">Total Depreciation</span>
+              <span class="kpi-value">{{ formatCurrency(previewSummary.totalDepreciation) }}</span>
+            </div>
+          </div>
+          }
+
+          <div class="toolbar">
+            <p-button label="Create Draft Run" icon="pi pi-play" severity="warn"
+              (onClick)="confirmRunBatch()" [loading]="runningBatch"
+              [disabled]="!previewData.length"></p-button>
+          </div>
+
+          <div class="draft-note">
+            <i class="pi pi-info-circle"></i>
+            <strong>Draft only</strong> — values are NOT committed until a FINANCE user approves the run.
+            @if (batchFilterDept != null || batchFilterCat != null) {
+              <strong> This run is scoped (filtered) — only the assets shown below will be included.</strong>
+            }
+          </div>
+
+          <p-table [value]="previewData" [loading]="previewLoading" [paginator]="true" [rows]="15"
+            styleClass="p-datatable-sm p-datatable-striped">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Asset</th>
+                <th>Department</th>
+                <th>Category</th>
+                <th>Method</th>
+                <th>Freq</th>
+                <th class="num-r">Book Value</th>
+                <th class="num-r">Depreciation</th>
+                <th class="num-r">New Book Value</th>
+                <th>Period</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-d>
+              <tr>
+                <td>{{ d.assetName }}</td>
+                <td>{{ d.department || '—' }}</td>
+                <td>{{ d.category || '—' }}</td>
+                <td><p-tag [value]="d.method" severity="secondary"></p-tag></td>
+                <td><p-tag [value]="d.frequency" severity="info" styleClass="text-xs"></p-tag></td>
+                <td class="num-r">{{ formatCurrency(d.previousBookValue) }}</td>
+                <td class="num-r dep-amt">{{ formatCurrency(d.depreciationAmount) }}</td>
+                <td class="num-r">{{ formatCurrency(d.newBookValue) }}</td>
+                <td class="period-cell">{{ formatDate(d.periodStart) }} → {{ formatDate(d.periodEnd) }}</td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="9" class="text-center">No assets eligible for depreciation at this time.</td></tr>
+            </ng-template>
+          </p-table>
+        }
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 2: Batch Runs -->
+    <p-tabpanel header="Batch Runs">
+      <div class="tab-content">
         <div class="toolbar">
-          <p-button label="Refresh Preview" icon="pi pi-refresh" (onClick)="loadPreview()" [loading]="previewLoading"></p-button>
-          <p-button label="Run Batch Depreciation" icon="pi pi-play" severity="danger" (onClick)="confirmRunBatch()"
-            [loading]="runningBatch" [disabled]="!previewData.length"></p-button>
+          <p-button label="Refresh" icon="pi pi-refresh" severity="secondary"
+            (onClick)="loadBatchRuns()" [loading]="batchRunsLoading"></p-button>
         </div>
 
-        <p-table [value]="previewData" [loading]="previewLoading" [paginator]="true" [rows]="15"
+        <p-table [value]="batchRuns" [loading]="batchRunsLoading" [paginator]="true" [rows]="15"
           styleClass="p-datatable-sm p-datatable-striped">
           <ng-template pTemplate="header">
             <tr>
-              <th>Asset</th>
-              <th>Original Cost</th>
-              <th>Current Book Value</th>
-              <th>Depreciation Amount</th>
-              <th>New Book Value</th>
-              <th>Method</th>
+              <th>Run Number</th>
+              <th>Period / Scope</th>
+              <th>Assets</th>
+              <th class="num-r">Total Depreciation</th>
+              <th>Status</th>
+              <th>Notes</th>
+              <th>Created By</th>
+              <th>Approved By</th>
+              <th>Date</th>
+              @if (isFinance) { <th>Actions</th> }
             </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-d>
+          <ng-template pTemplate="body" let-run>
             <tr>
-              <td>{{ d.assetName }}</td>
-              <td>{{ formatCurrency(d.originalCost) }}</td>
-              <td>{{ formatCurrency(d.currentBookValue) }}</td>
-              <td>{{ formatCurrency(d.depreciationAmount) }}</td>
-              <td>{{ formatCurrency(d.newBookValue) }}</td>
-              <td>{{ d.depreciationMethod }}</td>
+              <td><strong>{{ run.runNumber }}</strong></td>
+              <td>{{ run.periodLabel || 'FY ' + run.fiscalYear }}</td>
+              <td>{{ run.totalAssets }}</td>
+              <td class="num-r">{{ formatCurrency(run.totalDepreciation) }}</td>
+              <td><p-tag [value]="run.status" [severity]="getStatusSeverity(run.status)"></p-tag></td>
+              <td class="notes-cell">{{ run.notes || '—' }}</td>
+              <td>{{ run.runBy?.name || '—' }}</td>
+              <td>{{ run.approvedBy?.name || '—' }}</td>
+              <td>{{ formatDate(run.createdAt) }}</td>
+              @if (isFinance) {
+              <td>
+                @if (run.status === 'DRAFT') {
+                <div class="action-btns">
+                  <p-button label="Approve" icon="pi pi-check" severity="success" size="small"
+                    (onClick)="confirmApprove(run)"></p-button>
+                  <p-button label="Reject" icon="pi pi-times" severity="danger" size="small"
+                    (onClick)="openRejectDialog(run.id)"></p-button>
+                </div>
+                } @else {
+                  <span style="color:#aaa; font-size:12px">—</span>
+                }
+              </td>
+              }
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">
-            <tr><td colspan="6" class="text-center">No assets eligible for depreciation.</td></tr>
+            <tr><td [attr.colspan]="isFinance ? 10 : 9" class="text-center">No batch runs found.</td></tr>
           </ng-template>
         </p-table>
       </div>
     </p-tabpanel>
 
-    <!-- All Records -->
+    <!-- Tab 3: Per-Asset Run -->
+    <p-tabpanel header="Per-Asset Run">
+      <div class="tab-content">
+        @if (!isFinance) {
+          <div class="access-notice small"><i class="pi pi-info-circle"></i> Per-asset runs are restricted to FINANCE role.</div>
+        }
+
+        <div class="per-asset-info">
+          <i class="pi pi-info-circle"></i>
+          <span>Run depreciation for a single asset independently — either because it is <strong>due now</strong> or as a <strong>manual override</strong> (e.g. asset being disposed, partial-year adjustment). Each per-asset run goes through the same DRAFT → APPROVE workflow.</span>
+        </div>
+
+        <div class="scope-bar">
+          <input pInputText [(ngModel)]="assetFilterSearch" placeholder="Search asset name..." style="width:200px" />
+          <p-dropdown [options]="departments" [(ngModel)]="assetFilterDept"
+            placeholder="All Departments" [showClear]="true" [style]="{'width':'200px'}"></p-dropdown>
+          <p-dropdown [options]="categories" [(ngModel)]="assetFilterCat"
+            placeholder="All Categories" [showClear]="true" [style]="{'width':'200px'}"></p-dropdown>
+          <p-button label="Search" icon="pi pi-search" size="small" (onClick)="loadDepreciableAssets()" [loading]="depreciableLoading"></p-button>
+        </div>
+
+        <p-table [value]="depreciableAssets" [loading]="depreciableLoading" [paginator]="true" [rows]="15"
+          styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Asset</th>
+              <th>Department</th>
+              <th>Category</th>
+              <th>Method</th>
+              <th>Freq</th>
+              <th class="num-r">Book Value</th>
+              <th class="num-r">Accumulated Dep.</th>
+              <th>Last Run</th>
+              <th>Next Due</th>
+              @if (isFinance) { <th>Action</th> }
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-a>
+            <tr>
+              <td>{{ a.assetName }}</td>
+              <td>{{ a.department || '—' }}</td>
+              <td>{{ a.category || '—' }}</td>
+              <td><p-tag [value]="a.method" severity="secondary"></p-tag></td>
+              <td><p-tag [value]="a.frequency" severity="info" styleClass="text-xs"></p-tag></td>
+              <td class="num-r">{{ formatCurrency(a.currentBookValue) }}</td>
+              <td class="num-r dep-amt">{{ formatCurrency(a.accumulatedDepreciation) }}</td>
+              <td>{{ formatDate(a.lastCalculatedAt) }}</td>
+              <td>
+                <p-tag [value]="getDueLabel(a)" [severity]="getDueSeverity(a)"
+                  [pTooltip]="'Next period ends ' + formatDate(a.nextPeriodEnd)"></p-tag>
+              </td>
+              @if (isFinance) {
+              <td>
+                <p-button icon="pi pi-play" size="small"
+                  [severity]="a.isDue ? 'warn' : 'secondary'"
+                  [pTooltip]="a.isDue ? 'Run now — period due' : 'Force override run'"
+                  (onClick)="openAssetRunDialog(a)"></p-button>
+              </td>
+              }
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td [attr.colspan]="isFinance ? 10 : 9" class="text-center">No depreciable assets found. Use Search to load.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 4: All Records -->
     <p-tabpanel header="All Records">
       <div class="tab-content">
+        <div class="toolbar">
+          <p-button label="Refresh" icon="pi pi-refresh" severity="secondary" size="small"
+            (onClick)="loadAll()" [loading]="depreciationsLoading"></p-button>
+        </div>
         <p-table [value]="depreciations" [loading]="depreciationsLoading" [paginator]="true" [rows]="15"
           styleClass="p-datatable-sm p-datatable-striped">
           <ng-template pTemplate="header">
             <tr>
               <th>Asset</th>
-              <th>Original Cost</th>
-              <th>Current Value</th>
-              <th>Depreciation</th>
+              <th class="num-r">Original Cost</th>
+              <th class="num-r">Current Value</th>
+              <th class="num-r">Accumulated Dep.</th>
               <th>Method</th>
+              <th>Rate %</th>
               <th>Useful Life</th>
+              <th>Last Calculated</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-d>
             <tr>
               <td>{{ d.asset?.assetName || '—' }}</td>
-              <td>{{ formatCurrency(d.purchaseCost || d.asset?.purchaseCost) }}</td>
-              <td>{{ formatCurrency(d.currentBookValue) }}</td>
-              <td>{{ formatCurrency(d.depreciationAmount) }}</td>
-              <td>{{ d.depreciationMethod }}</td>
+              <td class="num-r">{{ formatCurrency(d.asset?.purchaseCost) }}</td>
+              <td class="num-r">{{ formatCurrency(d.currentBookValue) }}</td>
+              <td class="num-r dep-amt">{{ formatCurrency(d.accumulatedDepreciation) }}</td>
+              <td><p-tag [value]="d.depreciationMethod" severity="secondary"></p-tag></td>
+              <td>{{ d.depreciationRate }}%</td>
               <td>{{ d.expectedLifeYears }} yrs</td>
+              <td>{{ formatDate(d.lastCalculatedAt) }}</td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">
-            <tr><td colspan="6" class="text-center">No depreciation records.</td></tr>
+            <tr><td colspan="8" class="text-center">No depreciation records.</td></tr>
           </ng-template>
         </p-table>
       </div>
     </p-tabpanel>
 
-    <!-- Logs -->
+    <!-- Tab 5: History Logs -->
     <p-tabpanel header="History Logs">
       <div class="tab-content">
+        <div class="toolbar">
+          <p-button label="Refresh" icon="pi pi-refresh" severity="secondary" size="small"
+            (onClick)="loadLogs()" [loading]="logsLoading"></p-button>
+        </div>
         <p-table [value]="logs" [loading]="logsLoading" [paginator]="true" [rows]="15"
           styleClass="p-datatable-sm p-datatable-striped">
           <ng-template pTemplate="header">
             <tr>
               <th>Asset</th>
-              <th>Prev Value</th>
-              <th>Depreciation</th>
-              <th>New Value</th>
+              <th class="num-r">Depreciation</th>
+              <th class="num-r">Book Value After</th>
+              <th>Period</th>
+              <th>Type</th>
+              <th>Done By</th>
               <th>Date</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-l>
             <tr>
               <td>{{ l.asset?.assetName || '—' }}</td>
-              <td>{{ formatCurrency(l.previousValue) }}</td>
-              <td>{{ formatCurrency(l.depreciationAmount) }}</td>
-              <td>{{ formatCurrency(l.newValue) }}</td>
-              <td>{{ l.createdAt | date:'medium' }}</td>
+              <td class="num-r dep-amt">{{ formatCurrency(l.depreciationAmount) }}</td>
+              <td class="num-r">{{ formatCurrency(l.bookValueAfter) }}</td>
+              <td class="period-cell">{{ formatDate(l.periodStart) }} → {{ formatDate(l.periodEnd) }}</td>
+              <td>
+                <p-tag
+                  [value]="l.reason === 'BATCH_RUN' ? 'APPROVED' : l.reason === 'BATCH_DRAFT' ? 'DRAFT' : (l.reason || 'MANUAL')"
+                  [severity]="l.reason === 'BATCH_RUN' ? 'success' : l.reason === 'BATCH_DRAFT' ? 'warn' : 'secondary'">
+                </p-tag>
+              </td>
+              <td>{{ l.doneBy?.name || '—' }}</td>
+              <td>{{ formatDate(l.createdAt) }}</td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">
-            <tr><td colspan="5" class="text-center">No history logs.</td></tr>
+            <tr><td colspan="7" class="text-center">No history logs.</td></tr>
           </ng-template>
         </p-table>
       </div>
     </p-tabpanel>
+
+    <!-- Tab 6: Round-off Impact Analysis -->
+    <p-tabpanel header="Round-off Impact">
+      <div class="tab-content">
+
+        <div class="wdv-info">
+          <i class="pi pi-calculator"></i>
+          This report shows the exact rounding difference per asset. When many assets are rounded individually,
+          their sum can drift from the unrounded total. Use this to decide <strong>which assets to enable round-off on</strong>
+          without causing a significant total mismatch.
+        </div>
+
+        <div class="toolbar">
+          <p-button label="Run Analysis" icon="pi pi-chart-scatter" severity="secondary"
+            (onClick)="loadImpact()" [loading]="impactLoading"></p-button>
+        </div>
+
+        @if (impactData) {
+
+          <!-- Summary KPIs -->
+          <div class="kpi-grid" style="margin-bottom:1.25rem">
+            <div class="kpi-card">
+              <span class="kpi-label">Assets Analysed</span>
+              <span class="kpi-value">{{ impactData.summary.totalAssets }}</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Total (Raw, no rounding)</span>
+              <span class="kpi-value">{{ formatCurrency(impactData.summary.totalRaw) }}</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Total (Nearest Rupee)</span>
+              <span class="kpi-value">{{ formatCurrency(impactData.summary.total0dp) }}</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Total (2 Decimal)</span>
+              <span class="kpi-value">{{ formatCurrency(impactData.summary.total2dp) }}</span>
+            </div>
+            <div class="kpi-card" [class.kpi-warn]="impactData.summary.variance0dp !== 0">
+              <span class="kpi-label">Variance — Nearest Rupee vs Raw</span>
+              <span class="kpi-value" style="font-size:1.1rem">
+                {{ impactData.summary.variance0dp >= 0 ? '+' : '' }}{{ formatCurrency(impactData.summary.variance0dp) }}
+              </span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Variance — Current Settings vs Raw</span>
+              <span class="kpi-value" style="font-size:1.1rem">
+                {{ impactData.summary.varianceActive >= 0 ? '+' : '' }}{{ formatCurrency(impactData.summary.varianceActive) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Risk banner + rounding breakdown -->
+          <div class="impact-banner" [class.impact-low]="impactData.summary.riskLevel === 'LOW'"
+            [class.impact-medium]="impactData.summary.riskLevel === 'MEDIUM'"
+            [class.impact-high]="impactData.summary.riskLevel === 'HIGH'">
+            <div class="impact-banner-left">
+              <p-tag [value]="impactData.summary.riskLevel + ' VARIANCE RISK'"
+                [severity]="getRiskSeverity(impactData.summary.riskLevel)"></p-tag>
+              <span>
+                Enabling <strong>nearest-rupee rounding</strong> on all assets shifts the total by
+                <strong>{{ formatCurrency(impactData.summary.variance0dp) }}</strong>.
+              </span>
+            </div>
+            <div class="impact-banner-right">
+              <span class="rounding-stat up">
+                <i class="pi pi-arrow-up"></i> {{ impactData.summary.roundingUpCount }} assets round <strong>up</strong> (adds to total)
+              </span>
+              <span class="rounding-stat down">
+                <i class="pi pi-arrow-down"></i> {{ impactData.summary.roundingDownCount }} assets round <strong>down</strong> (reduces total)
+              </span>
+              <span class="rounding-stat exact">
+                <i class="pi pi-minus"></i> {{ impactData.summary.exactCount }} assets are exact (no difference)
+              </span>
+            </div>
+          </div>
+
+          <!-- Per-asset table -->
+          <p-table [value]="impactData.rows" [paginator]="true" [rows]="20"
+            styleClass="p-datatable-sm p-datatable-striped"
+            [globalFilterFields]="['assetName','assetCode','department','category']">
+            <ng-template pTemplate="caption">
+              <small style="color:#888">
+                Sorted by highest absolute rounding impact first.
+                <strong>Delta</strong> = rounded amount − raw amount.
+                Positive = rounds UP (total increases). Negative = rounds DOWN (total decreases).
+              </small>
+            </ng-template>
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Asset</th>
+                <th>Dept / Category</th>
+                <th>Method</th>
+                <th class="num-r">Raw Amount</th>
+                <th class="num-r">Nearest Rupee</th>
+                <th class="num-r">Delta (0 dp)</th>
+                <th class="num-r">2 Decimal</th>
+                <th class="num-r">Delta (2 dp)</th>
+                <th>Round-off ON?</th>
+                <th class="num-r">Active Amount</th>
+                <th class="num-r">Active Delta</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row>
+              <tr>
+                <td>
+                  <div style="font-weight:600">{{ row.assetCode }}</div>
+                  <div style="font-size:0.8rem;color:#666">{{ row.assetName }}</div>
+                </td>
+                <td>
+                  <div>{{ row.department || '—' }}</div>
+                  <div style="font-size:0.78rem;color:#999">{{ row.category || '—' }}</div>
+                </td>
+                <td><p-tag [value]="row.method" severity="secondary"></p-tag></td>
+                <td class="num-r raw-amt">₹{{ row.rawAmount.toFixed(4) }}</td>
+                <td class="num-r">{{ formatCurrency(row.rounded0dp) }}</td>
+                <td class="num-r">
+                  <p-tag [value]="formatDelta(row.delta0dp)"
+                    [severity]="getDeltaSeverity(row.delta0dp)"></p-tag>
+                </td>
+                <td class="num-r">{{ formatCurrency(row.rounded2dp) }}</td>
+                <td class="num-r">
+                  <p-tag [value]="formatDelta(row.delta2dp)"
+                    [severity]="getDeltaSeverity(row.delta2dp)"></p-tag>
+                </td>
+                <td>
+                  @if (row.roundOffEnabled) {
+                    <p-tag value="ON" severity="warn"></p-tag>
+                    <span style="font-size:0.75rem;color:#888;margin-left:4px">{{ row.decimalPlaces }} dp</span>
+                  } @else {
+                    <p-tag value="OFF" severity="secondary"></p-tag>
+                  }
+                </td>
+                <td class="num-r dep-amt">{{ formatCurrency(row.activeSetting) }}</td>
+                <td class="num-r">
+                  @if (row.roundOffEnabled) {
+                    <p-tag [value]="formatDelta(row.deltaActive)"
+                      [severity]="getDeltaSeverity(row.deltaActive)"></p-tag>
+                  } @else {
+                    <span style="color:#bbb">—</span>
+                  }
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="11" class="text-center">No depreciable assets found.</td></tr>
+            </ng-template>
+          </p-table>
+
+        }
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 7: WDV Schedule -->
+    <p-tabpanel header="WDV Schedule">
+      <div class="tab-content">
+        <div class="wdv-info">
+          <i class="pi pi-info-circle"></i>
+          Select any asset to see its full depreciation schedule — period-by-period opening WDV, depreciation amount, and closing WDV projected until residual value.
+          Round-off settings are applied per asset (configure in the asset form).
+        </div>
+
+        <div class="scope-bar">
+          <p-select [options]="scheduleAssets" [(ngModel)]="scheduleSelectedAssetId"
+            placeholder="Select asset…" [showClear]="true" [filter]="true" filterPlaceholder="Search asset…"
+            [style]="{'width':'360px'}" (onChange)="scheduleData = null"></p-select>
+          <p-button label="Load Schedule" icon="pi pi-chart-line" severity="secondary" size="small"
+            (onClick)="loadSchedule()" [loading]="scheduleLoading"
+            [disabled]="!scheduleSelectedAssetId"></p-button>
+          @if (!scheduleAssets.length) {
+            <p-button label="Load Asset List" icon="pi pi-download" severity="secondary" size="small"
+              (onClick)="loadScheduleAssets()"></p-button>
+          }
+        </div>
+
+        @if (scheduleData) {
+          <!-- Config KPIs -->
+          <div class="kpi-grid" style="margin-bottom:1rem">
+            <div class="kpi-card">
+              <span class="kpi-label">Method</span>
+              <span class="kpi-value" style="font-size:1.1rem">{{ scheduleData.config.method }}</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Original Cost</span>
+              <span class="kpi-value">{{ formatCurrency(scheduleData.config.originalCost) }}</span>
+            </div>
+            <div class="kpi-card kpi-warn">
+              <span class="kpi-label">Current Book Value</span>
+              <span class="kpi-value">{{ formatCurrency(scheduleData.config.currentBookValue) }}</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Residual Value</span>
+              <span class="kpi-value">{{ formatCurrency(scheduleData.config.salvageValue) }}</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Total Depreciation</span>
+              <span class="kpi-value">{{ formatCurrency(scheduleData.summary.totalDepreciation) }}</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Periods Completed / Total</span>
+              <span class="kpi-value" style="font-size:1rem">
+                {{ scheduleData.summary.completedPeriods }} / {{ scheduleData.summary.totalPeriods }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Round-off badge -->
+          <div class="roundoff-badge" [class.roundoff-on]="scheduleData.config.roundOff">
+            @if (scheduleData.config.roundOff) {
+              <i class="pi pi-check-circle"></i>
+              Round-off ON — values rounded to {{ scheduleData.config.decimalPlaces === 0 ? 'nearest rupee' : scheduleData.config.decimalPlaces + ' decimal places' }}
+            } @else {
+              <i class="pi pi-minus-circle"></i>
+              Round-off OFF — raw calculated values shown
+            }
+          </div>
+
+          <!-- Legend -->
+          <div class="schedule-legend">
+            <span class="legend-item completed"><i class="pi pi-check"></i> Completed</span>
+            <span class="legend-item current"><i class="pi pi-play"></i> Current Period</span>
+            <span class="legend-item future"><i class="pi pi-clock"></i> Future</span>
+          </div>
+
+          <!-- Schedule table -->
+          <p-table [value]="scheduleData.schedule" styleClass="p-datatable-sm p-datatable-striped"
+            [paginator]="true" [rows]="24">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>#</th>
+                <th>Period</th>
+                <th>From</th>
+                <th>To</th>
+                <th class="num-r">Opening WDV</th>
+                <th class="num-r">Depreciation</th>
+                <th class="num-r">Closing WDV</th>
+                <th class="num-r">Accumulated</th>
+                <th>Status</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row>
+              <tr [ngClass]="getRowClass(row)">
+                <td>{{ row.period }}</td>
+                <td>{{ row.label }}</td>
+                <td>{{ formatDate(row.periodStart) }}</td>
+                <td>{{ formatDate(row.periodEnd) }}</td>
+                <td class="num-r">{{ formatCurrency(row.openingWDV) }}</td>
+                <td class="num-r dep-amt">{{ formatCurrency(row.depreciation) }}</td>
+                <td class="num-r">{{ formatCurrency(row.closingWDV) }}</td>
+                <td class="num-r" style="color:#888">{{ formatCurrency(row.accumulated) }}</td>
+                <td>
+                  @if (row.isCompleted) {
+                    <p-tag value="Done" severity="success"></p-tag>
+                  } @else if (row.isCurrent) {
+                    <p-tag value="Current" severity="warn"></p-tag>
+                  } @else {
+                    <p-tag value="Upcoming" severity="secondary"></p-tag>
+                  }
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        }
+      </div>
+    </p-tabpanel>
+
   </p-tabview>
 </div>

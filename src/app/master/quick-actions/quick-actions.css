@@ -1,0 +1,21 @@
+.page-container { padding: 1.5rem; }
+.page-header { margin-bottom: 1.5rem; }
+.page-header h2 { margin: 0; font-size: 1.4rem; display: flex; align-items: center; gap: 8px; }
+.operations-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 1.5rem; }
+.op-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.op-card-header { display: flex; align-items: center; gap: 10px; }
+.op-card-header i { font-size: 1.3rem; color: #1565C0; }
+.op-card-header h3 { margin: 0; font-size: 1rem; }
+.op-desc { margin: 0; font-size: 0.85rem; color: #666; }
+.op-fields { display: flex; flex-direction: column; gap: 0.6rem; }
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-group label { font-size: 0.8rem; font-weight: 600; color: #444; }
+.field-group input { width: 100%; }
+.bulk-controls { display: flex; flex-direction: column; gap: 0.5rem; }
+.row-selected { background: #e3f2fd !important; }
+.qr-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem; }
+.qr-card { border: 1px solid #e0e0e0; border-radius: 6px; padding: 0.5rem; text-align: center; width: 110px; }
+.qr-img { width: 80px; height: 80px; }
+.qr-label { font-size: 0.75rem; font-weight: 700; margin-top: 4px; }
+.qr-name { font-size: 0.7rem; color: #666; }
+@media print { .page-header, .op-card:not(:last-child) { display: none !important; } .qr-grid { display: flex !important; flex-wrap: wrap; } }

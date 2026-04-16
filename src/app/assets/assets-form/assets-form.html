@@ -40,9 +40,18 @@
                             </p-floatlabel>
                         </div>
 
+                        <!-- ASSET NATURE (Tangible / Intangible) -->
+                        <p-floatlabel variant="on" class="full-field">
+                            <p-select [options]="assetNatureOptions" optionLabel="label" optionValue="value"
+                                name="assetNature" [(ngModel)]="asset.assetNature" required
+                                appendTo="body" [disabled]="!canEditBasicDetails">
+                            </p-select>
+                            <label>Asset Nature *</label>
+                        </p-floatlabel>
+
                         <!-- TYPE + CATEGORY -->
                         <div class="two-fields">
-                            <p-floatlabel variant="on">
+                            <p-floatlabel variant="on" *ngIf="asset.assetNature === 'TANGIBLE'">
                                 <p-select [options]="assetTypes" optionLabel="label" optionValue="value"
                                     name="assetType" [(ngModel)]="asset.assetType" [filter]="true" required
                                     appendTo="body" [disabled]="!canEditBasicDetails">
@@ -59,11 +68,57 @@
                             </p-floatlabel>
                         </div>
 
+                        <!-- INTANGIBLE FIELDS (shown only when assetNature = INTANGIBLE) -->
+                        <div *ngIf="asset.assetNature === 'INTANGIBLE'" class="conditional-card">
+                            <h4>Intangible Asset Details</h4>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <p-select [options]="intangibleSubTypes" optionLabel="label" optionValue="value"
+                                    name="intangibleSubType" [(ngModel)]="asset.intangibleSubType" required
+                                    appendTo="body" [disabled]="!canEditBasicDetails" [filter]="true">
+                                </p-select>
+                                <label>Intangible Sub-Type *</label>
+                            </p-floatlabel>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <input pInputText type="number" name="usefulLifeYears"
+                                        [(ngModel)]="asset.usefulLifeYears" required [disabled]="!canEditBasicDetails" />
+                                    <label>Useful Life (Years) *</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on">
+                                    <p-select [options]="amortizationMethods" optionLabel="label" optionValue="value"
+                                        name="amortizationMethod" [(ngModel)]="asset.amortizationMethod"
+                                        appendTo="body" [disabled]="!canEditBasicDetails">
+                                    </p-select>
+                                    <label>Amortization Method</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <p-datepicker name="amortizationStartDate"
+                                        [(ngModel)]="asset.amortizationStartDate"
+                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                                    <label>Amortization Start Date</label>
+                                </p-floatlabel>
+
+                                <p-floatlabel variant="on">
+                                    <input pInputText type="number" name="residualValuePercent"
+                                        [(ngModel)]="asset.residualValuePercent"
+                                        [disabled]="!canEditBasicDetails" />
+                                    <label>Residual Value %</label>
+                                </p-floatlabel>
+                            </div>
+                        </div>
+
                         <!-- SERIAL NUMBER -->
                         <p-floatlabel variant="on" class="full-field">
-                            <input pInputText name="serialNumber" [(ngModel)]="asset.serialNumber" required
+                            <input pInputText name="serialNumber" [(ngModel)]="asset.serialNumber"
+                                [required]="!asset.isLegacyAsset"
                                 [disabled]="!canEditBasicDetails" />
-                            <label>Serial Number *</label>
+                            <label>Serial Number {{ asset.isLegacyAsset ? '' : '*' }}</label>
                         </p-floatlabel>
 
                         <!-- PROCUREMENT MODE -->
@@ -85,15 +140,17 @@
 
                             <div class="two-fields">
                                 <p-floatlabel variant="on">
-                                    <input pInputText name="invoiceNumber" [(ngModel)]="asset.invoiceNumber" required
+                                    <input pInputText name="invoiceNumber" [(ngModel)]="asset.invoiceNumber"
+                                        [required]="!asset.isLegacyAsset"
                                         [disabled]="!canEditBasicDetails" />
-                                    <label>Invoice Number *</label>
+                                    <label>Invoice Number {{ asset.isLegacyAsset ? '' : '*' }}</label>
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on">
-                                    <p-datepicker name="purchaseDate" [(ngModel)]="asset.purchaseDate" required
+                                    <p-datepicker name="purchaseDate" [(ngModel)]="asset.purchaseDate"
+                                        [required]="!asset.isLegacyAsset"
                                         [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
-                                    <label>Purchase Date *</label>
+                                    <label>Purchase Date {{ asset.isLegacyAsset ? '' : '*' }}</label>
                                 </p-floatlabel>
                             </div>
 
@@ -111,19 +168,43 @@
                                 </p-floatlabel>
                             </div>
 
+                            <p-floatlabel variant="on">
+                                <p-datepicker name="installedAt" [(ngModel)]="asset.installedAt"
+                                    [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                                <label>Installed Date</label>
+                            </p-floatlabel>
+
                             <p-floatlabel variant="on" class="full-field">
                                 <input pInputText type="number" name="purchaseCost" [(ngModel)]="asset.purchaseCost"
-                                    required [disabled]="!canEditBasicDetails" />
-                                <label>Purchase Cost *</label>
+                                    [required]="!asset.isLegacyAsset" [disabled]="!canEditBasicDetails"
+                                    (ngModelChange)="onPoolChange()" />
+                                <label>Purchase Cost {{ asset.isLegacyAsset ? '' : '*' }}</label>
                             </p-floatlabel>
 
                             <!-- Vendor -->
                             <p-floatlabel variant="on" class="full-field">
                                 <p-select [options]="vendors" optionLabel="name" optionValue="id"
-                                    [(ngModel)]="asset.vendorId" name="vendorId" required appendTo="body"
+                                    [(ngModel)]="asset.vendorId" name="vendorId"
+                                    [required]="!asset.isLegacyAsset" appendTo="body"
                                     [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
-                                <label>Vendor *</label>
+                                <label>Vendor {{ asset.isLegacyAsset ? '' : '*' }}</label>
                             </p-floatlabel>
+
+                            <!-- Purchase Voucher (Accounts Module) -->
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <input pInputText name="purchaseVoucherNo"
+                                        [(ngModel)]="asset.purchaseVoucherNo"
+                                        [disabled]="!canEditBasicDetails" />
+                                    <label>Purchase Voucher No</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <p-datepicker name="purchaseVoucherDate"
+                                        [(ngModel)]="asset.purchaseVoucherDate"
+                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                                    <label>Purchase Voucher Date</label>
+                                </p-floatlabel>
+                            </div>
 
                             <!-- Warranty -->
                             <!-- <div class="two-fields">
@@ -268,8 +349,17 @@
                             <p-floatlabel variant="on" class="full-field">
                                 <input pInputText type="number" name="leaseAmount" [(ngModel)]="asset.leaseAmount"
                                     [disabled]="!canEditBasicDetails" />
-                                <label>Lease Amount</label>
+                                <label>Lease Amount (per period)</label>
                             </p-floatlabel>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <input pInputText type="number" name="estimatedValue" [(ngModel)]="asset.estimatedValue"
+                                    [disabled]="!canEditBasicDetails" />
+                                <label>Asset Value / ROU Value (for depreciation)</label>
+                            </p-floatlabel>
+                            <small class="field-hint" style="margin-top:-8px; display:block;">
+                                Right-of-use or fair market value — used as cost basis if depreciation is set up for this asset.
+                            </small>
 
                             <!-- Inspection sub-section -->
                             <h5 class="subsection-title">Physical &amp; Functional Inspection</h5>
@@ -411,6 +501,98 @@
                             </p-floatlabel>
                         </div>
 
+
+                        <!-- ============= LEGACY ASSET ============== -->
+                        <div class="legacy-toggle-row">
+                          <p-checkbox [(ngModel)]="asset.isLegacyAsset" name="isLegacyAsset" [binary]="true"
+                            inputId="isLegacyAsset" [disabled]="!canEditBasicDetails"></p-checkbox>
+                          <label for="isLegacyAsset" class="legacy-toggle-label">
+                            <i class="pi pi-history"></i> This is a legacy asset (already in use before system onboarding)
+                          </label>
+                        </div>
+
+                        <div *ngIf="asset.isLegacyAsset" class="legacy-section">
+
+                          <!-- Pool Reference -->
+                          <div class="pool-ref-row">
+                            <i class="pi pi-layer-group" style="color:#6366f1;font-size:1.1rem"></i>
+                            <p-floatlabel variant="on" style="flex:1">
+                              <p-select [options]="poolOptions" optionLabel="label" optionValue="value"
+                                [(ngModel)]="asset.assetPoolId" name="assetPoolId"
+                                (onChange)="onPoolChange()" appendTo="body"
+                                [disabled]="!canEditBasicDetails" [filter]="true"
+                                placeholder="Link to FA Register Pool (optional)"></p-select>
+                              <label>FA Register Pool</label>
+                            </p-floatlabel>
+                            @if (propDepLoading) {
+                              <i class="pi pi-spin pi-spinner" style="color:#6366f1"></i>
+                            }
+                          </div>
+                          @if (asset.assetPoolId) {
+                            <p class="pool-ref-hint">
+                              <i class="pi pi-info-circle"></i>
+                              Proportional depreciation will be auto-calculated when purchase cost is set.
+                              Switch to the <strong>Depreciation</strong> tab to review the opening accumulated depreciation.
+                            </p>
+                          }
+
+                          <h3 class="section-title legacy-title" style="margin-top:14px">
+                            <i class="pi pi-history"></i> Historical Cost Opening Balance
+                            <span class="legacy-badge">Legacy</span>
+                          </h3>
+                          <p class="legacy-hint">
+                            Enter the total amounts spent on this asset <strong>before</strong> it was added to this system.
+                            These figures will be included in lifetime cost analysis and TCO reports.
+                          </p>
+
+                          <div class="two-fields">
+                            <p-floatlabel variant="on">
+                              <input pInputText type="number" [(ngModel)]="asset.historicalMaintenanceCost"
+                                name="historicalMaintenanceCost" [disabled]="!canEditBasicDetails" min="0" />
+                              <label>Historical Maintenance Cost (₹)</label>
+                            </p-floatlabel>
+                            <p-floatlabel variant="on">
+                              <input pInputText type="number" [(ngModel)]="asset.historicalSparePartsCost"
+                                name="historicalSparePartsCost" [disabled]="!canEditBasicDetails" min="0" />
+                              <label>Historical Spare Parts Cost (₹)</label>
+                            </p-floatlabel>
+                          </div>
+
+                          <div class="two-fields">
+                            <p-floatlabel variant="on">
+                              <input pInputText type="number" [(ngModel)]="asset.historicalOtherCost"
+                                name="historicalOtherCost" [disabled]="!canEditBasicDetails" min="0" />
+                              <label>Other Historical Costs (₹)</label>
+                            </p-floatlabel>
+                            <p-floatlabel variant="on">
+                              <p-datepicker [(ngModel)]="asset.historicalCostAsOf" name="historicalCostAsOf"
+                                appendTo="body" [disabled]="!canEditBasicDetails"
+                                placeholder="Costs accurate as of date"></p-datepicker>
+                              <label>Costs As Of Date</label>
+                            </p-floatlabel>
+                          </div>
+
+                          <p-floatlabel variant="on" class="full-field">
+                            <p-datepicker [(ngModel)]="asset.dataAvailableSince" name="dataAvailableSince"
+                              appendTo="body" [disabled]="!canEditBasicDetails"
+                              placeholder="Date live tracking begins"></p-datepicker>
+                            <label>Live Data Available From</label>
+                          </p-floatlabel>
+
+                          <p-floatlabel variant="on" class="full-field">
+                            <textarea pTextarea [(ngModel)]="asset.historicalCostNote" name="historicalCostNote"
+                              rows="2" [disabled]="!canEditBasicDetails"
+                              placeholder="e.g. Based on service register and vendor invoices from 2022–2024"></textarea>
+                            <label>Source / Notes</label>
+                          </p-floatlabel>
+
+                          <div class="legacy-total-row" *ngIf="(asset.historicalMaintenanceCost || asset.historicalSparePartsCost || asset.historicalOtherCost)">
+                            <span class="legacy-total-label">Total Historical Cost:</span>
+                            <span class="legacy-total-value">
+                              ₹{{ ((+asset.historicalMaintenanceCost || 0) + (+asset.historicalSparePartsCost || 0) + (+asset.historicalOtherCost || 0)) | number:'1.0-0' }}
+                            </span>
+                          </div>
+                        </div>
 
                         <!-- ============= GRN ============== -->
                         <h3 class="section-title">GRN Details</h3>
@@ -1499,17 +1681,52 @@
 
             <div class="tab-section">
 
+                <!-- RENTAL: depreciation not applicable -->
+                <div *ngIf="asset.modeOfProcurement === 'RENTAL'" class="dep-blocked-banner">
+                    <span class="dep-blocked-icon">&#8505;</span>
+                    <div>
+                        <strong>Depreciation not applicable for Rental assets.</strong><br>
+                        Rental assets are not owned. Rental payments are treated as operating expenses. No depreciation is recorded.
+                    </div>
+                </div>
+
+                <!-- Cost-basis info for non-RENTAL modes -->
+                <div *ngIf="asset.modeOfProcurement !== 'RENTAL'" class="dep-cost-basis-banner">
+                    <span class="dep-basis-icon">&#128200;</span>
+                    <div>
+                        <strong>Depreciation cost basis:</strong>
+                        <span *ngIf="asset.modeOfProcurement === 'PURCHASE' || !asset.modeOfProcurement">
+                            Purchase Cost
+                            <strong *ngIf="asset.purchaseCost"> — ₹{{ asset.purchaseCost | number:'1.0-2' }}</strong>
+                            <em *ngIf="!asset.purchaseCost" class="dep-basis-warn"> (Purchase cost not entered yet)</em>
+                        </span>
+                        <span *ngIf="asset.modeOfProcurement === 'DONATION'">
+                            Estimated / Fair Market Value
+                            <strong *ngIf="asset.estimatedValue"> — ₹{{ asset.estimatedValue | number:'1.0-2' }}</strong>
+                            <em *ngIf="!asset.estimatedValue" class="dep-basis-warn"> (Estimated value not entered in Donation Details)</em>
+                        </span>
+                        <span *ngIf="asset.modeOfProcurement === 'LEASE'">
+                            Asset Value / ROU Value
+                            <strong *ngIf="asset.estimatedValue"> — ₹{{ asset.estimatedValue | number:'1.0-2' }}</strong>
+                            <em *ngIf="!asset.estimatedValue" class="dep-basis-warn"> (Asset/ROU value not entered in Lease Details)</em>
+                        </span>
+                    </div>
+                </div>
+
+                <div *ngIf="asset.modeOfProcurement === 'RENTAL'"><!-- depreciation form hidden for RENTAL --></div>
+                <ng-container *ngIf="asset.modeOfProcurement !== 'RENTAL'">
+
                 <h3 class="section-title">Depreciation Setup</h3>
 
                 <div class="two-fields">
                     <p-floatlabel variant="on">
                         <p-select [options]="depreciationMethods" optionLabel="label" optionValue="value"
                             name="depreciationMethods" [(ngModel)]="depreciationForm.depreciationMethod" appendTo="body"
-                            [filter]="true"></p-select>
+                            [filter]="true" (ngModelChange)="onDepreciationMethodChange()"></p-select>
                         <label>Method *</label>
                     </p-floatlabel>
 
-                    <p-floatlabel variant="on">
+                    <p-floatlabel variant="on" *ngIf="depreciationForm.depreciationMethod === 'DB'">
                         <input type="number" name="depreciationRate" pInputText
                             [(ngModel)]="depreciationForm.depreciationRate" />
                         <label>Rate (%) *</label>
@@ -1524,19 +1741,72 @@
                     </p-floatlabel>
 
                     <p-floatlabel variant="on">
+                        <p-select [options]="depreciationFrequencies" optionLabel="label" optionValue="value"
+                            name="depreciationFrequency" [(ngModel)]="depreciationForm.depreciationFrequency"
+                            appendTo="body"></p-select>
+                        <label>Frequency *</label>
+                    </p-floatlabel>
+                </div>
+
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
                         <p-datepicker [(ngModel)]="depreciationForm.depreciationStart" name="depreciationStartDate"
                             appendTo="body"></p-datepicker>
                         <label>Depreciation Start Date</label>
                     </p-floatlabel>
+
+                    <div class="field-with-hint">
+                        <p-floatlabel variant="on">
+                            <input type="number" pInputText [(ngModel)]="depreciationForm.salvageValue" name="salvageValue" />
+                            <label>Residual Value</label>
+                        </p-floatlabel>
+                        <small class="field-hint" *ngIf="depreciationCostBasis > 0">
+                            Auto: {{ computedResidualValue | number:'1.0-2' }} (5% of cost basis)
+                        </small>
+                    </div>
                 </div>
 
-                <p-floatlabel variant="on">
-                    <input type="number" pInputText [(ngModel)]="depreciationForm.salvageValue" name="salvageValue" />
-                    <label>Salvage Value</label>
-                </p-floatlabel>
+                <!-- Opening accumulated depreciation — legacy assets only, first-time setup -->
+                @if (asset.isLegacyAsset && !asset.depreciation?.id) {
+                  <div class="legacy-dep-row">
+                    <i class="pi pi-history"></i>
+                    <p-floatlabel variant="on" style="flex:1">
+                      <input type="number" pInputText name="openingAccumulatedDepreciation"
+                        [(ngModel)]="depreciationForm.openingAccumulatedDepreciation" min="0" />
+                      <label>Opening Accumulated Depreciation</label>
+                    </p-floatlabel>
+                    <span class="legacy-dep-hint">
+                      Amount already depreciated before this system.
+                      @if (depreciationForm.openingAccumulatedDepreciation && asset.purchaseCost) {
+                        Book value will start at
+                        <strong>{{ (asset.purchaseCost - depreciationForm.openingAccumulatedDepreciation) | number:'1.0-0' }}</strong>.
+                      }
+                    </span>
+                  </div>
+                }
+
+                <!-- Round-off settings -->
+                <div class="roundoff-row">
+                    <div class="roundoff-toggle">
+                        <p-checkbox [(ngModel)]="depreciationForm.roundOff" [binary]="true"
+                            name="roundOff" inputId="roundOffChk"></p-checkbox>
+                        <label for="roundOffChk">
+                            Round off depreciation amounts
+                            <span class="roundoff-hint">Applies to batch runs and WDV schedule</span>
+                        </label>
+                    </div>
+                    @if (depreciationForm.roundOff) {
+                        <p-floatlabel variant="on" style="width:220px">
+                            <p-select [options]="decimalPlacesOptions" optionLabel="label" optionValue="value"
+                                name="decimalPlaces" [(ngModel)]="depreciationForm.decimalPlaces"
+                                appendTo="body"></p-select>
+                            <label>Rounding Precision</label>
+                        </p-floatlabel>
+                    }
+                </div>
 
                 <button pButton [label]="depreciationButtonLabel" style="margin-top: 10px;"
-                    [disabled]="!depreciationForm.depreciationMethod || !depreciationForm.depreciationRate || !depreciationForm.expectedLifeYears"
+                    [disabled]="!depreciationForm.depreciationMethod || !depreciationForm.expectedLifeYears || (depreciationForm.depreciationMethod === 'DB' && !depreciationForm.depreciationRate)"
                     (click)="saveDepreciation()">
                 </button>
 
@@ -1570,6 +1840,8 @@
                         </div>
                     </div>
                 </div>
+
+                </ng-container><!-- /ng-container for non-RENTAL depreciation form -->
 
             </div>
 

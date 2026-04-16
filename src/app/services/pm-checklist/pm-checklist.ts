@@ -15,5 +15,7 @@ export class PmChecklistService {
   submitRun(runId: number, results: any[]): Observable<any> { return this.http.post(`${this.base}/run/${runId}/submit`, { results }); }
   getRunsByAsset(assetId: number): Observable<any> { return this.http.get(`${this.base}/run/asset/${assetId}`); }
   getRunById(id: number): Observable<any> { return this.http.get(`${this.base}/run/${id}`); }
-  getRunPdfUrl(runId: number): string { return `${this.base}/run/${runId}/pdf`; }
+  getRunPdf(runId: number): Observable<Blob> {
+    return this.http.get(`${this.base}/run/${runId}/pdf`, { responseType: 'blob' });
+  }
 }

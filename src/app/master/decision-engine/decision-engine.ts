@@ -70,6 +70,7 @@ export class DecisionEngine implements OnInit {
   detailResult: any = null;
   detailHistory: any[] = [];
   loadingDetail = false;
+  showCalcBreakdown = true; // expanded by default so new users see it immediately
 
   // View
   activeView: 'dashboard' | 'evaluate' = 'dashboard';

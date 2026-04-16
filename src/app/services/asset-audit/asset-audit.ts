@@ -33,6 +33,10 @@ export class AssetAuditService {
     return this.http.put(`${this.baseUrl}/${id}/complete`, {});
   }
 
+  getLocationOptions(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/locations`);
+  }
+
   getSummary(id: number): Observable<any> {
     return this.http.get(`${this.baseUrl}/${id}/summary`);
   }

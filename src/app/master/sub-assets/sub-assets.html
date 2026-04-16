@@ -450,3 +450,38 @@
     <p-button label="Replace Component" icon="pi pi-sync" severity="warn" (click)="submitReplace()" [loading]="replaceSaving" />
   </ng-template>
 </p-dialog>
+
+<!-- ── 40% Threshold Warning Dialog ──────────────────────────────────────── -->
+<p-dialog [(visible)]="showThresholdDialog" header="Value Threshold Warning"
+  [modal]="true" [style]="{width:'480px'}" [closable]="true">
+  @if (thresholdInfo) {
+    <div class="threshold-dialog">
+      <div class="threshold-icon">
+        <i class="pi pi-exclamation-triangle"></i>
+      </div>
+      <p class="threshold-msg">{{ thresholdInfo.message }}</p>
+      <div class="threshold-breakdown">
+        <div class="threshold-row">
+          <span>Parent Asset Value</span>
+          <strong>₹{{ thresholdInfo.parentValue | number:'1.0-0' }}</strong>
+        </div>
+        <div class="threshold-row">
+          <span>Sub-Asset Value</span>
+          <strong>₹{{ thresholdInfo.subAssetValue | number:'1.0-0' }}</strong>
+        </div>
+        <div class="threshold-row highlight-row">
+          <span>Value Ratio</span>
+          <strong class="pct-val">{{ thresholdInfo.percentage }}%</strong>
+        </div>
+      </div>
+      <p class="threshold-hint">How would you like to proceed?</p>
+    </div>
+  }
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" [text]="true" (onClick)="showThresholdDialog=false" />
+    <p-button label="Keep as Sub-Asset" icon="pi pi-link" severity="secondary"
+      (onClick)="proceedAsSubAsset()" />
+    <p-button label="Create as Functional Asset" icon="pi pi-plus-circle" severity="success"
+      (onClick)="proceedAsStandalone()" />
+  </ng-template>
+</p-dialog>

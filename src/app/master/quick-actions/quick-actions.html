@@ -1,0 +1,111 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-bolt"></i> Bulk & Quick Operations</h2>
+  </div>
+
+  <div class="operations-grid">
+
+    <!-- ── Duplicate Asset ──────────────────────────────────────── -->
+    <div class="op-card">
+      <div class="op-card-header">
+        <i class="pi pi-copy"></i>
+        <h3>Clone / Duplicate Asset</h3>
+      </div>
+      <p class="op-desc">Create an exact copy of an asset with a new Asset ID and Serial Number. All metadata (category, department, specs) is copied.</p>
+      <div class="op-fields">
+        <div class="field-group">
+          <label>Source Asset *</label>
+          <p-select [options]="assetOptions" [(ngModel)]="dupSourceAssetId"
+            placeholder="Search asset..." [filter]="true" filterPlaceholder="Type asset ID or name"
+            [loading]="assetsLoading" [style]="{'width':'100%'}"></p-select>
+        </div>
+        <div class="field-group">
+          <label>New Asset ID *</label>
+          <input pInputText [(ngModel)]="dupNewAssetId" placeholder="e.g. ASSET-0099" />
+        </div>
+        <div class="field-group">
+          <label>New Serial Number *</label>
+          <input pInputText [(ngModel)]="dupNewSerial" placeholder="e.g. SN-NEW-001" />
+        </div>
+      </div>
+      <p-button label="Clone Asset" icon="pi pi-copy" (onClick)="duplicateAsset()" [loading]="dupLoading" severity="secondary"></p-button>
+    </div>
+
+    <!-- ── Bulk Status Update ──────────────────────────────────── -->
+    <div class="op-card">
+      <div class="op-card-header">
+        <i class="pi pi-list-check"></i>
+        <h3>Bulk Status Update</h3>
+      </div>
+      <p class="op-desc">Select multiple assets and update their status in one operation.</p>
+
+      @if (!bulkAssets.length) {
+        <p-button label="Load Assets" icon="pi pi-download" severity="secondary" size="small"
+          (onClick)="loadBulkAssets()" [loading]="bulkAssetsLoading"></p-button>
+      } @else {
+        <div class="bulk-controls">
+          <p-select [options]="statusOptions" [(ngModel)]="bulkStatus" placeholder="Select new status" [style]="{'width':'100%'}"></p-select>
+          <p-button label="Apply to {{ bulkSelectedIds.length }} selected" icon="pi pi-check"
+            severity="warn" [loading]="bulkStatusLoading" (onClick)="applyBulkStatus()"
+            [disabled]="!bulkSelectedIds.length || !bulkStatus"></p-button>
+        </div>
+        <p-table [value]="bulkAssets" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped" [scrollable]="true" scrollHeight="260px">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width:40px">✓</th>
+              <th>Asset ID</th>
+              <th>Name</th>
+              <th>Status</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-a>
+            <tr [class.row-selected]="isBulkSelected(a.id)" (click)="toggleBulkSelect(a.id)" style="cursor:pointer">
+              <td><input type="checkbox" [checked]="isBulkSelected(a.id)" (click)="$event.stopPropagation(); toggleBulkSelect(a.id)" /></td>
+              <td>{{ a.assetId }}</td>
+              <td>{{ a.assetName }}</td>
+              <td><p-tag [value]="a.status" severity="secondary" styleClass="text-xs"></p-tag></td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </div>
+
+    <!-- ── QR Bulk Print ───────────────────────────────────────── -->
+    <div class="op-card">
+      <div class="op-card-header">
+        <i class="pi pi-qrcode"></i>
+        <h3>QR Code Bulk Print</h3>
+      </div>
+      <p class="op-desc">Select one or more assets to generate QR labels for bulk printing.</p>
+      <div class="op-fields">
+        <div class="field-group">
+          <label>Select Assets *</label>
+          <p-multiSelect [options]="assetOptions" [(ngModel)]="qrSelectedIds"
+            placeholder="Search and select assets..." [filter]="true" filterPlaceholder="Type asset ID or name"
+            [loading]="assetsLoading" [style]="{'width':'100%'}" display="chip"></p-multiSelect>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.5rem">
+        <p-button label="Generate" icon="pi pi-qrcode" severity="secondary" (onClick)="loadQRData()" [loading]="qrLoading"></p-button>
+        @if (qrData.length) {
+          <p-button label="Print" icon="pi pi-print" severity="success" (onClick)="printQR()"></p-button>
+        }
+      </div>
+
+      @if (qrData.length) {
+        <div class="qr-grid" id="qr-print-area">
+          @for (item of qrData; track item.id) {
+            <div class="qr-card">
+              <img [src]="item.qrCode" alt="QR" class="qr-img" />
+              <div class="qr-label">{{ item.assetId }}</div>
+              <div class="qr-name">{{ item.assetName }}</div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </div>
+</div>

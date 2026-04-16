@@ -110,6 +110,46 @@
   align-items: center;
 }
 
+.location-scope-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.sub-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #888;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.optional-hint {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #aaa;
+  margin-left: 4px;
+}
+
+.scope-preview {
+  margin-top: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  background: #fff3e0;
+  border-left: 3px solid #f57c00;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scope-preview.scope-all {
+  background: #e8f5e9;
+  border-left-color: #2e7d32;
+  color: #2e7d32;
+}
+
 .text-green { color: var(--green-500); }
 .text-red { color: var(--red-500); }
 

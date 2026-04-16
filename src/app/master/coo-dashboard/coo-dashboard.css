@@ -15,6 +15,7 @@
 .kpi-5 { grid-template-columns: repeat(5, 1fr); }
 .kpi-4 { grid-template-columns: repeat(4, 1fr); }
 .kpi-3 { grid-template-columns: repeat(3, 1fr); }
+.kpi-2 { grid-template-columns: repeat(2, 1fr); }
 .kpi-grid.compact { margin-bottom: 0.75rem; }
 .kpi-card { border: 1px solid var(--surface-border); border-radius: 10px; padding: 1rem 1.25rem; background: var(--surface-0); }
 .kpi-card.subtle { background: var(--surface-50, var(--surface-0)); }
@@ -100,3 +101,24 @@
   .pm-stats { flex-direction: column; gap: 0.5rem; }
   .date-filters { flex-direction: column; align-items: stretch; }
 }
+
+.legacy-data-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
+  color: #92400e;
+}
+.legacy-data-banner i { font-size: 1.1rem; flex-shrink: 0; }
+
+/* E-Waste overdue banner */
+.ewaste-overdue-banner { display: flex; align-items: center; gap: 10px; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 10px 14px; margin-top: 0.75rem; font-size: 0.85rem; color: #991b1b; }
+.ewaste-overdue-banner i { font-size: 1rem; flex-shrink: 0; }
+.ewaste-overdue-link { margin-left: auto; font-weight: 600; color: #dc2626; text-decoration: none; }
+.ewaste-overdue-link:hover { text-decoration: underline; }
+.alert-warn { border-color: #fed7aa !important; background: #fff7ed !important; }

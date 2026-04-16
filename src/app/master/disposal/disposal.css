@@ -93,3 +93,17 @@
   font-weight: 400 !important;
   text-transform: capitalize;
 }
+
+/* Sub-asset resolution dialog */
+.sub-res-dialog { display: flex; flex-direction: column; gap: 16px; }
+.sub-res-intro { margin: 0; color: #475569; font-size: 0.9rem; }
+.sub-res-list { display: flex; flex-direction: column; gap: 12px; }
+.sub-res-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; padding: 12px; background: #f8fafc;
+  border: 1px solid #e2e8f0; border-radius: 8px; flex-wrap: wrap;
+}
+.sub-res-info { display: flex; flex-direction: column; gap: 2px; }
+.sub-res-name { font-weight: 600; color: #1e293b; font-size: 0.9rem; }
+.sub-res-id { font-size: 0.78rem; color: #64748b; }
+.sub-res-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }

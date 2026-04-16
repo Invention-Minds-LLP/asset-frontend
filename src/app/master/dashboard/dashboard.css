@@ -162,3 +162,60 @@
   font-weight: 400 !important;
   text-transform: capitalize;
 }
+
+.legacy-data-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
+  color: #92400e;
+}
+.legacy-data-banner i { font-size: 1.1rem; flex-shrink: 0; }
+
+/* Pool Digitization Banner */
+.pool-digi-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: linear-gradient(135deg, #eef2ff 0%, #f0fdf4 100%);
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 0.85rem 1.2rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.15s;
+}
+.pool-digi-banner:hover { box-shadow: 0 2px 12px rgba(99,102,241,0.15); }
+.pool-digi-left { display: flex; align-items: center; gap: 0.75rem; }
+.pool-digi-icon { font-size: 1.6rem; color: #6366f1; }
+.pool-digi-title { font-weight: 700; font-size: 0.9rem; color: #3730a3; }
+.pool-digi-sub { font-size: 0.78rem; color: #6366f1; margin-top: 2px; }
+.pool-digi-stats { display: flex; gap: 1.5rem; align-items: center; }
+.pool-digi-stat { display: flex; flex-direction: column; align-items: flex-end; }
+.pool-digi-stat span { font-size: 0.72rem; color: #6b7280; }
+.pool-digi-stat b { font-size: 0.9rem; font-weight: 700; color: #111827; }
+.digi-pct { color: #10b981; font-size: 1.1rem; }
+
+/* E-Waste Sign-off Strip */
+.ewaste-strip {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  background: #fff7ed; border: 1px solid #fed7aa;
+  border-radius: 10px; padding: 0.75rem 1.1rem; margin-bottom: 1rem;
+  transition: box-shadow 0.15s;
+}
+.ewaste-strip:hover { box-shadow: 0 2px 10px rgba(249,115,22,0.15); }
+.ewaste-strip-title { font-size: 0.85rem; font-weight: 700; color: #c2410c; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.ewaste-strip-title i { font-size: 1rem; }
+.ewaste-strip-items { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ewaste-chip { display: flex; align-items: center; gap: 5px; font-size: 0.78rem; font-weight: 600; padding: 3px 10px; border-radius: 12px; }
+.ewaste-chip i { font-size: 0.82rem; }
+.ewaste-pending { background: #fef3c7; color: #92400e; }
+.ewaste-closed  { background: #dcfce7; color: #14532d; }
+.ewaste-alert   { background: #fee2e2; color: #991b1b; }
+.ewaste-arrow   { color: #d97706; font-size: 0.75rem; }
+.ewaste-sep     { width: 1px; height: 18px; background: #fed7aa; margin: 0 4px; }

@@ -1,6 +1,23 @@
 <div class="import-page">
+
+  <!-- Legacy Template Download Banner -->
+  <div class="legacy-template-banner">
+    <div class="legacy-template-info">
+      <i class="pi pi-history" style="color:#92400e;font-size:1.4rem"></i>
+      <div>
+        <strong>Onboarding a company with existing assets?</strong>
+        <p>Download the legacy import template — it includes historical cost fields and relaxes mandatory requirements like serial number and invoice number.</p>
+      </div>
+    </div>
+    <button type="button" class="download-template-btn" (click)="downloadLegacyTemplate()" [disabled]="downloadingTemplate">
+      <i class="pi pi-download"></i>
+      {{ downloadingTemplate ? 'Downloading...' : 'Download Legacy Template' }}
+    </button>
+  </div>
+
   <div class="import-card">
     <h2>Asset Workbook Upload</h2>
+    <p class="import-hint">Use this for both the standard template and the <strong>legacy template</strong>. Rows with <code>isLegacyAsset = TRUE</code> are automatically detected and imported with relaxed validation.</p>
 
     <input
       #assetsFileInput
@@ -14,54 +31,60 @@
       Choose Asset Workbook
     </button>
 
-    <div class="file-name" *ngIf="assetsFile">
-      Selected: {{ assetsFile.name }}
-    </div>
+    @if (assetsFile) {
+      <div class="file-name">Selected: {{ assetsFile.name }}</div>
+    }
 
-    <button
-      type="button"
-      (click)="uploadAssetsWorkbook()"
-      [disabled]="isUploadingAssets || !assetsFile"
-    >
+    <button type="button" (click)="uploadAssetsWorkbook()" [disabled]="isUploadingAssets || !assetsFile">
       {{ isUploadingAssets ? 'Uploading...' : 'Upload Asset Workbook' }}
     </button>
 
-    <div class="error" *ngIf="assetsError">
-      {{ assetsError }}
-    </div>
+    @if (assetsError) {
+      <div class="error">{{ assetsError }}</div>
+    }
 
-    <div class="success-box" *ngIf="assetsResponse">
-      <h3>{{ assetsResponse.message }}</h3>
+    @if (assetsResponse) {
+      <div class="success-box">
+        <h3>{{ assetsResponse.message }}</h3>
 
-      <table *ngIf="assetsResponse.summary">
-        <tbody>
-          <tr *ngFor="let key of objectKeys(assetsResponse.summary)">
-            <td *ngIf="key !== 'errors'"><strong>{{ key }}</strong></td>
-            <td *ngIf="key !== 'errors'">{{ assetsResponse.summary[key] }}</td>
-          </tr>
-        </tbody>
-      </table>
+        @if (assetsResponse.summary) {
+          <table>
+            <tbody>
+              @for (key of objectKeys(assetsResponse.summary); track key) {
+                @if (key !== 'errors') {
+                  <tr>
+                    <td><strong>{{ key }}</strong></td>
+                    <td>{{ assetsResponse.summary[key] }}</td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        }
 
-      <div *ngIf="assetsResponse.summary?.errors?.length">
-        <h4>Errors</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>Sheet</th>
-              <th>Row</th>
-              <th>Message</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let err of assetsResponse.summary.errors">
-              <td>{{ err.sheet }}</td>
-              <td>{{ err.row }}</td>
-              <td>{{ err.message }}</td>
-            </tr>
-          </tbody>
-        </table>
+        @if (assetsResponse.summary?.errors?.length) {
+          <h4>Errors</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Sheet</th>
+                <th>Row</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (err of assetsResponse.summary.errors; track $index) {
+                <tr>
+                  <td>{{ err.sheet }}</td>
+                  <td>{{ err.row }}</td>
+                  <td>{{ err.message }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
-    </div>
+    }
   </div>
 
   <div class="import-card">
@@ -79,53 +102,59 @@
       Choose Checklist Workbook
     </button>
 
-    <div class="file-name" *ngIf="checklistFile">
-      Selected: {{ checklistFile.name }}
-    </div>
+    @if (checklistFile) {
+      <div class="file-name">Selected: {{ checklistFile.name }}</div>
+    }
 
-    <button
-      type="button"
-      (click)="uploadChecklistWorkbook()"
-      [disabled]="isUploadingChecklists || !checklistFile"
-    >
+    <button type="button" (click)="uploadChecklistWorkbook()" [disabled]="isUploadingChecklists || !checklistFile">
       {{ isUploadingChecklists ? 'Uploading...' : 'Upload Checklist Workbook' }}
     </button>
 
-    <div class="error" *ngIf="checklistError">
-      {{ checklistError }}
-    </div>
+    @if (checklistError) {
+      <div class="error">{{ checklistError }}</div>
+    }
 
-    <div class="success-box" *ngIf="checklistResponse">
-      <h3>{{ checklistResponse.message }}</h3>
+    @if (checklistResponse) {
+      <div class="success-box">
+        <h3>{{ checklistResponse.message }}</h3>
 
-      <table *ngIf="checklistResponse.summary">
-        <tbody>
-          <tr *ngFor="let key of objectKeys(checklistResponse.summary)">
-            <td *ngIf="key !== 'errors'"><strong>{{ key }}</strong></td>
-            <td *ngIf="key !== 'errors'">{{ checklistResponse.summary[key] }}</td>
-          </tr>
-        </tbody>
-      </table>
+        @if (checklistResponse.summary) {
+          <table>
+            <tbody>
+              @for (key of objectKeys(checklistResponse.summary); track key) {
+                @if (key !== 'errors') {
+                  <tr>
+                    <td><strong>{{ key }}</strong></td>
+                    <td>{{ checklistResponse.summary[key] }}</td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        }
 
-      <div *ngIf="checklistResponse.summary?.errors?.length">
-        <h4>Errors</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>Sheet</th>
-              <th>Row</th>
-              <th>Message</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let err of checklistResponse.summary.errors">
-              <td>{{ err.sheet }}</td>
-              <td>{{ err.row }}</td>
-              <td>{{ err.message }}</td>
-            </tr>
-          </tbody>
-        </table>
+        @if (checklistResponse.summary?.errors?.length) {
+          <h4>Errors</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Sheet</th>
+                <th>Row</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (err of checklistResponse.summary.errors; track $index) {
+                <tr>
+                  <td>{{ err.sheet }}</td>
+                  <td>{{ err.row }}</td>
+                  <td>{{ err.message }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
-    </div>
+    }
   </div>
 </div>

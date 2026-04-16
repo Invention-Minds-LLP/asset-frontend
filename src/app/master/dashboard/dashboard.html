@@ -14,6 +14,50 @@
     </div>
   </div>
 
+  <!-- Legacy asset data banner -->
+  @if (stats.legacyAssetCount > 0) {
+    <div class="legacy-data-banner">
+      <i class="pi pi-history"></i>
+      <span>
+        <strong>{{ stats.legacyAssetCount }} legacy asset{{ stats.legacyAssetCount > 1 ? 's' : '' }}</strong> onboarded with pre-system history.
+        @if (stats.dataAvailableSince) {
+          Live tracking data available from <strong>{{ stats.dataAvailableSince | date:'dd MMM yyyy' }}</strong>.
+        }
+        Historical costs are included in cost analysis and TCO reports.
+      </span>
+    </div>
+  }
+
+  <!-- Pool Digitization Widget -->
+  @if (stats.poolSummary && stats.poolSummary.totalPools > 0) {
+    <div class="pool-digi-banner" (click)="navigate('/asset-pool')" style="cursor:pointer">
+      <div class="pool-digi-left">
+        <i class="pi pi-layer-group pool-digi-icon"></i>
+        <div>
+          <div class="pool-digi-title">FA Register Digitization</div>
+          <div class="pool-digi-sub">
+            {{ stats.poolSummary.totalUndigitizedAssets }} assets still unindividualized across
+            {{ stats.poolSummary.totalPools }} pool{{ stats.poolSummary.totalPools !== 1 ? 's' : '' }}
+          </div>
+        </div>
+      </div>
+      <div class="pool-digi-stats">
+        <div class="pool-digi-stat">
+          <span>Pool Gross Block</span>
+          <b>₹ {{ (stats.poolSummary.poolTotalGrossBlock || 0) | number:'1.0-0' }}</b>
+        </div>
+        <div class="pool-digi-stat">
+          <span>Pool Net Block</span>
+          <b>₹ {{ (stats.poolSummary.poolTotalNetBlock || 0) | number:'1.0-0' }}</b>
+        </div>
+        <div class="pool-digi-stat">
+          <span>Digitized</span>
+          <b class="digi-pct">{{ stats.poolSummary.digitizationPct ?? 0 }}%</b>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Summary Tiles (clickable) -->
   <div class="stats-grid">
     <div class="stat-card stat-blue clickable" (click)="onTileClick('totalAssets')"
@@ -110,6 +154,36 @@
       <span class="qs-label">Categories</span>
     </div>
   </div>
+
+  <!-- E-Waste Sign-off Strip -->
+  @if ((stats.eWaste?.totalPending ?? 0) > 0 || (stats.eWaste?.openOver30Days ?? 0) > 0) {
+    <div class="ewaste-strip" (click)="navigate('/e-waste')" style="cursor:pointer"
+      pTooltip="Click to manage E-Waste records" tooltipPosition="top">
+      <div class="ewaste-strip-title"><i class="pi pi-recycle"></i> E-Waste Sign-off Queue</div>
+      <div class="ewaste-strip-items">
+        <div class="ewaste-chip ewaste-pending" pTooltip="Awaiting HOD signature">
+          <i class="pi pi-user"></i> HOD: {{ stats.eWaste?.pendingHOD ?? 0 }}
+        </div>
+        <i class="pi pi-arrow-right ewaste-arrow"></i>
+        <div class="ewaste-chip ewaste-pending" pTooltip="Awaiting Operations signature">
+          <i class="pi pi-cog"></i> Ops: {{ stats.eWaste?.pendingOps ?? 0 }}
+        </div>
+        <i class="pi pi-arrow-right ewaste-arrow"></i>
+        <div class="ewaste-chip ewaste-pending" pTooltip="Awaiting Security signature">
+          <i class="pi pi-shield"></i> Sec: {{ stats.eWaste?.pendingSecurity ?? 0 }}
+        </div>
+        <div class="ewaste-sep"></div>
+        <div class="ewaste-chip ewaste-closed" pTooltip="Closed this calendar month">
+          <i class="pi pi-check-circle"></i> Closed this month: {{ stats.eWaste?.closedThisMonth ?? 0 }}
+        </div>
+        @if ((stats.eWaste?.openOver30Days ?? 0) > 0) {
+          <div class="ewaste-chip ewaste-alert" pTooltip="Records open for more than 30 days — needs escalation">
+            <i class="pi pi-exclamation-triangle"></i> {{ stats.eWaste?.openOver30Days }} overdue (&gt;30d)
+          </div>
+        }
+      </div>
+    </div>
+  }
 
   <!-- Tabs with configurable limit -->
   <div class="tab-controls">

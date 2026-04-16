@@ -3,6 +3,24 @@
     margin: 0;
     padding: 0;
 }
+
+/* ── E-Waste Certificate Print ──────────────────────────────────────────────
+   When body has .printing-ewaste, hide the entire app shell and show ONLY
+   the certificate. This overrides sidebar, header, router-outlet, everything.
+   ────────────────────────────────────────────────────────────────────────── */
+@media print {
+  body.printing-ewaste > *:not(.ewaste-print-target) {
+    display: none !important;
+  }
+  body.printing-ewaste .ewaste-print-target {
+    display: block !important;
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100vw;
+    background: #fff;
+    z-index: 999999;
+  }
+}
 html {
     --table-row-border: #C3C3C3;
     --p-carousel-indicator-width: 10px;

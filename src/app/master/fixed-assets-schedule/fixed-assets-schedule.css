@@ -1,0 +1,181 @@
+.fas-container {
+  padding: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-left h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fy-badge {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fy-select {
+  min-width: 160px;
+}
+
+.schedule-wrapper {
+  overflow-x: auto;
+}
+
+/* ── Group header rows ─────────────────────────────────── */
+.fas-table ::ng-deep .group-header-row th {
+  text-align: center;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px 8px;
+  border-bottom: 2px solid #ccc;
+}
+
+.fas-table ::ng-deep .sub-header-row th {
+  text-align: right;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 7px 8px;
+  border-bottom: 2px solid #ccc;
+  white-space: nowrap;
+}
+
+/* ── Gross Block colour: steel blue ────────────────────── */
+.fas-table ::ng-deep .group-gross {
+  background: #1565c0 !important;
+  color: #fff !important;
+}
+
+.fas-table ::ng-deep .col-gross {
+  background: #e3f2fd !important;
+  color: #0d47a1;
+}
+
+.fas-table ::ng-deep .sub-header-row .col-gross {
+  background: #bbdefb !important;
+  color: #0d47a1;
+}
+
+/* ── Depreciation colour: deep orange ──────────────────── */
+.fas-table ::ng-deep .group-dep {
+  background: #e65100 !important;
+  color: #fff !important;
+}
+
+.fas-table ::ng-deep .col-dep {
+  background: #fff3e0 !important;
+  color: #bf360c;
+}
+
+.fas-table ::ng-deep .sub-header-row .col-dep {
+  background: #ffe0b2 !important;
+  color: #bf360c;
+}
+
+/* ── Net Block colour: teal/green ──────────────────────── */
+.fas-table ::ng-deep .group-net {
+  background: #1b5e20 !important;
+  color: #fff !important;
+}
+
+.fas-table ::ng-deep .col-net {
+  background: #e8f5e9 !important;
+  color: #1b5e20;
+}
+
+.fas-table ::ng-deep .sub-header-row .col-net {
+  background: #c8e6c9 !important;
+  color: #1b5e20;
+}
+
+/* ── Particulars column ─────────────────────────────────── */
+.fas-table ::ng-deep .col-particulars {
+  background: #f5f5f5 !important;
+  font-weight: 500;
+  min-width: 180px;
+  border-right: 2px solid #ccc;
+}
+
+/* Closing / highlight columns: slightly deeper shade */
+.fas-table ::ng-deep .col-closing {
+  background: inherit;
+  filter: brightness(0.93);
+  font-weight: 700 !important;
+}
+
+/* ── Data rows ──────────────────────────────────────────── */
+.fas-table ::ng-deep .data-row td {
+  font-size: 13px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* ── Total row ──────────────────────────────────────────── */
+.fas-table ::ng-deep .total-row td {
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 8px;
+  border-top: 2px solid #999;
+  background: #f0f0f0 !important;
+}
+
+/* ── Numeric alignment ──────────────────────────────────── */
+.num-r {
+  text-align: right !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.fw-bold { font-weight: 700 !important; }
+
+/* Addition values: green tint */
+.add-val { color: #2e7d32 !important; }
+
+/* Deletion values: red tint */
+.del-val { color: #c62828 !important; }
+
+/* Period depreciation: orange */
+.dep-period { color: #e65100 !important; font-weight: 600 !important; }
+
+/* Net current: bold green */
+.net-curr { color: #1b5e20 !important; font-weight: 700 !important; }
+
+.text-center {
+  text-align: center;
+  padding: 2.5rem;
+  color: #888;
+}
+
+::ng-deep .p-datatable .p-datatable-wrapper {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+}

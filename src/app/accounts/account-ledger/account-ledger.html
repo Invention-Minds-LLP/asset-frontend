@@ -1,0 +1,78 @@
+<div class="ledger-container">
+  <p-toast />
+  <div class="page-header">
+    <div>
+      <h2>Account Ledger</h2>
+      <p class="subtitle">View debit / credit history for any account</p>
+    </div>
+  </div>
+  <div class="divider-container"><hr class="divider" /></div>
+
+  <!-- Search Filters -->
+  <div class="search-bar">
+    <p-select [options]="accounts" optionLabel="name" optionValue="id"
+      [(ngModel)]="selectedAccountId" placeholder="Select Account *" appendTo="body"
+      [filter]="true" [style]="{minWidth:'260px'}" />
+    <p-datepicker [(ngModel)]="fromDate" placeholder="From Date" appendTo="body" />
+    <p-datepicker [(ngModel)]="toDate" placeholder="To Date" appendTo="body" />
+    <p-button label="Search" icon="pi pi-search" (onClick)="search()" [loading]="loading" />
+  </div>
+
+  <!-- Account Info + Balances -->
+  <div *ngIf="ledgerData" class="ledger-summary">
+    <div class="account-info">
+      <span class="account-code">{{ ledgerData.account.code }}</span>
+      <span class="account-name">{{ ledgerData.account.name }}</span>
+      <p-tag [value]="ledgerData.account.type" />
+    </div>
+    <div class="balance-cards">
+      <div class="bal-card dr">
+        <span class="bal-label">Total Debits</span>
+        <span class="bal-value">₹{{ ledgerData.totalDebits | number:'1.2-2' }}</span>
+      </div>
+      <div class="bal-card cr">
+        <span class="bal-label">Total Credits</span>
+        <span class="bal-value">₹{{ ledgerData.totalCredits | number:'1.2-2' }}</span>
+      </div>
+      <div class="bal-card net">
+        <span class="bal-label">Net Balance (Dr - Cr)</span>
+        <span class="bal-value">₹{{ ledgerData.balance | number:'1.2-2' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ledger Lines Table -->
+  <p-table *ngIf="ledgerData" [value]="allLines" styleClass="p-datatable-sm p-datatable-striped"
+    [paginator]="true" [rows]="25">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Date</th>
+        <th>Entry No</th>
+        <th>Narration</th>
+        <th>Side</th>
+        <th class="text-right">Amount (₹)</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-line>
+      <tr [class.dr-row]="line.side==='DR'" [class.cr-row]="line.side==='CR'">
+        <td>{{ line.journalEntry.entryDate | date:'dd/MM/yyyy' }}</td>
+        <td>{{ line.journalEntry.entryNo }}</td>
+        <td>{{ line.journalEntry.narration || line.narration || '-' }}</td>
+        <td>
+          <span class="side-badge" [class.dr]="line.side==='DR'" [class.cr]="line.side==='CR'">
+            {{ line.side }}
+          </span>
+        </td>
+        <td class="text-right">₹{{ line.amount | number:'1.2-2' }}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="5" class="empty-msg">No transactions found for the selected criteria.</td></tr>
+    </ng-template>
+  </p-table>
+
+  <div *ngIf="!ledgerData && !loading" class="placeholder-msg">
+    <i class="pi pi-chart-bar placeholder-icon"></i>
+    <p>Select an account and click Search to view the ledger</p>
+  </div>
+</div>

@@ -15,6 +15,7 @@ import { TextareaModule } from "primeng/textarea";
 
 // Services
 import { Assets } from "../../services/assets/assets";
+import { AssetPoolService } from "../../services/asset-pool/asset-pool";
 import { Branches } from "../../services/branches/branches";
 import { Location } from "../../services/location/location";
 import { Transferr } from "../../services/transfer/transferr";
@@ -64,6 +65,29 @@ export class AssetsForm implements OnInit {
   // =============================
   // DROPDOWNS
   // =============================
+  assetNatureOptions = [
+    { label: "Tangible (Physical asset)", value: "TANGIBLE" },
+    { label: "Intangible (Non-physical asset)", value: "INTANGIBLE" }
+  ];
+
+  intangibleSubTypes = [
+    { label: "Software", value: "SOFTWARE" },
+    { label: "License", value: "LICENSE" },
+    { label: "Patent", value: "PATENT" },
+    { label: "Copyright", value: "COPYRIGHT" },
+    { label: "Trademark", value: "TRADEMARK" },
+    { label: "Franchise Rights", value: "FRANCHISE_RIGHTS" },
+    { label: "Goodwill", value: "GOODWILL" },
+    { label: "Accreditation Rights (NABH/JCI)", value: "ACCREDITATION_RIGHTS" },
+    { label: "Subscription (SaaS/Cloud)", value: "SUBSCRIPTION" },
+    { label: "Other", value: "OTHER" }
+  ];
+
+  amortizationMethods = [
+    { label: "Straight Line", value: "STRAIGHT_LINE" },
+    { label: "Accelerated", value: "ACCELERATED" }
+  ];
+
   assetTypes = [
     { label: "Fixed", value: "FIXED" },
     { label: "Movable", value: "MOVABLE" }
@@ -93,9 +117,19 @@ export class AssetsForm implements OnInit {
   ];
 
   depreciationMethods = [
-    { label: "Straight Line", value: "SL" },
-    { label: "Declining Balance", value: "DB" },
+    { label: "Straight Line / Life-based (SL)", value: "SL" },
+    { label: "Written Down Value / Rate-based (WDV)", value: "DB" },
     { label: "Other", value: "OTHER" }
+  ];
+
+  depreciationFrequencies = [
+    { label: "Yearly", value: "YEARLY" },
+    { label: "Monthly", value: "MONTHLY" }
+  ];
+
+  decimalPlacesOptions = [
+    { label: "Nearest Rupee (0 decimal)", value: 0 },
+    { label: "2 Decimal Places (paise)", value: 2 },
   ];
 
   slaUnits = [
@@ -137,6 +171,15 @@ export class AssetsForm implements OnInit {
     referenceCode: "",
     assetName: "",
     assetType: "",
+    assetNature: "TANGIBLE",
+
+    // Intangible-specific
+    intangibleSubType: null,
+    usefulLifeYears: null,
+    amortizationMethod: "STRAIGHT_LINE",
+    amortizationStartDate: null,
+    residualValuePercent: 0,
+
     assetCategoryId: null,
     serialNumber: "",
     assetPhoto: "",
@@ -148,7 +191,10 @@ export class AssetsForm implements OnInit {
     purchaseOrderNo: "",
     purchaseOrderDate: null,
     purchaseDate: null,
+    installedAt: null,
     purchaseCost: null,
+    purchaseVoucherNo: "",
+    purchaseVoucherDate: null,
     vendorId: null,
     warrantyStart: null,
     warrantyEnd: null,
@@ -188,6 +234,17 @@ export class AssetsForm implements OnInit {
 
     // Service coverage
     serviceCoverageType: "",
+
+    // Legacy asset onboarding
+    assetPoolId: null as number | null,
+    financialYearAdded: null as string | null,
+    isLegacyAsset: false,
+    dataAvailableSince: null,
+    historicalMaintenanceCost: null,
+    historicalSparePartsCost: null,
+    historicalOtherCost: null,
+    historicalCostAsOf: null,
+    historicalCostNote: "",
 
     // Assignment
     departmentId: null,
@@ -233,13 +290,20 @@ export class AssetsForm implements OnInit {
     status: "PENDING_COMPLETION",
   };
 
+  // Pool lookup state
+  poolOptions: any[] = [];
+  propDepLoading = false;
+
   depreciationForm = {
     depreciationMethod: '',
     depreciationRate: null as number | null,
     expectedLifeYears: null as number | null,
     salvageValue: null as number | null,
     depreciationStart: null as Date | null,
-    depreciationFrequency: 'YEARLY' as 'YEARLY' | 'MONTHLY'
+    depreciationFrequency: 'YEARLY' as 'YEARLY' | 'MONTHLY',
+    roundOff: false,
+    decimalPlaces: 2,
+    openingAccumulatedDepreciation: null as number | null,
   };
   // histories
   locationHistory: any[] = [];
@@ -547,7 +611,8 @@ private returnLastY = 0;
     private route: ActivatedRoute,
     private toastService: MessageService,
     private cdr: ChangeDetectorRef,
-    private moduleAccessService: ModuleAccessService
+    private moduleAccessService: ModuleAccessService,
+    private poolService: AssetPoolService
   ) { }
 
   ngOnInit() {
@@ -632,6 +697,34 @@ private returnLastY = 0;
         this.branches = res || [];
       }
     });
+
+    this.poolService.listPools().subscribe({
+      next: (res: any) => {
+        this.poolOptions = (res || []).map((p: any) => ({
+          label: `${p.poolCode} — ${p.financialYear} (${p.originalQuantity - (p._count?.assets || 0)} remaining)`,
+          value: p.id,
+        }));
+      },
+      error: () => {}
+    });
+  }
+
+  onPoolChange() {
+    const poolId = this.asset.assetPoolId;
+    const cost = this.asset.purchaseCost;
+    if (!poolId || !cost || !this.asset.isLegacyAsset) return;
+    this.propDepLoading = true;
+    this.poolService.getProportionalDep(poolId, cost).subscribe({
+      next: (res: any) => {
+        if (res?.openingAccumulatedDep != null) {
+          this.depreciationForm.openingAccumulatedDepreciation = res.openingAccumulatedDep;
+          this.toast('info', `Proportional dep auto-filled: ₹${Math.round(res.openingAccumulatedDep).toLocaleString('en-IN')}`);
+        }
+        this.propDepLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.propDepLoading = false; }
+    });
   }
 
 
@@ -712,7 +805,10 @@ private returnLastY = 0;
         depreciationStart: asset.depreciation.depreciationStart
           ? new Date(asset.depreciation.depreciationStart)
           : null,
-        depreciationFrequency: asset.depreciation.depreciationFrequency || 'YEARLY'
+        depreciationFrequency: asset.depreciation.depreciationFrequency || 'YEARLY',
+        roundOff: asset.depreciation.roundOff ?? false,
+        decimalPlaces: asset.depreciation.decimalPlaces ?? 2,
+        openingAccumulatedDepreciation: null,
       };
     } else {
       // ensure object exists to avoid undefined errors
@@ -858,15 +954,42 @@ private returnLastY = 0;
   }
 
   saveProcurement() { this.updateSection("Procurement updated"); }
+
+  get depreciationCostBasis(): number {
+    return Number(this.asset.purchaseCost) || Number(this.asset.estimatedValue) || 0;
+  }
+
+  get computedResidualValue(): number {
+    return Number((this.depreciationCostBasis * 0.05).toFixed(2));
+  }
+
+  onDepreciationMethodChange() {
+    // Clear rate when switching to SL (rate not used); keep for DB/WDV
+    if (this.depreciationForm.depreciationMethod === 'SL') {
+      this.depreciationForm.depreciationRate = null;
+    }
+    // Auto-fill residual value as 5% of cost basis if not yet set
+    if (!this.depreciationForm.salvageValue && this.depreciationCostBasis > 0) {
+      this.depreciationForm.salvageValue = this.computedResidualValue;
+    }
+  }
+
   saveDepreciation() {
-    const payload = {
+    const payload: any = {
       assetId: this.asset.id,
       depreciationMethod: this.depreciationForm.depreciationMethod,
       depreciationRate: this.depreciationForm.depreciationRate,
       expectedLifeYears: this.depreciationForm.expectedLifeYears,
       salvageValue: this.depreciationForm.salvageValue,
-      depreciationStart: this.depreciationForm.depreciationStart
+      depreciationStart: this.depreciationForm.depreciationStart,
+      depreciationFrequency: this.depreciationForm.depreciationFrequency,
+      roundOff: this.depreciationForm.roundOff,
+      decimalPlaces: this.depreciationForm.decimalPlaces,
     };
+    // Only pass opening balance on first-time create for legacy assets
+    if (this.asset.isLegacyAsset && !this.asset.depreciation?.id && this.depreciationForm.openingAccumulatedDepreciation != null) {
+      payload.openingAccumulatedDepreciation = this.depreciationForm.openingAccumulatedDepreciation;
+    }
 
     console.log(payload)
 
@@ -1703,7 +1826,7 @@ returnAsset(row: any) {
     if (f.sourceType === 'INVENTORY_SPARE') {
       if (!f.sparePartId) return this.toast("error", "Select spare item");
       if (!f.assetName?.trim()) return this.toast("error", "Sub Asset Name is required");
-      if (!f.serialNumber?.trim()) return this.toast("error", "Serial Number is required");
+      if (!f.serialNumber?.trim() && !this.asset?.isLegacyAsset) return this.toast("error", "Serial Number is required");
       if (!f.assetType) return this.toast("error", "Asset Type is required");
       if (!f.assetCategoryId) return this.toast("error", "Category is required");
       if (!f.status) return this.toast("error", "Status is required");
@@ -1743,13 +1866,13 @@ returnAsset(row: any) {
 
     // NEW FLOW
     if (!f.assetName?.trim()) return this.toast("error", "Sub Asset Name is required");
-    if (!f.serialNumber?.trim()) return this.toast("error", "Serial Number is required");
+    if (!f.serialNumber?.trim() && !this.asset?.isLegacyAsset) return this.toast("error", "Serial Number is required");
     if (!f.assetType) return this.toast("error", "Asset Type is required");
     if (!f.assetCategoryId) return this.toast("error", "Category is required");
     if (!f.status) return this.toast("error", "Status is required");
     if (!f.modeOfProcurement) return this.toast("error", "Mode of Procurement is required");
 
-    if (f.modeOfProcurement === 'PURCHASE') {
+    if (f.modeOfProcurement === 'PURCHASE' && !this.asset?.isLegacyAsset) {
       if (!f.invoiceNumber?.trim()) return this.toast("error", "Invoice Number is required");
       if (!f.purchaseDate) return this.toast("error", "Purchase Date is required");
       if (f.purchaseCost == null) return this.toast("error", "Purchase Cost is required");
@@ -2031,7 +2154,7 @@ returnAsset(row: any) {
     if (!this.asset?.assetId || !this.replaceTarget) return;
     const f = this.replaceForm;
 
-    if (!f.serialNumber?.trim()) { this.toast('error', 'Serial number is required'); return; }
+    if (!f.serialNumber?.trim() && !this.asset?.isLegacyAsset) { this.toast('error', 'Serial number is required'); return; }
     if (!f.assetCategoryId) { this.toast('error', 'Category is required'); return; }
     if (f.sourceType === 'INVENTORY_SPARE' && !f.sparePartId) { this.toast('error', 'Select a spare part'); return; }
     if (f.sourceType === 'NEW' && (!f.assetName?.trim() || !f.assetType || !f.modeOfProcurement)) {
@@ -2212,6 +2335,17 @@ returnAsset(row: any) {
 
       // Service coverage
       serviceCoverageType: "",
+
+      // Legacy asset onboarding
+      assetPoolId: null as number | null,
+      financialYearAdded: null as string | null,
+      isLegacyAsset: false,
+      dataAvailableSince: null,
+      historicalMaintenanceCost: null,
+      historicalSparePartsCost: null,
+      historicalOtherCost: null,
+      historicalCostAsOf: null,
+      historicalCostNote: "",
 
       departmentId: null,
       supervisorId: null,

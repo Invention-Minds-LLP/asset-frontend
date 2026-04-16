@@ -37,6 +37,10 @@ export class DisposalService {
     return this.http.put(`${this.baseUrl}/${id}/complete`, payload);
   }
 
+  getSubAssets(disposalId: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/${disposalId}/sub-assets`);
+  }
+
   private buildParams(obj: any): HttpParams {
     let params = new HttpParams();
     for (const key of Object.keys(obj)) {

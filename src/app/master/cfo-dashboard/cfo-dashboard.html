@@ -10,63 +10,95 @@
       [loading]="loadingDashboard" size="small" severity="secondary"></p-button>
   </div>
 
+  @if (dashboard?.legacyAssetCount > 0) {
+    <div class="legacy-data-banner">
+      <i class="pi pi-history"></i>
+      <span>
+        <strong>{{ dashboard.legacyAssetCount }} legacy asset{{ dashboard.legacyAssetCount > 1 ? 's' : '' }}</strong> included with pre-system historical costs.
+        @if (dashboard.dataAvailableSince) {
+          Live financial data available from <strong>{{ dashboard.dataAvailableSince | date:'dd MMM yyyy' }}</strong>.
+          Figures before this date are from opening balance entries.
+        }
+      </span>
+    </div>
+  }
+
   @if (dashboard) {
     <!-- ── Primary KPI Row ── -->
-    <div class="kpi-grid kpi-5">
-      <div class="kpi-card">
-        <div class="kpi-label">Total CapEx Spend</div>
-        <div class="kpi-value">{{ formatCurrency(dashboard.totalCapex) }}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Total OpEx Spend</div>
-        <div class="kpi-value">{{ formatCurrency(dashboard.totalOpex) }}</div>
-      </div>
+    <div class="kpi-grid kpi-4">
       <div class="kpi-card">
         <div class="kpi-label">Total Asset Value</div>
         <div class="kpi-value accent">{{ formatCurrency(dashboard.totalAssetValue) }}</div>
+        <div class="kpi-sub">Sum of purchase cost of all active assets</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Total Book Value</div>
         <div class="kpi-value">{{ formatCurrency(dashboard.totalBookValue) }}</div>
+        <div class="kpi-sub">Current depreciated value</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Active Assets</div>
-        <div class="kpi-value">{{ dashboard.activeAssets ?? 0 }}</div>
+        <div class="kpi-label">Total Maintenance Cost</div>
+        <div class="kpi-value warn">{{ formatCurrency(dashboard.totalMaintenanceCost) }}</div>
+        <div class="kpi-sub">Repairs + PM (all time)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Maintenance / Asset Ratio</div>
+        <div class="kpi-value" [class.danger]="dashboard.maintenanceToAssetRatio > 50" [class.warn]="dashboard.maintenanceToAssetRatio > 25 && dashboard.maintenanceToAssetRatio <= 50">
+          {{ formatPct(dashboard.maintenanceToAssetRatio) }}
+        </div>
+        <div class="kpi-sub">Maintenance ÷ Asset Value</div>
       </div>
     </div>
 
     <!-- ── Secondary KPI Row ── -->
-    <div class="kpi-grid kpi-4">
+    <div class="kpi-grid kpi-3">
       <div class="kpi-card subtle">
-        <div class="kpi-label">Pending POs</div>
-        <div class="kpi-value warn">{{ dashboard.pendingPOs ?? 0 }}</div>
+        <div class="kpi-label">Active Assets</div>
+        <div class="kpi-value">{{ dashboard.activeAssets ?? 0 }}</div>
       </div>
       <div class="kpi-card subtle">
-        <div class="kpi-label">Open Work Orders</div>
-        <div class="kpi-value warn">{{ dashboard.openWorkOrders ?? 0 }}</div>
-      </div>
-      <div class="kpi-card subtle">
-        <div class="kpi-label">Total Maintenance Cost</div>
-        <div class="kpi-value">{{ formatCurrency(dashboard.totalMaintenanceCost) }}</div>
+        <div class="kpi-label">Disposed / Scrapped</div>
+        <div class="kpi-value">{{ dashboard.disposedAssets ?? 0 }}</div>
       </div>
       <div class="kpi-card subtle">
         <div class="kpi-label">Idle Assets</div>
-        <div class="kpi-value danger">{{ dashboard.idleAssetCount ?? idleAssets.length }}</div>
+        <div class="kpi-value danger">{{ idleAssets.length }}</div>
       </div>
     </div>
 
-    <!-- ── Monthly Spend ── -->
-    @if (monthlySpend.length) {
+    <!-- ── E-Waste Financial Summary ── -->
+    @if (dashboard.eWaste) {
+      <div class="ewaste-cfo-strip" (click)="navigateTo('/e-waste')" style="cursor:pointer">
+        <div class="ewaste-cfo-title"><i class="pi pi-recycle"></i> E-Waste Disposal</div>
+        <div class="ewaste-cfo-metrics">
+          <div class="ewaste-cfo-metric">
+            <span class="ecm-label">Pending Sign-off</span>
+            <span class="ecm-value" [class.ecm-warn]="dashboard.eWaste.pendingSignOff > 0">{{ dashboard.eWaste.pendingSignOff ?? 0 }}</span>
+          </div>
+          <div class="ewaste-cfo-metric">
+            <span class="ecm-label">Closed (All Time)</span>
+            <span class="ecm-value ecm-ok">{{ dashboard.eWaste.closedTotal ?? 0 }}</span>
+          </div>
+          <div class="ewaste-cfo-metric">
+            <span class="ecm-label">Scrap Value Recovered (FY)</span>
+            <span class="ecm-value ecm-ok">{{ formatCurrency(dashboard.eWaste.scrapValueRecoveredFY ?? 0) }}</span>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── Monthly Trend ── -->
+    @if (monthlyTrend.length) {
       <div class="dashboard-section">
         <div class="section-header">
-          <span class="section-title"><i class="pi pi-calendar"></i> Monthly Spend (Last 12 Months)</span>
+          <span class="section-title"><i class="pi pi-calendar"></i> Monthly Trend (Last 12 Months)</span>
         </div>
-        <p-table [value]="monthlySpend" stripedRows>
+        <p-table [value]="monthlyTrend" stripedRows>
           <ng-template #header>
             <tr>
               <th>Month</th>
-              <th style="text-align:right">CapEx</th>
-              <th style="text-align:right">OpEx</th>
+              <th style="text-align:right">Asset Acquisitions</th>
+              <th style="text-align:right">Maintenance Cost</th>
               <th style="text-align:right">Total</th>
               <th style="width:30%">Relative</th>
             </tr>
@@ -74,21 +106,21 @@
           <ng-template #body let-row>
             <tr>
               <td>{{ row.month }}</td>
-              <td style="text-align:right">{{ formatCurrency(row.capex) }}</td>
-              <td style="text-align:right">{{ formatCurrency(row.opex) }}</td>
-              <td style="text-align:right; font-weight:600;">{{ formatCurrency((row.capex ?? 0) + (row.opex ?? 0)) }}</td>
+              <td style="text-align:right">{{ formatCurrency(row.capital) }}</td>
+              <td style="text-align:right">{{ formatCurrency(row.maintenance) }}</td>
+              <td style="text-align:right; font-weight:600;">{{ formatCurrency((row.capital ?? 0) + (row.maintenance ?? 0)) }}</td>
               <td>
                 <div class="bar-container">
-                  <div class="bar capex-bar" [style.width.%]="((row.capex ?? 0) / maxMonthlyTotal) * 100"></div>
-                  <div class="bar opex-bar" [style.width.%]="((row.opex ?? 0) / maxMonthlyTotal) * 100"></div>
+                  <div class="bar capex-bar" [style.width.%]="((row.capital ?? 0) / maxMonthlyTotal) * 100"></div>
+                  <div class="bar opex-bar" [style.width.%]="((row.maintenance ?? 0) / maxMonthlyTotal) * 100"></div>
                 </div>
               </td>
             </tr>
           </ng-template>
         </p-table>
         <div class="bar-legend">
-          <span class="legend-item"><span class="legend-dot capex"></span> CapEx</span>
-          <span class="legend-item"><span class="legend-dot opex"></span> OpEx</span>
+          <span class="legend-item"><span class="legend-dot capex"></span> Asset Acquisitions</span>
+          <span class="legend-item"><span class="legend-dot opex"></span> Maintenance</span>
         </div>
       </div>
     }
@@ -96,15 +128,87 @@
     <div class="text-center"><i class="pi pi-spin pi-spinner" style="font-size:2rem"></i></div>
   }
 
+  <!-- ── Asset Value Distribution (Buckets) ── -->
+  <div class="dashboard-section">
+    <div class="section-header">
+      <span class="section-title"><i class="pi pi-chart-bar"></i> Asset Value Distribution</span>
+      <span class="section-sub">Click any bucket to view assets in that range</span>
+    </div>
+    @if (loadingBuckets) {
+      <div style="text-align:center;padding:2rem"><i class="pi pi-spin pi-spinner" style="font-size:1.5rem"></i></div>
+    } @else {
+      <div class="bucket-grid">
+        @for (b of valueBuckets; track b.key) {
+          <div class="bucket-card" (click)="openBucketDrilldown(b)"
+            [class.bucket-A]="b.key==='A'" [class.bucket-B]="b.key==='B'"
+            [class.bucket-C]="b.key==='C'" [class.bucket-D]="b.key==='D'">
+            <div class="bucket-key">{{ b.key }}</div>
+            <div class="bucket-label">{{ b.label }}</div>
+            <div class="bucket-count">{{ b.count }} assets</div>
+            <div class="bucket-value">{{ formatCurrency(b.totalCost) }}</div>
+            <div class="bucket-book">Book: {{ formatCurrency(b.totalBookValue) }}</div>
+            <div class="bucket-pct-bar">
+              <div class="bucket-pct-fill"
+                [style.width.%]="valueBucketsTotal > 0 ? (b.count / valueBucketsTotal * 100) : 0"></div>
+            </div>
+            <div class="bucket-pct-label">
+              {{ valueBucketsTotal > 0 ? (b.count / valueBucketsTotal * 100 | number:'1.0-1') : 0 }}% of fleet
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Bucket Drill-down Dialog -->
+  <p-dialog [(visible)]="showBucketDialog" [modal]="true" [style]="{width:'860px'}"
+    [header]="'Assets — ' + (selectedBucket?.label ?? '')" [closable]="true">
+    @if (selectedBucket) {
+      <div class="bucket-dialog-summary">
+        <span><strong>{{ selectedBucket.count }}</strong> assets</span>
+        <span>Total Cost: <strong>{{ formatCurrency(selectedBucket.totalCost) }}</strong></span>
+        <span>Book Value: <strong>{{ formatCurrency(selectedBucket.totalBookValue) }}</strong></span>
+      </div>
+      <p-table [value]="selectedBucket.assets" [paginator]="selectedBucket.assets.length > 15" [rows]="15" stripedRows>
+        <ng-template #header>
+          <tr>
+            <th>#</th>
+            <th>Asset ID</th>
+            <th>Asset Name</th>
+            <th>Category</th>
+            <th>Department</th>
+            <th>Status</th>
+            <th style="text-align:right">Purchase Cost</th>
+            <th style="text-align:right">Book Value</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-a let-i="rowIndex">
+          <tr>
+            <td><span class="rank-badge">{{ i + 1 }}</span></td>
+            <td><span style="font-size:0.8rem;color:#0369a1;font-weight:600">{{ a.assetId }}</span></td>
+            <td>{{ a.assetName }}</td>
+            <td>{{ a.category }}</td>
+            <td>{{ a.department }}</td>
+            <td><p-tag [value]="a.status" [severity]="a.status==='ACTIVE'?'success':'secondary'"></p-tag></td>
+            <td style="text-align:right;font-weight:600">{{ formatCurrency(a.purchaseCost) }}</td>
+            <td style="text-align:right;color:var(--text-color-secondary)">{{ formatCurrency(a.bookValue) }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-dialog>
+
   <!-- ── TCO by Category ── -->
   @if (tcoData.length) {
     <div class="dashboard-section">
       <div class="section-header">
         <span class="section-title"><i class="pi pi-money-bill"></i> Total Cost of Ownership by Category</span>
+        <small style="color:var(--text-color-secondary)">Click a row to see individual assets</small>
       </div>
       <p-table [value]="tcoData" [loading]="loadingTCO" stripedRows>
         <ng-template #header>
           <tr>
+            <th style="width:36px"></th>
             <th>Category</th>
             <th style="text-align:right">Asset Count</th>
             <th style="text-align:right">Total TCO</th>
@@ -113,21 +217,282 @@
           </tr>
         </ng-template>
         <ng-template #body let-row>
-          <tr>
-            <td>{{ row.category || row.name }}</td>
+          <!-- Category summary row -->
+          <tr class="tco-category-row" [class.tco-expanded]="expandedCategoryId === row.groupId"
+              (click)="toggleCategoryDrilldown(row)" style="cursor:pointer">
+            <td>
+              <i class="pi" [class.pi-chevron-down]="expandedCategoryId !== row.groupId"
+                 [class.pi-chevron-up]="expandedCategoryId === row.groupId"
+                 style="color:var(--text-color-secondary);font-size:0.8rem"></i>
+            </td>
+            <td><strong>{{ row.groupName || row.category || row.name }}</strong></td>
             <td style="text-align:right">{{ row.assetCount ?? 0 }}</td>
             <td style="text-align:right; font-weight:600;">{{ formatCurrency(row.totalTCO) }}</td>
-            <td style="text-align:right">{{ formatCurrency(row.assetCount ? (row.totalTCO / row.assetCount) : 0) }}</td>
+            <td style="text-align:right">{{ formatCurrency(row.avgTCOPerAsset ?? (row.assetCount ? (row.totalTCO / row.assetCount) : 0)) }}</td>
             <td>
               <div class="bar-container">
                 <div class="bar tco-bar" [style.width.%]="((row.totalTCO ?? 0) / getMaxTCO()) * 100"></div>
               </div>
             </td>
           </tr>
+
+          <!-- Expanded: asset list for this category -->
+          @if (expandedCategoryId === row.groupId) {
+            <tr class="tco-drilldown-row">
+              <td colspan="6" style="padding:0">
+                <div class="drilldown-panel">
+                  @if (loadingCategoryAssets) {
+                    <div style="padding:1rem;text-align:center">
+                      <i class="pi pi-spin pi-spinner"></i> Loading assets...
+                    </div>
+                  } @else if (categoryAssets.length === 0) {
+                    <div style="padding:1rem;text-align:center;color:var(--text-color-secondary)">No assets found.</div>
+                  } @else {
+                    <p-table [value]="categoryAssets" styleClass="p-datatable-sm" [paginator]="categoryAssets.length > 8" [rows]="8">
+                      <ng-template #header>
+                        <tr>
+                          <th>Asset ID</th>
+                          <th>Asset Name</th>
+                          <th>Department</th>
+                          <th>Status</th>
+                          <th style="text-align:right">Purchase Cost</th>
+                          <th style="width:110px;text-align:center">Full TCO Split</th>
+                        </tr>
+                      </ng-template>
+                      <ng-template #body let-a>
+                        <tr>
+                          <td><span class="code-badge">{{ a.assetId }}</span></td>
+                          <td>{{ a.assetName }}</td>
+                          <td>{{ a.departmentName || '—' }}</td>
+                          <td>
+                            <span class="status-chip status-{{ a.status?.toLowerCase() }}">{{ a.status }}</span>
+                          </td>
+                          <td style="text-align:right;font-weight:600">
+                            {{ formatCurrency(a.purchaseCost) }}
+                          </td>
+                          <td style="text-align:center">
+                            <p-button label="View Split" icon="pi pi-chart-pie" [text]="true" size="small"
+                              pTooltip="See repair, PM, labor, spare parts & all cost buckets"
+                              tooltipPosition="top"
+                              (onClick)="openAssetTCO(a.id); $event.stopPropagation()"></p-button>
+                          </td>
+                        </tr>
+                      </ng-template>
+                    </p-table>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
         </ng-template>
       </p-table>
     </div>
   }
+
+  <!-- ── Maintenance Cost by Category ── -->
+  <div class="dashboard-section">
+    <div class="section-header">
+      <span class="section-title"><i class="pi pi-wrench"></i> Maintenance Cost by Category</span>
+      <small style="color:var(--text-color-secondary)">Repairs + Planned Maintenance · Highest first · Click to expand assets</small>
+    </div>
+
+    @if (loadingMaintenance) {
+      <div style="padding:1.5rem;text-align:center"><i class="pi pi-spin pi-spinner"></i> Loading...</div>
+    } @else if (!maintenanceByCategory.length) {
+      <div class="empty-state">No maintenance cost data found.</div>
+    } @else {
+      <p-table [value]="maintenanceByCategory" stripedRows>
+        <ng-template #header>
+          <tr>
+            <th style="width:36px"></th>
+            <th style="width:28px">#</th>
+            <th>Category</th>
+            <th style="text-align:right">Assets</th>
+            <th style="text-align:right">Repairs (Tickets)</th>
+            <th style="text-align:right">Planned Maintenance</th>
+            <th style="text-align:right; font-weight:700">Total Cost</th>
+            <th style="text-align:right">Avg / Asset</th>
+            <th style="width:22%">Relative</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-row let-i="rowIndex">
+          <!-- Category summary row -->
+          <tr class="maint-category-row" [class.maint-expanded]="expandedMaintCategoryId === row.categoryId"
+              (click)="toggleMaintCategory(row.categoryId)" style="cursor:pointer">
+            <td>
+              <i class="pi" [class.pi-chevron-down]="expandedMaintCategoryId !== row.categoryId"
+                 [class.pi-chevron-up]="expandedMaintCategoryId === row.categoryId"
+                 style="color:var(--text-color-secondary);font-size:0.8rem"></i>
+            </td>
+            <td>
+              <span class="rank-badge" [class.rank-1]="i===0" [class.rank-2]="i===1" [class.rank-3]="i===2">
+                {{ i + 1 }}
+              </span>
+            </td>
+            <td><strong>{{ row.categoryName }}</strong></td>
+            <td style="text-align:right">{{ row.assetCount }}</td>
+            <td style="text-align:right; color:#dc2626">{{ formatCurrency(row.ticketCost) }}</td>
+            <td style="text-align:right; color:#f59e0b">{{ formatCurrency(row.pmCost) }}</td>
+            <td style="text-align:right; font-weight:700; font-size:1rem">{{ formatCurrency(row.totalMaintenanceCost) }}</td>
+            <td style="text-align:right; color:var(--text-color-secondary)">{{ formatCurrency(row.avgCostPerAsset) }}</td>
+            <td>
+              <div class="bar-container">
+                <div class="bar maint-ticket-bar"
+                     [style.width.%]="((row.ticketCost ?? 0) / getMaxMaintCost()) * 100"
+                     pTooltip="Repairs" tooltipPosition="top"></div>
+                <div class="bar maint-pm-bar"
+                     [style.width.%]="((row.pmCost ?? 0) / getMaxMaintCost()) * 100"
+                     pTooltip="PM" tooltipPosition="top"></div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Expanded asset list -->
+          @if (expandedMaintCategoryId === row.categoryId) {
+            <tr class="maint-drilldown-row">
+              <td colspan="9" style="padding:0">
+                <div class="drilldown-panel">
+                  @if (!row.assets?.length) {
+                    <div style="padding:1rem;text-align:center;color:var(--text-color-secondary)">No assets found.</div>
+                  } @else {
+                    <p-table [value]="row.assets" styleClass="p-datatable-sm"
+                             [paginator]="row.assets.length > 8" [rows]="8">
+                      <ng-template #header>
+                        <tr>
+                          <th style="width:24px">#</th>
+                          <th>Asset ID</th>
+                          <th>Asset Name</th>
+                          <th>Department</th>
+                          <th>Status</th>
+                          <th style="text-align:right">Repairs</th>
+                          <th style="text-align:right">PM</th>
+                          <th style="text-align:right; font-weight:700">Total Maint. Cost</th>
+                          <th style="text-align:right">Purchase Cost</th>
+                        </tr>
+                      </ng-template>
+                      <ng-template #body let-a let-ai="rowIndex">
+                        <tr [class.maint-top-asset]="ai === 0">
+                          <td style="color:var(--text-color-secondary);font-size:0.8rem">{{ ai + 1 }}</td>
+                          <td><span class="code-badge">{{ a.assetId }}</span></td>
+                          <td>
+                            {{ a.assetName }}
+                            @if (ai === 0) {
+                              <span class="highest-badge">Highest</span>
+                            }
+                          </td>
+                          <td>{{ a.department || '—' }}</td>
+                          <td>
+                            <span class="status-chip status-{{ a.status?.toLowerCase() }}">{{ a.status }}</span>
+                          </td>
+                          <td style="text-align:right; color:#dc2626">{{ formatCurrency(a.ticketCost) }}</td>
+                          <td style="text-align:right; color:#f59e0b">{{ formatCurrency(a.pmCost) }}</td>
+                          <td style="text-align:right; font-weight:700">{{ formatCurrency(a.totalMaintenanceCost) }}</td>
+                          <td style="text-align:right; color:var(--text-color-secondary)">{{ formatCurrency(a.purchaseCost) }}</td>
+                        </tr>
+                      </ng-template>
+                    </p-table>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </ng-template>
+      </p-table>
+
+      <!-- Legend -->
+      <div class="bar-legend" style="margin-top:8px">
+        <span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span> Repairs (Tickets)</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span> Planned Maintenance</span>
+      </div>
+    }
+  </div>
+
+  <!-- ── Asset TCO Detail Dialog ── -->
+  <p-dialog [(visible)]="showTcoDialog"
+    [header]="tcoDetail ? 'TCO Breakdown — ' + tcoDetail.asset?.assetName : 'Loading...'"
+    [modal]="true" [style]="{ width: '580px' }" [closable]="true">
+
+    @if (loadingTcoDetail) {
+      <div style="padding:2rem;text-align:center">
+        <i class="pi pi-spin pi-spinner" style="font-size:1.5rem"></i>
+        <p>Calculating TCO...</p>
+      </div>
+    }
+
+    @if (tcoDetail && !loadingTcoDetail) {
+      <!-- Asset identity -->
+      <div class="tco-dialog-header">
+        <span class="code-badge">{{ tcoDetail.asset?.assetId }}</span>
+        <span style="color:var(--text-color-secondary);font-size:0.85rem">
+          {{ tcoDetail.asset?.category }} &bull; {{ tcoDetail.asset?.department ?? 'No Dept' }}
+        </span>
+      </div>
+
+      <!-- Summary KPIs -->
+      <div class="tco-kpi-row">
+        <div class="tco-kpi">
+          <div class="tco-kpi-label">Total TCO</div>
+          <div class="tco-kpi-value accent">{{ formatCurrency(tcoDetail.totalTCO) }}</div>
+        </div>
+        <div class="tco-kpi">
+          <div class="tco-kpi-label">Cost Per Year</div>
+          <div class="tco-kpi-value">{{ formatCurrency(tcoDetail.costPerYear) }}</div>
+        </div>
+        <div class="tco-kpi">
+          <div class="tco-kpi-label">Purchase Cost</div>
+          <div class="tco-kpi-value">{{ formatCurrency(tcoDetail.capitalCost) }}</div>
+        </div>
+      </div>
+
+      <!-- Cost breakdown bars -->
+      <div class="tco-breakdown-list">
+        <div class="tco-breakdown-title">Cost Breakdown</div>
+        @for (item of tcoBreakdownRows; track item.label) {
+          <div class="tco-breakdown-item">
+            <div class="tco-breakdown-label">
+              <span class="tco-color-dot" [style.background]="item.color"></span>
+              {{ item.label }}
+            </div>
+            <div class="tco-breakdown-bar-wrap">
+              <div class="tco-breakdown-bar" [style.width.%]="item.pct" [style.background]="item.color"></div>
+            </div>
+            <div class="tco-breakdown-values">
+              <span class="tco-breakdown-amount">{{ formatCurrency(item.value) }}</span>
+              <span class="tco-breakdown-pct">{{ item.pct }}%</span>
+            </div>
+          </div>
+        }
+        @if (tcoBreakdownRows.length === 0) {
+          <div style="padding:1rem;text-align:center;color:var(--text-color-secondary)">
+            No cost data recorded for this asset yet.
+          </div>
+        }
+      </div>
+
+      <!-- Cost allocation breakdown table if any allocations exist -->
+      @if (tcoDetail.costBreakdownByType?.length) {
+        <div class="tco-alloc-section">
+          <div class="tco-breakdown-title">Manual Cost Allocations by Type</div>
+          <p-table [value]="tcoDetail.costBreakdownByType" styleClass="p-datatable-sm" stripedRows>
+            <ng-template #header>
+              <tr>
+                <th>Cost Type</th>
+                <th style="text-align:right">Amount</th>
+                <th style="text-align:right">% of TCO</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-a>
+              <tr>
+                <td>{{ a.costType?.replace('_', ' ') }}</td>
+                <td style="text-align:right">{{ formatCurrency(a.amount) }}</td>
+                <td style="text-align:right">{{ formatPct(tcoDetail.totalTCO ? (a.amount / tcoDetail.totalTCO) * 100 : 0) }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      }
+    }
+  </p-dialog>
 
   <!-- ── Asset Turnover ── -->
   @if (turnoverData) {
@@ -154,7 +519,7 @@
                 <td>{{ row.assetName || row.name }}</td>
                 <td>{{ row.category }}</td>
                 <td style="text-align:right">{{ formatCurrency(row.revenue) }}</td>
-                <td style="text-align:right">{{ formatCurrency(row.cost) }}</td>
+                <td style="text-align:right">{{ formatCurrency(row.purchaseCost ?? row.cost) }}</td>
                 <td style="text-align:right; font-weight:700; color:#16a34a;">{{ row.turnoverRatio?.toFixed(2) ?? '—' }}</td>
               </tr>
             </ng-template>
@@ -181,7 +546,7 @@
                 <td>{{ row.assetName || row.name }}</td>
                 <td>{{ row.category }}</td>
                 <td style="text-align:right">{{ formatCurrency(row.revenue) }}</td>
-                <td style="text-align:right">{{ formatCurrency(row.cost) }}</td>
+                <td style="text-align:right">{{ formatCurrency(row.purchaseCost ?? row.cost) }}</td>
                 <td style="text-align:right; font-weight:700; color:#dc2626;">{{ row.turnoverRatio?.toFixed(2) ?? '—' }}</td>
               </tr>
             </ng-template>
@@ -201,7 +566,7 @@
         <span class="section-title"><i class="pi pi-pause-circle"></i> Idle Capital (Unused Assets)</span>
       </div>
       <p-table [value]="idleAssets" [loading]="loadingIdle" [paginator]="true" [rows]="10" stripedRows
-        [rowsPerPageOptions]="[10, 25]" sortField="bookValue" [sortOrder]="-1">
+        [rowsPerPageOptions]="[10, 25]" sortField="currentBookValue" [sortOrder]="-1">
         <ng-template #header>
           <tr>
             <th>Asset ID</th>
@@ -210,6 +575,7 @@
             <th>Department</th>
             <th style="text-align:right">Purchase Cost</th>
             <th style="text-align:right">Book Value</th>
+            <th style="text-align:right">Last Activity</th>
             <th style="text-align:right">Days Idle</th>
           </tr>
         </ng-template>
@@ -220,9 +586,53 @@
             <td>{{ row.category }}</td>
             <td>{{ row.department }}</td>
             <td style="text-align:right">{{ formatCurrency(row.purchaseCost) }}</td>
-            <td style="text-align:right; font-weight:600;">{{ formatCurrency(row.bookValue) }}</td>
+            <td style="text-align:right; font-weight:600;">{{ formatCurrency(row.currentBookValue) }}</td>
+            <td style="text-align:right; color:var(--text-color-secondary); font-size:0.82rem">
+              {{ row.lastActivityDate ? (row.lastActivityDate | date:'dd MMM yyyy') : 'Never used' }}
+            </td>
             <td style="text-align:right; font-weight:600;" [class.value-low]="row.daysSinceActivity > 180" [class.value-warn]="row.daysSinceActivity > 90 && row.daysSinceActivity <= 180">
               {{ row.daysSinceActivity ?? '—' }}
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
+
+  <!-- ── Uncovered Assets (no warranty + no service contract) ── -->
+  @if (uncoveredAssets.length) {
+    <div class="dashboard-section">
+      <div class="section-header">
+        <span class="section-title"><i class="pi pi-shield"></i> Uncovered Assets</span>
+        <span class="section-badge danger">{{ uncoveredTotal }} assets · {{ formatCurrency(uncoveredValue) }} at risk</span>
+      </div>
+      <p-table [value]="uncoveredAssets" [loading]="loadingUncovered" [paginator]="true" [rows]="10" stripedRows
+        [rowsPerPageOptions]="[10, 25]" sortField="daysSinceLastService" [sortOrder]="-1">
+        <ng-template #header>
+          <tr>
+            <th>Asset ID</th>
+            <th>Asset Name</th>
+            <th>Category</th>
+            <th>Department</th>
+            <th style="text-align:right">Purchase Cost</th>
+            <th style="text-align:right">Last Serviced</th>
+            <th style="text-align:right">Days Since Service</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-row>
+          <tr>
+            <td><span class="code-badge">{{ row.assetId }}</span></td>
+            <td>{{ row.assetName }}</td>
+            <td>{{ row.category }}</td>
+            <td>{{ row.department || '—' }}</td>
+            <td style="text-align:right; font-weight:600">{{ formatCurrency(row.purchaseCost) }}</td>
+            <td style="text-align:right; color:var(--text-color-secondary); font-size:0.82rem">
+              {{ row.lastMaintenanceDate ? (row.lastMaintenanceDate | date:'dd MMM yyyy') : 'Never serviced' }}
+            </td>
+            <td style="text-align:right; font-weight:600"
+              [class.value-low]="row.daysSinceLastService > 365 || row.daysSinceLastService == null"
+              [class.value-warn]="row.daysSinceLastService > 180 && row.daysSinceLastService <= 365">
+              {{ row.daysSinceLastService ?? '—' }}
             </td>
           </tr>
         </ng-template>

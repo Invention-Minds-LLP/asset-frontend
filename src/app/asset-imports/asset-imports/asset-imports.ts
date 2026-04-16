@@ -90,6 +90,26 @@ assetsFile: File | null = null;
     });
   }
 
+  downloadingTemplate = false;
+
+  downloadLegacyTemplate(): void {
+    this.downloadingTemplate = true;
+    this.assetImportService.downloadLegacyTemplate().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'legacy-asset-import-template.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingTemplate = false;
+      },
+      error: () => {
+        this.downloadingTemplate = false;
+      }
+    });
+  }
+
   objectKeys(obj: any): string[] {
     return obj ? Object.keys(obj) : [];
   }

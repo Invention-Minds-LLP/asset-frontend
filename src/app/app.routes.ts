@@ -28,6 +28,7 @@ import { FinancialDashboard } from './master/financial-dashboard/financial-dashb
 import { AuditTrail } from './master/audit-trail/audit-trail';
 import { Reports } from './master/reports/reports';
 import { Disposal } from './master/disposal/disposal';
+import { EWaste } from './master/e-waste/e-waste';
 import { AssetAudit } from './master/asset-audit/asset-audit';
 import { InsuranceManagement } from './master/insurance-management/insurance-management';
 import { WarrantyManagement } from './master/warranty-management/warranty-management';
@@ -56,6 +57,20 @@ import { TenantConfig } from './master/tenant-config/tenant-config';
 import { RevenueLog } from './master/revenue-log/revenue-log';
 import { EmailTemplates } from './master/email-templates/email-templates';
 import { PmChecklist } from './master/pm-checklist/pm-checklist';
+import { AccountsDashboard } from './accounts/accounts-dashboard/accounts-dashboard';
+import { ChartOfAccounts } from './accounts/chart-of-accounts/chart-of-accounts';
+import { PurchaseVouchers } from './accounts/purchase-vouchers/purchase-vouchers';
+import { PaymentVouchers } from './accounts/payment-vouchers/payment-vouchers';
+import { JournalEntries } from './accounts/journal-entries/journal-entries';
+import { AccountLedger } from './accounts/account-ledger/account-ledger';
+import { ServiceInvoices } from './accounts/service-invoices/service-invoices';
+import { FixedAssetsSchedule } from './master/fixed-assets-schedule/fixed-assets-schedule';
+import { FinanceCentre } from './master/finance-centre/finance-centre';
+import { RcaPage } from './master/rca/rca';
+import { QuickActionsPage } from './master/quick-actions/quick-actions';
+import { HierarchyConfig } from './master/hierarchy-config/hierarchy-config';
+import { ApprovalConfigComponent } from './master/approval-config/approval-config';
+import { AssetPoolPage } from './master/asset-pool/asset-pool';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -88,6 +103,7 @@ export const routes: Routes = [
   { path: 'financial-dashboard', component: FinancialDashboard, canActivate: [authGuard] },
   { path: 'reports', component: Reports, canActivate: [authGuard] },
   { path: 'disposal', component: Disposal, canActivate: [authGuard] },
+  { path: 'e-waste', component: EWaste, canActivate: [authGuard] },
   { path: 'asset-audit', component: AssetAudit, canActivate: [authGuard] },
   { path: 'audit-trail', component: AuditTrail, canActivate: [authGuard] },
   // ── New feature routes ──────────────────────────────────────────────────────
@@ -118,6 +134,21 @@ export const routes: Routes = [
   { path: 'revenue-log', component: RevenueLog, canActivate: [authGuard] },
   { path: 'email-templates', component: EmailTemplates, canActivate: [authGuard] },
   { path: 'pm-checklist', component: PmChecklist, canActivate: [authGuard] },
+  // ── Accounts Module ─────────────────────────────────────────────────────────
+  { path: 'accounts/dashboard', component: AccountsDashboard, canActivate: [authGuard] },
+  { path: 'accounts/chart-of-accounts', component: ChartOfAccounts, canActivate: [authGuard] },
+  { path: 'accounts/purchase-vouchers', component: PurchaseVouchers, canActivate: [authGuard] },
+  { path: 'accounts/payment-vouchers', component: PaymentVouchers, canActivate: [authGuard] },
+  { path: 'accounts/journal-entries', component: JournalEntries, canActivate: [authGuard] },
+  { path: 'accounts/ledger', component: AccountLedger, canActivate: [authGuard] },
+  { path: 'accounts/service-invoices', component: ServiceInvoices, canActivate: [authGuard] },
+  { path: 'fixed-assets-schedule', component: FixedAssetsSchedule, canActivate: [authGuard] },
+  { path: 'finance-centre', component: FinanceCentre, canActivate: [authGuard] },
+  { path: 'rca', component: RcaPage, canActivate: [authGuard] },
+  { path: 'quick-actions', component: QuickActionsPage, canActivate: [authGuard] },
+  { path: 'hierarchy-config', component: HierarchyConfig, canActivate: [authGuard] },
+  { path: 'approval-config', component: ApprovalConfigComponent, canActivate: [authGuard] },
+  { path: 'asset-pool', component: AssetPoolPage, canActivate: [authGuard] },
   {
     path: 'assets/scan/:assetId',
     component: AssetScan

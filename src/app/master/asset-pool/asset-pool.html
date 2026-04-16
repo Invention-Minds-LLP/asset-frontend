@@ -1,0 +1,619 @@
+<p-toast></p-toast>
+
+<!-- ── Summary Cards ─────────────────────────────────────────── -->
+@if (summary) {
+  <div class="pool-summary-bar">
+    <div class="summary-card">
+      <span class="s-label">Total Pools</span>
+      <span class="s-value">{{ summary.totalPools }}</span>
+    </div>
+    <div class="summary-card">
+      <span class="s-label">Undigitized Assets</span>
+      <span class="s-value warn">{{ summary.totalUndigitizedAssets }}</span>
+    </div>
+    <div class="summary-card">
+      <span class="s-label">Pool Gross Block</span>
+      <span class="s-value">₹ {{ fmt(summary.totalPoolGrossBlock) }}</span>
+    </div>
+    <div class="summary-card">
+      <span class="s-label">Pool Net Block</span>
+      <span class="s-value">₹ {{ fmt(summary.totalPoolNetBlock) }}</span>
+    </div>
+    <div class="summary-card">
+      <span class="s-label">Digitization</span>
+      <span class="s-value success">{{ fmtPct(summary.digitizationPct) }}</span>
+    </div>
+  </div>
+}
+
+<!-- ── Header ────────────────────────────────────────────────── -->
+<div class="page-header">
+  <div>
+    <h2 class="page-title">Asset Pools</h2>
+    <p class="page-sub">Manage bulk FA register entries and track phased digitization</p>
+  </div>
+  <div class="header-actions">
+    <p-button label="Download Template" icon="pi pi-download" severity="secondary" size="small"
+              pTooltip="Download Excel template for FA register import" (onClick)="downloadTemplate()"></p-button>
+    <p-button label="Import FA Register" icon="pi pi-file-import" severity="secondary"
+              pTooltip="Bulk upload from FA register Excel" (onClick)="openImportDialog()"></p-button>
+    <p-button label="Import Individual Assets" icon="pi pi-users" severity="secondary"
+              pTooltip="Bulk upload individual line items from FA register linked to pools" (onClick)="openIndividualImportDialog()"></p-button>
+    <p-button label="Reset All Pools" icon="pi pi-trash" severity="danger" [outlined]="true"
+              pTooltip="Delete all pools and re-import from scratch" (onClick)="confirmReset()"></p-button>
+    <p-button label="New Pool" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
+  </div>
+</div>
+
+<!-- ── Pools Table ───────────────────────────────────────────── -->
+<p-table [value]="pools" [loading]="loading" [paginator]="true" [rows]="15"
+         [rowHover]="true" styleClass="p-datatable-sm pool-table">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Pool Code</th>
+      <th>Financial Year</th>
+      <th>Category</th>
+      <th>Department</th>
+      <th>Qty</th>
+      <th>Gross Block</th>
+      <th>Net Block</th>
+      <th>Digitized</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-pool>
+    <tr>
+      <td><span class="pool-code">{{ pool.poolCode }}</span></td>
+      <td>{{ pool.financialYear }}</td>
+      <td>{{ pool.category || '—' }}</td>
+      <td>{{ pool.department || '—' }}</td>
+      <td>{{ pool.originalQuantity }}</td>
+      <td class="num-cell">₹ {{ fmt(pool.latestGrossBlock) }}</td>
+      <td class="num-cell">₹ {{ fmt(pool.latestNetBlock) }}</td>
+      <td>
+        <div class="pct-cell">
+          <p-progressBar [value]="pool.digitizationPct || 0" [showValue]="false"
+                         styleClass="pool-progress" [style]="{'height':'8px'}"></p-progressBar>
+          <span class="pct-label">{{ fmtPct(pool.digitizationPct) }}</span>
+        </div>
+      </td>
+      <td>
+        <p-tag [value]="pool.status" [severity]="getStatusSeverity(pool.status)"></p-tag>
+      </td>
+      <td>
+        <div class="action-btns">
+          <p-button icon="pi pi-eye" severity="secondary" [rounded]="true" [text]="true"
+                    pTooltip="View Details" (onClick)="openDetail(pool)"></p-button>
+          <p-button icon="pi pi-history" severity="secondary" [rounded]="true" [text]="true"
+                    pTooltip="Activity Log" (onClick)="openActivityLog(pool)"></p-button>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr><td colspan="10" class="empty-msg">No asset pools found. Create one to start digitization tracking.</td></tr>
+  </ng-template>
+</p-table>
+
+<!-- ── Create Pool Dialog ────────────────────────────────────── -->
+<p-dialog header="Create Asset Pool" [(visible)]="showCreateDialog"
+          [style]="{width:'700px','max-height':'90vh'}" [modal]="true" [closable]="true">
+
+  <!-- Pool identity -->
+  <div class="create-section-title">Pool Identity</div>
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Financial Year <span class="req">*</span></label>
+      <p-select [(ngModel)]="createForm.financialYear" [options]="fyOptions"
+                optionLabel="label" optionValue="value" placeholder="Select FY"
+                styleClass="w-full"></p-select>
+    </div>
+    <div class="form-field">
+      <label>Category (Particulars) <span class="req">*</span></label>
+      <input pInputText [(ngModel)]="createForm.categoryName"
+             placeholder="e.g. MACHINERY & EQUIPMENTS" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label>Department</label>
+      <input pInputText [(ngModel)]="createForm.departmentName"
+             placeholder="e.g. Radiology (optional)" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label>Original Quantity</label>
+      <input pInputText type="number" [(ngModel)]="createForm.originalQuantity"
+             placeholder="Total asset count (0 if unknown)" class="w-full" />
+    </div>
+    <div class="form-field full-width">
+      <label>Notes</label>
+      <textarea pTextarea [(ngModel)]="createForm.notes" rows="1" class="w-full"
+                placeholder="Optional remarks"></textarea>
+    </div>
+  </div>
+
+  <!-- FA Register Schedule (inline) -->
+  <div class="fa-sched-toggle">
+    <input type="checkbox" [(ngModel)]="createForm.includeFaSchedule" id="inclSched" />
+    <label for="inclSched" class="fa-sched-label">
+      Also enter FA register figures for this year
+      <span class="fa-sched-hint">(recommended — enter from the audited FA schedule)</span>
+    </label>
+  </div>
+
+  @if (createForm.includeFaSchedule) {
+    <div class="create-section-title" style="margin-top:10px">
+      FA Register — Depreciation Schedule
+      <span class="fa-sched-hint" style="margin-left:8px">Numbers auto-calculated where possible</span>
+    </div>
+
+    <!-- Row 1: Gross Block section -->
+    <div class="fa-group-label">GROSS BLOCK</div>
+    <div class="form-grid-3">
+      <div class="form-field">
+        <label>AS ON 01.04 (Opening)</label>
+        <input pInputText type="number" [(ngModel)]="createForm.openingGrossBlock"
+               (ngModelChange)="autoCalcCreate()" placeholder="₹" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>Additions</label>
+        <input pInputText type="number" [(ngModel)]="createForm.additions"
+               (ngModelChange)="autoCalcCreate()" placeholder="₹" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>Deletions</label>
+        <input pInputText type="number" [(ngModel)]="createForm.deletions"
+               (ngModelChange)="autoCalcCreate()" placeholder="₹" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>UPTO 31.03 (Closing) <span class="calc-auto">auto</span></label>
+        <input pInputText type="number" [(ngModel)]="createForm.closingGrossBlock"
+               placeholder="₹" class="w-full calc-field" readonly />
+      </div>
+      <div class="form-field">
+        <label>FY End Date</label>
+        <input pInputText type="date" [(ngModel)]="createForm.financialYearEnd" class="w-full" />
+      </div>
+    </div>
+
+    <!-- Row 2: Depreciation section -->
+    <div class="fa-group-label">DEPRECIATION</div>
+    <div class="form-grid-3">
+      <div class="form-field">
+        <label>UP TO prev. year (Opening Acc. Dep)</label>
+        <input pInputText type="number" [(ngModel)]="createForm.openingAccumulatedDep"
+               (ngModelChange)="autoCalcCreate()" placeholder="₹" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>Rate %</label>
+        <input pInputText type="number" [(ngModel)]="createForm.depreciationRate"
+               placeholder="e.g. 15" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>FOR THE PERIOD</label>
+        <input pInputText type="number" [(ngModel)]="createForm.depreciationForPeriod"
+               (ngModelChange)="autoCalcCreate()" placeholder="₹" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>UPTO 31.03 (Closing Acc. Dep) <span class="calc-auto">auto</span></label>
+        <input pInputText type="number" [(ngModel)]="createForm.closingAccumulatedDep"
+               placeholder="₹" class="w-full calc-field" readonly />
+      </div>
+    </div>
+
+    <!-- Row 3: Net Block -->
+    <div class="fa-group-label">NET BLOCK</div>
+    <div class="form-grid-3">
+      <div class="form-field">
+        <label>Opening Net Block <span class="calc-auto">auto</span></label>
+        <input pInputText type="number" [(ngModel)]="createForm.openingNetBlock"
+               placeholder="₹" class="w-full calc-field" readonly />
+      </div>
+      <div class="form-field">
+        <label>Closing Net Block <span class="calc-auto">auto</span></label>
+        <input pInputText type="number" [(ngModel)]="createForm.closingNetBlock"
+               placeholder="₹" class="w-full calc-field" readonly />
+      </div>
+    </div>
+
+    @if (createForm.closingNetBlock) {
+      <div class="fa-summary-preview">
+        Gross Block: <b>₹ {{ createForm.closingGrossBlock | number:'1.0-0' }}</b>
+        &nbsp;|&nbsp; Acc. Dep: <b>₹ {{ createForm.closingAccumulatedDep | number:'1.0-0' }}</b>
+        &nbsp;|&nbsp; Net Block: <b class="nb-val">₹ {{ createForm.closingNetBlock | number:'1.0-0' }}</b>
+        &nbsp;|&nbsp; Rate: <b>{{ createForm.depreciationRate }}%</b>
+      </div>
+    }
+  }
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showCreateDialog=false"></p-button>
+    <p-button label="Create Pool" icon="pi pi-check" [loading]="creating" (onClick)="submitCreatePool()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- ── Import FA Register Dialog ─────────────────────────────── -->
+<p-dialog header="Import FA Register" [(visible)]="showImportDialog"
+          [style]="{width:'580px'}" [modal]="true" [closable]="true">
+  <div class="import-section">
+    <div class="import-info">
+      <i class="pi pi-info-circle"></i>
+      <div>
+        Upload your FA register Excel sheet. Each row (one per category) will create one Asset Pool
+        and its Depreciation Schedule. Existing pools will have their schedule updated.
+        <br><br>
+        <strong>Template columns:</strong> financialYear, category, department, originalQuantity,
+        financialYearEnd, openingGrossBlock, additions, deletions, closingGrossBlock,
+        openingAccumulatedDep, depreciationRate, depreciationForPeriod, closingAccumulatedDep,
+        closingNetBlock, notes
+      </div>
+    </div>
+
+    <div class="import-upload-row">
+      <input type="file" accept=".xlsx,.xls" #fileInput style="display:none"
+             (change)="onImportFileSelect($event)" />
+      <p-button label="Browse File" icon="pi pi-folder-open" severity="secondary"
+                (onClick)="fileInput.click()"></p-button>
+      @if (importFile) {
+        <span class="import-filename">{{ importFile.name }}</span>
+      } @else {
+        <span class="import-placeholder">No file selected</span>
+      }
+    </div>
+
+    @if (importResult) {
+      <div class="import-result">
+        <div class="import-result-header">
+          <span class="ir-success">{{ importResult.imported }} imported</span>
+          @if (importResult.errorCount > 0) {
+            <span class="ir-error">{{ importResult.errorCount }} errors</span>
+          }
+        </div>
+        @for (r of importResult.results; track $index) {
+          <div class="ir-row ir-ok">
+            <i class="pi pi-check-circle"></i>
+            Row {{ r.row }}: <b>{{ r.category }}</b> — {{ r.financialYear }} — {{ r.poolCode }}
+            <span class="ir-nb">NB: ₹ {{ r.closingNetBlock | number:'1.0-0' }}</span>
+          </div>
+        }
+        @for (e of importResult.errors; track $index) {
+          <div class="ir-row ir-err">
+            <i class="pi pi-times-circle"></i>
+            Row {{ e.row }}: {{ e.category || '' }} — {{ e.error }}
+          </div>
+        }
+      </div>
+    }
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Download Template" icon="pi pi-download" severity="secondary"
+              (onClick)="downloadTemplate()"></p-button>
+    <p-button label="Import" icon="pi pi-upload" [loading]="importing"
+              [disabled]="!importFile" (onClick)="submitImport()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- ── Reset Confirmation Dialog ─────────────────────────────── -->
+<p-dialog header="Reset All Pools" [(visible)]="showResetConfirm"
+          [style]="{width:'420px'}" [modal]="true" [closable]="!resetting">
+  <div style="display:flex;gap:14px;align-items:flex-start;padding:8px 0">
+    <i class="pi pi-exclamation-triangle" style="font-size:28px;color:#ef4444;flex-shrink:0;margin-top:2px"></i>
+    <div>
+      <p style="margin:0 0 10px;font-weight:700;color:#111827">This will permanently delete:</p>
+      <ul style="margin:0 0 10px;padding-left:18px;font-size:13px;line-height:1.8;color:#374151">
+        <li>All Asset Pools</li>
+        <li>All FA Depreciation Schedules</li>
+        <li>All Pool Adjustments</li>
+        <li>Individual assets will be <strong>unlinked</strong> (not deleted)</li>
+      </ul>
+      <p style="margin:0;font-size:12px;color:#6b7280">You can then re-import the corrected FA register Excel.</p>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" [outlined]="true"
+              [disabled]="resetting" (onClick)="showResetConfirm = false"></p-button>
+    <p-button label="Yes, Delete All Pools" icon="pi pi-trash" severity="danger"
+              [loading]="resetting" (onClick)="executeReset()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- ── Import Individual Assets Dialog ──────────────────────── -->
+<p-dialog header="Import Individual Assets" [(visible)]="showIndividualImportDialog"
+          [style]="{width:'620px'}" [modal]="true" [closable]="true">
+  <div class="import-section">
+    <div class="import-info">
+      <i class="pi pi-info-circle"></i>
+      <div>
+        Upload an Excel sheet with one row per individual asset from the FA register.
+        Each row creates a <strong>Legacy Asset</strong> linked to the matching pool.<br><br>
+        <strong>Required columns:</strong> <code>poolRef</code> (e.g. <em>FY2024-25/MEDICAL EQUIPMENTS</em>),
+        <code>assetName</code>, <code>purchaseCost</code>.<br>
+        <strong>Optional:</strong> serialNumber, purchaseDate, department, openingAccDep
+        (auto-calculated from pool if blank), manufacturer, modelNumber, notes.<br><br>
+        The pool must already exist — import the FA Register first if needed.
+      </div>
+    </div>
+
+    <div class="import-upload-row">
+      <input type="file" accept=".xlsx,.xls" #indFileInput style="display:none"
+             (change)="onIndividualFileSelect($event)" />
+      <p-button label="Browse File" icon="pi pi-folder-open" severity="secondary"
+                (onClick)="indFileInput.click()"></p-button>
+      @if (individualImportFile) {
+        <span class="import-filename">{{ individualImportFile.name }}</span>
+      } @else {
+        <span class="import-placeholder">No file selected</span>
+      }
+    </div>
+
+    @if (individualImportResult) {
+      <div class="import-result">
+        <div class="import-result-header">
+          <span class="ir-success">{{ individualImportResult.imported }} imported</span>
+          @if (individualImportResult.errorCount > 0) {
+            <span class="ir-error">{{ individualImportResult.errorCount }} errors</span>
+          }
+        </div>
+        @for (r of individualImportResult.results; track $index) {
+          <div class="ir-row ir-ok">
+            <i class="pi pi-check-circle"></i>
+            Row {{ r.row }}: <b>{{ r.assetId }}</b> — {{ r.assetName }}
+            <span class="ir-nb">₹ {{ r.purchaseCost | number:'1.0-0' }}</span>
+          </div>
+        }
+        @for (e of individualImportResult.errors; track $index) {
+          <div class="ir-row ir-err">
+            <i class="pi pi-times-circle"></i>
+            Row {{ e.row }}: {{ e.assetName || '' }} — {{ e.error }}
+          </div>
+        }
+      </div>
+    }
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Download Template" icon="pi pi-download" severity="secondary"
+              (onClick)="downloadIndividualTemplate()"></p-button>
+    <p-button label="Import" icon="pi pi-upload" [loading]="individualImporting"
+              [disabled]="!individualImportFile" (onClick)="submitIndividualImport()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- ── Pool Detail Dialog ────────────────────────────────────── -->
+<p-dialog header="Pool Details" [(visible)]="showDetailDialog"
+          [style]="{width:'900px','max-height':'90vh'}" [modal]="true" [closable]="true">
+  @if (detailLoading) {
+    <div class="loading-msg">Loading...</div>
+  }
+  @if (selectedPool && !detailLoading) {
+    <div class="detail-layout">
+
+      <!-- Left: pool info -->
+      <div class="detail-left">
+        <div class="detail-header">
+          <span class="pool-code-lg">{{ selectedPool.poolCode }}</span>
+          <p-tag [value]="selectedPool.status" [severity]="getStatusSeverity(selectedPool.status)"></p-tag>
+        </div>
+        <div class="detail-meta">
+          <div class="meta-row"><span>Financial Year</span><b>{{ selectedPool.financialYear }}</b></div>
+          <div class="meta-row"><span>Total Qty</span><b>{{ selectedPool.originalQuantity }}</b></div>
+          <div class="meta-row"><span>Individualized</span><b>{{ selectedPool.individualizedCount || 0 }}</b></div>
+          <div class="meta-row"><span>Remaining</span><b class="warn-text">{{ selectedPool.remainingQuantity ?? ((selectedPool.originalQuantity || 0) - (selectedPool.individualizedCount || 0)) }}</b></div>
+          <div class="meta-row"><span>Total Cost</span><b>₹ {{ fmt(selectedPool.totalPoolCost) }}</b></div>
+          <div class="meta-row"><span>Remaining Gross Block</span><b>₹ {{ fmt(selectedPool.remainingGrossBlock) }}</b></div>
+          <div class="meta-row"><span>Remaining Net Block</span><b>₹ {{ fmt(selectedPool.remainingNetBlock) }}</b></div>
+        </div>
+        @if (selectedPool.notes) {
+          <div class="detail-notes">{{ selectedPool.notes }}</div>
+        }
+
+        <div class="detail-actions">
+          <p-button label="Add FA Schedule" icon="pi pi-plus" size="small"
+                    (onClick)="openScheduleDialog()"></p-button>
+          <p-button label="Proportional Dep" icon="pi pi-calculator" size="small" severity="secondary"
+                    (onClick)="openPropCalc()"></p-button>
+          <p-button label="Adjustment" icon="pi pi-pencil" size="small" severity="secondary"
+                    (onClick)="openAdjustmentDialog()"></p-button>
+        </div>
+      </div>
+
+      <!-- Right: FA schedules + linked assets -->
+      <div class="detail-right">
+        <div class="section-title">FA Register (Depreciation Schedules)</div>
+        @if (depSchedules.length === 0) {
+          <div class="empty-sub">No FA schedules uploaded yet. Add from the FA register.</div>
+        } @else {
+          <div class="schedule-list">
+            @for (s of depSchedules; track s.id) {
+              <div class="schedule-row">
+                <div class="sched-fy">{{ s.financialYear }}</div>
+                <div class="sched-cols">
+                  <div><span>Gross Block</span><b>₹ {{ fmt(s.closingGrossBlock) }}</b></div>
+                  <div><span>Acc. Dep.</span><b>₹ {{ fmt(s.closingAccumulatedDep) }}</b></div>
+                  <div><span>Net Block</span><b>₹ {{ fmt(s.closingNetBlock) }}</b></div>
+                  <div><span>Dep. Rate</span><b>{{ s.depreciationRate != null ? s.depreciationRate + '%' : '—' }}</b></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="section-title" style="margin-top:16px">Individualized Assets ({{ selectedPool.individualizedCount || 0 }})</div>
+        @if (!selectedPool.assets || selectedPool.assets.length === 0) {
+          <div class="empty-sub">No assets individualized yet from this pool.</div>
+        } @else {
+          <div class="asset-list">
+            @for (a of selectedPool.assets; track a.id) {
+              <div class="asset-chip">
+                <span class="chip-id">{{ a.assetId }}</span>
+                <span class="chip-name">{{ a.assetName }}</span>
+                <span class="chip-cost">₹ {{ fmt(a.purchaseCost) }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</p-dialog>
+
+<!-- ── Add FA Schedule Dialog ────────────────────────────────── -->
+<p-dialog header="Add FA Register Entry" [(visible)]="showScheduleDialog"
+          [style]="{width:'620px'}" [modal]="true">
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Financial Year <span class="req">*</span></label>
+      <p-select [(ngModel)]="scheduleForm.financialYear" [options]="fyOptions"
+                optionLabel="label" optionValue="value" placeholder="Select FY" styleClass="w-full"></p-select>
+    </div>
+    <div class="form-field">
+      <label>FY End Date</label>
+      <input pInputText type="date" [(ngModel)]="scheduleForm.financialYearEnd" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label>Opening Gross Block (₹)</label>
+      <input pInputText type="number" [(ngModel)]="scheduleForm.openingGrossBlock" (ngModelChange)="autoCalcSchedule()" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label>Additions (₹)</label>
+      <input pInputText type="number" [(ngModel)]="scheduleForm.additions" (ngModelChange)="autoCalcSchedule()" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label>Deletions (₹)</label>
+      <input pInputText type="number" [(ngModel)]="scheduleForm.deletions" (ngModelChange)="autoCalcSchedule()" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label>Closing Gross Block (₹)</label>
+      <input pInputText type="number" [(ngModel)]="scheduleForm.closingGrossBlock" class="w-full" readonly />
+    </div>
+    <div class="form-field">
+      <label>Opening Acc. Depreciation (₹)</label>
+      <input pInputText type="number" [(ngModel)]="scheduleForm.openingAccumulatedDep" (ngModelChange)="autoCalcSchedule()" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label>Depreciation Rate (%)</label>
+      <input pInputText type="number" [(ngModel)]="scheduleForm.depreciationRate" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label>Depreciation for Period (₹)</label>
+      <input pInputText type="number" [(ngModel)]="scheduleForm.depreciationForPeriod" (ngModelChange)="autoCalcSchedule()" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label>Closing Acc. Depreciation (₹)</label>
+      <input pInputText type="number" [(ngModel)]="scheduleForm.closingAccumulatedDep" class="w-full" readonly />
+    </div>
+    <div class="form-field">
+      <label>Opening Net Block (₹)</label>
+      <input pInputText type="number" [(ngModel)]="scheduleForm.openingNetBlock" class="w-full" readonly />
+    </div>
+    <div class="form-field">
+      <label>Closing Net Block (₹)</label>
+      <input pInputText type="number" [(ngModel)]="scheduleForm.closingNetBlock" class="w-full" readonly />
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showScheduleDialog=false"></p-button>
+    <p-button label="Save Schedule" icon="pi pi-check" [loading]="addingSchedule" (onClick)="submitSchedule()"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- ── Activity Log Dialog ───────────────────────────────────── -->
+<p-dialog header="Pool Activity Log" [(visible)]="showActivityDialog"
+          [style]="{width:'600px'}" [modal]="true">
+  @if (activityLoading) {
+    <div class="loading-msg">Loading activity...</div>
+  }
+  @if (!activityLoading && activityLog.length === 0) {
+    <div class="empty-sub" style="padding:24px 0">No activity recorded yet.</div>
+  }
+  <div class="activity-timeline">
+    @for (event of activityLog; track $index) {
+      <div class="activity-item">
+        <div class="activity-icon">
+          <i [class]="getActivityIcon(event.type)"></i>
+        </div>
+        <div class="activity-body">
+          <div class="activity-type">{{ event.type?.replace('_', ' ') }}</div>
+          <div class="activity-desc">{{ event.description || event.reason || '' }}</div>
+          @if (event.assetId) {
+            <div class="activity-meta">Asset: {{ event.assetId }}</div>
+          }
+          @if (event.amount) {
+            <div class="activity-meta">Amount: ₹ {{ fmt(event.amount) }}</div>
+          }
+          <div class="activity-time">{{ event.date | date:'dd MMM yyyy, HH:mm' }}</div>
+        </div>
+      </div>
+    }
+  </div>
+</p-dialog>
+
+<!-- ── Proportional Dep Calculator Dialog ────────────────────── -->
+<p-dialog header="Proportional Depreciation Calculator" [(visible)]="showPropCalcDialog"
+          [style]="{width:'480px'}" [modal]="true">
+  <div class="calc-section">
+    <p class="calc-info">
+      Enter the individual asset cost to calculate the proportional opening accumulated depreciation
+      based on this pool's latest FA register entry.
+    </p>
+    <div class="form-field">
+      <label>Asset Purchase Cost (₹) <span class="req">*</span></label>
+      <input pInputText type="number" [(ngModel)]="propAssetCost" placeholder="e.g. 250000" class="w-full" />
+    </div>
+    <p-button label="Calculate" icon="pi pi-calculator" [loading]="propLoading"
+              (onClick)="calcProportional()" styleClass="mt-2"></p-button>
+
+    @if (propResult) {
+      <div class="prop-result">
+        <div class="result-row">
+          <span>Share Ratio</span>
+          <b>{{ (propResult.shareRatio * 100).toFixed(4) }}%</b>
+        </div>
+        <div class="result-row">
+          <span>Opening Acc. Depreciation</span>
+          <b class="key-value">₹ {{ fmt(propResult.openingAccumulatedDep) }}</b>
+        </div>
+        <div class="result-row">
+          <span>Opening Book Value</span>
+          <b>₹ {{ fmt(propResult.openingBookValue) }}</b>
+        </div>
+        <div class="result-row">
+          <span>Based on FY</span>
+          <b>{{ propResult.basedOnFY }}</b>
+        </div>
+        <p class="calc-note">
+          Use ₹ {{ fmt(propResult.openingAccumulatedDep) }} as the "Opening Accumulated Depreciation"
+          when creating this asset and linking it to pool {{ selectedPool?.poolCode }}.
+        </p>
+      </div>
+    }
+  </div>
+</p-dialog>
+
+<!-- ── Adjustment Dialog ─────────────────────────────────────── -->
+<p-dialog header="Add Pool Adjustment" [(visible)]="showAdjustmentDialog"
+          [style]="{width:'480px'}" [modal]="true">
+  <div class="form-grid">
+    <div class="form-field full-width">
+      <label>Adjustment Type <span class="req">*</span></label>
+      <p-select [(ngModel)]="adjustmentForm.adjustmentType" [options]="adjustmentTypeOptions"
+                optionLabel="label" optionValue="value" styleClass="w-full"></p-select>
+    </div>
+    <div class="form-field">
+      <label>Amount (₹) <span class="req">*</span></label>
+      <input pInputText type="number" [(ngModel)]="adjustmentForm.amount" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label>Financial Year</label>
+      <p-select [(ngModel)]="adjustmentForm.financialYear" [options]="fyOptions"
+                optionLabel="label" optionValue="value" placeholder="Select FY" styleClass="w-full"></p-select>
+    </div>
+    <div class="form-field full-width">
+      <label>Reason</label>
+      <textarea pTextarea [(ngModel)]="adjustmentForm.reason" rows="2" class="w-full"
+                placeholder="Reason for adjustment"></textarea>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showAdjustmentDialog=false"></p-button>
+    <p-button label="Save Adjustment" icon="pi pi-check" [loading]="addingAdjustment" (onClick)="submitAdjustment()"></p-button>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,127 @@
+<div class="pmt-container">
+  <p-toast />
+  <div class="page-header">
+    <div>
+      <h2>Payment Vouchers</h2>
+      <p class="subtitle">Record payments against purchase vouchers</p>
+    </div>
+    <p-button label="New Payment Voucher" icon="pi pi-plus" (onClick)="openNew()" />
+  </div>
+  <div class="divider-container"><hr class="divider" /></div>
+
+  <div class="filters-row">
+    <p-select [options]="statusOptions" optionLabel="label" optionValue="value"
+      [(ngModel)]="filters.status" placeholder="All Status" (onChange)="load()" appendTo="body" />
+    <p-select [options]="vendors" optionLabel="name" optionValue="id"
+      [(ngModel)]="filters.vendorId" placeholder="All Vendors" [showClear]="true"
+      (onChange)="load()" appendTo="body" [filter]="true" />
+  </div>
+
+  <p-table [value]="vouchers" [loading]="loading" styleClass="p-datatable-sm p-datatable-striped"
+    [paginator]="true" [rows]="20" [totalRecords]="total">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Voucher No</th>
+        <th>Date</th>
+        <th>Vendor</th>
+        <th>PV Reference</th>
+        <th>Amount</th>
+        <th>Mode</th>
+        <th>Bank Ref</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td><strong>{{ row.voucherNo }}</strong></td>
+        <td>{{ row.voucherDate | date:'dd/MM/yyyy' }}</td>
+        <td>{{ row.vendor?.name || '-' }}</td>
+        <td>{{ row.purchaseVoucher?.voucherNo || '-' }}</td>
+        <td>₹{{ row.amount | number:'1.2-2' }}</td>
+        <td>{{ row.paymentMode }}</td>
+        <td>{{ row.bankReference || '-' }}</td>
+        <td><p-tag [value]="row.status" [severity]="getStatusSeverity(row.status)" /></td>
+        <td>
+          <p-button icon="pi pi-eye" [text]="true" size="small" (onClick)="viewDetail(row)" pTooltip="View" />
+          <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="openEdit(row)" *ngIf="row.status !== 'POSTED'" pTooltip="Edit" />
+          <p-button icon="pi pi-check-circle" [text]="true" size="small" severity="success" (onClick)="approve(row)" *ngIf="row.status==='DRAFT'||row.status==='PENDING_APPROVAL'" pTooltip="Approve" />
+          <p-button icon="pi pi-upload" [text]="true" size="small" severity="info" (onClick)="post(row)" *ngIf="row.status==='APPROVED'" pTooltip="Post" />
+          <p-button icon="pi pi-ban" [text]="true" size="small" severity="danger" (onClick)="cancel(row)" *ngIf="row.status!=='POSTED'&&row.status!=='CANCELLED'" pTooltip="Cancel" />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="9" class="empty-msg">No payment vouchers found.</td></tr>
+    </ng-template>
+  </p-table>
+
+  <p-dialog [(visible)]="showDialog" [header]="isEdit ? 'Edit Payment Voucher' : 'New Payment Voucher'"
+    [modal]="true" [style]="{width:'560px'}">
+    <div class="dialog-form">
+      <div class="two-fields">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="form.voucherDate" appendTo="body" />
+          <label>Voucher Date *</label>
+        </p-floatlabel>
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.amount" />
+          <label>Amount (₹) *</label>
+        </p-floatlabel>
+      </div>
+
+      <p-floatlabel variant="on" class="full-field">
+        <p-select [options]="paymentModes" optionLabel="label" optionValue="value"
+          [(ngModel)]="form.paymentMode" appendTo="body" />
+        <label>Payment Mode *</label>
+      </p-floatlabel>
+
+      <div class="two-fields">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.bankName" />
+          <label>Bank Name</label>
+        </p-floatlabel>
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.bankReference" />
+          <label>Reference / Cheque No</label>
+        </p-floatlabel>
+      </div>
+
+      <p-floatlabel variant="on" class="full-field">
+        <p-select [options]="vendors" optionLabel="name" optionValue="id"
+          [(ngModel)]="form.vendorId" appendTo="body" [showClear]="true" [filter]="true" />
+        <label>Vendor</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on" class="full-field">
+        <p-select [options]="purchaseVouchers" optionLabel="voucherNo" optionValue="id"
+          [(ngModel)]="form.purchaseVoucherId" appendTo="body" [showClear]="true" [filter]="true" />
+        <label>Against Purchase Voucher (optional)</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on" class="full-field">
+        <textarea pTextarea [(ngModel)]="form.narration" rows="3"></textarea>
+        <label>Narration</label>
+      </p-floatlabel>
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button label="Cancel" [text]="true" (onClick)="showDialog=false" />
+      <p-button label="Save" icon="pi pi-check" (onClick)="save()" />
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog [(visible)]="showDetail" header="Payment Voucher Details" [modal]="true" [style]="{width:'520px'}">
+    <div *ngIf="selectedVoucher" class="detail-grid">
+      <div class="detail-row"><span class="detail-label">Voucher No</span><span>{{ selectedVoucher.voucherNo }}</span></div>
+      <div class="detail-row"><span class="detail-label">Date</span><span>{{ selectedVoucher.voucherDate | date:'dd/MM/yyyy' }}</span></div>
+      <div class="detail-row"><span class="detail-label">Amount</span><span><strong>₹{{ selectedVoucher.amount | number:'1.2-2' }}</strong></span></div>
+      <div class="detail-row"><span class="detail-label">Mode</span><span>{{ selectedVoucher.paymentMode }}</span></div>
+      <div class="detail-row"><span class="detail-label">Bank</span><span>{{ selectedVoucher.bankName || '-' }}</span></div>
+      <div class="detail-row"><span class="detail-label">Reference</span><span>{{ selectedVoucher.bankReference || '-' }}</span></div>
+      <div class="detail-row"><span class="detail-label">Vendor</span><span>{{ selectedVoucher.vendor?.name || '-' }}</span></div>
+      <div class="detail-row"><span class="detail-label">PV Reference</span><span>{{ selectedVoucher.purchaseVoucher?.voucherNo || '-' }}</span></div>
+      <div class="detail-row"><span class="detail-label">Status</span><span><p-tag [value]="selectedVoucher.status" [severity]="getStatusSeverity(selectedVoucher.status)" /></span></div>
+      <div class="detail-row"><span class="detail-label">Created By</span><span>{{ selectedVoucher.createdBy?.name || '-' }}</span></div>
+    </div>
+  </p-dialog>
+</div>

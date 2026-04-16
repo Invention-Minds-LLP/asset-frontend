@@ -10,6 +10,18 @@
       [loading]="loading" size="small" severity="secondary"></p-button>
   </div>
 
+  @if (data?.legacyAssetCount > 0) {
+    <div class="legacy-data-banner">
+      <i class="pi pi-history"></i>
+      <span>
+        <strong>{{ data.legacyAssetCount }} legacy asset{{ data.legacyAssetCount > 1 ? 's' : '' }}</strong> included with pre-system historical costs.
+        @if (data.dataAvailableSince) {
+          Live operational data available from <strong>{{ data.dataAvailableSince | date:'dd MMM yyyy' }}</strong>.
+        }
+      </span>
+    </div>
+  }
+
   <!-- Date Range Filter + View Toggle -->
   <div class="filter-bar">
     <div class="date-filters">
@@ -71,8 +83,8 @@
         </div>
       </div>
 
-      <!-- Row 2: Operations KPIs (4 cards) -->
-      <div class="kpi-grid kpi-4">
+      <!-- Row 2: Operations KPIs (3 cards) -->
+      <div class="kpi-grid kpi-3">
         <div class="kpi-card subtle" pTooltip="Tickets currently open or in progress" tooltipPosition="top">
           <div class="kpi-label">Open Tickets</div>
           <div class="kpi-value warn">{{ formatNum(tickets.openTickets) }}</div>
@@ -80,10 +92,6 @@
         <div class="kpi-card subtle" pTooltip="Tickets that breached their SLA within the selected period" tooltipPosition="top">
           <div class="kpi-label">SLA Breaches</div>
           <div class="kpi-value danger">{{ formatNum(tickets.slaBreachedTickets) }}</div>
-        </div>
-        <div class="kpi-card subtle" pTooltip="Work orders awaiting action or approval" tooltipPosition="top">
-          <div class="kpi-label">Pending Work Orders</div>
-          <div class="kpi-value warn">{{ formatNum(workOrders.pendingWOs) }}</div>
         </div>
         <div class="kpi-card subtle" pTooltip="Percentage of PM schedules completed on time" tooltipPosition="top">
           <div class="kpi-label">PM Compliance</div>
@@ -128,41 +136,6 @@
           <div class="stat-item">
             <span class="stat-label">SLA Breach Rate</span>
             <span class="stat-value" [class.danger]="slaBreachRate > 10" [class.warn]="slaBreachRate > 5 && slaBreachRate <= 10">{{ formatPct(slaBreachRate) }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section: Work Order Throughput -->
-      <div class="dashboard-section">
-        <div class="section-header">
-          <span class="section-title"><i class="pi pi-briefcase"></i> Work Order Throughput</span>
-        </div>
-        <div class="kpi-grid kpi-4 compact">
-          <div class="kpi-card mini" pTooltip="Total work orders created in the selected period" tooltipPosition="top">
-            <div class="kpi-label">Total WOs</div>
-            <div class="kpi-value">{{ formatNum(workOrders.totalWOs30d) }}</div>
-          </div>
-          <div class="kpi-card mini" pTooltip="Work orders completed in the selected period" tooltipPosition="top">
-            <div class="kpi-label">Completed</div>
-            <div class="kpi-value good">{{ formatNum(workOrders.completedWOs30d) }}</div>
-          </div>
-          <div class="kpi-card mini" pTooltip="Work orders still pending completion" tooltipPosition="top">
-            <div class="kpi-label">Pending</div>
-            <div class="kpi-value warn">{{ formatNum(workOrders.pendingWOs) }}</div>
-          </div>
-          <div class="kpi-card mini" pTooltip="Average days to complete a work order" tooltipPosition="top">
-            <div class="kpi-label">Avg Completion</div>
-            <div class="kpi-value">{{ formatDays(workOrders.avgCompletionDays) }}</div>
-          </div>
-        </div>
-        <div class="stats-row">
-          <div class="stat-item">
-            <span class="stat-label">OpEx Work Orders</span>
-            <p-tag [value]="formatNum(workOrders.woByType?.opex)" severity="info"></p-tag>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">CapEx Work Orders</span>
-            <p-tag [value]="formatNum(workOrders.woByType?.capex)" severity="warn"></p-tag>
           </div>
         </div>
       </div>
@@ -249,7 +222,7 @@
     <!-- FINANCIAL VIEW                                          -->
     <!-- ════════════════════════════════════════════════════════ -->
     @if (viewMode === 'financial') {
-      <div class="kpi-grid kpi-3">
+      <div class="kpi-grid kpi-2">
         <div class="kpi-card" pTooltip="Sum of purchase cost for all active assets" tooltipPosition="top">
           <div class="kpi-label">Total Purchase Value</div>
           <div class="kpi-value accent">{{ formatCurrency(financial.totalPurchaseCost) }}</div>
@@ -257,10 +230,6 @@
         <div class="kpi-card" pTooltip="Sum of ticket costs within the selected date range" tooltipPosition="top">
           <div class="kpi-label">Maintenance Cost (Period)</div>
           <div class="kpi-value warn">{{ formatCurrency(financial.totalMaintenanceCost30d) }}</div>
-        </div>
-        <div class="kpi-card" pTooltip="Total value of purchase orders in Draft, Submitted, or HOD Approved status" tooltipPosition="top">
-          <div class="kpi-label">Pending PO Value</div>
-          <div class="kpi-value danger">{{ formatCurrency(financial.pendingPOValue) }}</div>
         </div>
       </div>
 
@@ -323,13 +292,54 @@
     }
 
     <!-- ════════════════════════════════════════════════════════ -->
+    <!-- E-Waste Queue                                           -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    @if (data.eWaste) {
+      <div class="dashboard-section">
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-recycle"></i> E-Waste Sign-off Queue</span>
+          <span class="section-sub">Post-scrap disposal clearance tracking</span>
+        </div>
+        <div class="kpi-grid kpi-4">
+          <div class="kpi-card" [class.alert-card]="data.eWaste.pendingHOD > 0" [class.alert-warn]="data.eWaste.pendingHOD > 0" pTooltip="Awaiting HOD signature" tooltipPosition="top">
+            <div class="kpi-label">Pending HOD</div>
+            <div class="kpi-value">{{ data.eWaste.pendingHOD ?? 0 }}</div>
+            <div class="alert-sub">Stage 1</div>
+          </div>
+          <div class="kpi-card" [class.alert-card]="data.eWaste.pendingOps > 0" [class.alert-warn]="data.eWaste.pendingOps > 0" pTooltip="Awaiting Operations signature" tooltipPosition="top">
+            <div class="kpi-label">Pending Operations</div>
+            <div class="kpi-value">{{ data.eWaste.pendingOps ?? 0 }}</div>
+            <div class="alert-sub">Stage 2</div>
+          </div>
+          <div class="kpi-card" [class.alert-card]="data.eWaste.pendingSec > 0" [class.alert-warn]="data.eWaste.pendingSec > 0" pTooltip="Awaiting Security signature" tooltipPosition="top">
+            <div class="kpi-label">Pending Security</div>
+            <div class="kpi-value">{{ data.eWaste.pendingSec ?? 0 }}</div>
+            <div class="alert-sub">Stage 3</div>
+          </div>
+          <div class="kpi-card" pTooltip="Closed this calendar month" tooltipPosition="top">
+            <div class="kpi-label">Closed This Month</div>
+            <div class="kpi-value accent">{{ data.eWaste.closedThisMonth ?? 0 }}</div>
+            <div class="alert-sub">Avg {{ data.eWaste.avgDaysToClose ?? 0 }}d to close</div>
+          </div>
+        </div>
+        @if ((data.eWaste.openOver30 ?? 0) > 0) {
+          <div class="ewaste-overdue-banner">
+            <i class="pi pi-exclamation-triangle"></i>
+            <span><strong>{{ data.eWaste.openOver30 }} records</strong> have been open for more than 30 days and need escalation.</span>
+            <a routerLink="/e-waste" class="ewaste-overdue-link">View &rarr;</a>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ════════════════════════════════════════════════════════ -->
     <!-- SHARED: Critical Alerts (always visible)                -->
     <!-- ════════════════════════════════════════════════════════ -->
     <div class="dashboard-section">
       <div class="section-header">
         <span class="section-title"><i class="pi pi-exclamation-triangle"></i> Critical Alerts</span>
       </div>
-      <div class="kpi-grid kpi-4">
+      <div class="kpi-grid kpi-3">
         <div class="kpi-card alert-card" [class]="getAlertClass(alerts.assetsNeedingAttention)" pTooltip="Assets with Not Working or Partial working condition" tooltipPosition="top">
           <div class="kpi-label">Assets Needing Attention</div>
           <div class="kpi-value">{{ formatNum(alerts.assetsNeedingAttention) }}</div>
@@ -344,11 +354,6 @@
           <div class="kpi-label">Pending Transfers</div>
           <div class="kpi-value">{{ formatNum(alerts.pendingTransfers) }}</div>
           <div class="alert-sub">Requested / In Transit</div>
-        </div>
-        <div class="kpi-card alert-card" [class]="getAlertClass(alerts.pendingApprovals)" pTooltip="Purchase orders and work orders awaiting approval" tooltipPosition="top">
-          <div class="kpi-label">Pending Approvals</div>
-          <div class="kpi-value">{{ formatNum(alerts.pendingApprovals) }}</div>
-          <div class="alert-sub">POs + Work Orders</div>
         </div>
       </div>
     </div>

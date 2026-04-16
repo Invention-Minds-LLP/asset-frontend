@@ -53,6 +53,10 @@ export class SubAssets implements OnInit {
   addSaving = false;
   addForm: any = {};
 
+  // ─── 40% threshold warning dialog ────────────────────────────────────────
+  showThresholdDialog = false;
+  thresholdInfo: any = null;   // { message, parentValue, subAssetValue, percentage }
+
   // ─── Replace Sub-Asset dialog ─────────────────────────────────────────────
   showReplaceDialog = false;
   replaceTarget: any = null;
@@ -272,18 +276,20 @@ export class SubAssets implements OnInit {
     }
 
     this.assetsAPI.createSubAsset(this.addParentAssetId, payload).subscribe({
-      next: () => {
+      next: (res: any) => {
         setTimeout(() => {
           this.addSaving = false;
           this.showAddDialog = false;
-          this.toast('success', 'Sub-asset added successfully');
-          // Reload sub-assets if the parent is expanded
+          const msg = res?.createdAsStandalone
+            ? 'Asset created as a standalone Functional Asset'
+            : 'Sub-asset added successfully';
+          this.toast('success', msg);
           const parent = this.allAssets.find(a => a.assetId === this.addParentAssetId);
           if (parent && this.expandedAssetId === parent.id) {
             this.subAssetsLoading = true;
             this.assetsAPI.getChildren(this.addParentAssetId!).subscribe({
-              next: (res: any) => {
-                const children = Array.isArray(res) ? res : (res?.children ?? res?.data ?? []);
+              next: (r: any) => {
+                const children = Array.isArray(r) ? r : (r?.children ?? r?.data ?? []);
                 this.subAssets = children;
                 this.subAssetsLoading = false;
                 this.cdr.detectChanges();
@@ -295,7 +301,13 @@ export class SubAssets implements OnInit {
       },
       error: (err) => {
         this.addSaving = false;
-        this.toast('error', err?.error?.message || 'Failed to add sub-asset');
+        const body = err?.error;
+        if (err?.status === 422 && body?.thresholdWarning) {
+          this.thresholdInfo = body;
+          this.showThresholdDialog = true;
+        } else {
+          this.toast('error', body?.message || 'Failed to add sub-asset');
+        }
       }
     });
   }
@@ -385,6 +397,75 @@ export class SubAssets implements OnInit {
       error: (err) => {
         this.replaceSaving = false;
         this.toast('error', err?.error?.message || 'Failed to replace sub-asset');
+      }
+    });
+  }
+
+  // ─── Threshold dialog actions ─────────────────────────────────────────────
+
+  proceedAsSubAsset() {
+    this.showThresholdDialog = false;
+    if (!this.addParentAssetId) return;
+    const payload = this._buildAddPayload();
+    payload.forceCreate = true;
+    this._submitAddPayload(payload);
+  }
+
+  proceedAsStandalone() {
+    this.showThresholdDialog = false;
+    if (!this.addParentAssetId) return;
+    const payload = this._buildAddPayload();
+    payload.createAsStandalone = true;
+    this._submitAddPayload(payload);
+  }
+
+  private _buildAddPayload(): any {
+    const payload: any = {
+      sourceType: this.addForm.sourceType,
+      condition: this.addForm.condition || 'NEW',
+      notes: this.addForm.notes || null,
+    };
+    if (this.addForm.sourceType === 'INVENTORY_SPARE') {
+      payload.sparePartId = Number(this.addForm.sparePartId);
+      payload.serialNumber = this.addForm.serialNumber || null;
+    } else {
+      payload.assetName = this.addForm.assetName?.trim();
+      payload.serialNumber = this.addForm.serialNumber || null;
+      payload.assetType = this.addForm.assetType || null;
+      payload.procurementType = this.addForm.procurementType || null;
+      payload.cost = this.addForm.cost ? Number(this.addForm.cost) : null;
+      payload.purchaseCost = this.addForm.cost ? Number(this.addForm.cost) : null;
+      payload.invoiceNumber = this.addForm.invoiceNumber || null;
+      payload.purchaseDate = this.addForm.purchaseDate || null;
+    }
+    return payload;
+  }
+
+  private _submitAddPayload(payload: any) {
+    this.addSaving = true;
+    this.assetsAPI.createSubAsset(this.addParentAssetId!, payload).subscribe({
+      next: (res: any) => {
+        this.addSaving = false;
+        this.showAddDialog = false;
+        const msg = res?.createdAsStandalone
+          ? 'Asset created as a standalone Functional Asset'
+          : 'Sub-asset added successfully';
+        this.toast('success', msg);
+        if (this.expandedAssetId) {
+          this.subAssetsLoading = true;
+          this.assetsAPI.getChildren(this.addParentAssetId!).subscribe({
+            next: (r: any) => {
+              this.subAssets = Array.isArray(r) ? r : (r?.children ?? r?.data ?? []);
+              this.subAssetsLoading = false;
+              this.cdr.detectChanges();
+            }
+          });
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.addSaving = false;
+        this.toast('error', err?.error?.message || 'Failed');
       }
     });
   }

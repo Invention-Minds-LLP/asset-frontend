@@ -33,6 +33,14 @@ export class ReportsService {
     return this.http.get(`${this.baseUrl}/inventory-stock`, { params: this.buildParams(filters) });
   }
 
+  getFixedAssetsSchedule(filters: any = {}): Observable<any> {
+    return this.http.get(`${this.baseUrl}/fixed-assets-schedule`, { params: this.buildParams(filters) });
+  }
+
+  getConsolidatedReport(filters: any = {}): Observable<any> {
+    return this.http.get(`${this.baseUrl}/consolidated`, { params: this.buildParams(filters) });
+  }
+
   exportReport(reportType: string, format: 'csv' | 'excel', filters: any = {}): Observable<Blob> {
     const params = this.buildParams({ ...filters, export: format });
     return this.http.get(`${this.baseUrl}/${reportType}`, {

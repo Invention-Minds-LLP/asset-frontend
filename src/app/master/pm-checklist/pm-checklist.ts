@@ -335,7 +335,16 @@ export class PmChecklist implements OnInit {
   }
 
   downloadPdf(runId: number) {
-    window.open(this.pmService.getRunPdfUrl(runId), '_blank');
+    this.pmService.getRunPdf(runId).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const win = window.open(url, '_blank');
+        if (win) win.onload = () => URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load PM report' });
+      }
+    });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

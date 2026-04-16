@@ -1,0 +1,150 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-sitemap"></i> Hierarchy Dashboard</h2>
+    <p-button label="Refresh All" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="refreshAll()"></p-button>
+  </div>
+
+  <p-tabview>
+
+    <!-- Tab 1: SLA Breach Alerts -->
+    <p-tabpanel header="SLA Breach Alerts">
+      <div class="tab-content">
+        @if (slaLoading) {
+          <div class="loading-msg"><i class="pi pi-spin pi-spinner"></i> Loading...</div>
+        } @else {
+          @if (!slaAlerts.length) {
+            <div class="empty-msg"><i class="pi pi-check-circle" style="color:#2e7d32"></i> No active SLA breaches.</div>
+          }
+          @for (dept of slaAlerts; track dept.departmentId) {
+            <div class="dept-group">
+              <div class="dept-header">
+                <i class="pi pi-building"></i>
+                <strong>{{ dept.departmentName }}</strong>
+                <span class="badge-count">{{ dept.tickets.length }} breached</span>
+              </div>
+              <p-table [value]="dept.tickets" styleClass="p-datatable-sm p-datatable-striped">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th>Ticket #</th>
+                    <th>Issue</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Asset</th>
+                    <th>Raised</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-t>
+                  <tr>
+                    <td><strong>{{ t.ticketNumber }}</strong></td>
+                    <td>{{ t.title || '—' }}</td>
+                    <td><p-tag [value]="t.priority" [severity]="getPrioritySeverity(t.priority)"></p-tag></td>
+                    <td><p-tag [value]="t.status" severity="warn"></p-tag></td>
+                    <td>{{ t.assetName || '—' }}</td>
+                    <td>{{ formatDate(t.createdAt) }}</td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          }
+        }
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 2: Repeat Tickets -->
+    <p-tabpanel header="Repeat Tickets">
+      <div class="tab-content">
+        @if (repeatLoading) {
+          <div class="loading-msg"><i class="pi pi-spin pi-spinner"></i> Loading...</div>
+        } @else {
+          @if (!repeatTickets.length) {
+            <div class="empty-msg"><i class="pi pi-check-circle" style="color:#2e7d32"></i> No repeat tickets detected.</div>
+          }
+          <p-table [value]="repeatTickets" styleClass="p-datatable-sm p-datatable-striped" [paginator]="true" [rows]="15">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Asset</th>
+                <th>Department</th>
+                <th>Occurrences</th>
+                <th>Latest Ticket</th>
+                <th>Last Raised</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-r>
+              <tr>
+                <td><strong>{{ r.assetName || r.assetId || '—' }}</strong></td>
+                <td>{{ r.department || '—' }}</td>
+                <td><p-tag [value]="r.ticketCount?.toString()" severity="danger"></p-tag></td>
+                <td>{{ r.tickets?.[0]?.title || '—' }}</td>
+                <td>{{ formatDate(r.tickets?.[0]?.createdAt) }}</td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="5" class="text-center">No repeat tickets.</td></tr>
+            </ng-template>
+          </p-table>
+        }
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 3: Escalation Summary -->
+    <p-tabpanel header="Escalation Summary">
+      <div class="tab-content">
+        @if (escalationLoading) {
+          <div class="loading-msg"><i class="pi pi-spin pi-spinner"></i> Loading...</div>
+        } @else if (!escalationSummary) {
+          <div class="empty-msg"><i class="pi pi-check-circle" style="color:#2e7d32"></i> No escalation data available.</div>
+        } @else {
+          <div class="summary-kpi-grid">
+            <div class="summary-kpi-card" [class.alert]="escalationSummary.slaBreachesByDepartment?.length > 0">
+              <div class="kpi-label">Departments with SLA Breaches</div>
+              <div class="kpi-value" [class.danger]="escalationSummary.slaBreachesByDepartment?.length > 0">
+                {{ escalationSummary.slaBreachesByDepartment?.length ?? 0 }}
+              </div>
+            </div>
+            <div class="summary-kpi-card" [class.alert]="escalationSummary.repeatFailureAssetsCount > 0">
+              <div class="kpi-label">Repeat Failure Assets</div>
+              <div class="kpi-value" [class.warn]="escalationSummary.repeatFailureAssetsCount > 0">
+                {{ escalationSummary.repeatFailureAssetsCount ?? 0 }}
+              </div>
+            </div>
+            <div class="summary-kpi-card" [class.alert]="escalationSummary.overduePMs > 0">
+              <div class="kpi-label">Overdue PMs</div>
+              <div class="kpi-value" [class.warn]="escalationSummary.overduePMs > 0">
+                {{ escalationSummary.overduePMs ?? 0 }}
+              </div>
+            </div>
+            <div class="summary-kpi-card" [class.alert]="escalationSummary.uncoveredAssetsCount > 0">
+              <div class="kpi-label">Uncovered Assets</div>
+              <div class="kpi-value" [class.warn]="escalationSummary.uncoveredAssetsCount > 0">
+                {{ escalationSummary.uncoveredAssetsCount ?? 0 }}
+              </div>
+            </div>
+          </div>
+
+          @if (escalationSummary.slaBreachesByDepartment?.length) {
+            <div class="section-title" style="margin-top:1.5rem; margin-bottom:0.75rem;">
+              <i class="pi pi-building"></i> SLA Breaches by Department
+            </div>
+            <p-table [value]="escalationSummary.slaBreachesByDepartment" styleClass="p-datatable-sm p-datatable-striped">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Department</th>
+                  <th>Breached Tickets</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-d>
+                <tr>
+                  <td>{{ d.departmentName || d.departmentId || '—' }}</td>
+                  <td><p-tag [value]="d.count?.toString() ?? '0'" severity="danger"></p-tag></td>
+                </tr>
+              </ng-template>
+            </p-table>
+          }
+        }
+      </div>
+    </p-tabpanel>
+
+  </p-tabview>
+</div>

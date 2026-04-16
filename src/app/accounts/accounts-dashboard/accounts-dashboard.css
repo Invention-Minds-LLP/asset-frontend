@@ -1,0 +1,40 @@
+.accounts-dashboard-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+h2 { font-size: 1.4rem; font-weight: 700; margin: 0; }
+.subtitle { color: var(--p-text-muted-color, #6b7280); margin: 0.25rem 0 0; font-size: 0.9rem; }
+.divider-container { margin: 1rem 0; }
+.divider { border: none; border-top: 1px solid var(--p-content-border-color, #e5e7eb); }
+.loading-msg { padding: 2rem; text-align: center; color: #6b7280; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.kpi-card { background: var(--p-content-background, #fff); border: 1px solid var(--p-content-border-color, #e5e7eb); border-radius: 10px; padding: 1.2rem; display: flex; gap: 1rem; align-items: flex-start; }
+.kpi-icon { font-size: 1.6rem; color: #2563eb; background: #eff6ff; border-radius: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kpi-label { font-size: 0.8rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+.kpi-value { font-size: 1.8rem; font-weight: 700; line-height: 1.2; }
+.kpi-sub { font-size: 0.75rem; color: #6b7280; margin-top: 0.2rem; }
+.kpi-amount { font-size: 0.9rem; font-weight: 600; color: #16a34a; margin-top: 0.3rem; }
+
+.quick-nav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.quick-nav-card { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1.2rem; background: var(--p-content-background, #fff); border: 1px solid var(--p-content-border-color, #e5e7eb); border-radius: 10px; text-decoration: none; color: inherit; transition: border-color 0.2s, box-shadow 0.2s; cursor: pointer; }
+.quick-nav-card:hover { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.quick-nav-card i { font-size: 1.4rem; color: #2563eb; }
+.quick-nav-card span { font-size: 0.85rem; font-weight: 500; text-align: center; }
+
+.recent-table-section { margin-bottom: 2rem; }
+.recent-table-section h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; }
+input[pInputText],
+.p-inputtext,
+.p-select,
+.p-dropdown,
+.p-datepicker {
+  width: 100% !important;
+  height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+
+.p-textarea {
+  width: 100% !important;
+  min-height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}

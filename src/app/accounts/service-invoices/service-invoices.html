@@ -1,0 +1,305 @@
+<div class="si-container">
+  <p-toast />
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h2>Service Invoices</h2>
+      <p class="subtitle">Track and approve bills received for maintenance, calibration and service work</p>
+    </div>
+    <p-button label="New Invoice" icon="pi pi-plus" (onClick)="openNew()" />
+  </div>
+  <div class="divider-container"><hr class="divider" /></div>
+
+  <!-- Stats Strip -->
+  <div class="stats-strip">
+    <div class="stat-card stat-pending">
+      <div class="stat-val">{{ stats.pending }}</div>
+      <div class="stat-lbl">Pending Approval</div>
+    </div>
+    <div class="stat-card stat-approved">
+      <div class="stat-val">{{ stats.approved }}</div>
+      <div class="stat-lbl">Approved</div>
+    </div>
+    <div class="stat-card stat-paid">
+      <div class="stat-val">{{ stats.paid }}</div>
+      <div class="stat-lbl">Paid</div>
+    </div>
+    <div class="stat-card stat-rejected">
+      <div class="stat-val">{{ stats.rejected }}</div>
+      <div class="stat-lbl">Rejected</div>
+    </div>
+    <div class="stat-card stat-payable">
+      <div class="stat-val">₹{{ stats.totalPayable | number:'1.0-0' }}</div>
+      <div class="stat-lbl">Total Payable (Approved + Pending)</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-row">
+    <p-select [options]="statusOptions" optionLabel="label" optionValue="value"
+      [(ngModel)]="filters.status" placeholder="All Status" (onChange)="load()" appendTo="body" />
+    <p-select [options]="vendors" optionLabel="name" optionValue="id"
+      [(ngModel)]="filters.vendorId" placeholder="All Vendors" [showClear]="true"
+      (onChange)="load()" appendTo="body" [filter]="true" />
+  </div>
+
+  <!-- Table -->
+  <p-table [value]="invoices" [loading]="loading" styleClass="p-datatable-sm p-datatable-striped"
+    [paginator]="true" [rows]="20" [totalRecords]="total" [lazy]="true"
+    (onPage)="page=$event.first/$event.rows+1; load()">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Invoice No</th>
+        <th>Date</th>
+        <th>Vendor</th>
+        <th>Asset / Ticket</th>
+        <th>Invoice Amt</th>
+        <th>GST</th>
+        <th>Payable</th>
+        <th>Due Date</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td><strong>{{ row.invoiceNo }}</strong></td>
+        <td>{{ row.invoiceDate | date:'dd/MM/yyyy' }}</td>
+        <td>{{ row.vendor?.name || '-' }}</td>
+        <td>
+          <span *ngIf="row.asset">{{ row.asset.assetName }}</span>
+          <span *ngIf="row.ticket"> · #{{ row.ticket.ticketId }}</span>
+          <span *ngIf="!row.asset && !row.ticket">-</span>
+        </td>
+        <td>₹{{ row.invoiceAmount | number:'1.2-2' }}</td>
+        <td>{{ row.gstPct }}% (₹{{ row.gstAmount | number:'1.0-0' }})</td>
+        <td><strong>₹{{ row.payableAmount | number:'1.2-2' }}</strong></td>
+        <td>{{ row.dueDate ? (row.dueDate | date:'dd/MM/yyyy') : '-' }}</td>
+        <td><p-tag [value]="getStatusLabel(row.status)" [severity]="getStatusSeverity(row.status)" /></td>
+        <td class="action-cell">
+          <p-button icon="pi pi-eye" [text]="true" size="small" (onClick)="viewDetail(row)" pTooltip="View" tooltipPosition="top" />
+          <p-button icon="pi pi-check-circle" [text]="true" size="small" severity="success"
+            *ngIf="row.status === 'PENDING_APPROVAL'"
+            (onClick)="approveInvoice(row)" pTooltip="Approve" tooltipPosition="top" />
+          <p-button icon="pi pi-times-circle" [text]="true" size="small" severity="danger"
+            *ngIf="row.status === 'PENDING_APPROVAL'"
+            (onClick)="openRejectDialog(row)" pTooltip="Reject" tooltipPosition="top" />
+          <p-button icon="pi pi-wallet" [text]="true" size="small" severity="info"
+            *ngIf="row.status === 'APPROVED'"
+            (onClick)="openPayDialog(row)" pTooltip="Mark as Paid" tooltipPosition="top" />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="10" class="empty-msg">No service invoices found.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- ── Create Invoice Dialog ────────────────────────────────────────── -->
+<p-dialog [(visible)]="showCreateDialog" header="New Service Invoice"
+  [modal]="true" [style]="{width:'620px'}" [closable]="true">
+  <div class="dialog-form">
+
+    <div class="two-fields">
+      <p-floatlabel variant="on">
+        <input pInputText [(ngModel)]="form.invoiceNo" />
+        <label>Invoice No *</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <p-datepicker [(ngModel)]="form.invoiceDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <label>Invoice Date *</label>
+      </p-floatlabel>
+    </div>
+
+    <div class="two-fields">
+      <p-floatlabel variant="on">
+        <p-datepicker [(ngModel)]="form.dueDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <label>Due Date</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <p-select [options]="vendors" optionLabel="name" optionValue="id"
+          [(ngModel)]="form.vendorId" appendTo="body" [showClear]="true" [filter]="true" />
+        <label>Vendor</label>
+      </p-floatlabel>
+    </div>
+
+    <div class="two-fields">
+      <p-floatlabel variant="on">
+        <p-select [options]="assets" optionLabel="assetName" optionValue="id"
+          [(ngModel)]="form.assetId" appendTo="body" [showClear]="true" [filter]="true" />
+        <label>Link Asset</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText type="number" [(ngModel)]="form.ticketId" />
+        <label>Ticket ID (optional)</label>
+      </p-floatlabel>
+    </div>
+
+    <div class="section-label">Amount Calculation</div>
+    <div class="three-fields">
+      <p-floatlabel variant="on">
+        <input pInputText type="number" [(ngModel)]="form.invoiceAmount" />
+        <label>Invoice Amount (₹) *</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText type="number" [(ngModel)]="form.gstPct" />
+        <label>GST %</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText type="number" [(ngModel)]="form.tdsAmount" />
+        <label>TDS Amount (₹)</label>
+      </p-floatlabel>
+    </div>
+
+    <div class="calc-summary" *ngIf="form.invoiceAmount">
+      <span>GST: <strong>₹{{ calcGstAmt | number:'1.2-2' }}</strong></span>
+      <span class="sep">|</span>
+      <span>Net: <strong>₹{{ calcNetAmt | number:'1.2-2' }}</strong></span>
+      <span class="sep">|</span>
+      <span>Payable: <strong class="payable-amt">₹{{ calcPayable | number:'1.2-2' }}</strong></span>
+    </div>
+
+    <p-floatlabel variant="on" class="full-field">
+      <textarea pTextarea [(ngModel)]="form.serviceDescription" rows="2"></textarea>
+      <label>Service Description</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="on" class="full-field">
+      <textarea pTextarea [(ngModel)]="form.remarks" rows="2"></textarea>
+      <label>Remarks</label>
+    </p-floatlabel>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" [text]="true" (onClick)="showCreateDialog=false" />
+    <p-button label="Create Invoice" icon="pi pi-check" (onClick)="save()" />
+  </ng-template>
+</p-dialog>
+
+<!-- ── Invoice Detail Dialog ────────────────────────────────────────── -->
+<p-dialog [(visible)]="showDetailDialog" header="Service Invoice Detail"
+  [modal]="true" [style]="{width:'640px'}">
+  <div *ngIf="selectedInvoice" class="detail-view">
+    <div class="detail-grid">
+      <div class="detail-row"><span class="detail-label">Invoice No</span><span><strong>{{ selectedInvoice.invoiceNo }}</strong></span></div>
+      <div class="detail-row"><span class="detail-label">Status</span><span><p-tag [value]="getStatusLabel(selectedInvoice.status)" [severity]="getStatusSeverity(selectedInvoice.status)" /></span></div>
+      <div class="detail-row"><span class="detail-label">Invoice Date</span><span>{{ selectedInvoice.invoiceDate | date:'dd/MM/yyyy' }}</span></div>
+      <div class="detail-row"><span class="detail-label">Due Date</span><span>{{ selectedInvoice.dueDate ? (selectedInvoice.dueDate | date:'dd/MM/yyyy') : '-' }}</span></div>
+      <div class="detail-row"><span class="detail-label">Vendor</span><span>{{ selectedInvoice.vendor?.name || '-' }}</span></div>
+      <div class="detail-row"><span class="detail-label">Asset</span><span>{{ selectedInvoice.asset?.assetName || '-' }}</span></div>
+      <div class="detail-row"><span class="detail-label">Ticket</span><span>{{ selectedInvoice.ticket?.ticketId || '-' }}</span></div>
+      <div class="detail-row"><span class="detail-label">Service Contract</span><span>{{ selectedInvoice.serviceContract?.contractNumber || '-' }}</span></div>
+    </div>
+
+    <div class="amount-breakdown">
+      <div class="amt-row">
+        <span>Invoice Amount</span>
+        <span>₹{{ selectedInvoice.invoiceAmount | number:'1.2-2' }}</span>
+      </div>
+      <div class="amt-row">
+        <span>GST ({{ selectedInvoice.gstPct }}%)</span>
+        <span>₹{{ selectedInvoice.gstAmount | number:'1.2-2' }}</span>
+      </div>
+      <div class="amt-row">
+        <span>Net Amount</span>
+        <span>₹{{ selectedInvoice.netAmount | number:'1.2-2' }}</span>
+      </div>
+      <div class="amt-row tds-row">
+        <span>TDS Deduction</span>
+        <span>- ₹{{ selectedInvoice.tdsAmount | number:'1.2-2' }}</span>
+      </div>
+      <div class="amt-row payable-row">
+        <span><strong>Payable Amount</strong></span>
+        <span><strong>₹{{ selectedInvoice.payableAmount | number:'1.2-2' }}</strong></span>
+      </div>
+    </div>
+
+    <div class="detail-grid" style="margin-top:12px">
+      <div class="detail-row" *ngIf="selectedInvoice.serviceDescription">
+        <span class="detail-label">Service Description</span>
+        <span>{{ selectedInvoice.serviceDescription }}</span>
+      </div>
+      <div class="detail-row" *ngIf="selectedInvoice.remarks">
+        <span class="detail-label">Remarks</span>
+        <span>{{ selectedInvoice.remarks }}</span>
+      </div>
+      <div class="detail-row"><span class="detail-label">Created By</span><span>{{ selectedInvoice.createdBy?.name || '-' }}</span></div>
+      <div class="detail-row" *ngIf="selectedInvoice.approvedBy">
+        <span class="detail-label">Approved By</span>
+        <span>{{ selectedInvoice.approvedBy?.name }}</span>
+      </div>
+      <div class="detail-row" *ngIf="selectedInvoice.paidAt">
+        <span class="detail-label">Paid On</span>
+        <span>{{ selectedInvoice.paidAt | date:'dd/MM/yyyy' }}</span>
+      </div>
+      <div class="detail-row" *ngIf="selectedInvoice.paymentMode">
+        <span class="detail-label">Payment Mode</span>
+        <span>{{ selectedInvoice.paymentMode }}</span>
+      </div>
+      <div class="detail-row" *ngIf="selectedInvoice.paymentRef">
+        <span class="detail-label">Payment Ref</span>
+        <span>{{ selectedInvoice.paymentRef }}</span>
+      </div>
+    </div>
+
+    <!-- Document -->
+    <div class="doc-section">
+      <div class="doc-label">Invoice Document</div>
+      <div class="doc-actions" *ngIf="selectedInvoice.fileUrl; else noDoc">
+        <a [href]="getFileUrl(selectedInvoice.fileUrl)" target="_blank" class="doc-link">
+          <i class="pi pi-file-pdf"></i> View Document
+        </a>
+        <label class="upload-replace-btn">
+          <i class="pi pi-upload"></i> Replace
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png" hidden (change)="onFileChange($event, selectedInvoice.id)" />
+        </label>
+      </div>
+      <ng-template #noDoc>
+        <label class="upload-btn">
+          <i class="pi pi-upload"></i> Upload Invoice Document
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png" hidden (change)="onFileChange($event, selectedInvoice.id)" />
+        </label>
+      </ng-template>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- ── Reject Dialog ─────────────────────────────────────────────────── -->
+<p-dialog [(visible)]="showRejectDialog" header="Reject Invoice"
+  [modal]="true" [style]="{width:'420px'}">
+  <div class="dialog-form">
+    <p class="reject-note">Provide a reason for rejection. This will be saved as a remark.</p>
+    <p-floatlabel variant="on" class="full-field">
+      <textarea pTextarea [(ngModel)]="rejectRemarks" rows="3"></textarea>
+      <label>Rejection Reason</label>
+    </p-floatlabel>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" [text]="true" (onClick)="showRejectDialog=false" />
+    <p-button label="Reject Invoice" icon="pi pi-times" severity="danger" (onClick)="confirmReject()" />
+  </ng-template>
+</p-dialog>
+
+<!-- ── Mark Paid Dialog ──────────────────────────────────────────────── -->
+<p-dialog [(visible)]="showPayDialog" header="Mark Invoice as Paid"
+  [modal]="true" [style]="{width:'420px'}">
+  <div class="dialog-form" *ngIf="selectedInvoice">
+    <p class="pay-note">
+      Payable Amount: <strong>₹{{ selectedInvoice.payableAmount | number:'1.2-2' }}</strong>
+    </p>
+    <p-floatlabel variant="on" class="full-field">
+      <p-select [options]="paymentModeOptions" optionLabel="label" optionValue="value"
+        [(ngModel)]="paymentMode" appendTo="body" />
+      <label>Payment Mode</label>
+    </p-floatlabel>
+    <p-floatlabel variant="on" class="full-field" style="margin-top:16px">
+      <input pInputText [(ngModel)]="paymentRef" />
+      <label>Payment Reference / UTR</label>
+    </p-floatlabel>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" [text]="true" (onClick)="showPayDialog=false" />
+    <p-button label="Confirm Payment" icon="pi pi-check" severity="success" (onClick)="confirmPay()" />
+  </ng-template>
+</p-dialog>

@@ -8,6 +8,8 @@ import { ToastModule } from 'primeng/toast';
 import { SelectModule } from 'primeng/select';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { DatePicker } from 'primeng/datepicker';
+import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { CostAnalysisService } from '../../services/cost-analysis/cost-analysis';
@@ -19,6 +21,7 @@ import { Assets } from '../../services/assets/assets';
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, SelectModule, DialogModule, InputNumberModule, TooltipModule,
+    DatePicker, TextareaModule,
   ],
   templateUrl: './cost-analysis.html',
   styleUrl: './cost-analysis.css',
@@ -30,24 +33,32 @@ export class CostAnalysis implements OnInit {
 
   analysis: any = null;
   alerts: any[] = [];
-  revenueEntries: any[] = [];
 
   loadingAnalysis = false;
   loadingAlerts = false;
   activeView: 'analysis' | 'alerts' = 'analysis';
 
-  // Revenue dialog
-  showRevenueDialog = false;
-  savingRevenue = false;
-  revenueForm = this.emptyRevenueForm();
+  // Cost Allocation
+  allocationEntries: any[] = [];
+  allocationTotal = 0;
+  showAllocationDialog = false;
+  savingAllocation = false;
+  editingAllocationId: number | null = null;
+  allocationForm: any = { costType: null, amount: null, period: '', description: '', referenceType: null, entryDate: new Date() };
 
-  revenueTypeOptions = [
-    { label: 'Procedure / Surgery', value: 'PROCEDURE' },
-    { label: 'Diagnostic Test', value: 'TEST' },
-    { label: 'Bed / Room Charge', value: 'BED_CHARGE' },
-    { label: 'Equipment Rental', value: 'RENTAL' },
-    { label: 'Service Charge', value: 'SERVICE' },
-    { label: 'Other', value: 'OTHER' },
+  costTypeOptions = [
+    { label: 'Labour / Operator', value: 'LABOR' },
+    { label: 'Utility / Power',   value: 'UTILITY_POWER' },
+    { label: 'Space / Facility',  value: 'SPACE_FACILITY' },
+    { label: 'Outsourced Service',value: 'OUTSOURCED_SERVICE' },
+    { label: 'Consumable',        value: 'CONSUMABLE' },
+    { label: 'Other',             value: 'OTHER' },
+  ];
+
+  referenceTypeOptions = [
+    { label: 'Work Order', value: 'WORK_ORDER' },
+    { label: 'Invoice',    value: 'INVOICE' },
+    { label: 'Manual',     value: 'MANUAL' },
   ];
 
   constructor(
@@ -96,7 +107,6 @@ export class CostAnalysis implements OnInit {
     if (!this.selectedAssetId) return;
     this.loadingAnalysis = true;
     this.analysis = null;
-    this.revenueEntries = [];
 
     this.caService.getAnalysis(this.selectedAssetId).subscribe({
       next: (res: any) => {
@@ -115,10 +125,17 @@ export class CostAnalysis implements OnInit {
       }
     });
 
-    this.caService.getRevenueEntries(this.selectedAssetId).subscribe({
+    this.loadAllocations();
+  }
+
+  // ── Cost Allocations ──────────────────────────────────────────────────────
+  loadAllocations() {
+    if (!this.selectedAssetId) return;
+    this.caService.getAllocations(this.selectedAssetId).subscribe({
       next: (res: any) => {
         setTimeout(() => {
-          this.revenueEntries = res.data ?? [];
+          this.allocationEntries = res.data ?? [];
+          this.allocationTotal   = res.total ?? 0;
           this.cdr.detectChanges();
         });
       },
@@ -126,60 +143,74 @@ export class CostAnalysis implements OnInit {
     });
   }
 
-  // ── Revenue ────────────────────────────────────────────────────────────────
-  emptyRevenueForm() {
-    return {
-      entryDate: new Date().toISOString().slice(0, 10),
-      revenueType: null as string | null,
-      description: '',
-      quantity: 1,
-      unitRate: null as number | null,
-      referenceNo: '',
-    };
+  openAllocationDialog(entry?: any) {
+    if (entry) {
+      this.editingAllocationId = entry.id;
+      this.allocationForm = {
+        costType:      entry.costType,
+        amount:        Number(entry.amount),
+        period:        entry.period || '',
+        description:   entry.description || '',
+        referenceType: entry.referenceType || null,
+        entryDate:     new Date(entry.entryDate),
+      };
+    } else {
+      this.editingAllocationId = null;
+      this.allocationForm = { costType: null, amount: null, period: '', description: '', referenceType: null, entryDate: new Date() };
+    }
+    this.showAllocationDialog = true;
   }
 
-  openRevenueDialog() {
-    this.revenueForm = this.emptyRevenueForm();
-    this.showRevenueDialog = true;
-  }
-
-  saveRevenue() {
-    if (!this.selectedAssetId || !this.revenueForm.revenueType || !this.revenueForm.unitRate) {
-      this.messageService.add({ severity: 'warn', summary: 'Missing', detail: 'Date, type and unit rate are required' });
+  saveAllocation() {
+    if (!this.selectedAssetId || !this.allocationForm.costType || !this.allocationForm.amount) {
+      this.messageService.add({ severity: 'warn', summary: 'Missing', detail: 'Cost type and amount are required' });
       return;
     }
-    this.savingRevenue = true;
-    this.caService.addRevenueEntry(this.selectedAssetId, this.revenueForm).subscribe({
-      next: () => {
-        this.showRevenueDialog = false;
-        this.savingRevenue = false;
-        this.runAnalysis();
-        this.messageService.add({ severity: 'success', summary: 'Saved', detail: 'Revenue entry added' });
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.savingRevenue = false;
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to save revenue entry' });
-        this.cdr.detectChanges();
-      }
-    });
-  }
+    this.savingAllocation = true;
+    const payload = { ...this.allocationForm };
 
-  deleteRevenue(entry: any) {
-    this.caService.deleteRevenueEntry(entry.id).subscribe({
+    const req$ = this.editingAllocationId
+      ? this.caService.updateAllocation(this.editingAllocationId, payload)
+      : this.caService.addAllocation(this.selectedAssetId, payload);
+
+    req$.subscribe({
       next: () => {
-        this.revenueEntries = this.revenueEntries.filter(e => e.id !== entry.id);
+        this.savingAllocation = false;
+        this.showAllocationDialog = false;
+        this.loadAllocations();
         if (this.analysis) this.runAnalysis();
-        this.messageService.add({ severity: 'success', summary: 'Deleted', detail: 'Revenue entry removed' });
+        this.messageService.add({ severity: 'success', summary: 'Saved', detail: 'Cost allocation saved' });
         this.cdr.detectChanges();
       },
       error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete entry' });
+        this.savingAllocation = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to save allocation' });
+        this.cdr.detectChanges();
       }
     });
   }
 
-  // ── Tooltip text (shown on ⓘ icons) ───────────────────────────────────────
+  deleteAllocation(entry: any) {
+    this.caService.deleteAllocation(entry.id).subscribe({
+      next: () => {
+        this.allocationEntries = this.allocationEntries.filter(e => e.id !== entry.id);
+        if (this.analysis) this.runAnalysis();
+        this.messageService.add({ severity: 'success', summary: 'Deleted', detail: 'Allocation removed' });
+        this.cdr.detectChanges();
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete' })
+    });
+  }
+
+  getCostTypeLabel(value: string): string {
+    return this.costTypeOptions.find(o => o.value === value)?.label ?? value;
+  }
+
+  get allocationTotal2(): number {
+    return this.allocationEntries.reduce((s, e) => s + Number(e.amount), 0);
+  }
+
+  // ── Tooltip text ───────────────────────────────────────────────────────────
   bookValueTooltip(): string {
     if (!this.analysis?.calc) return '';
     const c = this.analysis.calc.bookValue;
@@ -217,8 +248,8 @@ export class CostAnalysis implements OnInit {
   roiTooltip(): string {
     if (!this.analysis?.calc) return '';
     const c = this.analysis.calc.revenue;
-    const roi = c.roi != null ? c.roi + '%' : 'N/A (add revenue entries to calculate)';
-    return `Formula: ${c.roiFormula}\nTotal Revenue Recorded: ${this.fc(c.totalRevenue)}\nTotal Maintenance Cost: ${this.fc(this.analysis.summary.totalMaintenanceCost)}\nOriginal Cost: ${this.fc(this.analysis.asset.originalCost)}\nROI: ${roi}`;
+    const roi = c.roi != null ? c.roi + '%' : 'N/A — log daily usage in Revenue Log to calculate';
+    return `Formula: ${c.roiFormula}\nTotal Revenue (from Revenue Log): ${this.fc(c.totalRevenue)}\nTotal Maintenance Cost: ${this.fc(this.analysis.summary.totalMaintenanceCost)}\nOriginal Cost: ${this.fc(this.analysis.asset.originalCost)}\nROI: ${roi}`;
   }
 
   // ── Utilities ──────────────────────────────────────────────────────────────
@@ -250,9 +281,5 @@ export class CostAnalysis implements OnInit {
   formatPct(val: number | null): string {
     if (val == null) return '—';
     return val + '%';
-  }
-
-  get revenueTotal(): number {
-    return this.revenueEntries.reduce((s, e) => s + Number(e.totalRevenue), 0);
   }
 }

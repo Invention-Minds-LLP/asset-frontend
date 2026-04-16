@@ -7,6 +7,7 @@
 .kpi-grid { display: grid; gap: 1rem; margin-bottom: 1.25rem; }
 .kpi-5 { grid-template-columns: repeat(5, 1fr); }
 .kpi-4 { grid-template-columns: repeat(4, 1fr); }
+.kpi-3 { grid-template-columns: repeat(3, 1fr); }
 .kpi-card { border: 1px solid var(--surface-border); border-radius: 10px; padding: 1rem 1.25rem; background: var(--surface-0); }
 .kpi-card.subtle { background: var(--surface-50, var(--surface-0)); }
 .kpi-label { font-size: 0.8rem; color: var(--text-color-secondary); font-weight: 500; margin-bottom: 0.35rem; }
@@ -14,11 +15,14 @@
 .kpi-value.accent { color: #0369a1; }
 .kpi-value.warn { color: #d97706; }
 .kpi-value.danger { color: #dc2626; }
+.kpi-sub { font-size: 0.72rem; color: var(--text-color-secondary); margin-top: 0.2rem; }
 
 /* Dashboard sections */
 .dashboard-section { margin-bottom: 1.75rem; }
 .section-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
 .section-title { font-size: 1rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 0.4rem; }
+.section-badge { font-size: 0.78rem; font-weight: 600; padding: 2px 10px; border-radius: 10px; margin-left: auto; }
+.section-badge.danger { background: #fee2e2; color: #dc2626; }
 
 /* Code badge */
 .code-badge { background: #e0f2fe; color: #0369a1; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 600; }
@@ -57,3 +61,112 @@
 ::ng-deep .p-datatable .p-datatable-thead > tr > th { background: transparent !important; box-shadow: none !important; }
 ::ng-deep .p-datatable .p-datatable-wrapper { border: 1px solid var(--table-border-color) !important; border-radius: 12px; overflow: hidden; }
 ::ng-deep .p-datatable-table { font-size: 14px; }
+
+/* ── TCO Drill-down ── */
+.tco-category-row:hover { background: var(--surface-50) !important; }
+.tco-category-row.tco-expanded { background: #f0f9ff !important; }
+.tco-drilldown-row > td { padding: 0 !important; }
+.drilldown-panel { background: var(--surface-50); border-top: 2px solid #bae6fd; border-bottom: 2px solid #bae6fd; padding: 0.75rem 1rem; }
+
+/* Status chips */
+.status-chip { font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+.status-active     { background: #dcfce7; color: #16a34a; }
+.status-in_store   { background: #e0f2fe; color: #0369a1; }
+.status-in_maintenance { background: #fffbeb; color: #d97706; }
+.status-retired, .status-disposed, .status-scrapped { background: #f3f4f6; color: #6b7280; }
+
+/* ── TCO Detail Dialog ── */
+.tco-dialog-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+.tco-kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+.tco-kpi { border: 1px solid var(--surface-border); border-radius: 8px; padding: 0.75rem 1rem; background: var(--surface-50); text-align: center; }
+.tco-kpi-label { font-size: 0.75rem; color: var(--text-color-secondary); margin-bottom: 0.2rem; }
+.tco-kpi-value { font-size: 1.1rem; font-weight: 700; color: var(--text-color); }
+.tco-kpi-value.accent { color: #0369a1; }
+
+.tco-breakdown-title { font-size: 0.85rem; font-weight: 600; color: var(--text-color-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6rem; }
+.tco-breakdown-list { margin-bottom: 1.25rem; }
+.tco-breakdown-item { display: grid; grid-template-columns: 180px 1fr 130px; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+.tco-breakdown-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; }
+.tco-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.tco-breakdown-bar-wrap { background: var(--surface-100); border-radius: 4px; height: 14px; overflow: hidden; }
+.tco-breakdown-bar { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+.tco-breakdown-values { display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem; }
+.tco-breakdown-amount { font-size: 0.82rem; font-weight: 600; color: var(--text-color); }
+.tco-breakdown-pct { font-size: 0.75rem; color: var(--text-color-secondary); min-width: 40px; text-align: right; }
+.tco-alloc-section { margin-top: 0.75rem; }
+
+/* ── Maintenance by Category ── */
+.maint-category-row:hover { background: var(--surface-50) !important; }
+.maint-category-row.maint-expanded { background: #fff7ed !important; }
+.maint-drilldown-row > td { padding: 0 !important; }
+.maint-drilldown-row .drilldown-panel { border-top: 2px solid #fed7aa; border-bottom: 2px solid #fed7aa; }
+.maint-ticket-bar { background: #dc2626; }
+.maint-pm-bar { background: #f59e0b; }
+
+.rank-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  font-size: 0.72rem; font-weight: 700;
+  background: var(--surface-100); color: var(--text-color-secondary);
+}
+.rank-badge.rank-1 { background: #fef3c7; color: #92400e; border: 1.5px solid #f59e0b; }
+.rank-badge.rank-2 { background: #f1f5f9; color: #475569; border: 1.5px solid #94a3b8; }
+.rank-badge.rank-3 { background: #fff7ed; color: #9a3412; border: 1.5px solid #fdba74; }
+
+.highest-badge {
+  display: inline-block; margin-left: 6px;
+  font-size: 0.68rem; font-weight: 700; padding: 1px 7px;
+  background: #fee2e2; color: #dc2626; border-radius: 8px;
+  vertical-align: middle;
+}
+.maint-top-asset { background: #fff7f7 !important; }
+
+.empty-state { padding: 1.5rem; text-align: center; color: var(--text-color-secondary); font-size: 0.9rem; }
+
+.legacy-data-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
+  color: #92400e;
+}
+.legacy-data-banner i { font-size: 1.1rem; flex-shrink: 0; }
+
+/* E-Waste CFO strip */
+.ewaste-cfo-strip { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 0.85rem 1.2rem; margin-bottom: 1.25rem; cursor: pointer; transition: box-shadow 0.15s; }
+.ewaste-cfo-strip:hover { box-shadow: 0 2px 10px rgba(22,163,74,0.15); }
+.ewaste-cfo-title { font-size: 0.85rem; font-weight: 700; color: #15803d; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.ewaste-cfo-metrics { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.ewaste-cfo-metric { display: flex; flex-direction: column; gap: 2px; }
+.ecm-label { font-size: 0.72rem; color: var(--text-color-secondary); font-weight: 500; }
+.ecm-value { font-size: 1rem; font-weight: 700; color: var(--text-color); }
+.ecm-ok   { color: #16a34a; }
+.ecm-warn { color: #d97706; }
+
+/* Asset Value Bucket Cards */
+.bucket-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.bucket-card { border-radius: 12px; padding: 1.1rem 1.2rem; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border: 2px solid transparent; }
+.bucket-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.bucket-A { background: #f0fdf4; border-color: #86efac; }
+.bucket-B { background: #eff6ff; border-color: #93c5fd; }
+.bucket-C { background: #fff7ed; border-color: #fdba74; }
+.bucket-D { background: #fdf2f8; border-color: #f0abfc; }
+.bucket-key   { font-size: 1.4rem; font-weight: 800; color: #374151; line-height: 1; }
+.bucket-label { font-size: 0.78rem; color: #6b7280; margin: 2px 0 8px; font-weight: 500; }
+.bucket-count { font-size: 1.5rem; font-weight: 700; color: #111827; line-height: 1; }
+.bucket-value { font-size: 0.88rem; font-weight: 600; color: #374151; margin-top: 4px; }
+.bucket-book  { font-size: 0.75rem; color: #9ca3af; }
+.bucket-pct-bar { height: 6px; background: #e5e7eb; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+.bucket-pct-fill { height: 100%; background: #3b82f6; border-radius: 3px; transition: width 0.4s; }
+.bucket-A .bucket-pct-fill { background: #22c55e; }
+.bucket-B .bucket-pct-fill { background: #3b82f6; }
+.bucket-C .bucket-pct-fill { background: #f97316; }
+.bucket-D .bucket-pct-fill { background: #a855f7; }
+.bucket-pct-label { font-size: 0.72rem; color: #9ca3af; margin-top: 3px; }
+.bucket-dialog-summary { display: flex; gap: 1.5rem; font-size: 0.88rem; color: var(--text-color-secondary); margin-bottom: 1rem; flex-wrap: wrap; }
+.rank-badge { background: #f1f5f9; color: #374151; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; }

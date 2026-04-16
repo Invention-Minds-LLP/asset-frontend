@@ -17,6 +17,9 @@ export class AssetScan {
   error = '';
   assetId = '';
   scanData: any | null = null;
+  showDetails = false;
+
+  toggleDetails() { this.showDetails = !this.showDetails; }
 
   ngOnInit(): void {
     this.assetId = this.route.snapshot.paramMap.get('assetId') || '';

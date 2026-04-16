@@ -48,6 +48,8 @@
 .maint-card.pm .maint-icon     { background: #eff6ff; color: #3b82f6; }
 .maint-card.total .maint-icon  { background: #faf5ff; color: #7c3aed; }
 .maint-card.avg .maint-icon    { background: #f0fdf4; color: #16a34a; }
+.maint-card.legacy .maint-icon { background: #fffbeb; color: #92400e; }
+.maint-note { font-size: 0.76rem; color: var(--text-color-secondary); margin-top: 0.35rem; font-style: italic; }
 .maint-label { font-size: 0.8rem; color: var(--text-color-secondary); font-weight: 500; }
 .maint-count { font-size: 0.82rem; color: var(--text-color-secondary); margin: 0.15rem 0; }
 .maint-cost  { font-size: 1.1rem; font-weight: 700; color: var(--text-color); }
@@ -87,3 +89,19 @@
 ::ng-deep .p-datatable .p-datatable-thead > tr > th { background: transparent !important; box-shadow: none !important; }
 ::ng-deep .p-datatable .p-datatable-wrapper { border: 1px solid var(--table-border-color) !important; border-radius: 12px; overflow: hidden; }
 ::ng-deep .p-datatable-table { font-size: 14px; }
+
+.lifetime-tco-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  margin-top: 0.75rem;
+  font-size: 0.88rem;
+  color: #92400e;
+}
+.lifetime-tco-row i { font-size: 1rem; flex-shrink: 0; }
+.lifetime-tco-row strong { font-size: 1rem; font-weight: 700; }
+.tco-note { font-size: 0.8rem; color: #b45309; margin-left: 0.25rem; }

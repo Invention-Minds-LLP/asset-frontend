@@ -1,0 +1,179 @@
+<p-toast></p-toast>
+<p-confirmPopup></p-confirmPopup>
+
+<div class="page-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2><i class="pi pi-shield"></i> Approval Configuration</h2>
+      <p class="subtitle">Define amount-based approval thresholds per module. Higher amounts require higher authority.</p>
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:center">
+      @if (!configs.length && !loading) {
+        <p-button label="Seed Defaults" icon="pi pi-database" severity="secondary"
+          [loading]="seeding" (onClick)="seedDefaults()"></p-button>
+      }
+      @if (configs.length) {
+        <p-button label="Seed / Reset Defaults" icon="pi pi-refresh" severity="secondary" [text]="true"
+          [loading]="seeding" (onClick)="seedDefaults()"></p-button>
+      }
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="text-center" style="padding:3rem">
+      <i class="pi pi-spin pi-spinner" style="font-size:2rem"></i>
+    </div>
+  }
+
+  @if (!loading) {
+    @for (module of modules; track module) {
+      <div class="config-group" style="margin-bottom:2rem">
+        <!-- Module header -->
+        <div class="group-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <div style="display:flex;align-items:center;gap:0.6rem">
+            <i [class]="moduleIcons[module]" style="font-size:1.2rem;color:var(--primary-color)"></i>
+            <span style="font-weight:600;font-size:1rem">{{ moduleLabels[module] }}</span>
+            <span style="color:var(--text-color-secondary);font-size:0.85rem">
+              — {{ configsForModule(module).length }} level(s) configured
+            </span>
+          </div>
+          <p-button label="Add Level" icon="pi pi-plus" size="small"
+            (onClick)="openAdd(module)"></p-button>
+        </div>
+
+        @if (configsForModule(module).length === 0) {
+          <div class="empty-state" style="padding:1.5rem;text-align:center;color:var(--text-color-secondary)">
+            <i class="pi pi-inbox" style="font-size:1.8rem"></i>
+            <p>No approval levels configured for this module. Add levels or seed defaults.</p>
+          </div>
+        } @else {
+          <p-table [value]="configsForModule(module)" [stripedRows]="true" styleClass="p-datatable-sm">
+            <ng-template #header>
+              <tr>
+                <th style="width:70px">Level</th>
+                <th>Approval Role</th>
+                <th>Who Can Approve</th>
+                <th>Min Amount</th>
+                <th>Max Amount</th>
+                <th style="width:80px;text-align:center">Active</th>
+                <th style="width:100px;text-align:center">Actions</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-row>
+              <tr>
+                <td>
+                  <span style="display:inline-block;width:28px;height:28px;border-radius:50%;
+                    background:var(--primary-color);color:#fff;text-align:center;
+                    line-height:28px;font-weight:700;font-size:0.85rem">
+                    {{ row.level }}
+                  </span>
+                </td>
+                <td>
+                  <p-tag [value]="row.roleName"
+                    [severity]="row.roleName === 'HOD' ? 'info' : row.roleName === 'MANAGEMENT' ? 'warn' : row.roleName === 'COO' ? 'danger' : 'secondary'">
+                  </p-tag>
+                </td>
+                <td style="color:var(--text-color-secondary);font-size:0.85rem">
+                  {{ roleAuthority[row.roleName] || row.roleName }}
+                </td>
+                <td>{{ formatAmount(row.minAmount) }}</td>
+                <td>
+                  @if (row.maxAmount == null) {
+                    <span style="color:var(--text-color-secondary)">Unlimited</span>
+                  } @else {
+                    {{ formatAmount(row.maxAmount) }}
+                  }
+                </td>
+                <td style="text-align:center">
+                  <p-toggleSwitch [(ngModel)]="row.isActive" (onChange)="toggleActive(row)"></p-toggleSwitch>
+                </td>
+                <td style="text-align:center">
+                  <p-button icon="pi pi-pencil" [text]="true" size="small" severity="secondary"
+                    (onClick)="openEdit(row)" pTooltip="Edit"></p-button>
+                  <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger"
+                    (onClick)="confirmDelete($event, row)" pTooltip="Delete"></p-button>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        }
+      </div>
+    }
+  }
+
+  @if (!loading && !configs.length) {
+    <div class="empty-state" style="text-align:center;padding:3rem">
+      <i class="pi pi-shield" style="font-size:3rem;color:var(--text-color-secondary)"></i>
+      <p style="margin-top:1rem;color:var(--text-color-secondary)">
+        No approval configurations found.<br>Click <strong>Seed Defaults</strong> to load standard thresholds.
+      </p>
+    </div>
+  }
+</div>
+
+<!-- Add / Edit Dialog -->
+<p-dialog [(visible)]="dialogVisible" [header]="dialogTitle" [modal]="true"
+  [style]="{ width: '460px' }" [closable]="true">
+
+  <div style="display:flex;flex-direction:column;gap:1.2rem;padding:0.5rem 0">
+
+    <!-- Module (read-only when editing) -->
+    <div class="field">
+      <label>Module</label>
+      <p-select [options]="modules" [(ngModel)]="editRow.module"
+        [disabled]="!!editRow.id" styleClass="w-full"
+        [placeholder]="'Select module'">
+      </p-select>
+    </div>
+
+    <!-- Level -->
+    <div class="field">
+      <label>Level <span style="color:var(--text-color-secondary);font-size:0.8rem">(1 = lowest authority required)</span></label>
+      <p-inputNumber [(ngModel)]="editRow.level" [min]="1" [max]="10" styleClass="w-full"></p-inputNumber>
+    </div>
+
+    <!-- Role Name -->
+    <div class="field">
+      <label>Approval Level</label>
+      <p-select [options]="roleOptions" optionLabel="label" optionValue="value"
+        [(ngModel)]="editRow.roleName" styleClass="w-full"
+        placeholder="Select approval level">
+      </p-select>
+      @if (editRow.roleName) {
+        <small style="color:var(--text-color-secondary)">
+          Can be approved by: {{ roleAuthority[editRow.roleName] }}
+        </small>
+      }
+    </div>
+
+    <!-- Amount range -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="field">
+        <label>Min Amount (₹)</label>
+        <p-inputNumber [(ngModel)]="editRow.minAmount" [min]="0" mode="decimal"
+          [useGrouping]="true" styleClass="w-full"></p-inputNumber>
+      </div>
+      <div class="field">
+        <label>Max Amount (₹) <span style="color:var(--text-color-secondary)">(blank = unlimited)</span></label>
+        <p-inputNumber [(ngModel)]="editRow.maxAmount" [min]="0" mode="decimal"
+          [useGrouping]="true" [showButtons]="false" styleClass="w-full"
+          placeholder="Unlimited"></p-inputNumber>
+      </div>
+    </div>
+
+    <!-- Active -->
+    <div class="field" style="display:flex;align-items:center;gap:0.8rem">
+      <p-toggleSwitch [(ngModel)]="editRow.isActive"></p-toggleSwitch>
+      <label>Active</label>
+    </div>
+
+  </div>
+
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" [text]="true"
+      (onClick)="dialogVisible = false"></p-button>
+    <p-button label="Save" icon="pi pi-check" [loading]="saving"
+      (onClick)="save()"></p-button>
+  </ng-template>
+</p-dialog>

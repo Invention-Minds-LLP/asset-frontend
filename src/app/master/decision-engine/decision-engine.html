@@ -462,6 +462,142 @@
       </div>
     }
 
+    <!-- Score Calculation Breakdown -->
+    <div class="detail-section">
+      <div class="detail-section-title" style="cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center"
+        (click)="showCalcBreakdown = !showCalcBreakdown">
+        <span><i class="pi pi-calculator"></i> How was this score calculated?</span>
+        <i class="pi" [class.pi-chevron-down]="!showCalcBreakdown" [class.pi-chevron-up]="showCalcBreakdown"
+          style="color:var(--text-color-secondary)"></i>
+      </div>
+
+      @if (showCalcBreakdown) {
+        <!-- Decision threshold legend -->
+        <div class="threshold-legend">
+          <div class="threshold-band band-green" [class.band-active]="detailResult.decision === 'CONTINUE_MAINTENANCE'">
+            <span class="band-range">0 – 35</span>
+            <span class="band-label">Continue Maintenance</span>
+          </div>
+          <div class="threshold-band band-yellow" [class.band-active]="detailResult.decision === 'MONITOR'">
+            <span class="band-range">36 – 55</span>
+            <span class="band-label">Monitor</span>
+          </div>
+          <div class="threshold-band band-orange" [class.band-active]="detailResult.decision === 'REVIEW_FOR_REPLACEMENT'">
+            <span class="band-range">56 – 75</span>
+            <span class="band-label">Review for Replacement</span>
+          </div>
+          <div class="threshold-band band-red" [class.band-active]="detailResult.decision === 'REPLACE_IMMEDIATELY'">
+            <span class="band-range">76 – 100</span>
+            <span class="band-label">Replace Immediately</span>
+          </div>
+        </div>
+
+        <!-- Weighted score table -->
+        @if (detailResult.calc?.compositeScore) {
+          <table class="calc-table">
+            <thead>
+              <tr>
+                <th>Signal</th>
+                <th style="text-align:right">Score (0–100)</th>
+                <th style="text-align:right">Weight</th>
+                <th style="text-align:right">Contribution</th>
+                <th>What it measures</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Maintenance Ratio</td>
+                <td style="text-align:right">
+                  <span class="signal-pill" [class]="getScoreClass(detailResult.calc.compositeScore.inputs.maintenanceRatio.score)">
+                    {{ detailResult.calc.compositeScore.inputs.maintenanceRatio.score }}
+                  </span>
+                </td>
+                <td style="text-align:right">{{ detailResult.calc.compositeScore.inputs.maintenanceRatio.weight }}</td>
+                <td style="text-align:right;font-weight:600">{{ detailResult.calc.compositeScore.inputs.maintenanceRatio.product }}</td>
+                <td class="calc-desc">Total repair cost ÷ book value. High ratio = money spent maintaining exceeds asset worth.</td>
+              </tr>
+              <tr>
+                <td>Age Factor</td>
+                <td style="text-align:right">
+                  <span class="signal-pill" [class]="getScoreClass(detailResult.calc.compositeScore.inputs.ageFactor.score)">
+                    {{ detailResult.calc.compositeScore.inputs.ageFactor.score }}
+                  </span>
+                </td>
+                <td style="text-align:right">{{ detailResult.calc.compositeScore.inputs.ageFactor.weight }}</td>
+                <td style="text-align:right;font-weight:600">{{ detailResult.calc.compositeScore.inputs.ageFactor.product }}</td>
+                <td class="calc-desc">Age ÷ expected lifespan. 100 = asset has exceeded its useful life.</td>
+              </tr>
+              <tr>
+                <td>Breakdown Frequency</td>
+                <td style="text-align:right">
+                  <span class="signal-pill" [class]="getScoreClass(detailResult.calc.compositeScore.inputs.breakdownFreq.score)">
+                    {{ detailResult.calc.compositeScore.inputs.breakdownFreq.score }}
+                  </span>
+                </td>
+                <td style="text-align:right">{{ detailResult.calc.compositeScore.inputs.breakdownFreq.weight }}</td>
+                <td style="text-align:right;font-weight:600">{{ detailResult.calc.compositeScore.inputs.breakdownFreq.product }}</td>
+                <td class="calc-desc">Breakdown/corrective tickets in last 12 months. Frequent failures signal reliability issues.</td>
+              </tr>
+              <tr>
+                <td>Downtime Impact</td>
+                <td style="text-align:right">
+                  <span class="signal-pill" [class]="getScoreClass(detailResult.calc.compositeScore.inputs.downtimeImpact.score)">
+                    {{ detailResult.calc.compositeScore.inputs.downtimeImpact.score }}
+                  </span>
+                </td>
+                <td style="text-align:right">{{ detailResult.calc.compositeScore.inputs.downtimeImpact.weight }}</td>
+                <td style="text-align:right;font-weight:600">{{ detailResult.calc.compositeScore.inputs.downtimeImpact.product }}</td>
+                <td class="calc-desc">Hours of downtime in last 12 months. Critical for life-support assets.</td>
+              </tr>
+              <tr>
+                <td>Cost Trend</td>
+                <td style="text-align:right">
+                  <span class="signal-pill" [class]="getScoreClass(detailResult.calc.compositeScore.inputs.costTrend.score)">
+                    {{ detailResult.calc.compositeScore.inputs.costTrend.score }}
+                  </span>
+                </td>
+                <td style="text-align:right">{{ detailResult.calc.compositeScore.inputs.costTrend.weight }}</td>
+                <td style="text-align:right;font-weight:600">{{ detailResult.calc.compositeScore.inputs.costTrend.product }}</td>
+                <td class="calc-desc">Year-over-year change in maintenance cost. Rising cost = deteriorating asset.</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="calc-total-row">
+                <td colspan="3" style="text-align:right">Weighted Sum ÷ Total Weight =</td>
+                <td style="text-align:right;font-weight:700;font-size:1rem">
+                  {{ detailResult.calc.compositeScore.weightedSum }} ÷ {{ detailResult.calc.compositeScore.totalWeight }}
+                  = <span [class]="getScoreClass(detailResult.compositeScore)">{{ detailResult.compositeScore }}</span>
+                </td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        }
+
+        <!-- Maintenance cost sources -->
+        @if (detailResult.calc?.maintenanceRatio) {
+          <div class="cost-sources-row">
+            <span class="cost-source-label">Maintenance cost breakdown:</span>
+            <span class="cost-source-item">
+              <i class="pi pi-wrench"></i> History records:
+              <strong>{{ fc(detailResult.calc.maintenanceRatio.maintenanceHistoryCost) }}</strong>
+            </span>
+            <span class="cost-source-item">
+              <i class="pi pi-ticket"></i> Ticket repairs:
+              <strong>{{ fc(detailResult.calc.maintenanceRatio.ticketCost) }}</strong>
+            </span>
+            <span class="cost-source-item">
+              <i class="pi pi-cog"></i> Spare parts:
+              <strong>{{ fc(detailResult.calc.maintenanceRatio.spareCost) }}</strong>
+            </span>
+            <span class="cost-source-total">
+              = <strong>{{ fc(detailResult.calc.maintenanceRatio.totalMaintenanceCost) }}</strong> total
+            </span>
+          </div>
+        }
+      }
+    </div>
+
     <!-- Signal bars -->
     <div class="detail-section">
       <div class="detail-section-title">Signal Breakdown</div>

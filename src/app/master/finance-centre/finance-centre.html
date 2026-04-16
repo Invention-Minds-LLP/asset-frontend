@@ -1,0 +1,654 @@
+<p-toast></p-toast>
+
+<div class="finance-container">
+  <div class="page-header">
+    <h2><i class="pi pi-building-columns"></i> Finance Centre</h2>
+    <div class="header-badges">
+      @if (isFinance) { <p-tag value="FINANCE" severity="success"></p-tag> }
+      @if (isCeo) { <p-tag value="CEO/COO" severity="info"></p-tag> }
+      <span class="mode-badge" [class.mode-standalone]="config.accountingMode === 'STANDALONE'" [class.mode-export]="config.accountingMode === 'EXPORT'" [class.mode-hybrid]="config.accountingMode === 'HYBRID'">
+        {{ config.accountingMode || 'STANDALONE' }}
+      </span>
+    </div>
+  </div>
+
+  <p-tabview (onChange)="onTabChange($event)" class="custom-tabs">
+
+    <!-- Tab 1: Configuration -->
+    <p-tabpanel header="Configuration">
+      <div class="tab-content">
+        @if (configLoading) {
+          <p-progressBar mode="indeterminate"></p-progressBar>
+        } @else {
+          <div class="config-grid">
+            <div class="config-section">
+              <h4>Accounting Mode</h4>
+              <p class="section-hint">Choose how this application handles accounting entries.</p>
+              <div class="mode-cards">
+                <div class="mode-card" [class.active]="config.accountingMode === 'STANDALONE'" (click)="isFinance && (config.accountingMode = 'STANDALONE')">
+                  <i class="pi pi-server"></i>
+                  <strong>Standalone</strong>
+                  <span>Full double-entry inside this app. Trial balance, cost ledger, department summaries — all built-in.</span>
+                </div>
+                <div class="mode-card" [class.active]="config.accountingMode === 'EXPORT'" (click)="isFinance && (config.accountingMode = 'EXPORT')">
+                  <i class="pi pi-send"></i>
+                  <strong>Export Only</strong>
+                  <span>Generate vouchers here, push to Tally/SAP/Zoho. No internal P&L — your external system is the book of record.</span>
+                </div>
+                <div class="mode-card" [class.active]="config.accountingMode === 'HYBRID'" (click)="isFinance && (config.accountingMode = 'HYBRID')">
+                  <i class="pi pi-sync"></i>
+                  <strong>Hybrid</strong>
+                  <span>Internal ledger AND periodic export. Best of both worlds — use this app for management views, Tally for statutory books.</span>
+                </div>
+              </div>
+            </div>
+
+            @if (showExportTarget) {
+              <div class="config-section">
+                <h4>Export Target</h4>
+                <p class="section-hint">Select the external system you want to export vouchers to.</p>
+                <p-select [options]="exportTargetOptions" [(ngModel)]="config.exportTarget" placeholder="Select export system" [disabled]="!isFinance" optionLabel="label" optionValue="value" styleClass="w-full"></p-select>
+              </div>
+            }
+
+            <div class="config-section">
+              <h4>Auto-Voucher Generation</h4>
+              <p class="section-hint">Automatically create draft vouchers when asset events occur (purchase, disposal, depreciation batch approval, maintenance completion).</p>
+              <div class="toggle-row">
+                <label class="toggle-label">
+                  <input type="checkbox" [(ngModel)]="config.autoVoucher" [disabled]="!isFinance" />
+                  <span>Enable auto-voucher creation</span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <label class="toggle-label">
+                  <input type="checkbox" [(ngModel)]="config.requireApproval" [disabled]="!isFinance" />
+                  <span>Require FINANCE approval before posting</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="config-section">
+              <h4>Fiscal Year</h4>
+              <div class="field-row">
+                <label>FY Start Month (1=Jan, 4=Apr)</label>
+                <input pInputText type="number" [(ngModel)]="config.fyStartMonth" [disabled]="!isFinance" style="width:80px" min="1" max="12" />
+              </div>
+              <div class="field-row">
+                <label>Default Currency</label>
+                <input pInputText [(ngModel)]="config.defaultCurrency" [disabled]="!isFinance" style="width:80px" />
+              </div>
+            </div>
+
+            @if (isFinance) {
+              <div class="config-actions">
+                <p-button label="Save Configuration" icon="pi pi-save" severity="success" (onClick)="saveConfig()" [loading]="configSaving"></p-button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 2: Vouchers -->
+    <p-tabpanel header="Vouchers">
+      <div class="tab-content">
+        <div class="toolbar">
+          <div class="filters-inline">
+            <p-select [options]="statusOptions" [(ngModel)]="voucherFilter.status" placeholder="Status" optionLabel="label" optionValue="value" styleClass="filter-select"></p-select>
+            <p-select [options]="sourceOptions" [(ngModel)]="voucherFilter.sourceType" placeholder="Source Type" optionLabel="label" optionValue="value" styleClass="filter-select"></p-select>
+            <input pInputText type="date" [(ngModel)]="voucherFilter.from" placeholder="From" />
+            <input pInputText type="date" [(ngModel)]="voucherFilter.to" placeholder="To" />
+            <p-button label="Search" icon="pi pi-search" (onClick)="loadVouchers()" [loading]="vouchersLoading" size="small"></p-button>
+          </div>
+          @if (isFinance) {
+            <p-button label="New Voucher" icon="pi pi-plus" severity="success" size="small" (onClick)="openNewVoucher()"></p-button>
+          }
+        </div>
+
+        <p-table [value]="vouchers" [loading]="vouchersLoading" [paginator]="true" [rows]="15" [rowsPerPageOptions]="[10,15,25]" styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Voucher No</th>
+              <th>Date</th>
+              <th>Source</th>
+              <th>Narration</th>
+              <th>Debit</th>
+              <th>Credit</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-v>
+            <tr>
+              <td><a class="link" (click)="openVoucherDetail(v)">{{ v.voucherNo }}</a></td>
+              <td>{{ v.voucherDate | date:'mediumDate' }}</td>
+              <td><p-tag [value]="v.sourceType" severity="info" styleClass="text-xs"></p-tag></td>
+              <td class="narration-cell">{{ v.narration || '—' }}</td>
+              <td class="num-r">{{ formatCurrency(v.totalDebit) }}</td>
+              <td class="num-r">{{ formatCurrency(v.totalCredit) }}</td>
+              <td><p-tag [value]="v.status" [severity]="getVoucherSeverity(v.status)"></p-tag></td>
+              <td>
+                <div class="action-btns">
+                  @if (isFinance && (v.status === 'DRAFT' || v.status === 'PENDING_APPROVAL')) {
+                    <p-button icon="pi pi-check" severity="success" size="small" pTooltip="Approve & Post" (onClick)="approveVoucher(v.id)"></p-button>
+                    <p-button icon="pi pi-times" severity="danger" size="small" pTooltip="Reject" (onClick)="openRejectVoucher(v.id)"></p-button>
+                  }
+                  @if (isFinance && v.status === 'POSTED') {
+                    <p-button icon="pi pi-ban" severity="secondary" size="small" pTooltip="Void" (onClick)="voidVoucher(v.id)"></p-button>
+                  }
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="8" class="text-center">No vouchers found. Use the Search button to load.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 3: Trial Balance -->
+    <p-tabpanel header="Trial Balance">
+      <div class="tab-content">
+        @if (!showTrialBalance) {
+          <div class="mode-locked-banner">
+            <i class="pi pi-lock"></i>
+            <div>
+              <strong>Not available in Export mode</strong>
+              <p>In Export mode, your external system (Tally/SAP/Zoho) is the book of record. Trial Balance is only available in Standalone or Hybrid mode.</p>
+              <p-button label="Switch to Hybrid" severity="secondary" size="small" (onClick)="config.accountingMode = 'HYBRID'; saveConfig()"></p-button>
+            </div>
+          </div>
+        }
+        @if (showTrialBalance) {
+        <div class="tb-filters">
+          <label>From:</label>
+          <input pInputText type="date" [(ngModel)]="tbFrom" />
+          <label>To:</label>
+          <input pInputText type="date" [(ngModel)]="tbTo" />
+          <p-button label="Generate" icon="pi pi-refresh" (onClick)="loadTrialBalance()" [loading]="tbLoading"></p-button>
+        </div>
+
+        @if (trialBalance) {
+          <div class="tb-summary">
+            <div class="tb-total-row">
+              <span>Total Debit</span>
+              <span class="debit-val">{{ formatCurrency(trialBalance.totalDebit) }}</span>
+              <span>Total Credit</span>
+              <span class="credit-val">{{ formatCurrency(trialBalance.totalCredit) }}</span>
+              @if (trialBalance.totalDebit === trialBalance.totalCredit) {
+                <p-tag value="BALANCED" severity="success"></p-tag>
+              } @else {
+                <p-tag value="UNBALANCED" severity="danger"></p-tag>
+              }
+            </div>
+          </div>
+
+          <p-table [value]="trialBalance.rows" styleClass="p-datatable-sm p-datatable-striped" [paginator]="true" [rows]="20">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Code</th>
+                <th>Account Name</th>
+                <th>Type</th>
+                <th class="num-r">Debit</th>
+                <th class="num-r">Credit</th>
+                <th class="num-r">Balance</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-r>
+              <tr>
+                <td>{{ r.code }}</td>
+                <td>{{ r.name }}</td>
+                <td><p-tag [value]="r.type" severity="secondary" styleClass="text-xs"></p-tag></td>
+                <td class="num-r debit-val">{{ r.debit > 0 ? formatCurrency(r.debit) : '—' }}</td>
+                <td class="num-r credit-val">{{ r.credit > 0 ? formatCurrency(r.credit) : '—' }}</td>
+                <td class="num-r fw-bold">{{ formatCurrency(r.debit - r.credit) }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        } @else {
+          <div class="empty-state"><i class="pi pi-chart-bar"></i><p>Select a date range and click Generate to view the Trial Balance.</p></div>
+        }
+        } <!-- end @if showTrialBalance -->
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 4: Department Cost -->
+    <p-tabpanel header="Dept Cost">
+      <div class="tab-content">
+        @if (!showDeptCost) {
+          <div class="mode-locked-banner">
+            <i class="pi pi-lock"></i>
+            <div>
+              <strong>Not available in Export mode</strong>
+              <p>Department cost summaries are built from internal voucher lines. Switch to Standalone or Hybrid to use this feature.</p>
+              <p-button label="Switch to Hybrid" severity="secondary" size="small" (onClick)="config.accountingMode = 'HYBRID'; saveConfig()"></p-button>
+            </div>
+          </div>
+        }
+        @if (showDeptCost) {
+        <div class="toolbar">
+          <div class="filters-inline">
+            <label>Fiscal Year:</label>
+            <input pInputText type="number" [(ngModel)]="deptSummaryFY" style="width:90px" />
+            <p-button label="Load" icon="pi pi-refresh" (onClick)="loadDeptSummary()" [loading]="deptSummaryLoading" size="small"></p-button>
+          </div>
+        </div>
+        <p-table [value]="deptSummary" [loading]="deptSummaryLoading" styleClass="p-datatable-sm p-datatable-striped" [paginator]="true" [rows]="15">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Department</th>
+              <th class="num-r">Total Debit</th>
+              <th class="num-r">Total Credit</th>
+              <th>Asset Purchase</th>
+              <th>Depreciation</th>
+              <th>Maintenance</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-d>
+            <tr>
+              <td>{{ d.deptName }}</td>
+              <td class="num-r debit-val fw-bold">{{ formatCurrency(d.totalDebit) }}</td>
+              <td class="num-r credit-val">{{ formatCurrency(d.totalCredit) }}</td>
+              <td class="num-r">{{ formatCurrency(d.bySource?.ASSET_PURCHASE) }}</td>
+              <td class="num-r">{{ formatCurrency(d.bySource?.DEPRECIATION_BATCH) }}</td>
+              <td class="num-r">{{ formatCurrency(d.bySource?.MAINTENANCE) }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6" class="text-center">No cost data. Post vouchers with cost centre to see department breakdown.</td></tr>
+          </ng-template>
+        </p-table>
+        } <!-- end @if showDeptCost -->
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 5: Capex Budget -->
+    <p-tabpanel header="Capex Budget">
+      <div class="tab-content">
+        <div class="toolbar">
+          <div class="filters-inline">
+            <label>FY:</label>
+            <input pInputText type="number" [(ngModel)]="capexFY" style="width:90px" />
+            <p-button label="Load" icon="pi pi-refresh" (onClick)="loadCapexBudgets()" [loading]="capexLoading" size="small"></p-button>
+            @if (canManage) {
+              <p-button label="Refresh Actuals" icon="pi pi-sync" severity="secondary" size="small" (onClick)="refreshActuals()"></p-button>
+            }
+          </div>
+          @if (canManage) {
+            <p-button label="Add Budget" icon="pi pi-plus" severity="success" size="small" (onClick)="openNewBudget()"></p-button>
+          }
+        </div>
+
+        <div class="capex-kpi-row">
+          <div class="kpi-card">
+            <span class="kpi-label">Total Budget</span>
+            <span class="kpi-value">{{ formatCurrency(capexTotals.budget) }}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Actual Spend</span>
+            <span class="kpi-value debit-val">{{ formatCurrency(capexTotals.actual) }}</span>
+          </div>
+          <div class="kpi-card" [class.kpi-danger]="capexVariance < 0" [class.kpi-ok]="capexVariance >= 0">
+            <span class="kpi-label">Variance</span>
+            <span class="kpi-value">{{ formatCurrency(capexVariance) }}</span>
+          </div>
+        </div>
+
+        <p-table [value]="capexBudgets" [loading]="capexLoading" styleClass="p-datatable-sm p-datatable-striped" [paginator]="true" [rows]="15">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Department</th>
+              <th>Category</th>
+              <th class="num-r">Budget</th>
+              <th class="num-r">Actual</th>
+              <th class="num-r">Utilisation</th>
+              <th>Status</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-b>
+            <tr>
+              <td>{{ b.department?.name || 'All Depts' }}</td>
+              <td>{{ b.category?.name || 'All Categories' }}</td>
+              <td class="num-r">{{ formatCurrency(b.budgetAmount) }}</td>
+              <td class="num-r debit-val">{{ formatCurrency(b.actualAmount) }}</td>
+              <td>
+                <p-progressBar [value]="getCapexPct(b)" [style]="{'height':'10px'}" [showValue]="true"></p-progressBar>
+              </td>
+              <td><p-tag [value]="getCapexPct(b).toFixed(0) + '%'" [severity]="getCapexSeverity(b)"></p-tag></td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6" class="text-center">No budgets set for FY {{ capexFY }}.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 6: Export Centre -->
+    <p-tabpanel header="Export Centre">
+      <div class="tab-content">
+        @if (!showExportCentre) {
+          <div class="mode-locked-banner">
+            <i class="pi pi-lock"></i>
+            <div>
+              <strong>Not available in Standalone mode</strong>
+              <p>Export Centre is only available in Export or Hybrid mode. In Standalone mode, this application is your book of record — no external export is needed.</p>
+              <p-button label="Switch to Export" severity="secondary" size="small" (onClick)="config.accountingMode = 'EXPORT'; saveConfig()"></p-button>
+              <span style="margin-left:0.5rem"><p-button label="Switch to Hybrid" severity="info" size="small" (onClick)="config.accountingMode = 'HYBRID'; saveConfig()"></p-button></span>
+            </div>
+          </div>
+        }
+        @if (showExportCentre) {
+        <div class="export-info-banner">
+          <i class="pi pi-info-circle"></i>
+          <span>Export Centre groups <strong>POSTED</strong> vouchers into a single file for your external accounting system. Supports Tally Prime XML, SAP CSV, Zoho Books, and Excel.</span>
+        </div>
+
+        <div class="toolbar">
+          <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadExportBatches()" [loading]="exportBatchesLoading" size="small"></p-button>
+          @if (isFinance) {
+            <p-button label="New Export Batch" icon="pi pi-plus" severity="success" size="small" (onClick)="openNewBatch()"></p-button>
+          }
+        </div>
+
+        <p-table [value]="exportBatches" [loading]="exportBatchesLoading" styleClass="p-datatable-sm p-datatable-striped" [paginator]="true" [rows]="15">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Batch No</th>
+              <th>Target</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Vouchers</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-b>
+            <tr>
+              <td>{{ b.batchNo }}</td>
+              <td><p-tag [value]="b.exportTarget" severity="info" styleClass="text-xs"></p-tag></td>
+              <td>{{ b.fromDate | date:'mediumDate' }}</td>
+              <td>{{ b.toDate | date:'mediumDate' }}</td>
+              <td>{{ b.totalVouchers }}</td>
+              <td class="num-r">{{ formatCurrency(b.totalAmount) }}</td>
+              <td><p-tag [value]="b.status" [severity]="getBatchSeverity(b.status)"></p-tag></td>
+              <td>
+                <p-button icon="pi pi-download" size="small" severity="secondary" pTooltip="Download" (onClick)="downloadBatch(b)"></p-button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="8" class="text-center">No export batches yet.</td></tr>
+          </ng-template>
+        </p-table>
+        } <!-- end @if showExportCentre -->
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 7: GL Mappings -->
+    <p-tabpanel header="GL Mapping">
+      <div class="tab-content">
+        <div class="toolbar">
+          <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadGLMappings()" [loading]="glMappingsLoading" size="small"></p-button>
+        </div>
+        <p class="section-hint">Map each Asset Category to its Chart of Accounts (GL accounts). These mappings drive auto-voucher generation.</p>
+        <p-table [value]="glMappings" [loading]="glMappingsLoading" styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Category</th>
+              <th>Fixed Asset A/C</th>
+              <th>Acc. Depreciation A/C</th>
+              <th>Dep. Expense A/C</th>
+              <th>Disposal A/C</th>
+              <th>Maintenance A/C</th>
+              <th>Insurance A/C</th>
+              @if (isFinance) { <th>Edit</th> }
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-m>
+            <tr>
+              <td>{{ m.assetCategory?.name }}</td>
+              <td>{{ m.fixedAssetAccount?.name || '—' }}</td>
+              <td>{{ m.accDepAccount?.name || '—' }}</td>
+              <td>{{ m.depExpenseAccount?.name || '—' }}</td>
+              <td>{{ m.disposalAccount?.name || '—' }}</td>
+              <td>{{ m.maintenanceAccount?.name || '—' }}</td>
+              <td>{{ m.insuranceAccount?.name || '—' }}</td>
+              @if (isFinance) {
+                <td><p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="openGLMapDialog(m)"></p-button></td>
+              }
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="8" class="text-center">No GL mappings configured. Add assets categories first, then map them here.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+    <!-- Tab 8: Manual Ledger -->
+    <p-tabpanel header="Manual Entries">
+      <div class="tab-content">
+        <div class="toolbar">
+          <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadManualLedger()" [loading]="manualLoading" size="small"></p-button>
+          @if (isFinance) {
+            <p-button label="New Entry" icon="pi pi-plus" severity="success" size="small" (onClick)="openNewEntry()"></p-button>
+          }
+        </div>
+        <p class="section-hint">Memo / note entries for narration-only adjustments that don't affect GL balances — useful for CFO remarks, period notes, and internal memos.</p>
+        <p-table [value]="manualEntries" [loading]="manualLoading" styleClass="p-datatable-sm p-datatable-striped" [paginator]="true" [rows]="15">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Entry No</th>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Narration</th>
+              <th class="num-r">Amount</th>
+              <th>Ref</th>
+              <th>By</th>
+              @if (isFinance) { <th></th> }
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-e>
+            <tr>
+              <td>{{ e.entryNo }}</td>
+              <td>{{ e.entryDate | date:'mediumDate' }}</td>
+              <td><p-tag [value]="e.entryType" severity="secondary" styleClass="text-xs"></p-tag></td>
+              <td>{{ e.narration }}</td>
+              <td class="num-r">{{ formatCurrency(e.amount) }}</td>
+              <td>{{ e.referenceNo || '—' }}</td>
+              <td>{{ e.createdBy?.name }}</td>
+              @if (isFinance) {
+                <td><p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="deleteEntry(e.id)"></p-button></td>
+              }
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="8" class="text-center">No manual entries.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-tabpanel>
+
+  </p-tabview>
+</div>
+
+<!-- Voucher Detail Dialog -->
+<p-dialog header="Voucher Detail" [(visible)]="voucherDetailVisible" [modal]="true" [style]="{width:'720px'}" [closable]="true">
+  @if (selectedVoucher) {
+    <div class="voucher-detail">
+      <div class="vd-header">
+        <span class="vd-no">{{ selectedVoucher.voucherNo }}</span>
+        <p-tag [value]="selectedVoucher.status" [severity]="getVoucherSeverity(selectedVoucher.status)"></p-tag>
+      </div>
+      <div class="vd-meta">
+        <span>Date: {{ selectedVoucher.voucherDate | date:'mediumDate' }}</span>
+        <span>Source: {{ selectedVoucher.sourceType }}</span>
+        <span>By: {{ selectedVoucher.createdBy?.name }}</span>
+      </div>
+      <p class="vd-narration">{{ selectedVoucher.narration }}</p>
+      <table class="vd-lines-table">
+        <thead><tr><th>Account</th><th>Debit</th><th>Credit</th><th>Narration</th></tr></thead>
+        <tbody>
+          @for (line of selectedVoucher.lines; track line.id) {
+            <tr>
+              <td>{{ line.account?.code }} – {{ line.account?.name }}</td>
+              <td class="num-r debit-val">{{ line.debit > 0 ? formatCurrency(line.debit) : '—' }}</td>
+              <td class="num-r credit-val">{{ line.credit > 0 ? formatCurrency(line.credit) : '—' }}</td>
+              <td>{{ line.narration || '—' }}</td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td>TOTAL</td>
+            <td class="num-r debit-val fw-bold">{{ formatCurrency(selectedVoucher.totalDebit) }}</td>
+            <td class="num-r credit-val fw-bold">{{ formatCurrency(selectedVoucher.totalCredit) }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  }
+</p-dialog>
+
+<!-- New Voucher Dialog -->
+<p-dialog header="New Manual Voucher" [(visible)]="newVoucherVisible" [modal]="true" [style]="{width:'760px'}" [closable]="true">
+  <div class="new-voucher-form">
+    <div class="form-row">
+      <label>Date</label>
+      <input pInputText type="date" [(ngModel)]="newVoucher.voucherDate" />
+    </div>
+    <div class="form-row">
+      <label>Narration</label>
+      <input pInputText [(ngModel)]="newVoucher.narration" style="width:100%" />
+    </div>
+    <div class="lines-header">
+      <span>Voucher Lines</span>
+      <p-button label="Add Line" icon="pi pi-plus" size="small" severity="secondary" (onClick)="addVoucherLine()"></p-button>
+    </div>
+    <table class="lines-table">
+      <thead><tr><th>Account</th><th>Debit (₹)</th><th>Credit (₹)</th><th>Narration</th><th></th></tr></thead>
+      <tbody>
+        @for (line of newVoucher.lines; track $index) {
+          <tr>
+            <td>
+              <p-select [options]="accounts" [(ngModel)]="line.accountId" optionLabel="name" optionValue="id" placeholder="Select account" styleClass="w-full" [filter]="true"></p-select>
+            </td>
+            <td><input pInputText type="number" [(ngModel)]="line.debit" style="width:110px" min="0" /></td>
+            <td><input pInputText type="number" [(ngModel)]="line.credit" style="width:110px" min="0" /></td>
+            <td><input pInputText [(ngModel)]="line.narration" style="width:100%" /></td>
+            <td><p-button icon="pi pi-trash" size="small" severity="danger" (onClick)="removeVoucherLine($index)" [disabled]="newVoucher.lines.length <= 2"></p-button></td>
+          </tr>
+        }
+      </tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td>TOTAL</td>
+          <td class="num-r fw-bold debit-val">{{ formatCurrency(voucherDebitTotal) }}</td>
+          <td class="num-r fw-bold credit-val">{{ formatCurrency(voucherCreditTotal) }}</td>
+          <td colspan="2">
+            @if (voucherBalanced) {
+              <p-tag value="BALANCED" severity="success"></p-tag>
+            } @else {
+              <p-tag value="NOT BALANCED" severity="danger"></p-tag>
+            }
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" (onClick)="newVoucherVisible = false"></p-button>
+      <p-button label="Save Draft" icon="pi pi-save" severity="success" (onClick)="saveNewVoucher()" [disabled]="!voucherBalanced"></p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Reject Voucher Dialog -->
+<p-dialog header="Reject Voucher" [(visible)]="rejectDialogVisible" [modal]="true" [style]="{width:'420px'}">
+  <div class="form-row">
+    <label>Rejection Reason</label>
+    <textarea pInputText [(ngModel)]="rejectReason" rows="3" style="width:100%"></textarea>
+  </div>
+  <div class="dialog-actions">
+    <p-button label="Cancel" severity="secondary" (onClick)="rejectDialogVisible = false"></p-button>
+    <p-button label="Reject Voucher" severity="danger" icon="pi pi-times" (onClick)="submitRejectVoucher()"></p-button>
+  </div>
+</p-dialog>
+
+<!-- New Budget Dialog -->
+<p-dialog header="Add Capex Budget" [(visible)]="newBudgetVisible" [modal]="true" [style]="{width:'460px'}">
+  <div class="form-fields">
+    <div class="form-row"><label>Fiscal Year</label><input pInputText type="number" [(ngModel)]="newBudget.fiscalYear" style="width:90px" /></div>
+    <div class="form-row"><label>Budget Amount (₹)</label><input pInputText type="number" [(ngModel)]="newBudget.budgetAmount" style="width:160px" /></div>
+    <div class="form-row"><label>Notes</label><input pInputText [(ngModel)]="newBudget.notes" style="width:100%" /></div>
+  </div>
+  <div class="dialog-actions">
+    <p-button label="Cancel" severity="secondary" (onClick)="newBudgetVisible = false"></p-button>
+    <p-button label="Save" severity="success" (onClick)="saveNewBudget()"></p-button>
+  </div>
+</p-dialog>
+
+<!-- New Export Batch Dialog -->
+<p-dialog header="Create Export Batch" [(visible)]="newBatchVisible" [modal]="true" [style]="{width:'460px'}">
+  <div class="form-fields">
+    <div class="form-row"><label>From Date</label><input pInputText type="date" [(ngModel)]="newBatch.from" /></div>
+    <div class="form-row"><label>To Date</label><input pInputText type="date" [(ngModel)]="newBatch.to" /></div>
+    <div class="form-row">
+      <label>Export Target</label>
+      <p-select [options]="exportTargetOptions" [(ngModel)]="newBatch.exportTarget" optionLabel="label" optionValue="value" styleClass="w-full"></p-select>
+    </div>
+  </div>
+  <div class="dialog-actions">
+    <p-button label="Cancel" severity="secondary" (onClick)="newBatchVisible = false"></p-button>
+    <p-button label="Create Batch" severity="success" icon="pi pi-plus" (onClick)="createExportBatch()" [loading]="batchCreating"></p-button>
+  </div>
+</p-dialog>
+
+<!-- GL Mapping Dialog -->
+<p-dialog header="Edit GL Mapping" [(visible)]="glMapDialogVisible" [modal]="true" [style]="{width:'560px'}">
+  <div class="form-fields">
+    <div class="form-row"><label>Fixed Asset A/C (Dr on purchase)</label>
+      <p-select [options]="accounts" [(ngModel)]="selectedGLMap.fixedAssetAccountId" optionLabel="name" optionValue="id" placeholder="Select account" styleClass="w-full" [filter]="true"></p-select>
+    </div>
+    <div class="form-row"><label>Acc. Depreciation A/C (Cr on dep.)</label>
+      <p-select [options]="accounts" [(ngModel)]="selectedGLMap.accDepAccountId" optionLabel="name" optionValue="id" placeholder="Select account" styleClass="w-full" [filter]="true"></p-select>
+    </div>
+    <div class="form-row"><label>Dep. Expense A/C (Dr on dep.)</label>
+      <p-select [options]="accounts" [(ngModel)]="selectedGLMap.depExpenseAccountId" optionLabel="name" optionValue="id" placeholder="Select account" styleClass="w-full" [filter]="true"></p-select>
+    </div>
+    <div class="form-row"><label>Disposal A/C (P&L gain/loss)</label>
+      <p-select [options]="accounts" [(ngModel)]="selectedGLMap.disposalAccountId" optionLabel="name" optionValue="id" placeholder="Select account" styleClass="w-full" [filter]="true"></p-select>
+    </div>
+    <div class="form-row"><label>Maintenance Expense A/C</label>
+      <p-select [options]="accounts" [(ngModel)]="selectedGLMap.maintenanceAccountId" optionLabel="name" optionValue="id" placeholder="Select account" styleClass="w-full" [filter]="true"></p-select>
+    </div>
+    <div class="form-row"><label>Insurance Expense A/C</label>
+      <p-select [options]="accounts" [(ngModel)]="selectedGLMap.insuranceAccountId" optionLabel="name" optionValue="id" placeholder="Select account" styleClass="w-full" [filter]="true"></p-select>
+    </div>
+  </div>
+  <div class="dialog-actions">
+    <p-button label="Cancel" severity="secondary" (onClick)="glMapDialogVisible = false"></p-button>
+    <p-button label="Save Mapping" severity="success" (onClick)="saveGLMapping()"></p-button>
+  </div>
+</p-dialog>
+
+<!-- New Manual Entry Dialog -->
+<p-dialog header="New Manual Entry" [(visible)]="newEntryVisible" [modal]="true" [style]="{width:'460px'}">
+  <div class="form-fields">
+    <div class="form-row"><label>Date</label><input pInputText type="date" [(ngModel)]="newEntry.entryDate" /></div>
+    <div class="form-row"><label>Type</label>
+      <p-select [options]="entryTypeOptions" [(ngModel)]="newEntry.entryType" optionLabel="label" optionValue="value" styleClass="w-full"></p-select>
+    </div>
+    <div class="form-row"><label>Narration</label><textarea pInputText [(ngModel)]="newEntry.narration" rows="3" style="width:100%"></textarea></div>
+    <div class="form-row"><label>Amount (₹)</label><input pInputText type="number" [(ngModel)]="newEntry.amount" style="width:160px" /></div>
+    <div class="form-row"><label>Reference No</label><input pInputText [(ngModel)]="newEntry.referenceNo" style="width:100%" /></div>
+  </div>
+  <div class="dialog-actions">
+    <p-button label="Cancel" severity="secondary" (onClick)="newEntryVisible = false"></p-button>
+    <p-button label="Save" severity="success" (onClick)="saveEntry()"></p-button>
+  </div>
+</p-dialog>

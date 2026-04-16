@@ -53,6 +53,7 @@ export class Sidebar implements OnInit {
         { label: 'Department Assets', route: '/department-assets', icon: 'pi pi-building' },
         { label: 'Revenue Log', route: '/revenue-log', icon: 'pi pi-chart-line' },
         { label: 'Asset Disposal', route: '/disposal', icon: 'pi pi-trash' },
+        { label: 'E-Waste Management', route: '/e-waste', icon: 'pi pi-recycle' },
       ]
     },
     {
@@ -113,9 +114,27 @@ export class Sidebar implements OnInit {
         { label: 'Cost Analysis', route: '/cost-analysis', icon: 'pi pi-chart-bar' },
         { label: 'Decision Engine', route: '/decision-engine', icon: 'pi pi-microchip' },
         { label: 'Batch Depreciation', route: '/batch-depreciation', icon: 'pi pi-chart-line' },
+        { label: 'Fixed Assets Schedule', route: '/fixed-assets-schedule', icon: 'pi pi-table' },
+        { label: 'Finance Centre', route: '/finance-centre', icon: 'pi pi-building-columns' },
+        { label: 'Asset Pools', route: '/asset-pool', icon: 'pi pi-layer-group' },
         { label: 'Reports', route: '/reports', icon: 'pi pi-file' },
       ]
     },
+
+    // ── Accounts ──────────────────────────────────────────
+    // {
+    //   icon: 'pi pi-calculator', label: 'Accounts',
+    //   path: '/accounts', hasDropdown: true,
+    //   dropdownItems: [
+    //     { label: 'Accounts Dashboard', route: '/accounts/dashboard', icon: 'pi pi-chart-bar' },
+    //     { label: 'Chart of Accounts', route: '/accounts/chart-of-accounts', icon: 'pi pi-list' },
+    //     { label: 'Purchase Vouchers', route: '/accounts/purchase-vouchers', icon: 'pi pi-file-edit' },
+    //     { label: 'Payment Vouchers', route: '/accounts/payment-vouchers', icon: 'pi pi-credit-card' },
+    //     { label: 'Journal Entries', route: '/accounts/journal-entries', icon: 'pi pi-book' },
+    //     { label: 'Account Ledger', route: '/accounts/ledger', icon: 'pi pi-chart-line' },
+    //     { label: 'Service Invoices', route: '/accounts/service-invoices', icon: 'pi pi-file-check' },
+    //   ]
+    // },
 
     // ── Operations ────────────────────────────────────────
     {
@@ -128,6 +147,8 @@ export class Sidebar implements OnInit {
         { label: 'Employee Exit', route: '/employee-exit', icon: 'pi pi-sign-out' },
         { label: 'Document Vault', route: '/document-vault', icon: 'pi pi-folder-open' },
         { label: 'Knowledge Base', route: '/knowledge-base', icon: 'pi pi-book' },
+        { label: 'Root Cause Analysis', route: '/rca', icon: 'pi pi-search-minus' },
+        { label: 'Bulk Operations', route: '/quick-actions', icon: 'pi pi-bolt' },
       ]
     },
 
@@ -139,7 +160,9 @@ export class Sidebar implements OnInit {
         { label: 'SLA Matrix', route: '/sla', icon: 'pi pi-clock' },
         { label: 'Escalation Matrix', route: '/escalation', icon: 'pi pi-sort-alt' },
         { label: 'Support Matrix', route: '/support-matrix', icon: 'pi pi-users' },
+        { label: 'Hierarchy Dashboard', route: '/hierarchy-config', icon: 'pi pi-sitemap' },
         { label: 'Master Settings', route: '/master-settings', icon: 'pi pi-cog' },
+        { label: 'Approval Config', route: '/approval-config', icon: 'pi pi-check-circle' },
         { label: 'Module Access', route: '/module-access', icon: 'pi pi-lock' },
         { label: 'System Config', route: '/tenant-config', icon: 'pi pi-sliders-v' },
         { label: 'User Activity', route: '/user-activity', icon: 'pi pi-users' },

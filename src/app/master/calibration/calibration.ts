@@ -326,6 +326,17 @@ export class Calibration implements OnInit {
     });
   }
 
+  downloadHistoryPdf(id: number) {
+    this.calibrationService.getHistoryPdf(id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const win = window.open(url, '_blank');
+        if (win) win.onload = () => URL.revokeObjectURL(url);
+      },
+      error: () => this.toast('error', 'Failed to load calibration report')
+    });
+  }
+
   getResultSeverity(result: string): 'success' | 'danger' | 'secondary' {
     if (result === 'PASS') return 'success';
     if (result === 'FAIL') return 'danger';

@@ -153,20 +153,96 @@
     @if (showVendorForm) {
       <div class="inline-form card">
         <h4>{{ editingVendorId ? 'Edit Vendor' : 'New Vendor' }}</h4>
+
+        <!-- Basic Info -->
+        <p class="form-section-label">Basic Information</p>
         <div class="form-row">
           <p-floatlabel>
             <input pInputText id="vendorName" [(ngModel)]="vendorForm.name" />
-            <label for="vendorName">Vendor Name</label>
+            <label for="vendorName">Vendor Name *</label>
           </p-floatlabel>
           <p-floatlabel>
             <input pInputText id="vendorContact" [(ngModel)]="vendorForm.contact" />
-            <label for="vendorContact">Contact Number</label>
+            <label for="vendorContact">Primary Contact Number *</label>
+          </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText id="vendorAlternatePhone" [(ngModel)]="vendorForm.alternatePhone" />
+            <label for="vendorAlternatePhone">Alternate Phone</label>
           </p-floatlabel>
           <p-floatlabel>
             <input pInputText id="vendorEmail" [(ngModel)]="vendorForm.email" type="email" />
             <label for="vendorEmail">Email</label>
           </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText id="vendorContactPerson" [(ngModel)]="vendorForm.contactPerson" />
+            <label for="vendorContactPerson">Contact Person</label>
+          </p-floatlabel>
+          <p-floatlabel>
+            <p-select id="vendorType" [options]="vendorTypeOptions" [(ngModel)]="vendorForm.vendorType" optionLabel="label" optionValue="value" placeholder=" " />
+            <label for="vendorType">Vendor Type</label>
+          </p-floatlabel>
         </div>
+
+        <!-- Address -->
+        <p class="form-section-label">Address</p>
+        <div class="form-row">
+          <p-floatlabel class="full-width">
+            <textarea pTextarea id="vendorAddress" [(ngModel)]="vendorForm.address" rows="2" style="width:100%"></textarea>
+            <label for="vendorAddress">Address</label>
+          </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText id="vendorCity" [(ngModel)]="vendorForm.city" />
+            <label for="vendorCity">City</label>
+          </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText id="vendorState" [(ngModel)]="vendorForm.state" />
+            <label for="vendorState">State</label>
+          </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText id="vendorPincode" [(ngModel)]="vendorForm.pincode" />
+            <label for="vendorPincode">Pincode</label>
+          </p-floatlabel>
+        </div>
+
+        <!-- Tax & Compliance -->
+        <p class="form-section-label">Tax &amp; Compliance</p>
+        <div class="form-row">
+          <p-floatlabel>
+            <input pInputText id="vendorGst" [(ngModel)]="vendorForm.gstNumber" style="text-transform:uppercase" />
+            <label for="vendorGst">GST Number</label>
+          </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText id="vendorPan" [(ngModel)]="vendorForm.panNumber" style="text-transform:uppercase" />
+            <label for="vendorPan">PAN Number</label>
+          </p-floatlabel>
+        </div>
+
+        <!-- Bank Details -->
+        <p class="form-section-label">Bank Details</p>
+        <div class="form-row">
+          <p-floatlabel>
+            <input pInputText id="vendorBankName" [(ngModel)]="vendorForm.bankName" />
+            <label for="vendorBankName">Bank Name</label>
+          </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText id="vendorBankAccount" [(ngModel)]="vendorForm.bankAccount" />
+            <label for="vendorBankAccount">Account Number</label>
+          </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText id="vendorBankIfsc" [(ngModel)]="vendorForm.bankIfsc" style="text-transform:uppercase" />
+            <label for="vendorBankIfsc">IFSC Code</label>
+          </p-floatlabel>
+        </div>
+
+        <!-- Notes -->
+        <p class="form-section-label">Additional Notes</p>
+        <div class="form-row">
+          <p-floatlabel class="full-width">
+            <textarea pTextarea id="vendorNotes" [(ngModel)]="vendorForm.notes" rows="2" style="width:100%"></textarea>
+            <label for="vendorNotes">Notes</label>
+          </p-floatlabel>
+        </div>
+
         <div class="form-actions">
           <p-button label="Save" icon="pi pi-check" (onClick)="saveVendor()" />
           <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showVendorForm = false" />
@@ -179,8 +255,12 @@
         <tr>
           <th>#</th>
           <th>Name</th>
-          <th>Contact</th>
+          <th>Type</th>
+          <th>Contact Person</th>
+          <th>Primary Contact</th>
           <th>Email</th>
+          <th>GST Number</th>
+          <th>City / State</th>
           <th style="width:120px">Actions</th>
         </tr>
       </ng-template>
@@ -188,8 +268,12 @@
         <tr>
           <td>{{ i + 1 }}</td>
           <td>{{ vendor.name }}</td>
+          <td>{{ vendor.vendorType || '-' }}</td>
+          <td>{{ vendor.contactPerson || '-' }}</td>
           <td>{{ vendor.contact || '-' }}</td>
           <td>{{ vendor.email || '-' }}</td>
+          <td>{{ vendor.gstNumber || '-' }}</td>
+          <td>{{ vendor.city ? (vendor.city + (vendor.state ? ', ' + vendor.state : '')) : (vendor.state || '-') }}</td>
           <td>
             <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openVendorForm(vendor)" />
             <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteVendor(vendor)" />
@@ -197,7 +281,7 @@
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
-        <tr><td colspan="5" class="empty-msg">No vendors found.</td></tr>
+        <tr><td colspan="9" class="empty-msg">No vendors found.</td></tr>
       </ng-template>
     </p-table>
   </p-tabPanel>

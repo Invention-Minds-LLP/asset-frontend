@@ -139,3 +139,38 @@
     <p-button label="Mark Complete" icon="pi pi-check-circle" (onClick)="submitComplete()" [loading]="completeLoading"></p-button>
   </ng-template>
 </p-dialog>
+
+<!-- ── Sub-Asset Resolution Dialog ───────────────────────────────────── -->
+<p-dialog [(visible)]="showSubAssetDialog" header="Resolve Sub-Assets Before Disposal"
+  [modal]="true" [style]="{width:'640px'}" [closable]="true">
+  <div class="sub-res-dialog">
+    <p class="sub-res-intro">
+      The asset being disposed has <strong>{{ subAssetsForResolution.length }}</strong> sub-asset(s) linked to it.
+      Please choose what should happen to each sub-asset when the parent is scrapped.
+    </p>
+    <div class="sub-res-list">
+      @for (sub of subAssetsForResolution; track sub.id) {
+        <div class="sub-res-row">
+          <div class="sub-res-info">
+            <span class="sub-res-name">{{ sub.assetName }}</span>
+            <span class="sub-res-id">{{ sub.assetId }}</span>
+          </div>
+          <div class="sub-res-actions">
+            <p-select [options]="resolutionOptions" optionLabel="label" optionValue="value"
+              [(ngModel)]="sub.resolution" appendTo="body" [style]="{width:'220px'}" />
+            @if (sub.resolution === 'RELINK') {
+              <p-select [options]="relinkAssetOptions" optionLabel="label" optionValue="value"
+                [(ngModel)]="sub.newParentAssetId" appendTo="body" [filter]="true"
+                placeholder="Select new parent asset" [style]="{width:'220px'}" />
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" [text]="true" (onClick)="showSubAssetDialog=false" />
+    <p-button label="Approve & Apply Resolutions" icon="pi pi-check-circle" severity="success"
+      (onClick)="confirmApproveWithResolutions()" [loading]="approvingDisposal" />
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,544 @@
+/* ── Summary Bar ─────────────────────────────── */
+.pool-summary-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  background: var(--surface-card, #fff);
+  border: 1px solid var(--surface-border, #e5e7eb);
+  border-radius: 10px;
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  flex: 1;
+}
+
+.s-label {
+  font-size: 11px;
+  color: var(--text-color-secondary, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.s-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-color, #111827);
+}
+
+.s-value.warn { color: #f59e0b; }
+.s-value.success { color: #10b981; }
+
+/* ── Page Header ─────────────────────────────── */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--text-color, #111827);
+}
+
+.page-sub {
+  font-size: 13px;
+  color: var(--text-color-secondary, #6b7280);
+  margin: 0;
+}
+
+/* ── Table ───────────────────────────────────── */
+.pool-code {
+  font-family: monospace;
+  font-size: 12px;
+  background: var(--surface-ground, #f3f4f6);
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--primary-color, #6366f1);
+}
+
+.num-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.pct-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+}
+
+.pct-label {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.action-btns {
+  display: flex;
+  gap: 2px;
+}
+
+.empty-msg {
+  text-align: center;
+  color: var(--text-color-secondary, #6b7280);
+  padding: 32px 0;
+}
+
+/* ── Detail Dialog ───────────────────────────── */
+.detail-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  min-height: 400px;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.pool-code-lg {
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary-color, #6366f1);
+}
+
+.detail-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  border-bottom: 1px solid var(--surface-border, #e5e7eb);
+  padding-bottom: 6px;
+}
+
+.meta-row span { color: var(--text-color-secondary, #6b7280); }
+.meta-row b { font-weight: 600; }
+.warn-text { color: #f59e0b; }
+
+.detail-notes {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-color-secondary, #6b7280);
+  background: var(--surface-ground, #f3f4f6);
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-color-secondary, #6b7280);
+  margin-bottom: 10px;
+}
+
+.empty-sub {
+  font-size: 13px;
+  color: var(--text-color-secondary, #9ca3af);
+  font-style: italic;
+}
+
+/* ── FA Schedule list ────────────────────────── */
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.schedule-row {
+  border: 1px solid var(--surface-border, #e5e7eb);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.sched-fy {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary-color, #6366f1);
+  margin-bottom: 6px;
+}
+
+.sched-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+}
+
+.sched-cols div {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.sched-cols span { color: var(--text-color-secondary, #6b7280); }
+
+/* ── Asset chips ─────────────────────────────── */
+.asset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.asset-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-ground, #f3f4f6);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.chip-id {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--primary-color, #6366f1);
+  min-width: 140px;
+}
+
+.chip-name {
+  flex: 1;
+  color: var(--text-color, #111827);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip-cost {
+  font-weight: 600;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+/* ── Activity timeline ───────────────────────── */
+.activity-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.activity-item {
+  display: flex;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--surface-border, #f3f4f6);
+}
+
+.activity-item:last-child { border-bottom: none; }
+
+.activity-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-50, #eef2ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.activity-icon i {
+  color: var(--primary-color, #6366f1);
+  font-size: 14px;
+}
+
+.activity-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.activity-type {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-color, #111827);
+}
+
+.activity-desc {
+  font-size: 12px;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.activity-meta {
+  font-size: 11px;
+  color: var(--text-color-secondary, #9ca3af);
+}
+
+.activity-time {
+  font-size: 11px;
+  color: var(--text-color-secondary, #9ca3af);
+  margin-top: 2px;
+}
+
+/* ── Proportional Calculator ─────────────────── */
+.calc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.calc-info {
+  font-size: 13px;
+  color: var(--text-color-secondary, #6b7280);
+  margin: 0;
+  background: var(--surface-ground, #f3f4f6);
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.prop-result {
+  margin-top: 16px;
+  border: 1px solid var(--surface-border, #e5e7eb);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  border-bottom: 1px solid var(--surface-border, #f3f4f6);
+  padding-bottom: 6px;
+}
+
+.result-row:last-of-type { border-bottom: none; }
+.result-row span { color: var(--text-color-secondary, #6b7280); }
+.key-value { color: #10b981; font-size: 15px; }
+
+.calc-note {
+  font-size: 12px;
+  color: var(--text-color-secondary, #6b7280);
+  background: #f0fdf4;
+  border-left: 3px solid #10b981;
+  padding: 8px 12px;
+  margin: 0;
+  border-radius: 0 6px 6px 0;
+}
+
+/* ── Create dialog FA schedule ───────────────── */
+.create-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-color-secondary, #6b7280);
+  margin: 0 0 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--surface-border, #e5e7eb);
+}
+
+.fa-sched-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 4px;
+}
+
+.fa-sched-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-color, #111827);
+  cursor: pointer;
+}
+
+.fa-sched-hint {
+  font-size: 11px;
+  color: var(--text-color-secondary, #9ca3af);
+  font-weight: 400;
+}
+
+.fa-group-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--primary-color, #6366f1);
+  background: var(--primary-50, #eef2ff);
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin: 10px 0 8px;
+  display: inline-block;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px 14px;
+  margin-bottom: 4px;
+}
+
+.calc-field {
+  background: var(--surface-ground, #f3f4f6) !important;
+  color: var(--primary-color, #6366f1) !important;
+  font-weight: 600;
+}
+
+.calc-auto {
+  font-size: 9px;
+  font-weight: 700;
+  background: #d1fae5;
+  color: #065f46;
+  padding: 1px 5px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.fa-summary-preview {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #065f46;
+  margin-top: 10px;
+}
+
+.nb-val { color: #10b981; font-size: 14px; }
+
+/* ── Import dialog ───────────────────────────── */
+.import-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.import-info {
+  display: flex;
+  gap: 10px;
+  background: var(--surface-ground, #f3f4f6);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--text-color-secondary, #6b7280);
+  line-height: 1.6;
+}
+
+.import-info i { color: #6366f1; font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+
+.import-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.import-filename {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-color, #111827);
+}
+
+.import-placeholder {
+  font-size: 13px;
+  color: var(--text-color-secondary, #9ca3af);
+}
+
+.import-result {
+  border: 1px solid var(--surface-border, #e5e7eb);
+  border-radius: 8px;
+  overflow: hidden;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.import-result-header {
+  display: flex;
+  gap: 16px;
+  padding: 8px 14px;
+  background: var(--surface-ground, #f3f4f6);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.ir-success { color: #10b981; }
+.ir-error   { color: #ef4444; }
+
+.ir-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--surface-border, #f3f4f6);
+}
+
+.ir-ok  { color: #065f46; }
+.ir-ok i { color: #10b981; }
+.ir-err  { color: #991b1b; }
+.ir-err i { color: #ef4444; }
+
+.ir-nb {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+/* ── Form helpers ────────────────────────────── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-color, #111827);
+}
+
+.form-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.req { color: #ef4444; }
+
+.w-full { width: 100%; }
+
+.loading-msg {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.mt-2 { margin-top: 8px; }

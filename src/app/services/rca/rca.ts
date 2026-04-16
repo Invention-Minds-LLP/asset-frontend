@@ -9,6 +9,12 @@ export class RcaService {
 
   constructor(private http: HttpClient) {}
 
+  getAll(params: any = {}): Observable<any> {
+    let q = new URLSearchParams();
+    Object.keys(params).forEach(k => { if (params[k] != null && params[k] !== '') q.set(k, params[k]); });
+    return this.http.get<any>(`${this.base}?${q.toString()}`);
+  }
+
   getByTicket(ticketId: number): Observable<any> {
     return this.http.get<any>(`${this.base}/ticket/${ticketId}`);
   }

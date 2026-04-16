@@ -53,6 +53,10 @@ export class CalibrationService {
     return this.http.get<any[]>(`${this.apiUrl}/history/asset/${assetId}`);
   }
 
+  getHistoryPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/history/${id}/pdf`, { responseType: 'blob' });
+  }
+
   // ── Templates ──────────────────────────────────────────────────────────────
   getAllTemplates(filters?: { assetCategoryId?: number; assetId?: number }): Observable<any[]> {
     let query = '';
