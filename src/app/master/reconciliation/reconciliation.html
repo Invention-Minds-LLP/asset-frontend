@@ -1,0 +1,213 @@
+<div class="rec-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Reconciliation</h2>
+      <p class="subtitle">Compare System vs Books vs Audit values — surface and resolve variances</p>
+    </div>
+    <p-button label="Run Snapshot" icon="pi pi-play-circle" severity="success" (onClick)="openRun()" />
+  </div>
+  <div class="divider-container"><hr class="divider" /></div>
+
+  <!-- Filters -->
+  <div class="filters-row">
+    <p-datepicker [(ngModel)]="filters.asOf" placeholder="As-of Date"
+      (onSelect)="load()" appendTo="body" dateFormat="dd/mm/yy" />
+    <p-select [options]="scopeOptions" optionLabel="label" optionValue="value"
+      [(ngModel)]="filters.scope" placeholder="Scope" (onChange)="load()" appendTo="body" />
+    <p-select [options]="statusOptions" optionLabel="label" optionValue="value"
+      [(ngModel)]="filters.status" placeholder="Status" (onChange)="load()" appendTo="body" />
+    <div class="cb-wrap">
+      <p-checkbox [(ngModel)]="filters.flaggedOnly" [binary]="true" (onChange)="load()" inputId="flaggedOnly" />
+      <label for="flaggedOnly">Flagged variances only</label>
+    </div>
+  </div>
+
+  <!-- Variance Table -->
+  <p-table [value]="snapshots" [loading]="loading" styleClass="p-datatable-sm p-datatable-striped"
+    [paginator]="true" [rows]="50" [totalRecords]="total" [lazy]="true"
+    (onPage)="page=$event.first/$event.rows+1; load()">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>As Of</th>
+        <th>Scope</th>
+        <th>Item</th>
+        <th>System NB</th>
+        <th>Books NB</th>
+        <th>Audit NB</th>
+        <th>Var. vs Books</th>
+        <th>Var. vs Audit</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr [class.flagged-row]="row.varianceFlagged">
+        <td>{{ row.asOfDate | date:'dd/MM/yyyy' }}</td>
+        <td><p-tag [value]="row.scope" severity="secondary" /></td>
+        <td>{{ row.scopeLabel }}</td>
+        <td class="num">₹ {{ fmt(row.systemNetBlock) }}</td>
+        <td class="num">₹ {{ fmt(row.booksNetBlock) }}</td>
+        <td class="num">₹ {{ fmt(row.auditNetBlock) }}</td>
+        <td class="num" [class.var-pos]="isPositive(row.varianceVsBooks)" [class.var-neg]="isNegative(row.varianceVsBooks)">
+          @if (row.varianceVsBooks != 0) { ₹ {{ fmt(row.varianceVsBooks) }} } @else { — }
+        </td>
+        <td class="num" [class.var-pos]="isPositive(row.varianceVsAudit)" [class.var-neg]="isNegative(row.varianceVsAudit)">
+          @if (row.varianceVsAudit != 0) { ₹ {{ fmt(row.varianceVsAudit) }} } @else { — }
+        </td>
+        <td><p-tag [value]="row.status" [severity]="statusSeverity(row.status)" /></td>
+        <td class="action-cell">
+          <p-button icon="pi pi-eye" [text]="true" size="small" pTooltip="Drill-down"
+            (onClick)="viewDetail(row)" />
+          <p-button icon="pi pi-download" [text]="true" size="small" pTooltip="Export CSV"
+            (onClick)="exportSnapshot(row)" />
+          @if (row.status === 'OPEN') {
+            <p-button icon="pi pi-check" [text]="true" size="small" severity="success"
+              pTooltip="Resolve / Accept" (onClick)="openResolve(row)" />
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="10" class="empty-msg">No reconciliation snapshots yet. Click "Run Snapshot" to start.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- ── Run Snapshot Dialog ──────────────────────────────────────────────── -->
+<p-dialog [(visible)]="showRunDialog" header="Run Reconciliation Snapshot"
+  [modal]="true" [style]="{width:'460px'}">
+  <div class="dialog-form">
+    <p class="dialog-intro">
+      Captures System-computed values vs Audit values (from FA register / migration data)
+      for the chosen scope, then flags any material variance.
+    </p>
+    <div class="two-fields">
+      <p-floatlabel variant="on">
+        <p-datepicker [(ngModel)]="runForm.asOfDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <label>As-of Date *</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <p-select [options]="scopeOptions.slice(1)" optionLabel="label" optionValue="value"
+          [(ngModel)]="runForm.scope" appendTo="body" />
+        <label>Scope *</label>
+      </p-floatlabel>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" [text]="true" (onClick)="showRunDialog=false" />
+    <p-button label="Generate" icon="pi pi-bolt" severity="success"
+      (onClick)="submitRun()" [loading]="running" />
+  </ng-template>
+</p-dialog>
+
+<!-- ── Detail / Drill-down Dialog ───────────────────────────────────────── -->
+<p-dialog [(visible)]="showDetailDialog" header="Variance Drill-down"
+  [modal]="true" [style]="{width:'820px','max-height':'85vh'}">
+  @if (selectedSnapshot) {
+    <div class="detail-summary">
+      <div class="ds-meta">
+        <span><b>Scope:</b> {{ selectedSnapshot.scope }} — {{ selectedSnapshot.scopeLabel }}</span>
+        <span><b>As Of:</b> {{ selectedSnapshot.asOfDate | date:'dd/MM/yyyy' }}</span>
+      </div>
+      <div class="ds-blocks">
+        <div class="ds-card">
+          <div class="ds-card-title">System</div>
+          <div>Gross: <b>₹ {{ fmt(selectedSnapshot.systemGrossBlock) }}</b></div>
+          <div>Acc Dep: <b>₹ {{ fmt(selectedSnapshot.systemAccDep) }}</b></div>
+          <div class="ds-net">Net: <b>₹ {{ fmt(selectedSnapshot.systemNetBlock) }}</b></div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-card-title">Books</div>
+          <div>Gross: <b>₹ {{ fmt(selectedSnapshot.booksGrossBlock) }}</b></div>
+          <div>Acc Dep: <b>₹ {{ fmt(selectedSnapshot.booksAccDep) }}</b></div>
+          <div class="ds-net">Net: <b>₹ {{ fmt(selectedSnapshot.booksNetBlock) }}</b></div>
+        </div>
+        <div class="ds-card">
+          <div class="ds-card-title">Audit</div>
+          <div>Gross: <b>₹ {{ fmt(selectedSnapshot.auditGrossBlock) }}</b></div>
+          <div>Acc Dep: <b>₹ {{ fmt(selectedSnapshot.auditAccDep) }}</b></div>
+          <div class="ds-net">Net: <b>₹ {{ fmt(selectedSnapshot.auditNetBlock) }}</b></div>
+        </div>
+      </div>
+
+      <div class="variance-row">
+        <span>Variance vs Books:
+          <strong [class.var-pos]="isPositive(selectedSnapshot.varianceVsBooks)"
+                  [class.var-neg]="isNegative(selectedSnapshot.varianceVsBooks)">
+            ₹ {{ fmt(selectedSnapshot.varianceVsBooks) }}
+            @if (selectedSnapshot.variancePctVsBooks != null) {
+              ({{ selectedSnapshot.variancePctVsBooks }}%)
+            }
+          </strong>
+        </span>
+        <span>Variance vs Audit:
+          <strong [class.var-pos]="isPositive(selectedSnapshot.varianceVsAudit)"
+                  [class.var-neg]="isNegative(selectedSnapshot.varianceVsAudit)">
+            ₹ {{ fmt(selectedSnapshot.varianceVsAudit) }}
+            @if (selectedSnapshot.variancePctVsAudit != null) {
+              ({{ selectedSnapshot.variancePctVsAudit }}%)
+            }
+          </strong>
+        </span>
+      </div>
+
+      <h4 class="dd-title">Per-Asset Breakdown ({{ drilldown.length }} assets)</h4>
+      <p-table [value]="drilldown" styleClass="p-datatable-sm p-datatable-striped" [scrollable]="true" scrollHeight="280px">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Asset</th>
+            <th>Asset Name</th>
+            <th>Gross</th>
+            <th>Acc Dep</th>
+            <th>System NB</th>
+            <th>Audited NB</th>
+            <th>Variance</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-r>
+          <tr>
+            <td>{{ r.assetId }}</td>
+            <td>{{ r.assetName }}</td>
+            <td class="num">₹ {{ fmt(r.gross) }}</td>
+            <td class="num">₹ {{ fmt(r.accDep) }}</td>
+            <td class="num">₹ {{ fmt(r.net) }}</td>
+            <td class="num">₹ {{ fmt(r.auditedNB) }}</td>
+            <td class="num"
+                [class.var-pos]="r.auditedNB != null && (r.net - r.auditedNB) > 0"
+                [class.var-neg]="r.auditedNB != null && (r.net - r.auditedNB) < 0">
+              @if (r.auditedNB != null) { ₹ {{ fmt(r.net - r.auditedNB) }} } @else { — }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
+</p-dialog>
+
+<!-- ── Resolve Dialog ───────────────────────────────────────────────────── -->
+<p-dialog [(visible)]="showResolveDialog" header="Resolve Variance"
+  [modal]="true" [style]="{width:'460px'}">
+  <div class="dialog-form" *ngIf="selectedSnapshot">
+    <p class="dialog-intro">
+      Choose <b>RESOLVED</b> if the variance has been investigated and corrected;
+      <b>ACCEPTED</b> if the variance is real but acceptable (with explanation for auditor).
+    </p>
+    <p-floatlabel variant="on" class="full-field">
+      <p-select [options]="[
+        { label: 'Resolved (corrected)', value: 'RESOLVED' },
+        { label: 'Accepted (with reason)', value: 'ACCEPTED' }
+      ]" optionLabel="label" optionValue="value" [(ngModel)]="resolveForm.status" appendTo="body" />
+      <label>Resolution Status</label>
+    </p-floatlabel>
+    <p-floatlabel variant="on" class="full-field">
+      <textarea pTextarea [(ngModel)]="resolveForm.resolutionNotes" rows="3"></textarea>
+      <label>Resolution Notes / Reason</label>
+    </p-floatlabel>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" [text]="true" (onClick)="showResolveDialog=false" />
+    <p-button label="Save" icon="pi pi-check" severity="success" (onClick)="submitResolve()" />
+  </ng-template>
+</p-dialog>

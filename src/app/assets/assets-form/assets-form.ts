@@ -767,12 +767,14 @@ private returnLastY = 0;
     const dateFields = [
       "purchaseDate",
       "purchaseOrderDate",
+      "purchaseVoucherDate",
       "donationDate",
       "leaseStartDate",
       "leaseEndDate",
       "rentalStartDate",
       "rentalEndDate",
       "grnDate",
+      "installedAt",
       "insuranceStartDate",
       "insuranceEndDate",
       "depreciationStartDate"
@@ -840,7 +842,12 @@ private returnLastY = 0;
 
     this.selectedParentAssetId = asset.parentAsset?.assetId || null;
 
-    // Load children list
+    // If asset already exists (has id), mark checklist as done (it was completed at creation time)
+    if (asset.id) {
+      this.creationChecklist.forEach(item => {
+        this.creationChecklistDone[item.key] = true;
+      });
+    }
 
     this.asset = asset;
     if (this.asset?.assetId) {
@@ -967,6 +974,13 @@ private returnLastY = 0;
     // Clear rate when switching to SL (rate not used); keep for DB/WDV
     if (this.depreciationForm.depreciationMethod === 'SL') {
       this.depreciationForm.depreciationRate = null;
+    }
+    // DB/WDV: expectedLifeYears is not needed (rate-driven), set a default so backend doesn't reject
+    if (this.depreciationForm.depreciationMethod === 'DB') {
+      if (!this.depreciationForm.expectedLifeYears) {
+        const rate = Number(this.depreciationForm.depreciationRate || 15);
+        this.depreciationForm.expectedLifeYears = rate > 0 ? Math.ceil(100 / rate) : 10;
+      }
     }
     // Auto-fill residual value as 5% of cost basis if not yet set
     if (!this.depreciationForm.salvageValue && this.depreciationCostBasis > 0) {

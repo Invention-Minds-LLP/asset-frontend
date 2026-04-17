@@ -1,267 +1,220 @@
-.page-container {
-    padding: 1.5rem;
-}
+/* ── Page Layout ──────────────────────────────────────── */
+.page-container { padding: 20px; max-width: 1500px; }
 
-.page-header {
-    margin-bottom: 1.5rem;
-}
-
+.page-header { margin-bottom: 12px; }
 .page-header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  margin: 0; font-size: 1.25rem; display: flex;
+  align-items: center; gap: 8px; color: #1e293b;
 }
 
-.tab-content {
-    padding: 1rem 0;
-}
+.tab-content { padding: 10px 0 0; }
 
+/* ── Toolbar / Scope Bar ─────────────────────────────── */
 .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px; flex-wrap: wrap;
 }
 
+.scope-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; background: #f8fafc;
+  border: 1px solid #e2e8f0; border-radius: 8px;
+  margin-bottom: 10px; flex-wrap: wrap;
+}
+.scope-label {
+  font-size: 0.72rem; font-weight: 600; color: #64748b;
+  text-transform: uppercase; letter-spacing: 0.4px;
+  display: flex; align-items: center; gap: 6px;
+  margin-right: 4px;
+}
+.scope-bar p-dropdown, .scope-bar p-select { max-width: 180px; }
+.scope-bar input[pInputText] { max-width: 180px; font-size: 0.82rem; }
+
+/* ── KPI Cards ───────────────────────────────────────── */
 .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px; margin-bottom: 12px;
 }
-
 .kpi-card {
-    background: var(--surface-ground);
-    border: 1px solid var(--surface-border);
-    border-radius: 8px;
-    padding: 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  background: #fff; border: 1px solid #e2e8f0;
+  border-radius: 8px; padding: 10px 14px;
+  display: flex; flex-direction: column; gap: 2px;
 }
+.kpi-label { font-size: 0.72rem; color: #64748b; font-weight: 500; }
+.kpi-value { font-size: 1.3rem; font-weight: 700; color: #1e293b; }
+.kpi-card.kpi-warn { border-left: 3px solid #f59e0b; }
 
-.kpi-label {
-    font-size: 0.85rem;
-    color: var(--text-color-secondary);
-    font-weight: 500;
-}
-
-.kpi-value {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--text-color);
-}
-
-.text-center {
-    text-align: center;
-    padding: 2rem;
-    color: var(--text-color-secondary);
-}
-
-.num-r {
-    text-align: right;
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-}
-
-.dep-amt {
-    color: #e53935;
-    font-weight: 600;
-}
-
-.kpi-card.kpi-warn {
-    border-left: 4px solid #f59e0b;
-}
-
+/* ── Notices / Banners ───────────────────────────────── */
 .access-notice {
-    background: #fff8e1;
-    border: 1px solid #ffe082;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 1.25rem;
-    color: #795548;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.9rem;
+  background: #fefce8; border: 1px solid #fde68a;
+  border-radius: 6px; padding: 8px 12px; margin-bottom: 10px;
+  color: #92400e; display: flex; align-items: center;
+  gap: 8px; font-size: 0.82rem;
 }
-
-.access-notice.small {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-}
+.access-notice.small { padding: 6px 10px; font-size: 0.78rem; }
 
 .draft-note {
-    background: #e3f2fd;
-    border: 1px solid #90caf9;
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-bottom: 1rem;
-    color: #1565c0;
-    font-size: 0.875rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  background: #eff6ff; border: 1px solid #bfdbfe;
+  border-radius: 6px; padding: 6px 12px; margin-bottom: 10px;
+  color: #1e40af; font-size: 0.78rem;
+  display: flex; align-items: center; gap: 6px;
 }
 
-.action-btns {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
+.per-asset-info {
+  background: #f0fdf4; border: 1px solid #bbf7d0;
+  border-radius: 6px; padding: 6px 12px; margin-bottom: 10px;
+  color: #166534; font-size: 0.78rem;
+  display: flex; align-items: flex-start; gap: 6px;
 }
 
-/* Reject dialog overlay */
-.reject-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.dialog-note {
+  font-size: 0.78rem; color: #64748b;
+  display: flex; align-items: center; gap: 4px;
+  margin-top: 8px;
 }
 
-.reject-dialog {
-    background: #fff;
-    border-radius: 12px;
-    padding: 2rem;
-    width: 420px;
-    max-width: 95vw;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+/* ── Tables — compact ────────────────────────────────── */
+.text-center { text-align: center; padding: 16px; color: #94a3b8; font-size: 0.82rem; }
+
+.num-r {
+  text-align: right; white-space: nowrap;
+  font-variant-numeric: tabular-nums; font-size: 0.8rem;
+}
+.dep-amt { color: #dc2626; font-weight: 600; }
+
+.period-cell { font-size: 0.72rem; color: #64748b; white-space: nowrap; }
+.notes-cell { max-width: 150px; font-size: 0.76rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; }
+
+.action-btns { display: flex; gap: 4px; flex-wrap: nowrap; }
+
+/* Override PrimeNG table sizes globally for this component */
+::ng-deep .page-container .p-datatable .p-datatable-thead > tr > th {
+  background: #f8fafc !important; box-shadow: none !important;
+  padding: 6px 8px !important; font-size: 0.74rem !important;
+  font-weight: 600 !important; color: #475569 !important;
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+::ng-deep .page-container .p-datatable .p-datatable-tbody > tr > td {
+  padding: 5px 8px !important; font-size: 0.8rem !important;
+}
+::ng-deep .page-container .p-datatable .p-datatable-wrapper {
+  border: 1px solid #e2e8f0 !important; border-radius: 8px; overflow: hidden;
+}
+::ng-deep .page-container .p-datatable-table {
+  border: none !important; font-weight: 400 !important;
 }
 
-.reject-dialog h3 {
-    margin: 0 0 0.75rem 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1.15rem;
-}
-
-.reject-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 1rem;
-}
+/* ── Tab pills ───────────────────────────────────────── */
 ::ng-deep .custom-tabs .p-tabview-nav {
-  display: flex !important;
-  justify-content: center;
-  gap: 14px !important;
-  border: none !important;
-  background: transparent !important;
-  margin-bottom: 20px !important;
+  display: flex !important; justify-content: center;
+  gap: 8px !important; border: none !important;
+  background: transparent !important; margin-bottom: 12px !important;
 }
-
-::ng-deep .custom-tabs .p-tab li {
-  border: none !important;
-  background: #f2f3f5 !important;
-  border-radius: 25px !important;
-  padding: 8px 22px !important;
-  cursor: pointer;
-  transition: 0.25s ease;
-}
-
 ::ng-deep .custom-tabs .p-tabview-nav li .p-tabview-nav-link {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  color: #555 !important;
-  font-size: 14px;
-  padding: 0 !important;
+  background: transparent !important; border: none !important;
+  box-shadow: none !important; color: #64748b !important;
+  font-size: 0.78rem; padding: 0 !important;
 }
-
-/* ACTIVE TAB */
-::ng-deep .custom-tabs .p-tabview-nav li.p-highlight {
-  background: #ccffe0 !important;
-  /* mint pill */
-}
-
 ::ng-deep .custom-tabs .p-tabview-nav li.p-highlight .p-tabview-nav-link {
-  color: #0ca854 !important;
-  /* green text */
-  font-weight: 600 !important;
+  color: #059669 !important; font-weight: 600 !important;
 }
-
 ::ng-deep .p-tab {
-  border: none !important;
-  border-radius: 40px !important;
+  border: none !important; border-radius: 20px !important;
+  padding: 5px 16px !important; font-size: 0.78rem !important;
 }
-
 ::ng-deep .p-tab-active {
-  background: #DBFFE8 !important;
-  border: none !important;
-  border-color: none !important;
-  color: #00A23D !important;
-  border-radius: 40px !important;
+  background: #d1fae5 !important; border: none !important;
+  color: #059669 !important; border-radius: 20px !important;
+}
+::ng-deep .p-tablist-tab-list { gap: 8px !important; }
+::ng-deep .custom-tabs .p-tabview-nav:before { display: none !important; }
+
+/* ── Reject / Asset Run Dialog ───────────────────────── */
+.reject-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+}
+.reject-dialog {
+  background: #fff; border-radius: 10px; padding: 20px;
+  width: 400px; max-width: 95vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+.reject-dialog h3 {
+  margin: 0 0 10px; display: flex; align-items: center;
+  gap: 8px; font-size: 1rem;
+}
+.reject-actions {
+  display: flex; justify-content: flex-end; gap: 6px; margin-top: 12px;
 }
 
-::ng-deep .p-tablist-tab-list {
-  gap: 20px !important;
+/* Asset run dialog specifics */
+.asset-run-dialog { width: 440px; }
+.asset-run-info {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  margin-bottom: 10px;
+}
+.run-info-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 8px; background: #f8fafc; border-radius: 4px;
+  font-size: 0.82rem;
+}
+.run-info-row span { color: #64748b; }
+
+.override-notice {
+  display: flex; gap: 8px; padding: 8px 12px;
+  background: #fefce8; border: 1px solid #fde68a;
+  border-radius: 6px; margin-bottom: 8px; font-size: 0.8rem;
+}
+.override-notice p { margin: 2px 0 0; font-size: 0.76rem; color: #92400e; }
+.toggle-label { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; cursor: pointer; }
+
+/* ── WDV Schedule ────────────────────────────────────── */
+.wdv-info {
+  background: #eff6ff; border-left: 3px solid #2563eb;
+  padding: 6px 12px; border-radius: 4px;
+  margin-bottom: 10px; font-size: 0.78rem;
+  display: flex; align-items: center; gap: 6px; color: #1e40af;
 }
 
-/* Remove PrimeNG underline animation */
-::ng-deep .custom-tabs .p-tabview-nav:before {
-  display: none !important;
+.roundoff-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 16px; font-size: 0.72rem;
+  font-weight: 600; margin-bottom: 8px;
+  background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0;
 }
-::ng-deep .p-datatable .p-datatable-thead > tr > th {
-  background: transparent !important;
-  box-shadow: none !important;
+.roundoff-badge.roundoff-on { background: #d1fae5; color: #059669; border-color: #86efac; }
+
+.schedule-legend {
+  display: flex; gap: 16px; margin-bottom: 6px; font-size: 0.72rem;
 }
-::ng-deep .p-datatable .p-datatable-wrapper {
-  border: 1px solid var(--table-border-color) !important;
-  border-radius: 12px;
-  overflow: hidden;
+.legend-item { display: flex; align-items: center; gap: 3px; }
+.legend-item.completed { color: #059669; }
+.legend-item.current   { color: #d97706; font-weight: 700; }
+.legend-item.future    { color: #94a3b8; }
+
+/* Row colouring */
+::ng-deep .page-container .row-completed td { background: #f0fdf4 !important; color: #166534; }
+::ng-deep .page-container .row-current   td { background: #fffbeb !important; font-weight: 600; color: #d97706; }
+::ng-deep .page-container .row-future    td { color: #94a3b8; }
+
+/* ── Round-off Impact ────────────────────────────────── */
+.raw-amt { font-family: monospace; color: #475569; font-size: 0.76rem; }
+
+.impact-banner {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px; padding: 8px 14px; border-radius: 6px;
+  margin-bottom: 10px; border-left: 3px solid #94a3b8; background: #f8fafc;
+  font-size: 0.82rem;
 }
-::ng-deep .p-datatable-table {
-  border: 1px solid var(--table-border-color) !important;
-  border-radius: 12px;
-  overflow: hidden;
-  font-size: 14px;
-  font-weight: 400 !important;
-  text-transform: capitalize;
-}
+.impact-banner.impact-low    { background: #f0fdf4; border-color: #059669; }
+.impact-banner.impact-medium { background: #fefce8; border-color: #d97706; }
+.impact-banner.impact-high   { background: #fef2f2; border-color: #dc2626; }
 
-/* ── WDV Schedule ─────────────────────────────────────── */
-.wdv-info { background:#e3f2fd; border-left:4px solid #1565C0; padding:0.6rem 1rem; border-radius:4px; margin-bottom:1rem; font-size:0.88rem; display:flex; align-items:center; gap:8px; }
+.impact-banner-left  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.8rem; }
+.impact-banner-right { display: flex; flex-direction: column; gap: 2px; font-size: 0.74rem; }
 
-.roundoff-badge { display:inline-flex; align-items:center; gap:6px; padding:0.35rem 0.8rem; border-radius:20px; font-size:0.82rem; font-weight:600; margin-bottom:0.75rem; background:#f5f5f5; color:#888; border:1px solid #ddd; }
-.roundoff-badge.roundoff-on { background:#e8f5e9; color:#2e7d32; border-color:#a5d6a7; }
-
-.schedule-legend { display:flex; gap:1.25rem; margin-bottom:0.5rem; font-size:0.8rem; }
-.legend-item { display:flex; align-items:center; gap:4px; }
-.legend-item.completed { color:#2e7d32; }
-.legend-item.current   { color:#e65100; font-weight:700; }
-.legend-item.future    { color:#888; }
-
-/* Row colouring via ngClass */
-::ng-deep .row-completed td { background:#f1f8e9 !important; color:#558b2f; }
-::ng-deep .row-current   td { background:#fff3e0 !important; font-weight:700; color:#e65100; }
-::ng-deep .row-future    td { color:#9e9e9e; }
-
-/* Round-off row in asset form */
-.roundoff-row { display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap; padding:0.5rem 0; }
-.roundoff-toggle { display:flex; align-items:center; gap:0.5rem; }
-.roundoff-toggle label { cursor:pointer; font-size:0.88rem; }
-.roundoff-hint { display:block; font-size:0.75rem; font-weight:400; color:#aaa; }
-
-/* ── Round-off Impact ─────────────────────────────────── */
-.raw-amt { font-family: monospace; color: #555; }
-
-.impact-banner { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
-  gap:0.75rem; padding:0.85rem 1.1rem; border-radius:8px; margin-bottom:1rem;
-  border-left:4px solid #aaa; background:#f9f9f9; }
-.impact-banner.impact-low    { background:#e8f5e9; border-color:#2e7d32; }
-.impact-banner.impact-medium { background:#fff8e1; border-color:#f9a825; }
-.impact-banner.impact-high   { background:#fce4ec; border-color:#c62828; }
-
-.impact-banner-left  { display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; font-size:0.88rem; }
-.impact-banner-right { display:flex; flex-direction:column; gap:0.3rem; font-size:0.82rem; }
-
-.rounding-stat        { display:flex; align-items:center; gap:5px; }
-.rounding-stat.up     { color:#c62828; }
-.rounding-stat.down   { color:#2e7d32; }
-.rounding-stat.exact  { color:#888; }
+.rounding-stat       { display: flex; align-items: center; gap: 4px; }
+.rounding-stat.up    { color: #dc2626; }
+.rounding-stat.down  { color: #059669; }
+.rounding-stat.exact { color: #94a3b8; }

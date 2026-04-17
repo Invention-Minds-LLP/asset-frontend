@@ -615,4 +615,12 @@ export class AssetPoolPage implements OnInit {
     if (v == null) return '—';
     return Number(v).toFixed(1) + '%';
   }
+
+  /** % of FY's additions that have been individualized (capped at 100). */
+  allocPct(fy: any): number {
+    const adds = Number(fy?.additions ?? 0);
+    if (adds <= 0) return 0;
+    const ind = Number(fy?.individualizedCost ?? 0);
+    return Math.min(100, Math.round((ind / adds) * 1000) / 10);
+  }
 }

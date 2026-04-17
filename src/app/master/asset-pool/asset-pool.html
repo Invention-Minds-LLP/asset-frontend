@@ -30,69 +30,102 @@
 <div class="page-header">
   <div>
     <h2 class="page-title">Asset Pools</h2>
-    <p class="page-sub">Manage bulk FA register entries and track phased digitization</p>
+    <p class="page-sub">Fixed Assets Schedule — manage bulk FA register entries and track phased digitization</p>
   </div>
-  <div class="header-actions">
-    <p-button label="Download Template" icon="pi pi-download" severity="secondary" size="small"
-              pTooltip="Download Excel template for FA register import" (onClick)="downloadTemplate()"></p-button>
-    <p-button label="Import FA Register" icon="pi pi-file-import" severity="secondary"
-              pTooltip="Bulk upload from FA register Excel" (onClick)="openImportDialog()"></p-button>
-    <p-button label="Import Individual Assets" icon="pi pi-users" severity="secondary"
-              pTooltip="Bulk upload individual line items from FA register linked to pools" (onClick)="openIndividualImportDialog()"></p-button>
-    <p-button label="Reset All Pools" icon="pi pi-trash" severity="danger" [outlined]="true"
-              pTooltip="Delete all pools and re-import from scratch" (onClick)="confirmReset()"></p-button>
-    <p-button label="New Pool" icon="pi pi-plus" (onClick)="openCreateDialog()"></p-button>
-  </div>
+  <p-button label="+ New Pool" icon="pi pi-plus" (onClick)="openCreateDialog()" size="small"></p-button>
 </div>
 
-<!-- ── Pools Table ───────────────────────────────────────────── -->
+<!-- ── Import / Bulk Toolbar ───────────────────────────────── -->
+<div class="import-toolbar">
+  <span class="toolbar-label"><i class="pi pi-upload"></i> Bulk Actions</span>
+  <p-button label="Download Template" icon="pi pi-download" severity="secondary" size="small"
+            [outlined]="true" pTooltip="Download Excel template" (onClick)="downloadTemplate()"></p-button>
+  <p-button label="Import FA Register" icon="pi pi-file-import" severity="secondary" size="small"
+            [outlined]="true" pTooltip="Bulk upload from FA register" (onClick)="openImportDialog()"></p-button>
+  <p-button label="Import Individual Assets" icon="pi pi-users" severity="secondary" size="small"
+            [outlined]="true" pTooltip="Bulk upload line items" (onClick)="openIndividualImportDialog()"></p-button>
+  <div class="toolbar-spacer"></div>
+  <p-button label="Reset All" icon="pi pi-trash" severity="danger" size="small"
+            [outlined]="true" [text]="true" pTooltip="Delete all pools and re-import" (onClick)="confirmReset()"></p-button>
+</div>
+
+<!-- ── Pools Table (FA Schedule style) ─────────────────────── -->
 <p-table [value]="pools" [loading]="loading" [paginator]="true" [rows]="15"
-         [rowHover]="true" styleClass="p-datatable-sm pool-table">
+         [rowHover]="true" styleClass="p-datatable-sm pool-fa-table">
   <ng-template pTemplate="header">
-    <tr>
-      <th>Pool Code</th>
-      <th>Financial Year</th>
-      <th>Category</th>
-      <th>Department</th>
-      <th>Qty</th>
-      <th>Gross Block</th>
-      <th>Net Block</th>
-      <th>Digitized</th>
-      <th>Status</th>
-      <th>Actions</th>
+    <tr class="fa-hdr-row-1">
+      <th rowspan="2" class="fa-fixed-col">Pool Code</th>
+      <th rowspan="2" class="fa-fixed-col">Category</th>
+      <th rowspan="2" class="fa-fixed-col fa-qty-col">Qty</th>
+      <th colspan="4" class="fa-grp-gross">GROSS BLOCK</th>
+      <th colspan="3" class="fa-grp-dep">DEPRECIATION</th>
+      <th colspan="1" class="fa-grp-net">NET BLOCK</th>
+      <th rowspan="2" class="fa-fixed-col fa-digi-col">Digitized</th>
+      <th rowspan="2" class="fa-fixed-col">Actions</th>
+    </tr>
+    <tr class="fa-hdr-row-2">
+      <th class="fa-sub-gross">Opening</th>
+      <th class="fa-sub-gross">+ Additions</th>
+      <th class="fa-sub-gross">− Deletions</th>
+      <th class="fa-sub-gross">Closing</th>
+      <th class="fa-sub-dep">Rate %</th>
+      <th class="fa-sub-dep">For Period</th>
+      <th class="fa-sub-dep">Closing Acc.</th>
+      <th class="fa-sub-net">Closing NB</th>
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-pool>
-    <tr>
-      <td><span class="pool-code">{{ pool.poolCode }}</span></td>
-      <td>{{ pool.financialYear }}</td>
-      <td>{{ pool.category || '—' }}</td>
-      <td>{{ pool.department || '—' }}</td>
-      <td>{{ pool.originalQuantity }}</td>
-      <td class="num-cell">₹ {{ fmt(pool.latestGrossBlock) }}</td>
-      <td class="num-cell">₹ {{ fmt(pool.latestNetBlock) }}</td>
-      <td>
-        <div class="pct-cell">
-          <p-progressBar [value]="pool.digitizationPct || 0" [showValue]="false"
-                         styleClass="pool-progress" [style]="{'height':'8px'}"></p-progressBar>
-          <span class="pct-label">{{ fmtPct(pool.digitizationPct) }}</span>
-        </div>
+    <tr class="fa-body-row">
+      <td class="fa-pool-code">
+        <span class="pool-code-text">{{ pool.poolCode }}</span>
+        @if (pool.latestFY) { <span class="pool-fy-badge">{{ pool.latestFY }}</span> }
       </td>
-      <td>
-        <p-tag [value]="pool.status" [severity]="getStatusSeverity(pool.status)"></p-tag>
+      <td class="fa-cat">{{ pool.category || '—' }}</td>
+      <td class="fa-qty">{{ pool.originalQuantity }}</td>
+      <!-- Gross Block columns (green tint) -->
+      <td class="fa-num fa-bg-gross">₹{{ fmt(pool.latestOpeningGrossBlock) }}</td>
+      <td class="fa-num fa-bg-gross fa-addn">
+        +₹{{ fmt(pool.latestAdditions) }}
+        @if (pool.latestAdditions1H || pool.latestAdditions2H) {
+          <div class="half-split">
+            @if (pool.latestAdditions1H) { <span class="h1-tag" pTooltip="Apr-Sep (Full Rate)">1H: ₹{{ fmt(pool.latestAdditions1H) }}</span> }
+            @if (pool.latestAdditions2H) { <span class="h2-tag" pTooltip="Oct-Mar (Half Rate)">2H: ₹{{ fmt(pool.latestAdditions2H) }}</span> }
+          </div>
+        }
       </td>
-      <td>
-        <div class="action-btns">
-          <p-button icon="pi pi-eye" severity="secondary" [rounded]="true" [text]="true"
-                    pTooltip="View Details" (onClick)="openDetail(pool)"></p-button>
-          <p-button icon="pi pi-history" severity="secondary" [rounded]="true" [text]="true"
-                    pTooltip="Activity Log" (onClick)="openActivityLog(pool)"></p-button>
+      <td class="fa-num fa-bg-gross fa-del">−₹{{ fmt(pool.latestDeletions) }}</td>
+      <td class="fa-num fa-bg-gross fa-closing-gross">₹{{ fmt(pool.latestClosingGrossBlock) }}</td>
+      <!-- Depreciation columns (orange tint) -->
+      <td class="fa-num fa-bg-dep fa-rate">{{ pool.latestDepRate ?? '—' }}%</td>
+      <td class="fa-num fa-bg-dep">
+        ₹{{ fmt(pool.latestDepForPeriod) }}
+        @if (pool.latestDepOnOpening || pool.latestDepOnAdditions) {
+          <div class="half-split">
+            @if (pool.latestDepOnOpening) { <span class="dep-opening-tag" pTooltip="On Opening WDV (Full Rate)">Op: ₹{{ fmt(pool.latestDepOnOpening) }}</span> }
+            @if (pool.latestDepOnAdditions) { <span class="dep-addn-tag" pTooltip="On Additions (Full/Half)">Ad: ₹{{ fmt(pool.latestDepOnAdditions) }}</span> }
+          </div>
+        }
+      </td>
+      <td class="fa-num fa-bg-dep">₹{{ fmt(pool.latestClosingAccDep) }}</td>
+      <!-- Net Block column (blue tint) -->
+      <td class="fa-num fa-bg-net fa-nb-val">₹{{ fmt(pool.latestClosingNetBlock) }}</td>
+      <!-- Digitized -->
+      <td class="fa-digi">
+        <div class="fa-digi-bar">
+          <div class="fa-digi-fill" [style.width.%]="pool.digitizationPct || 0"></div>
         </div>
+        <span class="fa-digi-pct">{{ pool.digitizationPct || 0 }}%</span>
+      </td>
+      <td class="fa-actions">
+        <p-button icon="pi pi-eye" [text]="true" size="small" severity="secondary"
+                  pTooltip="View Details" (onClick)="openDetail(pool)"></p-button>
+        <p-button icon="pi pi-history" [text]="true" size="small" severity="secondary"
+                  pTooltip="Activity" (onClick)="openActivityLog(pool)"></p-button>
       </td>
     </tr>
   </ng-template>
   <ng-template pTemplate="emptymessage">
-    <tr><td colspan="10" class="empty-msg">No asset pools found. Create one to start digitization tracking.</td></tr>
+    <tr><td colspan="13" class="empty-msg">No asset pools found. Create one to start digitization tracking.</td></tr>
   </ng-template>
 </p-table>
 
@@ -379,7 +412,7 @@
 
 <!-- ── Pool Detail Dialog ────────────────────────────────────── -->
 <p-dialog header="Pool Details" [(visible)]="showDetailDialog"
-          [style]="{width:'900px','max-height':'90vh'}" [modal]="true" [closable]="true">
+          [style]="{width:'90%','max-height':'90vh'}" [modal]="true" [closable]="true">
   @if (detailLoading) {
     <div class="loading-msg">Loading...</div>
   }
@@ -397,9 +430,48 @@
           <div class="meta-row"><span>Total Qty</span><b>{{ selectedPool.originalQuantity }}</b></div>
           <div class="meta-row"><span>Individualized</span><b>{{ selectedPool.individualizedCount || 0 }}</b></div>
           <div class="meta-row"><span>Remaining</span><b class="warn-text">{{ selectedPool.remainingQuantity ?? ((selectedPool.originalQuantity || 0) - (selectedPool.individualizedCount || 0)) }}</b></div>
-          <div class="meta-row"><span>Total Cost</span><b>₹ {{ fmt(selectedPool.totalPoolCost) }}</b></div>
-          <div class="meta-row"><span>Remaining Gross Block</span><b>₹ {{ fmt(selectedPool.remainingGrossBlock) }}</b></div>
-          <div class="meta-row"><span>Remaining Net Block</span><b>₹ {{ fmt(selectedPool.remainingNetBlock) }}</b></div>
+          <div class="meta-row"><span>Original Pool Cost</span><b>₹ {{ fmt(selectedPool.totalPoolCost) }}</b></div>
+
+          <!-- Allocation breakdown — shows the basis of the "Remaining" math -->
+          @if (depSchedules.length) {
+            <div class="alloc-block">
+              <div class="alloc-title">
+                Gross Block Allocation
+                <em class="meta-asof">as of {{ depSchedules[depSchedules.length - 1].financialYear }}</em>
+              </div>
+              <div class="alloc-row">
+                <span>Closing Gross Block</span>
+                <b>₹ {{ fmt(selectedPool.latestClosingGrossBlock ?? depSchedules[depSchedules.length - 1].closingGrossBlock) }}</b>
+              </div>
+              <div class="alloc-row alloc-minus">
+                <span>− Individualized ({{ selectedPool.individualizedCount || 0 }} assets)</span>
+                <b>₹ {{ fmt(selectedPool.allocatedCost) }}</b>
+              </div>
+              <div class="alloc-row alloc-final">
+                <span>= Remaining Gross Block</span>
+                <b>₹ {{ fmt(selectedPool.remainingGrossBlock) }}</b>
+              </div>
+            </div>
+
+            <div class="alloc-block">
+              <div class="alloc-title">
+                Net Block Allocation
+                <em class="meta-asof">as of {{ depSchedules[depSchedules.length - 1].financialYear }}</em>
+              </div>
+              <div class="alloc-row">
+                <span>Closing Net Block</span>
+                <b>₹ {{ fmt(selectedPool.latestClosingNetBlock ?? depSchedules[depSchedules.length - 1].closingNetBlock) }}</b>
+              </div>
+              <div class="alloc-row alloc-minus">
+                <span>− Individualized NB <em class="alloc-hint">(cost − acc. dep)</em></span>
+                <b>₹ {{ fmt((selectedPool.allocatedCost || 0) - (selectedPool.allocatedAccDep || 0)) }}</b>
+              </div>
+              <div class="alloc-row alloc-final">
+                <span>= Remaining Net Block</span>
+                <b>₹ {{ fmt(selectedPool.remainingNetBlock) }}</b>
+              </div>
+            </div>
+          }
         </div>
         @if (selectedPool.notes) {
           <div class="detail-notes">{{ selectedPool.notes }}</div>
@@ -417,20 +489,130 @@
 
       <!-- Right: FA schedules + linked assets -->
       <div class="detail-right">
-        <div class="section-title">FA Register (Depreciation Schedules)</div>
+        <div class="section-title">FA Register (Year-on-Year Rollforward)</div>
+        <div class="rollforward-note">
+          <i class="pi pi-info-circle"></i>
+          Each year's <b>Opening Balance</b> = previous year's <b>Closing Balance</b>. The figures below
+          show what changed <em>during</em> each financial year.
+        </div>
         @if (depSchedules.length === 0) {
           <div class="empty-sub">No FA schedules uploaded yet. Add from the FA register.</div>
         } @else {
-          <div class="schedule-list">
+          <div class="rollforward-list">
             @for (s of depSchedules; track s.id) {
-              <div class="schedule-row">
-                <div class="sched-fy">{{ s.financialYear }}</div>
-                <div class="sched-cols">
-                  <div><span>Gross Block</span><b>₹ {{ fmt(s.closingGrossBlock) }}</b></div>
-                  <div><span>Acc. Dep.</span><b>₹ {{ fmt(s.closingAccumulatedDep) }}</b></div>
-                  <div><span>Net Block</span><b>₹ {{ fmt(s.closingNetBlock) }}</b></div>
-                  <div><span>Dep. Rate</span><b>{{ s.depreciationRate != null ? s.depreciationRate + '%' : '—' }}</b></div>
+              <div class="rollforward-card">
+                <div class="rf-fy-bar">
+                  <span class="rf-fy-label">{{ s.financialYear }}</span>
+                  @if (s.depreciationRate != null) {
+                    <span class="rf-rate-tag">Rate: {{ s.depreciationRate }}%</span>
+                  }
                 </div>
+
+                <!-- Gross Block Rollforward -->
+                <div class="rf-section">
+                  <div class="rf-section-title">Gross Block</div>
+                  <div class="rf-flow">
+                    <div class="rf-step"><span>Opening</span><b>₹ {{ fmt(s.openingGrossBlock) }}</b></div>
+                    <div class="rf-arrow">→</div>
+                    <div class="rf-step rf-add">
+                      <span>+ Additions</span><b>₹ {{ fmt(s.additions) }}</b>
+                      @if (s.additionsFirstHalf || s.additionsSecondHalf) {
+                        <div class="rf-half-tags">
+                          @if (s.additionsFirstHalf) { <span class="h1-chip">1H (Apr-Sep): ₹{{ fmt(s.additionsFirstHalf) }}</span> }
+                          @if (s.additionsSecondHalf) { <span class="h2-chip">2H (Oct-Mar): ₹{{ fmt(s.additionsSecondHalf) }}</span> }
+                        </div>
+                      }
+                    </div>
+                    <div class="rf-arrow">→</div>
+                    <div class="rf-step rf-del">
+                      <span>− Deletions</span><b>₹ {{ fmt(s.deletions) }}</b>
+                      @if (s.deletionsFirstHalf || s.deletionsSecondHalf) {
+                        <div class="rf-half-tags">
+                          @if (s.deletionsFirstHalf) { <span class="h1-chip">1H: ₹{{ fmt(s.deletionsFirstHalf) }}</span> }
+                          @if (s.deletionsSecondHalf) { <span class="h2-chip">2H: ₹{{ fmt(s.deletionsSecondHalf) }}</span> }
+                        </div>
+                      }
+                    </div>
+                    <div class="rf-arrow">=</div>
+                    <div class="rf-step rf-final"><span>Closing</span><b>₹ {{ fmt(s.closingGrossBlock) }}</b></div>
+                  </div>
+                </div>
+
+                <!-- Depreciation Rollforward (split: on opening + on additions) -->
+                <div class="rf-section">
+                  <div class="rf-section-title">Depreciation</div>
+                  <div class="rf-flow">
+                    <div class="rf-step"><span>Opening Acc.</span><b>₹ {{ fmt(s.openingAccumulatedDep) }}</b></div>
+                    <div class="rf-arrow">→</div>
+                    @if (s.depOnOpeningBlock || s.depOnAdditions) {
+                      <div class="rf-step rf-dep">
+                        <span>On Opening WDV</span>
+                        <b>₹ {{ fmt(s.depOnOpeningBlock) }}</b>
+                        <span class="rf-dep-hint">Full {{ s.depreciationRate }}%</span>
+                      </div>
+                      <div class="rf-arrow">+</div>
+                      <div class="rf-step rf-dep">
+                        <span>On Additions</span>
+                        <b>₹ {{ fmt(s.depOnAdditions) }}</b>
+                        <span class="rf-dep-hint">Full/Half rate</span>
+                      </div>
+                      <div class="rf-arrow">=</div>
+                    } @else {
+                      <div class="rf-step rf-dep"><span>+ Dep. for Period</span><b>₹ {{ fmt(s.depreciationForPeriod) }}</b></div>
+                      <div class="rf-arrow">=</div>
+                    }
+                    <div class="rf-step rf-final">
+                      <span>Total / Closing</span>
+                      <b>₹ {{ fmt(s.depreciationForPeriod) }}</b>
+                      <span class="rf-dep-hint">Acc: ₹ {{ fmt(s.closingAccumulatedDep) }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Net Block -->
+                <div class="rf-section">
+                  <div class="rf-section-title">Net Block</div>
+                  <div class="rf-flow">
+                    <div class="rf-step"><span>Opening NB</span><b>₹ {{ fmt(s.openingNetBlock) }}</b></div>
+                    <div class="rf-arrow">→</div>
+                    <div class="rf-step rf-final"><span>Closing NB</span><b>₹ {{ fmt(s.closingNetBlock) }}</b></div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- ── Per-FY Allocation Tracker ─────────────────────────────────── -->
+        @if (selectedPool.perFYAllocation?.length) {
+          <div class="section-title" style="margin-top:16px">FY-wise Allocation Tracker</div>
+          <div class="alloc-fy-table">
+            <div class="alloc-fy-row alloc-fy-header">
+              <span>FY</span>
+              <span class="num">Additions</span>
+              <span class="num">Individualized</span>
+              <span class="num">Pending</span>
+              <span class="alloc-fy-bar-cell">Progress</span>
+            </div>
+            @for (fy of selectedPool.perFYAllocation; track fy.financialYear) {
+              <div class="alloc-fy-row" [class.over-allocated]="fy.isOverAllocated">
+                <span class="alloc-fy-label">{{ fy.financialYear }}</span>
+                <span class="num">₹ {{ fmt(fy.additions) }}</span>
+                <span class="num add-color">
+                  ₹ {{ fmt(fy.individualizedCost) }}
+                  <em class="alloc-count">({{ fy.individualizedCount }} assets)</em>
+                </span>
+                <span class="num" [class.warn-text]="fy.pendingCost > 0" [class.danger-text]="fy.isOverAllocated">
+                  ₹ {{ fmt(fy.pendingCost) }}
+                </span>
+                <span class="alloc-fy-bar-cell">
+                  <div class="alloc-bar">
+                    <div class="alloc-bar-fill"
+                         [style.width.%]="allocPct(fy)"
+                         [class.bar-over]="fy.isOverAllocated"></div>
+                  </div>
+                  <span class="alloc-pct">{{ allocPct(fy) }}%</span>
+                </span>
               </div>
             }
           </div>

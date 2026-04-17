@@ -17,23 +17,26 @@
   </div>
 
   <div class="schedule-wrapper">
-    <p-table [value]="rows" [loading]="loading" styleClass="p-datatable-sm fas-table">
+    <p-table [value]="rows" [loading]="loading" styleClass="p-datatable-sm fas-table" [scrollable]="true">
       <ng-template pTemplate="header">
-        <!-- Row 1: Group headers -->
+        <!-- Row 1: Group banners -->
         <tr class="group-header-row">
           <th rowspan="2" class="col-particulars">Particulars</th>
-          <th colspan="4" class="group-gross">GROSS BLOCK</th>
-          <th colspan="4" class="group-dep">DEPRECIATION</th>
+          <th colspan="6" class="group-gross">GROSS BLOCK</th>
+          <th colspan="5" class="group-dep">DEPRECIATION</th>
           <th colspan="2" class="group-net">NET BLOCK</th>
         </tr>
         <!-- Row 2: Sub-column headers -->
         <tr class="sub-header-row">
           <th class="col-gross">Opening</th>
           <th class="col-gross">Additions</th>
+          <th class="col-gross col-1h">1H (Apr-Sep)</th>
+          <th class="col-gross col-2h">2H (Oct-Mar)</th>
           <th class="col-gross">Deletions</th>
           <th class="col-gross col-closing">Closing</th>
           <th class="col-dep">Rate %</th>
-          <th class="col-dep">Opening Dep.</th>
+          <th class="col-dep">On Opening</th>
+          <th class="col-dep">On Additions</th>
           <th class="col-dep">For Period</th>
           <th class="col-dep col-closing">Closing Dep.</th>
           <th class="col-net col-closing">Current Year</th>
@@ -46,10 +49,13 @@
           <td class="col-particulars">{{ row.category }}</td>
           <td class="col-gross num-r">{{ fmt(row.openingGross) }}</td>
           <td class="col-gross num-r add-val">{{ fmt(row.additions) }}</td>
+          <td class="col-gross num-r col-1h-val">{{ row.additions1H ? fmt(row.additions1H) : '—' }}</td>
+          <td class="col-gross num-r col-2h-val">{{ row.additions2H ? fmt(row.additions2H) : '—' }}</td>
           <td class="col-gross num-r del-val">{{ fmt(row.deletions) }}</td>
           <td class="col-gross num-r col-closing fw-bold">{{ fmt(row.closingGross) }}</td>
           <td class="col-dep num-r">{{ row.rate > 0 ? row.rate + '%' : '—' }}</td>
-          <td class="col-dep num-r">{{ fmt(row.openingDep) }}</td>
+          <td class="col-dep num-r dep-opening">{{ row.depOnOpening ? fmt(row.depOnOpening) : '—' }}</td>
+          <td class="col-dep num-r dep-addn">{{ row.depOnAdditions ? fmt(row.depOnAdditions) : '—' }}</td>
           <td class="col-dep num-r dep-period">{{ fmt(row.periodDep) }}</td>
           <td class="col-dep num-r col-closing fw-bold">{{ fmt(row.closingDep) }}</td>
           <td class="col-net num-r col-closing fw-bold net-curr">{{ fmt(row.netCurrent) }}</td>
@@ -63,10 +69,13 @@
           <td class="col-particulars">TOTAL</td>
           <td class="col-gross num-r">{{ fmt(grandTotal.openingGross) }}</td>
           <td class="col-gross num-r add-val">{{ fmt(grandTotal.additions) }}</td>
+          <td class="col-gross num-r col-1h-val">{{ fmt(grandTotal.additions1H) }}</td>
+          <td class="col-gross num-r col-2h-val">{{ fmt(grandTotal.additions2H) }}</td>
           <td class="col-gross num-r del-val">{{ fmt(grandTotal.deletions) }}</td>
           <td class="col-gross num-r col-closing">{{ fmt(grandTotal.closingGross) }}</td>
           <td class="col-dep num-r">—</td>
-          <td class="col-dep num-r">{{ fmt(grandTotal.openingDep) }}</td>
+          <td class="col-dep num-r dep-opening">{{ fmt(grandTotal.depOnOpening) }}</td>
+          <td class="col-dep num-r dep-addn">{{ fmt(grandTotal.depOnAdditions) }}</td>
           <td class="col-dep num-r dep-period">{{ fmt(grandTotal.periodDep) }}</td>
           <td class="col-dep num-r col-closing">{{ fmt(grandTotal.closingDep) }}</td>
           <td class="col-net num-r col-closing net-curr">{{ fmt(grandTotal.netCurrent) }}</td>
@@ -77,7 +86,7 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="11" class="text-center">
+          <td colspan="14" class="text-center">
             Select a fiscal year and click Load to generate the schedule.
           </td>
         </tr>

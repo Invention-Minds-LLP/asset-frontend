@@ -64,6 +64,8 @@ import { PaymentVouchers } from './accounts/payment-vouchers/payment-vouchers';
 import { JournalEntries } from './accounts/journal-entries/journal-entries';
 import { AccountLedger } from './accounts/account-ledger/account-ledger';
 import { ServiceInvoices } from './accounts/service-invoices/service-invoices';
+import { LegacyMigration } from './master/legacy-migration/legacy-migration';
+import { Reconciliation } from './master/reconciliation/reconciliation';
 import { FixedAssetsSchedule } from './master/fixed-assets-schedule/fixed-assets-schedule';
 import { FinanceCentre } from './master/finance-centre/finance-centre';
 import { RcaPage } from './master/rca/rca';
@@ -142,6 +144,8 @@ export const routes: Routes = [
   { path: 'accounts/journal-entries', component: JournalEntries, canActivate: [authGuard] },
   { path: 'accounts/ledger', component: AccountLedger, canActivate: [authGuard] },
   { path: 'accounts/service-invoices', component: ServiceInvoices, canActivate: [authGuard] },
+  { path: 'legacy-migration', component: LegacyMigration, canActivate: [authGuard] },
+  { path: 'reconciliation',   component: Reconciliation, canActivate: [authGuard] },
   { path: 'fixed-assets-schedule', component: FixedAssetsSchedule, canActivate: [authGuard] },
   { path: 'finance-centre', component: FinanceCentre, canActivate: [authGuard] },
   { path: 'rca', component: RcaPage, canActivate: [authGuard] },

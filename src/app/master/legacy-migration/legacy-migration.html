@@ -1,0 +1,213 @@
+<div class="lm-container">
+  <p-toast />
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h2>Legacy Asset Migration</h2>
+      <p class="subtitle">Onboard pre-existing audited assets without recomputing prior-year depreciation</p>
+    </div>
+    <div class="header-actions">
+      <p-button label="Migrate Single Asset" icon="pi pi-user-plus" severity="success"
+        (onClick)="openSingle()" />
+      <p-button label="Pro-rate by Category" icon="pi pi-th-large" severity="info"
+        (onClick)="openProportional()" />
+    </div>
+  </div>
+  <div class="divider-container"><hr class="divider" /></div>
+
+  <!-- Info Card -->
+  <div class="info-card">
+    <i class="pi pi-info-circle"></i>
+    <div>
+      <strong>Three migration modes available:</strong>
+      <ul>
+        <li><b>Granular</b> — full per-asset history known (original cost, acc. dep at cut-off)</li>
+        <li><b>Proportional</b> — only category/pool totals known; system pro-rates</li>
+        <li><b>Carry as New</b> — no history derivable; treat as fresh asset on migration date</li>
+      </ul>
+      Engine never recomputes depreciation for periods before migration date.
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-row">
+    <p-select [options]="modeOptions" optionLabel="label" optionValue="value"
+      [(ngModel)]="filters.mode" placeholder="Filter by Mode" (onChange)="load()" appendTo="body" />
+    <p-datepicker [(ngModel)]="filters.fromDate" placeholder="From Migration Date"
+      (onSelect)="load()" appendTo="body" dateFormat="dd/mm/yy" />
+    <p-datepicker [(ngModel)]="filters.toDate" placeholder="To Migration Date"
+      (onSelect)="load()" appendTo="body" dateFormat="dd/mm/yy" />
+  </div>
+
+  <!-- Migrated Assets Table -->
+  <p-table [value]="migratedAssets" [loading]="loading" styleClass="p-datatable-sm p-datatable-striped">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Asset</th>
+        <th>Category</th>
+        <th>Mode</th>
+        <th>Migration Date</th>
+        <th>Original Cost</th>
+        <th>Acc. Dep &#64; Migration</th>
+        <th>Opening WDV</th>
+        <th>Audited NB</th>
+        <th>Variance</th>
+        <th>Audit Ref</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>
+          <div class="asset-cell">
+            <strong>{{ row.assetId }}</strong>
+            <span class="asset-name">{{ row.assetName }}</span>
+          </div>
+        </td>
+        <td>{{ row.assetCategory?.name || '—' }}</td>
+        <td><p-tag [value]="row.migrationMode" [severity]="modeSeverity(row.migrationMode)" /></td>
+        <td>{{ row.migrationDate | date:'dd/MM/yyyy' }}</td>
+        <td class="num">₹ {{ fmt(row.originalCost) }}</td>
+        <td class="num">₹ {{ fmt(row.accDepAtMigration) }}</td>
+        <td class="num bold">₹ {{ fmt(row.openingWdvAtMigration) }}</td>
+        <td class="num">₹ {{ fmt(row.auditedBookValueAtMigration) }}</td>
+        <td class="num" [class.var-flag]="row.varianceFlagged">
+          @if (row.varianceVsAudited != null) {
+            <span [class.neg]="row.varianceVsAudited < 0">
+              ₹ {{ fmt(row.varianceVsAudited) }}
+            </span>
+          } @else { — }
+        </td>
+        <td>{{ row.auditReferenceId || '—' }}</td>
+        <td>
+          <p-button icon="pi pi-undo" severity="danger" [text]="true" size="small"
+            pTooltip="Revert migration" (onClick)="revert(row)" />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="11" class="empty-msg">No migrated assets yet. Click "Migrate Single Asset" to start.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- ── Single Asset Migration Dialog ──────────────────────────────────── -->
+<p-dialog [(visible)]="showSingleDialog" header="Migrate Legacy Asset"
+  [modal]="true" [style]="{width:'620px'}" [closable]="true">
+  <div class="dialog-form">
+    <p-floatlabel variant="on" class="full-field">
+      <p-select [options]="assetOptions" optionLabel="label" optionValue="value"
+        [(ngModel)]="singleForm.assetId" appendTo="body" [filter]="true"
+        (onChange)="onAssetSelect($event.value)" />
+      <label>Asset *</label>
+    </p-floatlabel>
+
+    <div class="two-fields">
+      <p-floatlabel variant="on">
+        <p-select [options]="modeOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="singleForm.migrationMode" appendTo="body" />
+        <label>Migration Mode *</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <p-datepicker [(ngModel)]="singleForm.migrationDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <label>Migration Cut-off Date *</label>
+      </p-floatlabel>
+    </div>
+
+    <p-floatlabel variant="on" class="full-field">
+      <p-datepicker [(ngModel)]="singleForm.originalPurchaseDate" appendTo="body" dateFormat="dd/mm/yy" />
+      <label>Original Purchase Date (pre-migration)</label>
+    </p-floatlabel>
+
+    <div class="section-label">Audited Values (frozen — engine will not recompute these)</div>
+    <div class="three-fields">
+      <p-floatlabel variant="on">
+        <input pInputText type="number" [(ngModel)]="singleForm.originalCost" />
+        <label>Original Cost (₹) *</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText type="number" [(ngModel)]="singleForm.accDepAtMigration" />
+        <label>Acc. Dep &#64; Migration (₹) *</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText type="number" [ngModel]="computedOpeningWdv" disabled />
+        <label>Opening WDV (auto)</label>
+      </p-floatlabel>
+    </div>
+
+    <div class="two-fields">
+      <p-floatlabel variant="on">
+        <input pInputText type="number" [(ngModel)]="singleForm.auditedBookValueAtMigration" />
+        <label>Audited Book Value (for variance check)</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText [(ngModel)]="singleForm.auditReferenceId" />
+        <label>Auditor Reference (Firm + Report No.)</label>
+      </p-floatlabel>
+    </div>
+
+    @if (singleVariance !== null) {
+      <div class="variance-banner" [class.warn]="singleVariance !== 0">
+        <i class="pi" [class.pi-check-circle]="singleVariance === 0" [class.pi-exclamation-triangle]="singleVariance !== 0"></i>
+        Variance vs Audited: <strong>₹ {{ fmt(singleVariance) }}</strong>
+        @if (singleVariance === 0) { <span>— matched perfectly</span> }
+        @else { <span>— review before saving</span> }
+      </div>
+    }
+
+    <p-floatlabel variant="on" class="full-field">
+      <textarea pTextarea [(ngModel)]="singleForm.migrationNotes" rows="2"></textarea>
+      <label>Migration Notes</label>
+    </p-floatlabel>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" [text]="true" (onClick)="showSingleDialog=false" />
+    <p-button label="Save Migration" icon="pi pi-check" severity="success"
+      (onClick)="saveSingle()" [loading]="saving" />
+  </ng-template>
+</p-dialog>
+
+<!-- ── Proportional Migration Dialog ──────────────────────────────────── -->
+<p-dialog [(visible)]="showProportionalDialog" header="Proportional Migration (Pro-rate from Category Totals)"
+  [modal]="true" [style]="{width:'560px'}" [closable]="true">
+  <div class="dialog-form">
+    <p class="dialog-intro">
+      System will distribute the audited totals across all assets in the selected category,
+      pro-rated by each asset's purchase cost share.
+    </p>
+
+    <div class="two-fields">
+      <p-floatlabel variant="on">
+        <p-select [options]="categoryOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="propForm.categoryId" appendTo="body" [filter]="true" />
+        <label>Asset Category *</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <p-datepicker [(ngModel)]="propForm.migrationDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <label>Migration Cut-off Date *</label>
+      </p-floatlabel>
+    </div>
+
+    <div class="two-fields">
+      <p-floatlabel variant="on">
+        <input pInputText type="number" [(ngModel)]="propForm.totalGross" />
+        <label>Audited Total Gross Block (₹) *</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText type="number" [(ngModel)]="propForm.totalAccDep" />
+        <label>Audited Total Acc. Dep. (₹) *</label>
+      </p-floatlabel>
+    </div>
+
+    <p-floatlabel variant="on" class="full-field">
+      <input pInputText [(ngModel)]="propForm.auditReferenceId" />
+      <label>Auditor Reference</label>
+    </p-floatlabel>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" [text]="true" (onClick)="showProportionalDialog=false" />
+    <p-button label="Apply Pro-rate" icon="pi pi-bolt" severity="info"
+      (onClick)="saveProportional()" [loading]="saving" />
+  </ng-template>
+</p-dialog>

@@ -168,12 +168,6 @@
                                 </p-floatlabel>
                             </div>
 
-                            <p-floatlabel variant="on">
-                                <p-datepicker name="installedAt" [(ngModel)]="asset.installedAt"
-                                    [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
-                                <label>Installed Date</label>
-                            </p-floatlabel>
-
                             <p-floatlabel variant="on" class="full-field">
                                 <input pInputText type="number" name="purchaseCost" [(ngModel)]="asset.purchaseCost"
                                     [required]="!asset.isLegacyAsset" [disabled]="!canEditBasicDetails"
@@ -624,13 +618,6 @@
                             <label>Inspection Status</label>
                         </p-floatlabel>
 
-                        <p-floatlabel variant="on" class="full-field">
-                            <p-select [options]="serviceCoverageOptions" optionLabel="label" optionValue="value"
-                                [(ngModel)]="asset.serviceCoverageType" name="serviceCoverageType" appendTo="body"
-                                [disabled]="!canEditBasicDetails" [showClear]="true"></p-select>
-                            <label>Service Coverage Type</label>
-                        </p-floatlabel>
-
                         <!-- ====================== -->
                         <!-- CREATION CHECKLIST -->
                         <!-- ====================== -->
@@ -744,6 +731,22 @@
 
         <p-tabPanel header="Assignment" *ngIf="canAccessDepartmentTabs">
             <div class="tab-section">
+                <h3 class="section-title">Deployment Details</h3>
+                <div class="two-fields">
+                    <p-floatlabel variant="on">
+                        <p-datepicker name="installedAt" [(ngModel)]="asset.installedAt"
+                            appendTo="body"></p-datepicker>
+                        <label>Installation / Commissioning Date</label>
+                    </p-floatlabel>
+                    <p-floatlabel variant="on">
+                        <p-select [options]="serviceCoverageOptions" optionLabel="label" optionValue="value"
+                            [(ngModel)]="asset.serviceCoverageType" name="serviceCoverageType" appendTo="body"
+                            [showClear]="true"></p-select>
+                        <label>Service Coverage Type</label>
+                    </p-floatlabel>
+                </div>
+                <hr style="margin: 15px 0;">
+
                 <h3 class="section-title">Condition at Handover *</h3>
                 <textarea pInputTextarea rows="2" [(ngModel)]="handoverCondition" name="handoverCondition"
                     placeholder="Describe condition (Working / Accessories / Scratches / Missing parts etc.)"></textarea>
@@ -1734,11 +1737,13 @@
                 </div>
 
                 <div class="two-fields">
-                    <p-floatlabel variant="on">
-                        <input type="number" pInputText name="expectedLifeYears"
-                            [(ngModel)]="depreciationForm.expectedLifeYears" />
-                        <label>Expected Life (Years) *</label>
-                    </p-floatlabel>
+                    @if (depreciationForm.depreciationMethod !== 'DB') {
+                      <p-floatlabel variant="on">
+                          <input type="number" pInputText name="expectedLifeYears"
+                              [(ngModel)]="depreciationForm.expectedLifeYears" />
+                          <label>Expected Life (Years) *</label>
+                      </p-floatlabel>
+                    }
 
                     <p-floatlabel variant="on">
                         <p-select [options]="depreciationFrequencies" optionLabel="label" optionValue="value"
@@ -1806,7 +1811,7 @@
                 </div>
 
                 <button pButton [label]="depreciationButtonLabel" style="margin-top: 10px;"
-                    [disabled]="!depreciationForm.depreciationMethod || !depreciationForm.expectedLifeYears || (depreciationForm.depreciationMethod === 'DB' && !depreciationForm.depreciationRate)"
+                    [disabled]="!depreciationForm.depreciationMethod || (depreciationForm.depreciationMethod === 'SL' && !depreciationForm.expectedLifeYears) || (depreciationForm.depreciationMethod === 'DB' && !depreciationForm.depreciationRate)"
                     (click)="saveDepreciation()">
                 </button>
 

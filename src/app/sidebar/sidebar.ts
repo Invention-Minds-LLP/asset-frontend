@@ -116,6 +116,8 @@ export class Sidebar implements OnInit {
         { label: 'Batch Depreciation', route: '/batch-depreciation', icon: 'pi pi-chart-line' },
         { label: 'Fixed Assets Schedule', route: '/fixed-assets-schedule', icon: 'pi pi-table' },
         { label: 'Finance Centre', route: '/finance-centre', icon: 'pi pi-building-columns' },
+        { label: 'Legacy Migration', route: '/legacy-migration', icon: 'pi pi-history' },
+        { label: 'Reconciliation', route: '/reconciliation', icon: 'pi pi-equals' },
         { label: 'Asset Pools', route: '/asset-pool', icon: 'pi pi-layer-group' },
         { label: 'Reports', route: '/reports', icon: 'pi pi-file' },
       ]

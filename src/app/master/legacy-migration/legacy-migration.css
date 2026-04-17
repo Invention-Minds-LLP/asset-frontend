@@ -1,0 +1,56 @@
+.lm-container { padding: 24px; max-width: 1500px; }
+
+.page-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 4px;
+}
+.page-header h2 { margin: 0 0 4px; font-size: 1.4rem; color: #1e293b; }
+.subtitle { margin: 0; color: #64748b; font-size: 0.85rem; }
+.header-actions { display: flex; gap: 8px; }
+.divider-container { margin: 12px 0; }
+.divider { border: none; border-top: 1px solid #e2e8f0; margin: 0; }
+
+.info-card {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: #eff6ff; border: 1px solid #bfdbfe;
+  padding: 14px 18px; border-radius: 10px;
+  margin-bottom: 16px; color: #1e40af; font-size: 0.88rem;
+}
+.info-card i { font-size: 1.4rem; margin-top: 2px; }
+.info-card ul { margin: 6px 0 6px 18px; padding: 0; }
+.info-card li { margin: 2px 0; }
+
+.filters-row {
+  display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.filters-row p-select, .filters-row p-datepicker { min-width: 200px; }
+
+.empty-msg { text-align: center; padding: 24px; color: #94a3b8; }
+
+.asset-cell { display: flex; flex-direction: column; gap: 2px; }
+.asset-name { font-size: 0.78rem; color: #64748b; }
+
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.num.bold { font-weight: 600; color: #1e293b; }
+.var-flag { background: #fef3c7; }
+.neg { color: #dc2626; }
+
+.dialog-form { display: flex; flex-direction: column; gap: 16px; padding: 8px 0; }
+.two-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.three-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.full-field { width: 100%; }
+.section-label {
+  font-size: 0.78rem; font-weight: 600; color: #64748b;
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: -8px;
+}
+.dialog-intro { margin: 0 0 4px; color: #64748b; font-size: 0.85rem; }
+
+.variance-banner {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 6px; font-size: 0.88rem;
+  background: #f0fdf4; border: 1px solid #86efac; color: #166534;
+}
+.variance-banner.warn {
+  background: #fef3c7; border-color: #fde68a; color: #92400e;
+}
+.variance-banner i { font-size: 1.1rem; }
