@@ -112,7 +112,47 @@
             <input pInputText id="catName" [(ngModel)]="categoryForm.name" />
             <label for="catName">Category Name</label>
           </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText id="catCode" [(ngModel)]="categoryForm.code" maxlength="5" />
+            <label for="catCode">Code (3-5 letters)</label>
+          </p-floatlabel>
         </div>
+
+        <label for="catSerialReq"
+               style="display:flex; align-items:flex-start; gap:12px;
+                      padding:12px 14px; margin-top:14px;
+                      background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;
+                      cursor:pointer;">
+          <p-checkbox inputId="catSerialReq" [binary]="true" [(ngModel)]="categoryForm.serialRequired"></p-checkbox>
+          <div style="line-height:1.4;">
+            <div style="font-size:0.9rem; font-weight:500; color:#0f172a;">
+              Serial Number required for assets in this category
+            </div>
+            <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">
+              Uncheck for non-serialized items (Office Equipment, Furniture, Stationery, etc.)
+            </div>
+          </div>
+        </label>
+
+        <h5 style="margin: 28px 0 14px; color: #475569; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.4px;">
+          Default Depreciation (auto-applied to new assets in this category)
+        </h5>
+        <div class="form-row">
+          <p-floatlabel>
+            <p-select id="catDepMethod" [options]="depMethodOptions" optionLabel="label" optionValue="value"
+              [(ngModel)]="categoryForm.defaultDepreciationMethod" [showClear]="true" appendTo="body" />
+            <label for="catDepMethod">Depreciation Method</label>
+          </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText type="number" id="catDepRate" [(ngModel)]="categoryForm.defaultDepreciationRate" />
+            <label for="catDepRate">Rate (%)</label>
+          </p-floatlabel>
+          <p-floatlabel>
+            <input pInputText type="number" id="catLife" [(ngModel)]="categoryForm.defaultLifeYears" />
+            <label for="catLife">Useful Life (Years)</label>
+          </p-floatlabel>
+        </div>
+
         <div class="form-actions">
           <p-button label="Save" icon="pi pi-check" (onClick)="saveCategory()" />
           <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showCategoryForm = false" />
@@ -125,13 +165,26 @@
         <tr>
           <th>#</th>
           <th>Name</th>
+          <th>Code</th>
+          <th>Serial Req?</th>
+          <th>Dep. Method</th>
+          <th>Rate %</th>
+          <th>Life (Yrs)</th>
           <th style="width:120px">Actions</th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-cat let-i="rowIndex">
         <tr>
           <td>{{ i + 1 }}</td>
-          <td>{{ cat.name }}</td>
+          <td><strong>{{ cat.name }}</strong></td>
+          <td>{{ cat.code || '—' }}</td>
+          <td>
+            <p-tag *ngIf="cat.serialRequired" severity="success" value="Yes"></p-tag>
+            <p-tag *ngIf="!cat.serialRequired" severity="secondary" value="No"></p-tag>
+          </td>
+          <td>{{ cat.defaultDepreciationMethod || '—' }}</td>
+          <td>{{ cat.defaultDepreciationRate ? cat.defaultDepreciationRate + '%' : '—' }}</td>
+          <td>{{ cat.defaultLifeYears || '—' }}</td>
           <td>
             <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openCategoryForm(cat)" />
             <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteCategory(cat)" />
@@ -139,7 +192,7 @@
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
-        <tr><td colspan="3" class="empty-msg">No categories found.</td></tr>
+        <tr><td colspan="8" class="empty-msg">No categories found.</td></tr>
       </ng-template>
     </p-table>
   </p-tabPanel>
@@ -187,9 +240,11 @@
         <p class="form-section-label">Address</p>
         <div class="form-row">
           <p-floatlabel class="full-width">
-            <textarea pTextarea id="vendorAddress" [(ngModel)]="vendorForm.address" rows="2" style="width:100%"></textarea>
-            <label for="vendorAddress">Address</label>
+            <textarea pTextarea id="vendorAddress" [(ngModel)]="vendorForm.address" rows="2"></textarea>
+            <label for="vendorAddress">Street Address</label>
           </p-floatlabel>
+        </div>
+        <div class="form-row">
           <p-floatlabel>
             <input pInputText id="vendorCity" [(ngModel)]="vendorForm.city" />
             <label for="vendorCity">City</label>

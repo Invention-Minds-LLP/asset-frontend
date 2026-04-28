@@ -1,88 +1,283 @@
-.fas-container { padding: 20px; max-width: 1600px; }
+.fas-container { padding: 18px; max-width: 1500px; }
 
 .page-header {
   display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 10px; margin-bottom: 14px;
+  flex-wrap: wrap; gap: 10px; margin-bottom: 12px;
 }
 .header-left { display: flex; align-items: center; gap: 10px; }
 .header-left h2 {
-  margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; color: #1e293b;
+  margin: 0; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; color: #1e293b;
 }
 .fy-badge {
   background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7;
-  border-radius: 16px; padding: 3px 12px; font-size: 0.78rem; font-weight: 600;
+  border-radius: 14px; padding: 2px 11px; font-size: 0.74rem; font-weight: 600;
 }
 .header-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.fy-select { min-width: 150px; }
+.fy-select { min-width: 140px; }
 
-.schedule-wrapper { overflow-x: auto; }
+.schedule-wrapper { overflow-x: auto; border: 1px solid #cbd5e1; border-radius: 8px; }
 
-/* ── Group header rows ─────────────────────────────────── */
-.fas-table ::ng-deep .group-header-row th {
-  text-align: center; font-weight: 700; font-size: 0.72rem;
-  padding: 6px 6px; border-bottom: 2px solid #cbd5e1;
-  text-transform: uppercase; letter-spacing: 0.5px;
+/* ── HEADER BANNERS (Row 1) — strong color blocks ─────────────────── */
+::ng-deep .fas-table .p-datatable-thead > tr.hdr-banner > th {
+  text-align: center !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  padding: 12px 8px !important;
+  letter-spacing: 0.8px !important;
+  text-transform: uppercase !important;
+  border-bottom: 2px solid rgba(0,0,0,0.2) !important;
+  color: #fff !important;
+  vertical-align: middle !important;
 }
-.fas-table ::ng-deep .sub-header-row th {
-  text-align: right; font-weight: 600; font-size: 0.68rem;
-  padding: 4px 6px; border-bottom: 2px solid #cbd5e1; white-space: nowrap;
+::ng-deep .fas-table tr.hdr-banner > th.banner-gross {
+  background: #34d399 !important;
+  background-color: #34d399 !important;
+  color: #064e3b !important;
+  border-right: 4px solid #fff !important;
 }
-
-/* ── Gross Block: green ───────────────────────────────── */
-.fas-table ::ng-deep .group-gross { background: #065f46 !important; color: #fff !important; }
-.fas-table ::ng-deep .col-gross { background: #f0fdf4 !important; color: #065f46; }
-.fas-table ::ng-deep .sub-header-row .col-gross { background: #d1fae5 !important; color: #065f46; }
-
-/* ── Depreciation: orange ─────────────────────────────── */
-.fas-table ::ng-deep .group-dep { background: #9a3412 !important; color: #fff !important; }
-.fas-table ::ng-deep .col-dep { background: #fffbeb !important; color: #9a3412; }
-.fas-table ::ng-deep .sub-header-row .col-dep { background: #fef3c7 !important; color: #9a3412; }
-
-/* ── Net Block: blue ──────────────────────────────────── */
-.fas-table ::ng-deep .group-net { background: #1e40af !important; color: #fff !important; }
-.fas-table ::ng-deep .col-net { background: #eff6ff !important; color: #1e40af; }
-.fas-table ::ng-deep .sub-header-row .col-net { background: #dbeafe !important; color: #1e40af; }
-
-/* ── Particulars column ───────────────────────────────── */
-.fas-table ::ng-deep .col-particulars {
-  background: #f8fafc !important; font-weight: 600; font-size: 0.78rem;
-  min-width: 160px; border-right: 2px solid #e2e8f0; color: #1e293b;
+::ng-deep .fas-table tr.hdr-banner > th.banner-dep {
+  background: #fdba74 !important;
+  background-color: #fdba74 !important;
+  color: #7c2d12 !important;
+  border-right: 4px solid #fff !important;
 }
-
-/* Closing columns: darker shade */
-.fas-table ::ng-deep .col-closing { filter: brightness(0.94); font-weight: 700 !important; }
-
-/* ── Half-year sub-columns ────────────────────────────── */
-.fas-table ::ng-deep .sub-header-row .col-1h { background: #dcfce7 !important; color: #166534; font-style: italic; }
-.fas-table ::ng-deep .sub-header-row .col-2h { background: #fef9c3 !important; color: #854d0e; font-style: italic; }
-.col-1h-val { color: #16a34a !important; font-size: 0.74rem !important; }
-.col-2h-val { color: #ca8a04 !important; font-size: 0.74rem !important; }
-
-/* ── Depreciation split sub-columns ───────────────────── */
-.dep-opening { color: #7c3aed !important; font-size: 0.74rem !important; }
-.dep-addn { color: #be185d !important; font-size: 0.74rem !important; }
-
-/* ── Data rows ────────────────────────────────────────── */
-.fas-table ::ng-deep .data-row td {
-  font-size: 0.78rem; padding: 4px 6px; border-bottom: 1px solid #e2e8f0;
+::ng-deep .fas-table tr.hdr-banner > th.banner-net {
+  background: #93c5fd !important;
+  background-color: #93c5fd !important;
+  color: #1e3a8a !important;
+}
+/* Particulars column header — neutral light */
+::ng-deep .fas-table tr.hdr-banner > th.col-particulars {
+  background: #cbd5e1 !important;
+  background-color: #cbd5e1 !important;
+  color: #1e293b !important;
+  text-align: left !important;
 }
 
-/* ── Total row ────────────────────────────────────────── */
-.fas-table ::ng-deep .total-row td {
-  font-weight: 700; font-size: 0.78rem; padding: 6px 6px;
-  border-top: 2px solid #94a3b8; background: #f1f5f9 !important;
+/* ── HEADER SUB-GROUPS (Row 2) — tinted by section ────────────────── */
+::ng-deep .fas-table .p-datatable-thead > tr.hdr-subgroup > th {
+  text-align: center !important; font-weight: 600 !important; font-size: 0.74rem !important;
+  padding: 7px 8px !important; border-bottom: 1px solid #cbd5e1 !important;
+  vertical-align: middle !important;
 }
 
-/* ── Numeric alignment ────────────────────────────────── */
+/* Sub-group label cells (Additions / Depreciation Split) — soft tint */
+::ng-deep .fas-table tr.hdr-subgroup > th.subgroup-add {
+  background: #d1fae5 !important; color: #065f46 !important;
+  font-weight: 600 !important;
+  border-left: 1px solid #6ee7b7 !important;
+  border-right: 1px solid #6ee7b7 !important;
+}
+::ng-deep .fas-table tr.hdr-subgroup > th.subgroup-dep {
+  background: #fef3c7 !important; color: #92400e !important;
+  font-weight: 600 !important;
+  border-left: 1px solid #fcd34d !important;
+  border-right: 1px solid #fcd34d !important;
+}
+
+/* Sub-group rowspan cells (Opening, Deletions, Closing, Rate, Closing Acc, Current Year, Prev Year) */
+::ng-deep .fas-table tr.hdr-subgroup > th.col-gross {
+  background: #ecfdf5 !important; color: #065f46 !important;
+  text-align: center !important;
+}
+::ng-deep .fas-table tr.hdr-subgroup > th.col-dep {
+  background: #fffbeb !important; color: #92400e !important;
+  text-align: center !important;
+}
+::ng-deep .fas-table tr.hdr-subgroup > th.col-net {
+  background: #eff6ff !important; color: #1e3a8a !important;
+  text-align: center !important;
+}
+
+/* ── HEADER LEAF (Row 3) — innermost split columns ────────────────── */
+::ng-deep .fas-table .p-datatable-thead > tr.hdr-leaf > th {
+  text-align: center !important; font-weight: 600 !important; font-size: 0.68rem !important;
+  padding: 5px 6px !important; line-height: 1.15 !important;
+  border-bottom: 1px solid #cbd5e1 !important;
+}
+::ng-deep .fas-table tr.hdr-leaf > th small {
+  display: block; font-weight: 400; font-size: 0.6rem; opacity: 0.8;
+}
+::ng-deep .fas-table tr.hdr-leaf > th.col-1h { background: #f0fdf4 !important; color: #166534 !important; }
+::ng-deep .fas-table tr.hdr-leaf > th.col-2h { background: #fefce8 !important; color: #854d0e !important; }
+::ng-deep .fas-table tr.hdr-leaf > th.col-dep-open { background: #faf5ff !important; color: #7c3aed !important; }
+::ng-deep .fas-table tr.hdr-leaf > th.col-dep-addn { background: #fdf2f8 !important; color: #be185d !important; }
+
+/* Body cells for leaf columns (visual separation from parent group) */
+.col-1h-val { color: #15803d !important; font-size: 0.74rem !important; background: #f0fdf4 !important; }
+.col-2h-val { color: #b45309 !important; font-size: 0.74rem !important; background: #fefce8 !important; }
+.dep-opening { color: #6d28d9 !important; font-size: 0.74rem !important; background: #f5f3ff !important; }
+.dep-addn    { color: #be185d !important; font-size: 0.74rem !important; background: #fdf2f8 !important; }
+
+/* ── BODY CELLS — base section colors ─────────────────────────────── */
+::ng-deep .fas-table .p-datatable-tbody > tr > td.col-particulars {
+  background: #f1f5f9 !important; font-weight: 600 !important; font-size: 0.78rem !important;
+  min-width: 140px; border-right: 4px solid #475569 !important; color: #1e293b !important;
+}
+::ng-deep .fas-table .p-datatable-tbody > tr > td.col-gross { background: #ecfdf5 !important; color: #065f46 !important; }
+::ng-deep .fas-table .p-datatable-tbody > tr > td.col-dep   { background: #fff7ed !important; color: #9a3412 !important; }
+::ng-deep .fas-table .p-datatable-tbody > tr > td.col-net   { background: #eff6ff !important; color: #1e3a8a !important; }
+
+/* Closing column — slightly stronger tint + bold */
+::ng-deep .fas-table .p-datatable-tbody > tr > td.col-gross.col-closing { background: #d1fae5 !important; }
+::ng-deep .fas-table .p-datatable-tbody > tr > td.col-dep.col-closing { background: #fde68a !important; }
+::ng-deep .fas-table td.col-closing { font-weight: 700 !important; }
+
+/* ── HARD SECTION DIVIDERS (vertical separators between 3 sections) ─ */
+::ng-deep .fas-table .p-datatable-tbody > tr > td.col-gross.col-closing {
+  border-right: 4px solid #6ee7b7 !important;
+}
+::ng-deep .fas-table .p-datatable-tbody > tr > td.col-dep.col-closing {
+  border-right: 4px solid #fcd34d !important;
+}
+::ng-deep .fas-table tr.hdr-subgroup > th.col-gross.col-closing {
+  border-right: 4px solid #fff !important;
+}
+::ng-deep .fas-table tr.hdr-subgroup > th.col-dep.col-closing {
+  border-right: 4px solid #fff !important;
+}
+
+/* Closing column highlight (slightly darker tint + bold) */
+.fas-table ::ng-deep .col-gross.col-closing { background: #d1fae5 !important; }
+.fas-table ::ng-deep .col-dep.col-closing   { background: #fed7aa !important; }
+.fas-table ::ng-deep td.col-closing { font-weight: 700 !important; }
+
+/* ── DATA ROWS ────────────────────────────────────────────────────── */
+::ng-deep .fas-table .p-datatable-tbody > tr.data-row > td {
+  font-size: 0.78rem !important; padding: 8px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* Zebra striping per section (alternating rows get a slightly different tint) */
+::ng-deep .fas-table .p-datatable-tbody > tr.data-row:nth-child(even) > td.col-gross { background: #f7fee7 !important; }
+::ng-deep .fas-table .p-datatable-tbody > tr.data-row:nth-child(even) > td.col-dep   { background: #fffbeb !important; }
+::ng-deep .fas-table .p-datatable-tbody > tr.data-row:nth-child(even) > td.col-net   { background: #f0f9ff !important; }
+::ng-deep .fas-table .p-datatable-tbody > tr.data-row:nth-child(even) > td.col-particulars { background: #f1f5f9 !important; }
+
+/* ── TOTAL ROW — soft colored summary ─────────────────────────────── */
+::ng-deep .fas-table tr.total-row > td {
+  font-weight: 700 !important; font-size: 0.84rem !important; padding: 10px 8px !important;
+  border-top: 2px solid #94a3b8 !important;
+}
+::ng-deep .fas-table tr.total-row > td.col-particulars {
+  background: #cbd5e1 !important; color: #1e293b !important;
+  border-right: 4px solid #94a3b8 !important;
+}
+::ng-deep .fas-table tr.total-row > td.col-gross,
+::ng-deep .fas-table tr.total-row > td.col-gross.col-1h-val,
+::ng-deep .fas-table tr.total-row > td.col-gross.col-2h-val,
+::ng-deep .fas-table tr.total-row > td.col-gross.col-closing {
+  background: #a7f3d0 !important; color: #064e3b !important;
+}
+::ng-deep .fas-table tr.total-row > td.col-dep,
+::ng-deep .fas-table tr.total-row > td.col-dep.dep-opening,
+::ng-deep .fas-table tr.total-row > td.col-dep.dep-addn,
+::ng-deep .fas-table tr.total-row > td.col-dep.col-closing {
+  background: #fde68a !important; color: #7c2d12 !important;
+}
+::ng-deep .fas-table tr.total-row > td.col-net {
+  background: #bfdbfe !important; color: #1e3a8a !important;
+}
+::ng-deep .fas-table tr.total-row > td.col-gross.col-closing {
+  border-right: 4px solid #6ee7b7 !important;
+}
+::ng-deep .fas-table tr.total-row > td.col-dep.col-closing {
+  border-right: 4px solid #fcd34d !important;
+}
+
+/* ── NUMERIC ALIGNMENT ────────────────────────────────────────────── */
 .num-r { text-align: right !important; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .fw-bold { font-weight: 700 !important; }
-.add-val { color: #059669 !important; }
 .del-val { color: #dc2626 !important; }
-.dep-period { color: #ea580c !important; font-weight: 600 !important; }
-.net-curr { color: #1d4ed8 !important; font-weight: 700 !important; }
+.dep-period { color: #b45309 !important; font-weight: 700 !important; }
+.net-curr { color: #1d4ed8 !important; font-weight: 700 !important; font-size: 0.86rem !important; }
+.net-prev { color: #64748b !important; font-style: italic; font-size: 0.74rem !important; }
+.rate-cell { font-weight: 700; color: #b45309; }
 
 .text-center { text-align: center; padding: 24px; color: #94a3b8; font-size: 0.82rem; }
 
-::ng-deep .fas-container .p-datatable .p-datatable-wrapper {
-  border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;
+/* ── LEGEND ───────────────────────────────────────────────────────── */
+.fas-legend {
+  display: flex; flex-wrap: wrap; gap: 14px;
+  padding: 8px 12px; margin-top: 10px;
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+  font-size: 0.72rem; color: #475569;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.dot-1h  { background: #bbf7d0; border: 1px solid #047857; }
+.dot-2h  { background: #fde68a; border: 1px solid #b45309; }
+.dot-opn { background: #ddd6fe; border: 1px solid #6d28d9; }
+.dot-add { background: #fbcfe8; border: 1px solid #be185d; }
+
+/* PrimeNG wrapper override */
+::ng-deep .fas-container .p-datatable .p-datatable-wrapper { border: none; border-radius: 0; }
+::ng-deep .fas-container .p-datatable .p-datatable-thead > tr > th { box-shadow: none !important; }
+
+/* ── Clickable category cell ──────────────────────────────────────── */
+.cat-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  cursor: pointer; color: #1d4ed8;
+  text-decoration: none; font-weight: 600;
+  transition: color 0.15s;
+}
+.cat-link:hover { color: #1e40af; text-decoration: underline; }
+.cat-link-icon { font-size: 0.7rem; opacity: 0.6; }
+.cat-link:hover .cat-link-icon { opacity: 1; }
+
+.legend-hint {
+  margin-left: auto; color: #1d4ed8; font-style: italic;
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* ── Drill-down dialog ────────────────────────────────────────────── */
+::ng-deep .fas-detail-dialog .p-dialog-content { padding: 12px 16px !important; }
+::ng-deep .fas-detail-dialog .p-dialog-header { padding: 12px 16px !important; }
+
+.dlg-hdr { display: flex; align-items: center; gap: 12px; }
+.dlg-hdr i { font-size: 1.4rem; color: #1d4ed8; }
+.dlg-title { font-size: 1rem; font-weight: 700; color: #1e293b; }
+.dlg-sub { font-size: 0.74rem; color: #64748b; }
+
+.dlg-loading, .dlg-empty {
+  text-align: center; padding: 30px; color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.asset-cell { display: flex; flex-direction: column; gap: 1px; }
+.asset-cell strong { color: #1e293b; font-size: 0.78rem; }
+.asset-meta { font-size: 0.66rem; color: #64748b; font-family: monospace; }
+
+/* ── Reconciliation strip ─────────────────────────────────────────── */
+.recon-strip {
+  margin-top: 12px; padding: 10px 14px;
+  background: #f0f9ff; border: 1px solid #bae6fd;
+  border-radius: 8px;
+}
+.recon-title {
+  font-size: 0.78rem; font-weight: 700; color: #0c4a6e;
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+}
+.recon-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.recon-cell {
+  background: #fff; padding: 8px 10px; border-radius: 6px;
+  display: flex; flex-direction: column; gap: 2px; font-size: 0.74rem;
+  border-left: 3px solid #93c5fd;
+}
+.recon-label { font-weight: 600; color: #0c4a6e; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.4px; }
+.recon-asset, .recon-cat { color: #475569; font-size: 0.74rem; font-variant-numeric: tabular-nums; }
+.recon-cat { color: #1e3a8a; font-weight: 600; }
+.recon-status {
+  font-weight: 700; margin-top: 2px;
+  color: #b45309;
+}
+.recon-status.match { color: #059669; }
+
+.recon-note {
+  margin-top: 8px; padding: 6px 10px;
+  background: #fefce8; border: 1px solid #fde68a; border-radius: 4px;
+  font-size: 0.72rem; color: #854d0e;
+  display: flex; align-items: center; gap: 6px;
 }

@@ -37,6 +37,10 @@ export class ReportsService {
     return this.http.get(`${this.baseUrl}/fixed-assets-schedule`, { params: this.buildParams(filters) });
   }
 
+  getCategoryAssetDetail(filters: any = {}): Observable<any> {
+    return this.http.get(`${this.baseUrl}/fixed-assets-schedule/category-detail`, { params: this.buildParams(filters) });
+  }
+
   getConsolidatedReport(filters: any = {}): Observable<any> {
     return this.http.get(`${this.baseUrl}/consolidated`, { params: this.buildParams(filters) });
   }

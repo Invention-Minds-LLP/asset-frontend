@@ -11,6 +11,7 @@ import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+import { CheckboxModule } from 'primeng/checkbox';
 import { MessageService } from 'primeng/api';
 import { Assets } from '../../services/assets/assets';
 import { Branches } from '../../services/branches/branches';
@@ -30,7 +31,8 @@ import { Branches } from '../../services/branches/branches';
     SelectModule,
     TextareaModule,
     TagModule,
-    TooltipModule
+    TooltipModule,
+    CheckboxModule
   ],
   templateUrl: './master-settings.html',
   styleUrl: './master-settings.css',
@@ -51,7 +53,19 @@ export class MasterSettings implements OnInit {
 
   // ── Asset Categories ─────────────────────────────────────────────────────
   categories: any[] = [];
-  categoryForm = { name: '' };
+  categoryForm: {
+    name: string;
+    code?: string | null;
+    serialRequired?: boolean;
+    defaultDepreciationMethod?: string | null;
+    defaultDepreciationRate?: number | null;
+    defaultLifeYears?: number | null;
+  } = { name: '', serialRequired: true };
+
+  depMethodOptions = [
+    { label: 'Straight Line (SL)', value: 'SL' },
+    { label: 'Declining Balance / WDV (DB)', value: 'DB' },
+  ];
   editingCategoryId: number | null = null;
   showCategoryForm = false;
 
@@ -195,19 +209,41 @@ export class MasterSettings implements OnInit {
   openCategoryForm(cat?: any) {
     if (cat) {
       this.editingCategoryId = cat.id;
-      this.categoryForm = { name: cat.name };
+      this.categoryForm = {
+        name: cat.name,
+        code: cat.code ?? null,
+        serialRequired: cat.serialRequired ?? true,
+        defaultDepreciationMethod: cat.defaultDepreciationMethod ?? null,
+        defaultDepreciationRate: cat.defaultDepreciationRate != null ? Number(cat.defaultDepreciationRate) : null,
+        defaultLifeYears: cat.defaultLifeYears ?? null,
+      };
     } else {
       this.editingCategoryId = null;
-      this.categoryForm = { name: '' };
+      this.categoryForm = {
+        name: '',
+        code: null,
+        serialRequired: true,
+        defaultDepreciationMethod: null,
+        defaultDepreciationRate: null,
+        defaultLifeYears: null,
+      };
     }
     this.showCategoryForm = true;
   }
 
   saveCategory() {
     if (!this.categoryForm.name.trim()) { this.toast('warn', 'Category name is required'); return; }
+    const payload: any = {
+      name: this.categoryForm.name.trim(),
+      code: this.categoryForm.code?.trim() || null,
+      serialRequired: this.categoryForm.serialRequired ?? true,
+      defaultDepreciationMethod: this.categoryForm.defaultDepreciationMethod || null,
+      defaultDepreciationRate: this.categoryForm.defaultDepreciationRate ?? null,
+      defaultLifeYears: this.categoryForm.defaultLifeYears ?? null,
+    };
     const call = this.editingCategoryId
-      ? this.assetsService.updateCategory(this.editingCategoryId, this.categoryForm.name.trim())
-      : this.assetsService.createCategory({ name: this.categoryForm.name.trim() });
+      ? this.assetsService.updateCategory(this.editingCategoryId, payload)
+      : this.assetsService.createCategory(payload);
 
     call.subscribe({
       next: () => {

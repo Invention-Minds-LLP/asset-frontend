@@ -69,6 +69,7 @@
           <th></th>
           <th>No</th>
           <th>Asset ID</th>
+          <th>Stores Ref</th>
           <th>Reference Code</th>
           <th>Asset Name</th>
           <th>Asset Type</th>
@@ -90,6 +91,7 @@
             {{ (currentPage - 1) * rowsPerPage + i + 1 }}
           </td>
           <td>{{ asset.assetId }}</td>
+          <td style="font-family:monospace;color:#1e3a8a;">{{ asset.storeAssetId || '-' }}</td>
           <td>
             {{ asset.referenceCode || '-' }}
           </td>

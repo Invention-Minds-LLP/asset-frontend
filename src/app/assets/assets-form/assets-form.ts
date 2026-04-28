@@ -162,12 +162,26 @@ export class AssetsForm implements OnInit {
   employees: any[] = [];
   branches: any[] = [];
 
+  /**
+   * Whether the currently-selected category requires a serial number.
+   * Defaults to true if no category is selected yet, or if the category
+   * doesn't have the flag set (back-compat with older rows).
+   */
+  get isSerialRequiredForCategory(): boolean {
+    const catId = this.asset?.assetCategoryId;
+    if (!catId) return true;
+    const cat = this.categories.find((c: any) => c.id === catId);
+    if (!cat) return true;
+    return cat.serialRequired !== false;
+  }
+
   // ==============================
   // ASSET DATA MODEL (frontend)
   // ==============================
   asset: any = {
     id: null,
     assetId: "",
+    storeAssetId: "",
     referenceCode: "",
     assetName: "",
     assetType: "",
@@ -864,18 +878,35 @@ private returnLastY = 0;
   // ================================
   // PHASE 1 SAVE BASIC DETAILS
   // ================================
-  saveBasicDetails(form: any) {
-    if (!form.valid)
-      return this.toast("error", "Fill required fields");
+  // Set by the "Save & Duplicate" button so the post-save handler
+  // preserves PO/GRN/vendor/etc. instead of clearing the whole form.
+  pendingDuplicate = false;
 
-    if (!this.allCreationItemsChecked)
+  saveAndDuplicate(form: any) {
+    this.pendingDuplicate = true;
+    this.saveBasicDetails(form);
+  }
+
+  saveBasicDetails(form: any) {
+    if (!form.valid) {
+      this.pendingDuplicate = false;
+      return this.toast("error", "Fill required fields");
+    }
+
+    if (!this.allCreationItemsChecked) {
+      this.pendingDuplicate = false;
       return this.toast("error", "Complete all checklist items before saving");
+    }
+
+    const isDuplicate = this.pendingDuplicate;
+    this.pendingDuplicate = false;
 
     this.assetAPI.createAsset(this.asset).subscribe({
       next: res => {
         this.asset.id = res.id;
         this.asset.assetId = res.assetId;
-        this.toast("success", "Basic details saved");
+        this.asset.storeAssetId = res.storeAssetId;
+        this.toast("success", isDuplicate ? "Saved — form ready for next unit" : "Basic details saved");
         if (this.pendingAssetImageFile) {
           this.assetAPI.uploadAssetImage(this.pendingAssetImageFile, res.assetId)
             .subscribe({
@@ -931,9 +962,19 @@ private returnLastY = 0;
             });
           }
         }
-        form.resetForm();
-        this.clearForm();
-        this.activeTab = 0;
+        if (isDuplicate) {
+          this.prepareDuplicate();
+          // Keep on Basic Details tab; mark form pristine so required-field errors don't flash.
+          this.activeTab = 0;
+          setTimeout(() => {
+            form.form.markAsPristine();
+            form.form.markAsUntouched();
+          });
+        } else {
+          form.resetForm();
+          this.clearForm();
+          this.activeTab = 0;
+        }
       },
       error: () => this.toast("error", "Failed to save")
     });
@@ -946,6 +987,84 @@ private returnLastY = 0;
     this.pendingAssetImageFile = null;
     this.imagePreviewUrl = null;
     this.creationChecklistDone = {};
+  }
+
+  /**
+   * Reset the form for the next unit in the same batch:
+   * keep PO/GRN/vendor/category/cost/dates/department/inspection/etc.,
+   * blank out per-unit identifiers (assetId, storeAssetId, serial, reference, photo, rfid).
+   */
+  private prepareDuplicate() {
+    const a = this.asset;
+    const shared: any = {
+      // identification (shared across batch)
+      assetName: a.assetName,
+      assetType: a.assetType,
+      assetNature: a.assetNature,
+      assetCategoryId: a.assetCategoryId,
+      modeOfProcurement: a.modeOfProcurement,
+
+      // intangible details (if applicable)
+      intangibleSubType: a.intangibleSubType,
+      usefulLifeYears: a.usefulLifeYears,
+      amortizationMethod: a.amortizationMethod,
+      amortizationStartDate: a.amortizationStartDate,
+      residualValuePercent: a.residualValuePercent,
+
+      // procurement / vendor / cost (shared across same PO)
+      invoiceNumber: a.invoiceNumber,
+      purchaseOrderNo: a.purchaseOrderNo,
+      purchaseOrderDate: a.purchaseOrderDate,
+      purchaseDate: a.purchaseDate,
+      purchaseCost: a.purchaseCost,
+      vendorId: a.vendorId,
+      purchaseVoucherNo: a.purchaseVoucherNo,
+      purchaseVoucherDate: a.purchaseVoucherDate,
+
+      // GRN (shared across same receipt)
+      grnNumber: a.grnNumber,
+      grnDate: a.grnDate,
+      grnValue: a.grnValue,
+      inspectionStatus: a.inspectionStatus,
+      inspectionRemarks: a.inspectionRemarks,
+
+      // donation / lease / rental (shared across batch)
+      donorName: a.donorName,
+      donationDate: a.donationDate,
+      assetCondition: a.assetCondition,
+      estimatedValue: a.estimatedValue,
+      leaseStartDate: a.leaseStartDate,
+      leaseEndDate: a.leaseEndDate,
+      leaseAmount: a.leaseAmount,
+      rentalStartDate: a.rentalStartDate,
+      rentalEndDate: a.rentalEndDate,
+      rentalAmount: a.rentalAmount,
+
+      // inspection (typically done for whole batch)
+      inspectionDoneBy: a.inspectionDoneBy,
+      inspectionCondition: a.inspectionCondition,
+      inspectionRemark: a.inspectionRemark,
+      physicalInspectionStatus: a.physicalInspectionStatus,
+      physicalInspectionDate: a.physicalInspectionDate,
+      functionalInspectionStatus: a.functionalInspectionStatus,
+      functionalInspectionDate: a.functionalInspectionDate,
+      functionalTestNotes: a.functionalTestNotes,
+
+      // destination (going to same department in the batch)
+      departmentId: a.departmentId,
+      supervisorId: a.supervisorId,
+
+      // service / SLA / lifetime — same template for the batch
+      serviceCoverageType: a.serviceCoverageType,
+      expectedLifetime: a.expectedLifetime,
+      expectedLifetimeUnit: a.expectedLifetimeUnit,
+    };
+
+    this.asset = { ...this.getEmptyAssetModel(), ...shared };
+    // per-unit transient state
+    this.pendingAssetImageFile = null;
+    this.imagePreviewUrl = null;
+    // checklist already completed for the batch — leave creationChecklistDone alone
   }
 
   // ================================

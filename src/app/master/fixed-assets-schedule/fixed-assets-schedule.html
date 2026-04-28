@@ -11,55 +11,64 @@
     <div class="header-actions">
       <p-select [options]="yearOptions" [(ngModel)]="selectedYear"
         optionLabel="label" optionValue="value" styleClass="fy-select"></p-select>
-      <p-button label="Load" icon="pi pi-search" severity="secondary" (onClick)="load()" [loading]="loading"></p-button>
-      <p-button label="Export Excel" icon="pi pi-file-excel" severity="success" (onClick)="exportExcel()"></p-button>
+      <p-button label="Load" icon="pi pi-search" severity="secondary" size="small" (onClick)="load()" [loading]="loading"></p-button>
+      <p-button label="Export Excel" icon="pi pi-file-excel" severity="success" size="small" (onClick)="exportExcel()"></p-button>
     </div>
   </div>
 
   <div class="schedule-wrapper">
     <p-table [value]="rows" [loading]="loading" styleClass="p-datatable-sm fas-table" [scrollable]="true">
       <ng-template pTemplate="header">
-        <!-- Row 1: Group banners -->
-        <tr class="group-header-row">
-          <th rowspan="2" class="col-particulars">Particulars</th>
-          <th colspan="6" class="group-gross">GROSS BLOCK</th>
-          <th colspan="5" class="group-dep">DEPRECIATION</th>
-          <th colspan="2" class="group-net">NET BLOCK</th>
+        <!-- Row 1: Top group banners -->
+        <tr class="hdr-banner">
+          <th rowspan="3" class="col-particulars">Particulars</th>
+          <th colspan="5" class="banner-gross">GROSS BLOCK</th>
+          <th colspan="4" class="banner-dep">DEPRECIATION</th>
+          <th colspan="2" class="banner-net">NET BLOCK</th>
         </tr>
-        <!-- Row 2: Sub-column headers -->
-        <tr class="sub-header-row">
-          <th class="col-gross">Opening</th>
-          <th class="col-gross">Additions</th>
-          <th class="col-gross col-1h">1H (Apr-Sep)</th>
-          <th class="col-gross col-2h">2H (Oct-Mar)</th>
-          <th class="col-gross">Deletions</th>
-          <th class="col-gross col-closing">Closing</th>
-          <th class="col-dep">Rate %</th>
-          <th class="col-dep">On Opening</th>
-          <th class="col-dep">On Additions</th>
-          <th class="col-dep">For Period</th>
-          <th class="col-dep col-closing">Closing Dep.</th>
-          <th class="col-net col-closing">Current Year</th>
-          <th class="col-net">Prev. Year</th>
+        <!-- Row 2: Sub-group headers (Additions has nested split) -->
+        <tr class="hdr-subgroup">
+          <th rowspan="2" class="col-gross">Opening</th>
+          <th colspan="2" class="col-gross subgroup-add">Additions</th>
+          <th rowspan="2" class="col-gross">Deletions</th>
+          <th rowspan="2" class="col-gross col-closing">Closing</th>
+          <th rowspan="2" class="col-dep">Rate %</th>
+          <th colspan="2" class="col-dep subgroup-dep">Depreciation Split</th>
+          <th rowspan="2" class="col-dep col-closing">Closing Acc.</th>
+          <th rowspan="2" class="col-net">Current Year</th>
+          <th rowspan="2" class="col-net">Prev. Year</th>
+        </tr>
+        <!-- Row 3: Innermost split sub-columns (1H/2H + On Opening/On Additions) -->
+        <tr class="hdr-leaf">
+          <th class="col-gross col-1h">1H<br><small>Apr-Sep</small></th>
+          <th class="col-gross col-2h">2H<br><small>Oct-Mar</small></th>
+          <th class="col-dep col-dep-open">On Opening<br><small>Full rate</small></th>
+          <th class="col-dep col-dep-addn">On Additions<br><small>Full / Half</small></th>
         </tr>
       </ng-template>
 
       <ng-template pTemplate="body" let-row>
         <tr class="data-row">
-          <td class="col-particulars">{{ row.category }}</td>
+          <td class="col-particulars">
+            <a class="cat-link" (click)="openCategoryDetail(row)">
+              {{ row.category }}
+              <i class="pi pi-search-plus cat-link-icon"></i>
+            </a>
+          </td>
+          <!-- Gross Block -->
           <td class="col-gross num-r">{{ fmt(row.openingGross) }}</td>
-          <td class="col-gross num-r add-val">{{ fmt(row.additions) }}</td>
           <td class="col-gross num-r col-1h-val">{{ row.additions1H ? fmt(row.additions1H) : '—' }}</td>
           <td class="col-gross num-r col-2h-val">{{ row.additions2H ? fmt(row.additions2H) : '—' }}</td>
-          <td class="col-gross num-r del-val">{{ fmt(row.deletions) }}</td>
+          <td class="col-gross num-r del-val">{{ row.deletions ? fmt(row.deletions) : '—' }}</td>
           <td class="col-gross num-r col-closing fw-bold">{{ fmt(row.closingGross) }}</td>
-          <td class="col-dep num-r">{{ row.rate > 0 ? row.rate + '%' : '—' }}</td>
+          <!-- Depreciation -->
+          <td class="col-dep num-r rate-cell">{{ row.rate > 0 ? row.rate + '%' : '—' }}</td>
           <td class="col-dep num-r dep-opening">{{ row.depOnOpening ? fmt(row.depOnOpening) : '—' }}</td>
           <td class="col-dep num-r dep-addn">{{ row.depOnAdditions ? fmt(row.depOnAdditions) : '—' }}</td>
-          <td class="col-dep num-r dep-period">{{ fmt(row.periodDep) }}</td>
-          <td class="col-dep num-r col-closing fw-bold">{{ fmt(row.closingDep) }}</td>
-          <td class="col-net num-r col-closing fw-bold net-curr">{{ fmt(row.netCurrent) }}</td>
-          <td class="col-net num-r">{{ fmt(row.netPrevious) }}</td>
+          <td class="col-dep num-r col-closing fw-bold dep-period">{{ fmt(row.closingDep) }}</td>
+          <!-- Net Block -->
+          <td class="col-net num-r fw-bold net-curr">{{ fmt(row.netCurrent) }}</td>
+          <td class="col-net num-r net-prev">{{ fmt(row.netPrevious) }}</td>
         </tr>
       </ng-template>
 
@@ -68,7 +77,6 @@
         <tr class="total-row">
           <td class="col-particulars">TOTAL</td>
           <td class="col-gross num-r">{{ fmt(grandTotal.openingGross) }}</td>
-          <td class="col-gross num-r add-val">{{ fmt(grandTotal.additions) }}</td>
           <td class="col-gross num-r col-1h-val">{{ fmt(grandTotal.additions1H) }}</td>
           <td class="col-gross num-r col-2h-val">{{ fmt(grandTotal.additions2H) }}</td>
           <td class="col-gross num-r del-val">{{ fmt(grandTotal.deletions) }}</td>
@@ -76,21 +84,165 @@
           <td class="col-dep num-r">—</td>
           <td class="col-dep num-r dep-opening">{{ fmt(grandTotal.depOnOpening) }}</td>
           <td class="col-dep num-r dep-addn">{{ fmt(grandTotal.depOnAdditions) }}</td>
-          <td class="col-dep num-r dep-period">{{ fmt(grandTotal.periodDep) }}</td>
-          <td class="col-dep num-r col-closing">{{ fmt(grandTotal.closingDep) }}</td>
-          <td class="col-net num-r col-closing net-curr">{{ fmt(grandTotal.netCurrent) }}</td>
-          <td class="col-net num-r">{{ fmt(grandTotal.netPrevious) }}</td>
+          <td class="col-dep num-r col-closing dep-period">{{ fmt(grandTotal.closingDep) }}</td>
+          <td class="col-net num-r net-curr">{{ fmt(grandTotal.netCurrent) }}</td>
+          <td class="col-net num-r net-prev">{{ fmt(grandTotal.netPrevious) }}</td>
         </tr>
         }
       </ng-template>
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="14" class="text-center">
+          <td colspan="12" class="text-center">
             Select a fiscal year and click Load to generate the schedule.
           </td>
         </tr>
       </ng-template>
     </p-table>
   </div>
+
+  <!-- Legend -->
+  @if (rows.length > 0) {
+    <div class="fas-legend">
+      <span class="legend-item"><span class="dot dot-1h"></span> 1H = Apr–Sep purchase (Full rate)</span>
+      <span class="legend-item"><span class="dot dot-2h"></span> 2H = Oct–Mar purchase (Half rate, IT Act)</span>
+      <span class="legend-item"><span class="dot dot-opn"></span> On Opening = Carried-forward WDV × full rate</span>
+      <span class="legend-item"><span class="dot dot-add"></span> On Additions = New additions × applicable rate</span>
+      <span class="legend-hint"><i class="pi pi-info-circle"></i> Click any category to see asset-level breakdown</span>
+    </div>
+  }
 </div>
+
+<!-- ── Drill-down: Category → Asset Detail ──────────────────────────────── -->
+<p-dialog [(visible)]="showDetailDialog" [modal]="true" [style]="{width:'95vw', maxWidth:'1500px'}"
+  [closable]="true" [dismissableMask]="true" styleClass="fas-detail-dialog">
+  <ng-template pTemplate="header">
+    <div class="dlg-hdr">
+      <i class="pi pi-list"></i>
+      <div>
+        <div class="dlg-title">{{ detailCategory }} — Asset Breakdown</div>
+        <div class="dlg-sub">{{ fyLabel }} · {{ detailRows.length }} assets</div>
+      </div>
+    </div>
+  </ng-template>
+
+  @if (detailLoading) {
+    <div class="dlg-loading">Loading asset detail…</div>
+  } @else if (detailRows.length === 0) {
+    <div class="dlg-empty">No individual assets in this category for this FY.</div>
+  } @else {
+    <div class="schedule-wrapper">
+      <p-table [value]="detailRows" styleClass="p-datatable-sm fas-table" [scrollable]="true">
+        <ng-template pTemplate="header">
+          <tr class="hdr-banner">
+            <th rowspan="3" class="col-particulars">Asset</th>
+            <th colspan="5" class="banner-gross">GROSS BLOCK</th>
+            <th colspan="4" class="banner-dep">DEPRECIATION</th>
+            <th colspan="2" class="banner-net">NET BLOCK</th>
+          </tr>
+          <tr class="hdr-subgroup">
+            <th rowspan="2" class="col-gross">Opening</th>
+            <th colspan="2" class="col-gross subgroup-add">Additions</th>
+            <th rowspan="2" class="col-gross">Deletions</th>
+            <th rowspan="2" class="col-gross col-closing">Closing</th>
+            <th rowspan="2" class="col-dep">Rate %</th>
+            <th colspan="2" class="col-dep subgroup-dep">Depreciation Split</th>
+            <th rowspan="2" class="col-dep col-closing">Closing Acc.</th>
+            <th rowspan="2" class="col-net">Current Year</th>
+            <th rowspan="2" class="col-net">Prev. Year</th>
+          </tr>
+          <tr class="hdr-leaf">
+            <th class="col-gross col-1h">1H<br><small>Apr-Sep</small></th>
+            <th class="col-gross col-2h">2H<br><small>Oct-Mar</small></th>
+            <th class="col-dep col-dep-open">On Opening<br><small>Full rate</small></th>
+            <th class="col-dep col-dep-addn">On Additions<br><small>Full / Half</small></th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-row>
+          <tr class="data-row">
+            <td class="col-particulars">
+              <div class="asset-cell">
+                <strong>{{ row.assetName }}</strong>
+                <span class="asset-meta">{{ row.assetId }} · {{ row.serialNumber || '—' }}</span>
+              </div>
+            </td>
+            <td class="col-gross num-r">{{ fmt(row.openingGross) }}</td>
+            <td class="col-gross num-r col-1h-val">{{ row.additions1H ? fmt(row.additions1H) : '—' }}</td>
+            <td class="col-gross num-r col-2h-val">{{ row.additions2H ? fmt(row.additions2H) : '—' }}</td>
+            <td class="col-gross num-r del-val">{{ row.deletions ? fmt(row.deletions) : '—' }}</td>
+            <td class="col-gross num-r col-closing fw-bold">{{ fmt(row.closingGross) }}</td>
+            <td class="col-dep num-r rate-cell">{{ row.rate > 0 ? row.rate + '%' : '—' }}</td>
+            <td class="col-dep num-r dep-opening">{{ row.depOnOpening ? fmt(row.depOnOpening) : '—' }}</td>
+            <td class="col-dep num-r dep-addn">{{ row.depOnAdditions ? fmt(row.depOnAdditions) : '—' }}</td>
+            <td class="col-dep num-r col-closing fw-bold dep-period">{{ fmt(row.closingDep) }}</td>
+            <td class="col-net num-r fw-bold net-curr">{{ fmt(row.netCurrent) }}</td>
+            <td class="col-net num-r net-prev">{{ fmt(row.netPrevious) }}</td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="footer">
+          @if (detailTotals) {
+            <tr class="total-row">
+              <td class="col-particulars">SUBTOTAL ({{ detailRows.length }} assets)</td>
+              <td class="col-gross num-r">{{ fmt(detailTotals.openingGross) }}</td>
+              <td class="col-gross num-r col-1h-val">{{ fmt(detailTotals.additions1H) }}</td>
+              <td class="col-gross num-r col-2h-val">{{ fmt(detailTotals.additions2H) }}</td>
+              <td class="col-gross num-r del-val">{{ fmt(detailTotals.deletions) }}</td>
+              <td class="col-gross num-r col-closing">{{ fmt(detailTotals.closingGross) }}</td>
+              <td class="col-dep num-r">—</td>
+              <td class="col-dep num-r dep-opening">{{ fmt(detailTotals.depOnOpening) }}</td>
+              <td class="col-dep num-r dep-addn">{{ fmt(detailTotals.depOnAdditions) }}</td>
+              <td class="col-dep num-r col-closing dep-period">{{ fmt(detailTotals.closingDep) }}</td>
+              <td class="col-net num-r net-curr">{{ fmt(detailTotals.netCurrent) }}</td>
+              <td class="col-net num-r net-prev">{{ fmt(detailTotals.netPrevious) }}</td>
+            </tr>
+          }
+        </ng-template>
+      </p-table>
+    </div>
+
+    <!-- Reconciliation strip: subtotal vs category total from main table -->
+    @if (detailTotals && detailCategoryRow) {
+      <div class="recon-strip">
+        <div class="recon-title">
+          <i class="pi pi-check-circle"></i>
+          Reconciliation — Asset Subtotal vs Category Total
+        </div>
+        <div class="recon-grid">
+          <div class="recon-cell">
+            <span class="recon-label">Closing Gross</span>
+            <span class="recon-asset">Assets: {{ fmt(detailTotals.closingGross) }}</span>
+            <span class="recon-cat">Category: {{ fmt(detailCategoryRow.closingGross) }}</span>
+            <span class="recon-status" [class.match]="(detailTotals.closingGross - detailCategoryRow.closingGross) === 0">
+              {{ (detailTotals.closingGross - detailCategoryRow.closingGross) === 0 ? '✓ Match' : ('Δ ' + fmt(detailTotals.closingGross - detailCategoryRow.closingGross)) }}
+            </span>
+          </div>
+          <div class="recon-cell">
+            <span class="recon-label">Period Dep.</span>
+            <span class="recon-asset">Assets: {{ fmt(detailTotals.depOnOpening + detailTotals.depOnAdditions) }}</span>
+            <span class="recon-cat">Category: {{ fmt(detailCategoryRow.periodDep) }}</span>
+            <span class="recon-status" [class.match]="absDiff(detailTotals.depOnOpening + detailTotals.depOnAdditions, detailCategoryRow.periodDep) < 1">
+              {{ absDiff(detailTotals.depOnOpening + detailTotals.depOnAdditions, detailCategoryRow.periodDep) < 1 ? '✓ Match' : ('Δ ' + fmt(diff(detailTotals.depOnOpening + detailTotals.depOnAdditions, detailCategoryRow.periodDep))) }}
+            </span>
+          </div>
+          <div class="recon-cell">
+            <span class="recon-label">Closing Net Block</span>
+            <span class="recon-asset">Assets: {{ fmt(detailTotals.netCurrent) }}</span>
+            <span class="recon-cat">Category: {{ fmt(detailCategoryRow.netCurrent) }}</span>
+            <span class="recon-status" [class.match]="absDiff(detailTotals.netCurrent, detailCategoryRow.netCurrent) < 1">
+              {{ absDiff(detailTotals.netCurrent, detailCategoryRow.netCurrent) < 1 ? '✓ Match' : ('Δ ' + fmt(diff(detailTotals.netCurrent, detailCategoryRow.netCurrent))) }}
+            </span>
+          </div>
+        </div>
+        @if (detailCategoryRow.hasPoolBalance) {
+          <div class="recon-note">
+            <i class="pi pi-exclamation-triangle"></i>
+            This category also has <b>undigitized pool balance</b> ({{ detailCategoryRow.poolCodes?.join(', ') }}).
+            Asset subtotal will be lower than category total by the pool remainder amount.
+          </div>
+        }
+      </div>
+    }
+  }
+</p-dialog>

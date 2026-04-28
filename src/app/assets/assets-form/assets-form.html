@@ -25,20 +25,23 @@
 
                     <form #basicForm="ngForm">
 
-                        <!-- ASSET NAME -->
-                        <div class="two-fields">
-                            <p-floatlabel variant="on" class="full-field">
-                                <input pInputText name="assetName" [(ngModel)]="asset.assetName" required
-                                    [disabled]="!canEditBasicDetails" />
-                                <label>Asset Name *</label>
-                            </p-floatlabel>
-
-                            <p-floatlabel variant="on" class="full-field">
-                                <input pInputText name="referenceCode" [(ngModel)]="asset.referenceCode"
-                                    [disabled]="!canEditBasicDetails" />
-                                <label>Reference Code</label>
-                            </p-floatlabel>
+                        <!-- STORES REFERENCE ID (permanent, generated on create) -->
+                        <div *ngIf="asset.storeAssetId" class="store-id-banner"
+                             style="display:flex; align-items:center; gap:10px; padding:8px 12px; margin-bottom:12px;
+                                    background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px;">
+                            <i class="pi pi-id-card" style="color:#1d4ed8;"></i>
+                            <span style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.4px; color:#1e3a8a;">
+                                Stores Reference
+                            </span>
+                            <strong style="font-family:monospace; color:#1e3a8a;">{{ asset.storeAssetId }}</strong>
                         </div>
+
+                        <!-- ASSET NAME -->
+                        <p-floatlabel variant="on" class="full-field">
+                            <input pInputText name="assetName" [(ngModel)]="asset.assetName" required
+                                [disabled]="!canEditBasicDetails" />
+                            <label>Asset Name *</label>
+                        </p-floatlabel>
 
                         <!-- ASSET NATURE (Tangible / Intangible) -->
                         <p-floatlabel variant="on" class="full-field">
@@ -113,12 +116,12 @@
                             </div>
                         </div>
 
-                        <!-- SERIAL NUMBER -->
+                        <!-- SERIAL NUMBER (mandatory only if category requires it) -->
                         <p-floatlabel variant="on" class="full-field">
                             <input pInputText name="serialNumber" [(ngModel)]="asset.serialNumber"
-                                [required]="!asset.isLegacyAsset"
+                                [required]="!asset.isLegacyAsset && isSerialRequiredForCategory"
                                 [disabled]="!canEditBasicDetails" />
-                            <label>Serial Number {{ asset.isLegacyAsset ? '' : '*' }}</label>
+                            <label>Serial Number{{ (!asset.isLegacyAsset && isSerialRequiredForCategory) ? ' *' : '' }}</label>
                         </p-floatlabel>
 
                         <!-- PROCUREMENT MODE -->
@@ -183,22 +186,6 @@
                                     [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
                                 <label>Vendor {{ asset.isLegacyAsset ? '' : '*' }}</label>
                             </p-floatlabel>
-
-                            <!-- Purchase Voucher (Accounts Module) -->
-                            <div class="two-fields">
-                                <p-floatlabel variant="on">
-                                    <input pInputText name="purchaseVoucherNo"
-                                        [(ngModel)]="asset.purchaseVoucherNo"
-                                        [disabled]="!canEditBasicDetails" />
-                                    <label>Purchase Voucher No</label>
-                                </p-floatlabel>
-                                <p-floatlabel variant="on">
-                                    <p-datepicker name="purchaseVoucherDate"
-                                        [(ngModel)]="asset.purchaseVoucherDate"
-                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
-                                    <label>Purchase Voucher Date</label>
-                                </p-floatlabel>
-                            </div>
 
                             <!-- Warranty -->
                             <!-- <div class="two-fields">
@@ -706,6 +693,12 @@
                     <div class="button" *ngIf="canEditBasicDetails">
                         <button pButton label="Save" class="save-btn" (click)="saveBasicDetails(basicForm)"></button>
 
+                        <button pButton label="Save &amp; Duplicate" icon="pi pi-copy"
+                            class="save-btn" severity="secondary"
+                            pTooltip="Save this asset and start another with the same PO / GRN / vendor / category"
+                            tooltipPosition="top"
+                            (click)="saveAndDuplicate(basicForm)"></button>
+
                         <button label="Clear" class="clear-btn" (click)="clearForm()">Clear</button>
                     </div>
 
@@ -732,6 +725,12 @@
         <p-tabPanel header="Assignment" *ngIf="canAccessDepartmentTabs">
             <div class="tab-section">
                 <h3 class="section-title">Deployment Details</h3>
+
+                <p-floatlabel variant="on" class="full-field">
+                    <input pInputText name="referenceCode" [(ngModel)]="asset.referenceCode" />
+                    <label>Reference Code</label>
+                </p-floatlabel>
+
                 <div class="two-fields">
                     <p-floatlabel variant="on">
                         <p-datepicker name="installedAt" [(ngModel)]="asset.installedAt"
@@ -1683,6 +1682,24 @@
         <p-tabPanel header="Depreciation" *ngIf="canAccessDepartmentTabs">
 
             <div class="tab-section">
+
+                <!-- Voucher Details (moved from Basic Details) -->
+                <h3 class="section-title">Voucher Details</h3>
+
+                <div class="two-fields" *ngIf="asset.modeOfProcurement !== 'RENTAL'">
+                    <p-floatlabel variant="on">
+                        <input pInputText name="purchaseVoucherNo"
+                            [(ngModel)]="asset.purchaseVoucherNo"
+                            [disabled]="!canEditBasicDetails" />
+                        <label>Purchase Voucher No</label>
+                    </p-floatlabel>
+                    <p-floatlabel variant="on">
+                        <p-datepicker name="purchaseVoucherDate"
+                            [(ngModel)]="asset.purchaseVoucherDate"
+                            [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                        <label>Purchase Voucher Date</label>
+                    </p-floatlabel>
+                </div>
 
                 <!-- RENTAL: depreciation not applicable -->
                 <div *ngIf="asset.modeOfProcurement === 'RENTAL'" class="dep-blocked-banner">

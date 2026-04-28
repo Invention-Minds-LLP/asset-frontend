@@ -5,13 +5,14 @@ import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { SelectModule } from 'primeng/select';
+import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 import { ReportsService } from '../../services/reports/reports';
 
 @Component({
   selector: 'app-fixed-assets-schedule',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, TableModule, ToastModule, SelectModule],
+  imports: [CommonModule, FormsModule, ButtonModule, TableModule, ToastModule, SelectModule, DialogModule],
   templateUrl: './fixed-assets-schedule.html',
   styleUrl: './fixed-assets-schedule.css',
   providers: [MessageService]
@@ -25,11 +26,44 @@ export class FixedAssetsSchedule implements OnInit {
   selectedYear: number = new Date().getMonth() >= 3 ? new Date().getFullYear() : new Date().getFullYear() - 1;
   yearOptions: { label: string; value: number }[] = [];
 
+  // Drill-down dialog state
+  showDetailDialog = false;
+  detailLoading = false;
+  detailCategory = '';
+  detailRows: any[] = [];
+  detailTotals: any = null;
+  detailCategoryRow: any = null;   // the category row from main table for cross-check
+
   constructor(
     private reportsService: ReportsService,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  openCategoryDetail(row: any) {
+    this.detailCategory = row.category;
+    this.detailCategoryRow = row;
+    this.detailLoading = true;
+    this.showDetailDialog = true;
+    this.detailRows = [];
+    this.detailTotals = null;
+    this.reportsService.getCategoryAssetDetail({
+      fiscalYear: this.selectedYear,
+      category: row.category,
+    }).subscribe({
+      next: (res: any) => {
+        this.detailRows = res.rows || [];
+        this.detailTotals = res.totals || null;
+        this.detailLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.detailLoading = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load asset detail' });
+        this.cdr.detectChanges();
+      },
+    });
+  }
 
   ngOnInit() {
     const curFY = new Date().getMonth() >= 3 ? new Date().getFullYear() : new Date().getFullYear() - 1;
@@ -82,5 +116,15 @@ export class FixedAssetsSchedule implements OnInit {
   fmt(val: number): string {
     if (val == null || val === 0) return '—';
     return '₹' + Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  /** Absolute difference between asset subtotal and category total (for reconciliation). */
+  absDiff(a: number, b: number): number {
+    return Math.abs((a ?? 0) - (b ?? 0));
+  }
+
+  /** Signed difference for display. */
+  diff(a: number, b: number): number {
+    return (a ?? 0) - (b ?? 0);
   }
 }

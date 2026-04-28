@@ -56,7 +56,7 @@ export class Assets {
     return this.http.get<{ id: number; name: string }[]>(`${environment.apiUrl}/categories`);
   }
 
-  createCategory(data: { name: string }): Observable<any> {
+  createCategory(data: any): Observable<any> {
     return this.http.post<any>(`${environment.apiUrl}/categories`, data);
   }
 
@@ -89,8 +89,9 @@ export class Assets {
     return this.http.delete<any>(`${environment.apiUrl}/vendors/${id}`);
   }
 
-  updateCategory(id: number, name: string): Observable<any> {
-    return this.http.put<any>(`${environment.apiUrl}/categories/${id}`, { name });
+  updateCategory(id: number, data: any): Observable<any> {
+    const payload = typeof data === 'string' ? { name: data } : data;
+    return this.http.put<any>(`${environment.apiUrl}/categories/${id}`, payload);
   }
 
   deleteCategory(id: number): Observable<any> {
