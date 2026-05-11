@@ -91,6 +91,7 @@ assetsFile: File | null = null;
   }
 
   downloadingTemplate = false;
+  downloadingChecklistTemplate = false;
 
   downloadLegacyTemplate(): void {
     this.downloadingTemplate = true;
@@ -106,6 +107,24 @@ assetsFile: File | null = null;
       },
       error: () => {
         this.downloadingTemplate = false;
+      }
+    });
+  }
+
+  downloadChecklistTemplate(): void {
+    this.downloadingChecklistTemplate = true;
+    this.assetImportService.downloadChecklistTemplate().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'checklist-workbook-template.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingChecklistTemplate = false;
+      },
+      error: () => {
+        this.downloadingChecklistTemplate = false;
       }
     });
   }

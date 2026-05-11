@@ -17,6 +17,7 @@ import { Inventory } from './master/inventory/inventory';
 import { AssetTransfer } from './asset-transfer/asset-transfer';
 import { Dashboard } from './master/dashboard/dashboard';
 import { GatePass } from './master/gate-pass/gate-pass';
+import { GatePassSecurity } from './master/gate-pass-security/gate-pass-security';
 import { Notifications } from './master/notifications/notifications';
 import { Calibration } from './master/calibration/calibration';
 import { SupportMatrix } from './master/support-matrix/support-matrix';
@@ -95,6 +96,7 @@ export const routes: Routes = [
   // ── New master module routes ────────────────────────────────────────────────
   { path: 'master-dashboard', component: Dashboard, canActivate: [authGuard] },
   { path: 'gate-pass', component: GatePass, canActivate: [authGuard] },
+  { path: 'gate-pass/security', component: GatePassSecurity, canActivate: [authGuard] },
   { path: 'notifications', component: Notifications, canActivate: [authGuard] },
   { path: 'calibration', component: Calibration, canActivate: [authGuard] },
   { path: 'support-matrix', component: SupportMatrix, canActivate: [authGuard] },

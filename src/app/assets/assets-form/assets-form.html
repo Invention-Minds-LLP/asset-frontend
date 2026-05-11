@@ -1683,6 +1683,20 @@
 
             <div class="tab-section">
 
+                <!-- ============= REVENUE LOG APPLICABILITY (Finance flag) ============== -->
+                <h3 class="section-title">Revenue Tracking</h3>
+                <div class="legacy-toggle-row">
+                    <p-checkbox [(ngModel)]="asset.isRevenueLogApplicable" name="isRevenueLogApplicable" [binary]="true"
+                        inputId="isRevenueLogApplicable"></p-checkbox>
+                    <label for="isRevenueLogApplicable" class="legacy-toggle-label">
+                        <i class="pi pi-chart-line"></i> Revenue Log applicable
+                        <small style="display:block; color:#64748b; font-weight:400; margin-top:2px;">
+                            Tick if this asset generates revenue (e.g. revenue-share device, rented-out equipment).
+                            Enables daily revenue logging and shows it on the user's My Assets page.
+                        </small>
+                    </label>
+                </div>
+
                 <!-- Voucher Details (moved from Basic Details) -->
                 <h3 class="section-title">Voucher Details</h3>
 

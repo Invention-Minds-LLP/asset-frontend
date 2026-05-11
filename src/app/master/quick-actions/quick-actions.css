@@ -14,8 +14,9 @@
 .bulk-controls { display: flex; flex-direction: column; gap: 0.5rem; }
 .row-selected { background: #e3f2fd !important; }
 .qr-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem; }
-.qr-card { border: 1px solid #e0e0e0; border-radius: 6px; padding: 0.5rem; text-align: center; width: 110px; }
-.qr-img { width: 80px; height: 80px; }
-.qr-label { font-size: 0.75rem; font-weight: 700; margin-top: 4px; }
-.qr-name { font-size: 0.7rem; color: #666; }
+.qr-card { border: 1px solid #e0e0e0; border-radius: 6px; padding: 0.5rem; text-align: center; width: 160px; }
+.qr-img { width: 140px; height: 140px; }
+.qr-label { font-size: 0.78rem; font-weight: 700; margin-top: 6px; font-family: monospace; color: #1e3a8a; }
+.qr-name { font-size: 0.72rem; color: #555; }
+
 @media print { .page-header, .op-card:not(:last-child) { display: none !important; } .qr-grid { display: flex !important; flex-wrap: wrap; } }

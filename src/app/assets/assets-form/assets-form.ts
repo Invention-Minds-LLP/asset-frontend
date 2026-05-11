@@ -1124,14 +1124,19 @@ private returnLastY = 0;
       payload.openingAccumulatedDepreciation = this.depreciationForm.openingAccumulatedDepreciation;
     }
 
-    console.log(payload)
+    // Asset-level fields on this tab (Voucher Details, Revenue Tracking) live on
+    // the Asset record. Send the full asset object — matches existing section-save
+    // pattern (see updateSection) and avoids accidentally blanking unrelated fields.
+    this.assetAPI.updateAsset(this.asset.id, this.asset).subscribe({
+      error: () => this.toast("error", "Failed to update voucher / revenue details"),
+    });
 
     // If depreciation does NOT exist → CREATE
     if (!this.asset.depreciation?.id) {
       this.assetAPI.addDepreciation(this.asset.assetId, payload).subscribe({
         next: res => {
           this.asset.depreciation = res;
-          this.toast("success", "Depreciation added");
+          this.toast("success", "Saved");
           this.loadDepreciation()
         },
         error: () => this.toast("error", "Failed to add depreciation")
@@ -1143,7 +1148,7 @@ private returnLastY = 0;
     this.assetAPI.updateDepreciation(this.asset.depreciation.id, payload).subscribe({
       next: res => {
         this.asset.depreciation = res;
-        this.toast("success", "Depreciation updated");
+        this.toast("success", "Saved");
       },
       error: () => this.toast("error", "Failed to update depreciation")
     });

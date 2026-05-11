@@ -10,6 +10,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
+import { QRCodeComponent } from 'angularx-qrcode';
 import { QuickActionsService } from '../../services/quick-actions/quick-actions';
 import { Assets } from '../../services/assets/assets';
 
@@ -17,7 +18,7 @@ import { Assets } from '../../services/assets/assets';
   selector: 'app-quick-actions',
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, TableModule,
-    TagModule, ToastModule, CheckboxModule, SelectModule, MultiSelectModule],
+    TagModule, ToastModule, CheckboxModule, SelectModule, MultiSelectModule, QRCodeComponent],
   templateUrl: './quick-actions.html',
   styleUrl: './quick-actions.css',
   providers: [MessageService]
@@ -169,5 +170,45 @@ export class QuickActionsPage implements OnInit {
     });
   }
 
-  printQR() { window.print(); }
+  /**
+   * Print the QR grid in a fresh window — captures each rendered canvas as an image
+   * and lays them out cleanly with asset ID + name labels, no host-page chrome.
+   */
+  printQR(): void {
+    const cards = Array.from(document.querySelectorAll('#qr-print-area .qr-card')) as HTMLElement[];
+    if (cards.length === 0) return;
+
+    const tiles = cards.map(card => {
+      const canvas = card.querySelector('canvas') as HTMLCanvasElement | null;
+      const dataUrl = canvas?.toDataURL('image/png') ?? '';
+      const assetId = card.getAttribute('data-asset-id') ?? '';
+      const name = (card.querySelector('.qr-name')?.textContent ?? '').trim();
+      return `<div class="tile"><img src="${dataUrl}" alt="QR" /><div class="id">${assetId}</div><div class="name">${name}</div></div>`;
+    }).join('');
+
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) return;
+
+    const html = `<!doctype html>
+<html><head><title>QR Labels</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 12px; }
+  .tile { width: 170px; padding: 8px; border: 1px solid #e0e0e0; border-radius: 6px; text-align: center; page-break-inside: avoid; }
+  .tile img { width: 140px; height: 140px; }
+  .id { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; color: #1e3a8a; margin-top: 6px; word-break: break-all; }
+  .name { font-size: 11px; color: #555; margin-top: 2px; }
+  @media print { body { padding: 6px; } }
+</style></head>
+<body>
+  <div class="grid">${tiles}</div>
+  <script>
+    window.onload = function(){ window.focus(); window.print(); };
+    window.onafterprint = function(){ window.close(); };
+  </script>
+</body></html>`;
+    win.document.write(html);
+    win.document.close();
+  }
 }

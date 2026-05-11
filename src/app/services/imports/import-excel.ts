@@ -36,4 +36,8 @@ export class ImportExcel {
   downloadLegacyTemplate(): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/legacy-template`, { responseType: 'blob' });
   }
+
+  downloadChecklistTemplate(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/checklists/template`, { responseType: 'blob' });
+  }
 }

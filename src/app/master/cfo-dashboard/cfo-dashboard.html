@@ -100,7 +100,12 @@
               <th style="text-align:right">Asset Acquisitions</th>
               <th style="text-align:right">Maintenance Cost</th>
               <th style="text-align:right">Total</th>
-              <th style="width:30%">Relative</th>
+              <th style="width:30%">
+                Share of Peak Month
+                <i class="pi pi-info-circle" style="font-size:0.75rem; margin-left:4px; color:#94a3b8;"
+                   pTooltip="Bar width shows this month's spend as a % of the highest-month total across the last 12 months. Not a period-over-period change."
+                   tooltipPosition="top"></i>
+              </th>
             </tr>
           </ng-template>
           <ng-template #body let-row>
@@ -110,7 +115,9 @@
               <td style="text-align:right">{{ formatCurrency(row.maintenance) }}</td>
               <td style="text-align:right; font-weight:600;">{{ formatCurrency((row.capital ?? 0) + (row.maintenance ?? 0)) }}</td>
               <td>
-                <div class="bar-container">
+                <div class="bar-container"
+                     [pTooltip]="'Capex ' + formatCurrency(row.capital ?? 0) + ' + Maint ' + formatCurrency(row.maintenance ?? 0) + ' = ' + (((((row.capital ?? 0) + (row.maintenance ?? 0)) / maxMonthlyTotal) * 100) | number:'1.0-0') + '% of peak month'"
+                     tooltipPosition="left">
                   <div class="bar capex-bar" [style.width.%]="((row.capital ?? 0) / maxMonthlyTotal) * 100"></div>
                   <div class="bar opex-bar" [style.width.%]="((row.maintenance ?? 0) / maxMonthlyTotal) * 100"></div>
                 </div>
@@ -121,6 +128,9 @@
         <div class="bar-legend">
           <span class="legend-item"><span class="legend-dot capex"></span> Asset Acquisitions</span>
           <span class="legend-item"><span class="legend-dot opex"></span> Maintenance</span>
+          <span class="legend-note" style="margin-left:auto; color:#64748b; font-size:0.78rem;">
+            Bars compare each month against the highest-spend month in the window.
+          </span>
         </div>
       </div>
     }

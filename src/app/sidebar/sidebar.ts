@@ -144,6 +144,7 @@ export class Sidebar implements OnInit {
       path: '/operations', hasDropdown: true,
       dropdownItems: [
         { label: 'Gate Pass', route: '/gate-pass', icon: 'pi pi-id-card' },
+        { label: 'Gate Pass — Security', route: '/gate-pass/security', icon: 'pi pi-shield' },
         { label: 'Acknowledgement', route: '/acknowledgement', icon: 'pi pi-check-square' },
         { label: 'Physical Audit', route: '/asset-audit', icon: 'pi pi-clipboard' },
         { label: 'Employee Exit', route: '/employee-exit', icon: 'pi pi-sign-out' },

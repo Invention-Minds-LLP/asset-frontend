@@ -230,9 +230,26 @@
             <input pInputText id="vendorContactPerson" [(ngModel)]="vendorForm.contactPerson" />
             <label for="vendorContactPerson">Contact Person</label>
           </p-floatlabel>
-          <p-floatlabel>
-            <p-select id="vendorType" [options]="vendorTypeOptions" [(ngModel)]="vendorForm.vendorType" optionLabel="label" optionValue="value" placeholder=" " />
+          <p-floatlabel variant="on">
+            <p-select id="vendorType" [options]="vendorTypeOptions" [(ngModel)]="vendorForm.vendorType" optionLabel="label" optionValue="value" placeholder="Select type..." [showClear]="true" />
             <label for="vendorType">Vendor Type</label>
+          </p-floatlabel>
+        </div>
+
+        <!-- Departments Served (multi-select) -->
+        <p class="form-section-label">Departments Served</p>
+        <div class="form-row">
+          <p-floatlabel variant="on" class="full-width">
+            <p-multiselect id="vendorDepartments"
+                           [options]="departments"
+                           [(ngModel)]="vendorForm.departmentIds"
+                           optionLabel="name" optionValue="id"
+                           [filter]="true"
+                           display="chip"
+                           placeholder="Select one or more departments..."
+                           [showHeader]="true"
+                           styleClass="full-multiselect" />
+            <label for="vendorDepartments">Departments this vendor serves</label>
           </p-floatlabel>
         </div>
 

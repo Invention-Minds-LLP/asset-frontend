@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -87,23 +88,34 @@ export class RevenueLog implements OnInit {
     private rlService: RevenueLogService,
     private assetsService: Assets,
     private messageService: MessageService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
     this.loadAssets();
     this.loadDashboard();
+
+    // Pre-select asset and jump to detail tab if navigated with ?assetId=<n>
+    const qpAssetId = Number(this.route.snapshot.queryParamMap.get('assetId'));
+    if (qpAssetId) {
+      this.selectedAssetId = qpAssetId;
+      this.activeTab = 'asset-detail';
+    }
   }
 
   // ── Asset loading ──────────────────────────────────────────────────────────
+  // Only show assets where Revenue Log is applicable — drives dropdown content.
   loadAssets() {
     this.assetsService.getAllAssets().subscribe({
       next: (data: any) => {
         const list = Array.isArray(data) ? data : (data?.data ?? []);
-        this.assetOptions = list.map((a: any) => ({
-          label: `${a.assetId} — ${a.assetName}`,
-          value: a.id
-        }));
+        this.assetOptions = list
+          .filter((a: any) => a?.isRevenueLogApplicable === true)
+          .map((a: any) => ({
+            label: `${a.assetId} — ${a.assetName}`,
+            value: a.id
+          }));
         setTimeout(() => { this.cdr.detectChanges(); });
       },
       error: () => {}

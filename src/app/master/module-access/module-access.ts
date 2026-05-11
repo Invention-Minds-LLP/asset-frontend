@@ -51,6 +51,7 @@ export class ModuleAccess implements OnInit {
     { label: 'Executive', value: 'EXECUTIVE' },
     { label: 'Finance', value: 'FINANCE' },
     { label: 'Operations', value: 'OPERATIONS' },
+    { label: 'Security', value: 'SECURITY' },
   ];
 
   filterTypeOptions = [

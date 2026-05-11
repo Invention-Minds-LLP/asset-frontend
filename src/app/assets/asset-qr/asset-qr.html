@@ -4,13 +4,18 @@
   <p><strong>Asset:</strong> {{ assetName || '-' }}</p>
   <p><strong>Asset ID:</strong> {{ assetId }}</p>
 
-  <div class="qr-wrapper" *ngIf="qrValue">
-    <qrcode
-      [qrdata]="qrValue"
-      [width]="220"
-      [errorCorrectionLevel]="'M'"
-      [elementType]="'canvas'">
-    </qrcode>
+  <div *ngIf="qrValue">
+    <div class="qr-wrapper">
+      <qrcode
+        [qrdata]="qrValue"
+        [width]="220"
+        [errorCorrectionLevel]="'H'"
+        [elementType]="'canvas'"
+        [imageSrc]="'/sa_logo.png'"
+        [imageHeight]="44"
+        [imageWidth]="44">
+      </qrcode>
+    </div>
   </div>
 
   <p class="scan-url">{{ qrValue }}</p>

@@ -89,6 +89,17 @@
 
   <div class="import-card">
     <h2>Checklist Workbook Upload</h2>
+    <p class="import-hint">
+      Upload a workbook with sheets:
+      <code>AssetAcknowledgementTemplates</code>, <code>PMChecklistTemplates</code>,
+      <code>CalibrationChecklistTemplates</code>, <code>AssetSupportMatrix</code>.
+      Only <code>.xlsx</code> / <code>.xls</code> accepted.
+    </p>
+
+    <button type="button" class="download-template-btn" (click)="downloadChecklistTemplate()" [disabled]="downloadingChecklistTemplate" style="margin-bottom:12px;">
+      <i class="pi pi-download"></i>
+      {{ downloadingChecklistTemplate ? 'Downloading...' : 'Download Checklist Template' }}
+    </button>
 
     <input
       #checklistFileInput

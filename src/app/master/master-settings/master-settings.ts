@@ -8,6 +8,7 @@ import { TabViewModule } from 'primeng/tabview';
 import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { TextareaModule } from 'primeng/textarea';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
@@ -29,6 +30,7 @@ import { Branches } from '../../services/branches/branches';
     InputTextModule,
     FloatLabelModule,
     SelectModule,
+    MultiSelectModule,
     TextareaModule,
     TagModule,
     TooltipModule,
@@ -74,7 +76,8 @@ export class MasterSettings implements OnInit {
   vendorForm: any = {
     name: '', contact: '', email: '', contactPerson: '', alternatePhone: '',
     vendorType: null, address: '', city: '', state: '', pincode: '',
-    gstNumber: '', panNumber: '', bankName: '', bankAccount: '', bankIfsc: '', notes: ''
+    gstNumber: '', panNumber: '', bankName: '', bankAccount: '', bankIfsc: '', notes: '',
+    departmentIds: [] as number[],
   };
   editingVendorId: number | null = null;
   showVendorForm = false;
@@ -294,13 +297,15 @@ export class MasterSettings implements OnInit {
         bankAccount: vendor.bankAccount || '',
         bankIfsc: vendor.bankIfsc || '',
         notes: vendor.notes || '',
+        departmentIds: (vendor.departments || []).map((d: any) => d.id),
       };
     } else {
       this.editingVendorId = null;
       this.vendorForm = {
         name: '', contact: '', email: '', contactPerson: '', alternatePhone: '',
         vendorType: null, address: '', city: '', state: '', pincode: '',
-        gstNumber: '', panNumber: '', bankName: '', bankAccount: '', bankIfsc: '', notes: ''
+        gstNumber: '', panNumber: '', bankName: '', bankAccount: '', bankIfsc: '', notes: '',
+        departmentIds: [],
       };
     }
     this.showVendorForm = true;

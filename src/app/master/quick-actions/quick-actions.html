@@ -97,8 +97,16 @@
       @if (qrData.length) {
         <div class="qr-grid" id="qr-print-area">
           @for (item of qrData; track item.id) {
-            <div class="qr-card">
-              <img [src]="item.qrCode" alt="QR" class="qr-img" />
+            <div class="qr-card" [attr.data-asset-id]="item.assetId">
+              <qrcode
+                [qrdata]="item.qrValue || item.assetId"
+                [width]="140"
+                [errorCorrectionLevel]="'H'"
+                [elementType]="'canvas'"
+                [imageSrc]="'/sa_logo.png'"
+                [imageHeight]="28"
+                [imageWidth]="28">
+              </qrcode>
               <div class="qr-label">{{ item.assetId }}</div>
               <div class="qr-name">{{ item.assetName }}</div>
             </div>

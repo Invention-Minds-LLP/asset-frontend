@@ -2,39 +2,232 @@
   <p-toast />
 
   <div class="page-header">
-    <div>
-      <h2>My Assets</h2>
-      <p>Assets currently assigned to you — {{ employeeName }} ({{ employeeID }})</p>
+    <div class="page-header-text">
+      <h2>
+        <i class="pi pi-briefcase"></i>
+        My Assets
+        <span class="count-badge">{{ assets.length }}</span>
+      </h2>
+      <p>{{ employeeName }} <span class="emp-id">({{ employeeID }})</span> — assets you own or supervise</p>
     </div>
-    <p-button icon="pi pi-refresh" severity="secondary" (onClick)="load()" pTooltip="Refresh" tooltipPosition="top" />
+    <p-button icon="pi pi-refresh" label="Refresh" severity="secondary" [outlined]="true"
+              (onClick)="load()" pTooltip="Reload list" tooltipPosition="top" />
   </div>
 
-  <p-table [value]="assets" [loading]="loading" [paginator]="true" [rows]="15"
-    [rowsPerPageOptions]="[15,30,50]" styleClass="p-datatable-sm">
-    <ng-template pTemplate="header">
-      <tr>
-        <th>Asset ID</th>
-        <th>Asset Name</th>
-        <th>Category</th>
-        <th>Type</th>
-        <th>Location</th>
-        <th>Assigned On</th>
-        <th>Status</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-a>
-      <tr>
-        <td><strong>{{ a.assetId || '—' }}</strong></td>
-        <td>{{ a.assetName }}</td>
-        <td>{{ a.assetCategory?.name || '—' }}</td>
-        <td>{{ a.assetType || '—' }}</td>
-        <td>{{ a.currentLocation || '—' }}</td>
-        <td>{{ a.assignedOn ? (a.assignedOn | date:'dd MMM yyyy') : '—' }}</td>
-        <td><p-tag [value]="a.status" [severity]="getStatusSeverity(a.status)" /></td>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="emptymessage">
-      <tr><td colspan="7" style="text-align:center;padding:2rem">No assets assigned to you.</td></tr>
-    </ng-template>
-  </p-table>
+  <div class="table-wrap">
+    <p-table [value]="assets" [loading]="loading" [paginator]="true" [rows]="15"
+             [rowsPerPageOptions]="[15,30,50]"
+             styleClass="my-assets-table p-datatable-sm" stripedRows>
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="th-id">Asset</th>
+          <th>My Role</th>
+          <th>Category</th>
+          <th>Type</th>
+          <th>Location</th>
+          <th>Assigned On</th>
+          <th>Status</th>
+          <th class="th-action">Action</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-a>
+        <tr>
+          <td>
+            <div class="asset-cell">
+              <div class="asset-id">{{ a.assetId || '—' }}</div>
+              <div class="asset-name">{{ a.assetName }}</div>
+            </div>
+          </td>
+          <td>
+            @if (a.myRole === 'ALLOTTEE') {
+              <span class="role-pill role-allottee">
+                <i class="pi pi-user"></i> Allottee
+              </span>
+            } @else if (a.myRole === 'SUPERVISOR') {
+              <span class="role-pill role-supervisor"
+                    [pTooltip]="a.allottedTo ? ('Allotted to ' + a.allottedTo.name) : 'No end-user assigned'"
+                    tooltipPosition="top">
+                <i class="pi pi-shield"></i> Supervisor
+              </span>
+            } @else {
+              <span class="muted">—</span>
+            }
+          </td>
+          <td>{{ a.assetCategory?.name || '—' }}</td>
+          <td>{{ a.assetType || '—' }}</td>
+          <td>{{ a.currentLocation || '—' }}</td>
+          <td>{{ a.assignedOn ? (a.assignedOn | date:'dd MMM yyyy') : '—' }}</td>
+          <td><span class="status-pill" [class]="'status-' + getStatusClass(a.status)">{{ a.status }}</span></td>
+          <td>
+            @if (a.isRevenueLogApplicable) {
+              <button class="action-btn primary" (click)="openRevenueLog(a)"
+                      pTooltip="Log today's usage / revenue" tooltipPosition="left">
+                <i class="pi pi-chart-line"></i>
+                <span>Log Usage</span>
+              </button>
+            } @else {
+              <span class="muted">—</span>
+            }
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="empty-cell">
+            <div class="empty-state">
+              <i class="pi pi-inbox"></i>
+              <h4>No assets yet</h4>
+              <p>You have no assets assigned to or supervised by you.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
 </div>
+
+<!-- ────────────────── Daily Revenue / Usage Log dialog ────────────────── -->
+<p-dialog [(visible)]="showLogDialog" [modal]="true" [closable]="!savingLog"
+          [style]="{'width': '780px', 'maxWidth': '95vw'}"
+          styleClass="log-usage-dialog" [showHeader]="false">
+
+  <!-- Custom hero header with asset context -->
+  <div class="log-hero">
+    <div class="log-hero-top">
+      <div class="log-hero-icon"><i class="pi pi-chart-line"></i></div>
+      <div class="log-hero-text">
+        <h3>Log Daily Usage</h3>
+        @if (selectedAsset) {
+          <p>
+            {{ selectedAsset.assetId }} · {{ selectedAsset.assetName }}
+            <span class="hero-cat">{{ selectedAsset.assetCategory?.name || 'Uncategorised' }}</span>
+          </p>
+        }
+      </div>
+      <button class="hero-close" (click)="showLogDialog = false" [disabled]="savingLog" aria-label="Close">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="log-body">
+    <!-- ── Date + Hours Summary ── -->
+    <section class="log-section log-summary-section">
+      <div class="grid-2">
+        <div class="field">
+          <label>Date <span class="req">*</span></label>
+          <p-datepicker [(ngModel)]="logForm.logDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
+        </div>
+        <div class="field">
+          <label>Total Hours Used <span class="req">*</span></label>
+          <p-inputnumber [(ngModel)]="logForm.hoursUsed" [min]="0" [max]="24" [minFractionDigits]="1" placeholder="e.g. 8.5"></p-inputnumber>
+          <small class="hint"><i class="pi pi-info-circle"></i> Auto-fills from shifts below</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Shift-wise hours ── -->
+    <section class="log-section">
+      <div class="section-head">
+        <i class="pi pi-clock"></i>
+        <span>Shift-wise Hours</span>
+      </div>
+      <div class="shift-grid">
+        <label class="shift-card morning">
+          <div class="shift-name">Morning</div>
+          <div class="shift-time">6 AM – 2 PM</div>
+          <p-inputnumber [(ngModel)]="logForm.shift1Hours" [min]="0" [max]="8" [minFractionDigits]="1"
+                         (onInput)="recomputeHoursUsedFromShifts()" placeholder="0.0" suffix=" h"></p-inputnumber>
+        </label>
+        <label class="shift-card afternoon">
+          <div class="shift-name">Afternoon</div>
+          <div class="shift-time">2 PM – 10 PM</div>
+          <p-inputnumber [(ngModel)]="logForm.shift2Hours" [min]="0" [max]="8" [minFractionDigits]="1"
+                         (onInput)="recomputeHoursUsedFromShifts()" placeholder="0.0" suffix=" h"></p-inputnumber>
+        </label>
+        <label class="shift-card night">
+          <div class="shift-name">Night</div>
+          <div class="shift-time">10 PM – 6 AM</div>
+          <p-inputnumber [(ngModel)]="logForm.shift3Hours" [min]="0" [max]="8" [minFractionDigits]="1"
+                         (onInput)="recomputeHoursUsedFromShifts()" placeholder="0.0" suffix=" h"></p-inputnumber>
+        </label>
+      </div>
+    </section>
+
+    <!-- ── Output ── -->
+    <section class="log-section">
+      <div class="section-head">
+        <i class="pi pi-chart-bar"></i>
+        <span>Output</span>
+      </div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Procedures Done</label>
+          <p-inputnumber [(ngModel)]="logForm.procedureCount" [min]="0" placeholder="e.g. 12"></p-inputnumber>
+        </div>
+        <div class="field">
+          <label>Patients Served</label>
+          <p-inputnumber [(ngModel)]="logForm.patientsServed" [min]="0" placeholder="e.g. 10"></p-inputnumber>
+        </div>
+        <div class="field">
+          <label>Revenue (₹)</label>
+          <p-inputnumber [(ngModel)]="logForm.revenueGenerated" [min]="0" mode="currency" currency="INR" locale="en-IN" placeholder="0"></p-inputnumber>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Downtime ── -->
+    <section class="log-section">
+      <div class="section-head muted">
+        <i class="pi pi-exclamation-triangle"></i>
+        <span>Downtime <small>(if any)</small></span>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Downtime Hours</label>
+          <p-inputnumber [(ngModel)]="logForm.downtimeHours" [min]="0" [max]="24" [minFractionDigits]="1" placeholder="0.0" suffix=" h"></p-inputnumber>
+        </div>
+        <div class="field">
+          <label>Reason</label>
+          <p-select [options]="downtimeTypeOptions" [(ngModel)]="logForm.downtimeType"
+                    placeholder="Select reason..." [showClear]="true" appendTo="body"></p-select>
+        </div>
+      </div>
+      @if (logForm.downtimeHours) {
+        <div class="field full">
+          <label>Downtime Remarks</label>
+          <textarea pTextarea [(ngModel)]="logForm.downtimeRemarks" rows="2"
+                    placeholder="Briefly describe what caused the downtime..."></textarea>
+        </div>
+      }
+    </section>
+
+    <!-- ── Condition & Remarks ── -->
+    <section class="log-section">
+      <div class="section-head">
+        <i class="pi pi-heart"></i>
+        <span>Condition & Remarks</span>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Condition After Use</label>
+          <p-select [options]="conditionOptions" [(ngModel)]="logForm.conditionAfterUse"
+                    placeholder="Select condition..." appendTo="body"></p-select>
+        </div>
+        <div class="field">
+          <label>Remarks</label>
+          <textarea pTextarea [(ngModel)]="logForm.remarks" rows="2"
+                    placeholder="Any additional remarks..."></textarea>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Sticky footer -->
+  <div class="log-footer">
+    <p-button label="Cancel" severity="secondary" [text]="true"
+              (onClick)="showLogDialog = false" [disabled]="savingLog"></p-button>
+    <p-button label="Save Log" icon="pi pi-check" (onClick)="saveLog()"
+              [loading]="savingLog" [disabled]="!logForm.hoursUsed"></p-button>
+  </div>
+</p-dialog>

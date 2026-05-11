@@ -44,22 +44,24 @@
 
 /* Section labels (Basic Info / Address / Tax / Bank) */
 .form-section-label {
-  margin: 16px 0 10px !important;
+  margin: 28px 0 22px !important;       /* enough room above for floated labels of next row */
   font-size: 0.72rem !important;
   font-weight: 700 !important;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   color: #64748b !important;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
   border-bottom: 1px dashed #e2e8f0;
 }
+.form-section-label:first-of-type { margin-top: 4px !important; }
 
 /* Default: 3 columns. Each floatlabel takes 1 column. */
 .form-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px 18px;
-  margin-bottom: 14px;
+  gap: 22px 18px;                          /* extra row-gap so floated labels don't kiss the row above */
+  margin-bottom: 4px;
+  margin-top: 8px;
   align-items: start;
 }
 
@@ -80,14 +82,27 @@
 .form-row p-floatlabel input,
 .form-row p-floatlabel textarea,
 .form-row p-floatlabel ::ng-deep .p-select,
-.form-row p-floatlabel ::ng-deep .p-dropdown {
+.form-row p-floatlabel ::ng-deep .p-dropdown,
+.form-row p-floatlabel ::ng-deep .p-multiselect {
   width: 100% !important;
   box-sizing: border-box;
 }
 .form-row p-floatlabel ::ng-deep .p-inputtext { width: 100% !important; }
+.form-row p-floatlabel ::ng-deep .p-multiselect-label-container { width: 100% !important; }
 .form-row p-floatlabel textarea { resize: vertical; min-height: 60px; }
 
-/* Full-width fields (Address textarea) span all 3 columns */
+/* MultiSelect: hide the inner placeholder so only the floating label shows.
+   Also let chips wrap nicely without blowing up the row height. */
+.form-row p-floatlabel ::ng-deep .p-multiselect .p-multiselect-label.p-placeholder { color: transparent; }
+.form-row p-floatlabel ::ng-deep .p-multiselect .p-multiselect-label {
+  white-space: normal;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 1.4rem;
+}
+
+/* Full-width fields (Address textarea, Departments multiselect) span all 3 columns */
 .form-row .full-width {
   grid-column: 1 / -1;
 }

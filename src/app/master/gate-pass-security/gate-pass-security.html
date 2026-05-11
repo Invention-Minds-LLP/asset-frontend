@@ -1,0 +1,165 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Security — Gate Pass Verification</h2>
+      <p>Verify and process gate passes at the gate. Issue (gate-out) approved passes; receive (gate-in) returning assets.</p>
+      <div *ngIf="overdueCount > 0" class="overdue-banner">
+        <i class="pi pi-exclamation-triangle"></i>
+        <strong>{{ overdueCount }} overdue</strong> returnable pass{{ overdueCount > 1 ? 'es' : '' }} — past expected return date.
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center;">
+      <p-floatlabel variant="on" style="width:240px;">
+        <input pInputText [(ngModel)]="lookupNo" name="lookupNo" placeholder="GP-20260429-0001"
+               (keyup.enter)="lookup()" />
+        <label>Look up by Gate Pass No</label>
+      </p-floatlabel>
+      <p-button label="Find" icon="pi pi-search" (onClick)="lookup()" />
+    </div>
+  </div>
+
+  <p-tabView class="custom-tabs">
+
+    <!-- ── Ready to Issue ── -->
+    <p-tabPanel [header]="'Ready to Issue (' + approvedRows.length + ')'">
+      <p-table [value]="approvedRows" [loading]="loading" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Gate Pass</th>
+            <th>Type</th>
+            <th>Items</th>
+            <th>Issued To</th>
+            <th>Vehicle</th>
+            <th>Approved By</th>
+            <th>Approved At</th>
+            <th>Action</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td><strong>{{ row.gatePassNo }}</strong></td>
+            <td><p-tag [value]="row.type" [severity]="row.type === 'RETURNABLE' ? 'info' : 'warn'" /></td>
+            <td>
+              <div *ngFor="let it of row.items" style="font-size:0.85rem;">
+                <span style="font-family:monospace;color:#1e3a8a;">{{ it.asset?.assetId }}</span>
+                · {{ it.asset?.assetName }}
+                <span *ngIf="it.quantity > 1" style="color:#64748b;"> × {{ it.quantity }}</span>
+              </div>
+            </td>
+            <td>{{ row.issuedTo }}</td>
+            <td>
+              <div>{{ row.vehicleNo || '—' }}</div>
+              <small style="color:#64748b;">{{ row.vehicleType || '' }}</small>
+            </td>
+            <td>{{ row.approvedByEmployee?.name || '—' }}</td>
+            <td>{{ row.approvedAt | date:'dd MMM, HH:mm' }}</td>
+            <td>
+              <p-button label="Gate-Out" icon="pi pi-sign-out" severity="success" size="small"
+                (onClick)="gateOut(row)" pTooltip="Mark physically released" tooltipPosition="top" />
+              <p-button icon="pi pi-file-pdf" size="small" severity="info" [text]="true"
+                (onClick)="downloadPdf(row)" pTooltip="Open PDF" tooltipPosition="top" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="8" class="text-center">Nothing waiting at the gate to be issued.</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+    <!-- ── Out & Awaiting Return ── -->
+    <p-tabPanel [header]="'Out — Awaiting Return (' + issuedRows.length + ')'">
+      <p-table [value]="issuedRows" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Gate Pass</th>
+            <th>Type</th>
+            <th>Items</th>
+            <th>Issued To</th>
+            <th>Vehicle</th>
+            <th>Gated Out</th>
+            <th>Expected Return</th>
+            <th>Action</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr [class.overdue-row]="isOverdue(row)">
+            <td><strong>{{ row.gatePassNo }}</strong></td>
+            <td><p-tag [value]="row.type" /></td>
+            <td>
+              <div *ngFor="let it of row.items" style="font-size:0.85rem;">
+                <span style="font-family:monospace;color:#1e3a8a;">{{ it.asset?.assetId }}</span>
+                · {{ it.asset?.assetName }}
+              </div>
+            </td>
+            <td>{{ row.issuedTo }}</td>
+            <td>{{ row.vehicleNo || '—' }}</td>
+            <td>{{ row.gatedOutAt | date:'dd MMM, HH:mm' }}<br><small style="color:#64748b;">by {{ row.gatedOutBy?.name }}</small></td>
+            <td>
+              {{ row.expectedReturnDate | date:'dd MMM yyyy' }}
+              <span *ngIf="isOverdue(row)" class="overdue-pill">{{ daysOverdue(row) }}d overdue</span>
+            </td>
+            <td>
+              <p-button *ngIf="row.type === 'RETURNABLE'"
+                label="Gate-In" icon="pi pi-sign-in" severity="info" size="small"
+                (onClick)="openGateIn(row)" pTooltip="Mark physically received back" tooltipPosition="top" />
+              <p-button icon="pi pi-file-pdf" size="small" severity="info" [text]="true"
+                (onClick)="downloadPdf(row)" pTooltip="Open PDF" tooltipPosition="top" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="8" class="text-center">No assets currently out on a gate pass.</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+  </p-tabView>
+
+  <!-- ── Gate-In Dialog ── -->
+  <p-dialog header="Gate-In — Receive Asset Back" [(visible)]="gateInDialog.open" [modal]="true" [style]="{width:'700px'}">
+    <p *ngIf="gateInDialog.row" style="margin:0 0 12px;">
+      <strong>{{ gateInDialog.row.gatePassNo }}</strong> · {{ gateInDialog.row.purpose }}
+    </p>
+
+    <p-floatlabel variant="on" style="display:block;margin-bottom:12px;">
+      <input pInputText [(ngModel)]="gateInDialog.returnedBy" name="returnedBy" />
+      <label>Returned By (person handing over)</label>
+    </p-floatlabel>
+
+    <h4 style="color:#1e3a8a;margin:8px 0;">Per-Item Return Condition</h4>
+    <p-table [value]="gateInDialog.items" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Asset</th>
+          <th style="width:140px">Condition</th>
+          <th>Remarks</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-it let-i="rowIndex">
+        <tr>
+          <td>
+            <span style="font-family:monospace;color:#1e3a8a;">{{ it.asset?.assetId }}</span>
+            · {{ it.asset?.assetName }}
+          </td>
+          <td>
+            <p-select [options]="conditionOptions" optionLabel="label" optionValue="value"
+              [(ngModel)]="it.condition" [name]="'cond-' + i" appendTo="body" />
+          </td>
+          <td>
+            <input pInputText [(ngModel)]="it.remarks" [name]="'rem-' + i" />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <div style="text-align:right;margin-top:14px;">
+      <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="gateInDialog.open = false" />
+      <p-button label="Confirm Gate-In" icon="pi pi-check" severity="success" (onClick)="confirmGateIn()" />
+    </div>
+  </p-dialog>
+
+</div>
