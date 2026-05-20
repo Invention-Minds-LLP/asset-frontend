@@ -101,11 +101,8 @@
               <qrcode
                 [qrdata]="item.qrValue || item.assetId"
                 [width]="140"
-                [errorCorrectionLevel]="'H'"
-                [elementType]="'canvas'"
-                [imageSrc]="'/sa_logo.png'"
-                [imageHeight]="28"
-                [imageWidth]="28">
+                [errorCorrectionLevel]="'M'"
+                [elementType]="'canvas'">
               </qrcode>
               <div class="qr-label">{{ item.assetId }}</div>
               <div class="qr-name">{{ item.assetName }}</div>

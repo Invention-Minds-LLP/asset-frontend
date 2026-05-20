@@ -22,13 +22,65 @@ ngOnChanges(changes: SimpleChanges): void {
 }
 
   downloadQr(): void {
-    const canvas = document.querySelector('canvas') as HTMLCanvasElement | null;
-    if (!canvas) return;
+    const qrCanvas = document.querySelector('canvas') as HTMLCanvasElement | null;
+    if (!qrCanvas) return;
 
-    const image = canvas.toDataURL('image/png');
+    // Compose a final image: white background + QR + asset ID + (optional) asset name.
+    // So the saved PNG identifies itself without relying on the filename.
+    const padding = 16;
+    const labelGap = 10;
+    const idFont = 'bold 18px ui-monospace, monospace';
+    const nameFont = '14px system-ui, sans-serif';
+    const idLine = this.assetId || '';
+    const nameLine = this.assetName || '';
+    const lineHeight = 22;
+
+    // Measure text widths first using a throwaway context so we can size the
+    // output canvas wide enough to fit whichever is widest: QR, ID, or name.
+    const measureCtx = document.createElement('canvas').getContext('2d')!;
+    measureCtx.font = idFont;
+    const idWidth = idLine ? Math.ceil(measureCtx.measureText(idLine).width) : 0;
+    measureCtx.font = nameFont;
+    const nameWidth = nameLine ? Math.ceil(measureCtx.measureText(nameLine).width) : 0;
+
+    const labelLines = (idLine ? 1 : 0) + (nameLine ? 1 : 0);
+    const labelHeight = labelLines > 0 ? (labelLines * lineHeight + labelGap) : 0;
+
+    const contentWidth = Math.max(qrCanvas.width, idWidth, nameWidth);
+
+    const out = document.createElement('canvas');
+    out.width = contentWidth + padding * 2;
+    out.height = qrCanvas.height + padding * 2 + labelHeight;
+
+    const ctx = out.getContext('2d');
+    if (!ctx) return;
+
+    // White background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, out.width, out.height);
+
+    // QR centered horizontally
+    const qrX = (out.width - qrCanvas.width) / 2;
+    ctx.drawImage(qrCanvas, qrX, padding);
+
+    // Labels below, centered
+    ctx.textAlign = 'center';
+    let y = padding + qrCanvas.height + labelGap + 4;
+    if (idLine) {
+      ctx.font = idFont;
+      ctx.fillStyle = '#1e3a8a';
+      ctx.fillText(idLine, out.width / 2, y);
+      y += lineHeight;
+    }
+    if (nameLine) {
+      ctx.font = nameFont;
+      ctx.fillStyle = '#555';
+      ctx.fillText(nameLine, out.width / 2, y);
+    }
+
     const link = document.createElement('a');
-    link.href = image;
-    link.download = `${this.assetId}-qr.png`;
+    link.href = out.toDataURL('image/png');
+    link.download = `${this.assetId || 'asset'}-qr.png`;
     link.click();
   }
 
