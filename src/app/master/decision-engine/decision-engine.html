@@ -168,7 +168,7 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr>
-            <td><strong>{{ row.category }}</strong></td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;"><strong>{{ row.category }}</strong></td>
             <td>{{ row.count }}</td>
             <td>
               @if (row.replace > 0) {
@@ -270,10 +270,10 @@
                         {{ a.compositeScore }}
                       </span>
                     </td>
-                    <td><strong>{{ a.assetId }}</strong></td>
-                    <td>{{ a.assetName }}</td>
-                    <td>{{ a.category || '—' }}</td>
-                    <td>{{ a.department || '—' }}</td>
+                    <td class="ellipsis-cell" appOverflowTooltip><strong>{{ a.assetId }}</strong></td>
+                    <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ a.assetName }}</td>
+                    <td class="ellipsis-cell" appOverflowTooltip>{{ a.category || '—' }}</td>
+                    <td class="ellipsis-cell" appOverflowTooltip>{{ a.department || '—' }}</td>
                     <td>
                       <p-tag [value]="getDecisionLabel(a.decision)"
                         [severity]="getDecisionSeverity(a.decision)" [style]="{'font-size':'0.72rem'}"></p-tag>

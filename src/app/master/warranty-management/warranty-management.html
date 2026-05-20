@@ -37,9 +37,9 @@
     </ng-template>
     <ng-template pTemplate="body" let-w>
       <tr>
-        <td><strong>{{ w.asset?.assetName || '—' }}</strong></td>
-        <td>{{ w.vendor?.name || w.warrantyProvider || '—' }}</td>
-        <td>{{ w.warrantyType || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;"><strong>{{ w.asset?.assetName || '—' }}</strong></td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ w.vendor?.name || w.warrantyProvider || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ w.warrantyType || '—' }}</td>
         <td>{{ w.warrantyStart | date:'mediumDate' }}</td>
         <td>{{ w.warrantyEnd | date:'mediumDate' }}</td>
         <td>
@@ -166,9 +166,9 @@
           </ng-template>
           <ng-template pTemplate="body" let-c>
             <tr>
-              <td><strong>{{ c.contractNumber || c.id }}</strong></td>
-              <td>{{ c.contractType }}</td>
-              <td>{{ c.vendor?.name || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip><strong>{{ c.contractNumber || c.id }}</strong></td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ c.contractType }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ c.vendor?.name || '—' }}</td>
               <td>{{ formatCurrency(c.cost) }}</td>
               <td>{{ c.startDate | date:'mediumDate' }}</td>
               <td>{{ c.endDate | date:'mediumDate' }}</td>

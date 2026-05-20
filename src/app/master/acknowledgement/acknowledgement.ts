@@ -14,6 +14,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { AcknowledgementService } from '../../services/acknowledgement/acknowledgement';
 import { Assets } from '../../services/assets/assets';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-acknowledgement',
@@ -30,7 +31,8 @@ import { Assets } from '../../services/assets/assets';
     FloatLabelModule,
     SelectModule,
     TextareaModule,
-    TooltipModule
+    TooltipModule,
+    OverflowTooltipDirective
   ],
   templateUrl: './acknowledgement.html',
   styleUrl: './acknowledgement.css',

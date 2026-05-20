@@ -68,11 +68,11 @@
           </p-button>
         </td>
         <td>{{ log.createdAt | date:'medium' }}</td>
-        <td>{{ log.entityType }}</td>
-        <td>{{ log.entityId }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ log.entityType }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ log.entityId }}</td>
         <td><p-tag [value]="log.action" [severity]="getActionSeverity(log.action)"></p-tag></td>
-        <td>{{ log.performedBy || ('User #' + log.performedById) }}</td>
-        <td class="summary-cell">{{ log.description || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ log.performedBy || ('User #' + log.performedById) }}</td>
+        <td class="summary-cell ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 380px;">{{ log.description || '—' }}</td>
       </tr>
     </ng-template>
 

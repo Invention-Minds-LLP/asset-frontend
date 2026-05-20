@@ -54,10 +54,10 @@
           </ng-template>
           <ng-template pTemplate="body" let-p>
             <tr>
-              <td>{{ p.policyNumber }}</td>
-              <td>{{ p.asset?.assetName || '—' }}</td>
-              <td>{{ p.provider }}</td>
-              <td>{{ p.policyType }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ p.policyNumber }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ p.asset?.assetName || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ p.provider }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ p.policyType }}</td>
               <td>{{ formatCurrency(p.premiumAmount) }}</td>
               <td>{{ formatCurrency(p.coverageAmount) }}</td>
               <td>{{ p.startDate | date:'mediumDate' }}</td>
@@ -96,8 +96,8 @@
           </ng-template>
           <ng-template pTemplate="body" let-c>
             <tr>
-              <td>{{ c.claimNumber }}</td>
-              <td>{{ c?.asset?.assetName || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ c.claimNumber }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ c?.asset?.assetName || '—' }}</td>
               <td>{{ c.claimDate | date:'mediumDate' }}</td>
               <td>{{ formatCurrency(c.claimAmount) }}</td>
               <td>{{ formatCurrency(c.settledAmount) }}</td>

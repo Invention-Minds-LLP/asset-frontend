@@ -89,11 +89,11 @@
                         {{ (currentPage - 1) * rowsPerPage + i + 1 }}
                     </td>
 
-                    <td>{{ item.asset?.assetId || '-' }}</td>
-                    <td>{{ item.asset?.assetName || '-' }}</td>
-                    <td>{{ item.requestedBy?.name || '-' }}</td>
-                    <td>{{ getRequestTypeLabel(item) }}</td>
-                    <td>{{ getDestination(item) }}</td>
+                    <td class="ellipsis-cell" appOverflowTooltip>{{ item.asset?.assetId || '-' }}</td>
+                    <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ item.asset?.assetName || '-' }}</td>
+                    <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 180px;">{{ item.requestedBy?.name || '-' }}</td>
+                    <td class="ellipsis-cell" appOverflowTooltip>{{ getRequestTypeLabel(item) }}</td>
+                    <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ getDestination(item) }}</td>
                     <td>{{ item.temporary ? 'Yes' : 'No' }}</td>
                     <td>{{ item.requestedAt | date:'dd-MM-yyyy' }}</td>
                     <td>
@@ -181,11 +181,11 @@
       </ng-template>
       <ng-template pTemplate="body" let-item>
         <tr>
-          <td>{{ item.asset?.assetId || '-' }}</td>
-          <td>{{ item.asset?.assetName || '-' }}</td>
-          <td>{{ item.requestedBy?.name || '-' }}</td>
-          <td>{{ item.transferType }}</td>
-          <td>{{ item.toBranch?.name || item.destinationName || item.externalType || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ item.asset?.assetId || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ item.asset?.assetName || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 180px;">{{ item.requestedBy?.name || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ item.transferType }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ item.toBranch?.name || item.destinationName || item.externalType || '-' }}</td>
           <td>{{ item.requestedAt | date:'dd-MM-yyyy' }}</td>
           <td>
             <p-button label="Review" icon="pi pi-check-circle" size="small" severity="warn"

@@ -36,9 +36,9 @@
 
     <ng-template pTemplate="body" let-d>
       <tr>
-        <td>{{ d.asset?.assetName || d.asset?.assetId || '—' }}</td>
-        <td>{{ d.disposalType }}</td>
-        <td class="reason-cell">{{ d.reason }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ d.asset?.assetName || d.asset?.assetId || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ d.disposalType }}</td>
+        <td class="reason-cell ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ d.reason }}</td>
         <td><p-tag [value]="d.status" [severity]="getStatusSeverity(d.status)"></p-tag></td>
         <td>{{ formatCurrency(d.bookValueAtDisposal) }}</td>
         <td>{{ formatCurrency(d.estimatedScrapValue) }}</td>

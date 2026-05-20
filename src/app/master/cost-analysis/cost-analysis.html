@@ -276,11 +276,11 @@
           <ng-template pTemplate="body" let-e>
             <tr>
               <td>{{ e.entryDate | date:'mediumDate' }}</td>
-              <td>{{ getCostTypeLabel(e.costType) }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ getCostTypeLabel(e.costType) }}</td>
               <td><strong>{{ fc(e.amount) }}</strong></td>
-              <td>{{ e.period || '—' }}</td>
-              <td>{{ e.referenceType || '—' }}</td>
-              <td>{{ e.description || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ e.period || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ e.referenceType || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ e.description || '—' }}</td>
               <td>
                 <p-button icon="pi pi-pencil" [text]="true" size="small"
                   pTooltip="Edit" tooltipPosition="top" (onClick)="openAllocationDialog(e)"></p-button>
@@ -340,9 +340,9 @@
         </ng-template>
         <ng-template pTemplate="body" let-a>
           <tr>
-            <td><strong>{{ a.assetId }}</strong></td>
-            <td>{{ a.assetName }}</td>
-            <td>{{ a.category || '—' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip><strong>{{ a.assetId }}</strong></td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ a.assetName }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ a.category || '—' }}</td>
             <td>
               <p-tag [value]="getAlertLabel(a.alertTypes)" [severity]="getAlertSeverity(a.alertTypes)"></p-tag>
             </td>

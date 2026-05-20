@@ -49,12 +49,12 @@
                 <span *ngIf="it.quantity > 1" style="color:#64748b;"> × {{ it.quantity }}</span>
               </div>
             </td>
-            <td>{{ row.issuedTo }}</td>
-            <td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>
               <div>{{ row.vehicleNo || '—' }}</div>
               <small style="color:#64748b;">{{ row.vehicleType || '' }}</small>
             </td>
-            <td>{{ row.approvedByEmployee?.name || '—' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.approvedByEmployee?.name || '—' }}</td>
             <td>{{ row.approvedAt | date:'dd MMM, HH:mm' }}</td>
             <td>
               <p-button label="Gate-Out" icon="pi pi-sign-out" severity="success" size="small"
@@ -95,9 +95,9 @@
                 · {{ it.asset?.assetName }}
               </div>
             </td>
-            <td>{{ row.issuedTo }}</td>
-            <td>{{ row.vehicleNo || '—' }}</td>
-            <td>{{ row.gatedOutAt | date:'dd MMM, HH:mm' }}<br><small style="color:#64748b;">by {{ row.gatedOutBy?.name }}</small></td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.vehicleNo || '—' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.gatedOutAt | date:'dd MMM, HH:mm' }}<br><small style="color:#64748b;">by {{ row.gatedOutBy?.name }}</small></td>
             <td>
               {{ row.expectedReturnDate | date:'dd MMM yyyy' }}
               <span *ngIf="isOverdue(row)" class="overdue-pill">{{ daysOverdue(row) }}d overdue</span>

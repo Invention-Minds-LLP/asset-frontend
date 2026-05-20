@@ -14,6 +14,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { MessageService } from 'primeng/api';
 import { Assets } from '../../services/assets/assets';
 import { RevenueLogService } from '../../services/revenue-log/revenue-log';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-my-assets',
@@ -22,6 +23,7 @@ import { RevenueLogService } from '../../services/revenue-log/revenue-log';
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, TooltipModule, DialogModule, InputNumberModule,
     DatePickerModule, SelectModule, TextareaModule,
+    OverflowTooltipDirective,
   ],
   templateUrl: './my-assets.html',
   styleUrl: './my-assets.css',

@@ -59,12 +59,12 @@
           </ng-template>
           <ng-template pTemplate="body" let-a>
             <tr>
-              <td>{{ a.assetId }}</td>
-              <td>{{ a.assetName }}</td>
-              <td>{{ a.category || '—' }}</td>
-              <td>{{ a.department || '—' }}</td>
-              <td>{{ a.vendor || '—' }}</td>
-              <td>{{ a.modeOfProcurement }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ a.assetId }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ a.assetName }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ a.category || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ a.department || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ a.vendor || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ a.modeOfProcurement }}</td>
               <td>{{ a.purchaseDate | date:'mediumDate' }}</td>
               <td>{{ formatCurrency(a.purchaseCost) }}</td>
               <td><p-tag [value]="a.status"></p-tag></td>

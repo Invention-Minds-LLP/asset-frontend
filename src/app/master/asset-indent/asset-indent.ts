@@ -15,6 +15,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { MessageService } from 'primeng/api';
 import { AssetIndentService } from '../../services/asset-indent/asset-indent.service';
 import { Tooltip, TooltipModule } from 'primeng/tooltip';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-asset-indent',
@@ -22,7 +23,8 @@ import { Tooltip, TooltipModule } from 'primeng/tooltip';
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule,
     TagModule, ToastModule, DialogModule, InputTextModule,
-    TextareaModule, SelectModule, InputNumberModule, FloatLabelModule, DatePickerModule, TooltipModule
+    TextareaModule, SelectModule, InputNumberModule, FloatLabelModule, DatePickerModule, TooltipModule,
+    OverflowTooltipDirective
   ],
   templateUrl: './asset-indent.html',
   styleUrl: './asset-indent.css',

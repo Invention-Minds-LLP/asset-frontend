@@ -151,11 +151,11 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr>
-            <td>{{ row.asset?.assetName }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ row.asset?.assetName }}</td>
             <td>{{ row.frequencyValue }} {{ row.frequencyUnit }}</td>
             <td [class.text-danger]="row.nextDueAt < today">{{ row.nextDueAt | date:'dd MMM yyyy' }}</td>
             <td>{{ row.lastCalibratedAt ? (row.lastCalibratedAt | date:'dd MMM yyyy') : '—' }}</td>
-            <td>{{ row.vendor?.name || '—' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ row.vendor?.name || '—' }}</td>
             <td><p-tag [value]="row.isActive ? 'Active' : 'Inactive'" [severity]="row.isActive ? 'success' : 'secondary'" /></td>
             <td>
               <div class="action-buttons">
@@ -179,10 +179,10 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr class="due-row">
-            <td>{{ row.asset?.assetName }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ row.asset?.assetName }}</td>
             <td class="text-danger">{{ row.nextDueAt | date:'dd MMM yyyy' }}</td>
-            <td>{{ row.vendor?.name || '—' }}</td>
-            <td>{{ row.standardProcedure || '—' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ row.vendor?.name || '—' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ row.standardProcedure || '—' }}</td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
@@ -233,8 +233,8 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr>
-            <td>{{ row.name }}</td>
-            <td>{{ row.assetCategory?.name || '—' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ row.name }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.assetCategory?.name || '—' }}</td>
             <td>{{ row.items?.length ?? 0 }}</td>
             <td><p-tag [value]="row.isActive ? 'Active' : 'Inactive'" [severity]="row.isActive ? 'success' : 'secondary'" /></td>
             <td>

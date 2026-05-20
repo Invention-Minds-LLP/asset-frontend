@@ -30,9 +30,9 @@
     </ng-template>
     <ng-template pTemplate="body" let-exit>
       <tr>
-        <td><strong>{{ exit.exitNumber }}</strong></td>
-        <td>{{ exit.employee?.name }}<br><small class="emp-id">{{ exit.employee?.employeeId }}</small></td>
-        <td>{{ exit.exitType }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip><strong>{{ exit.exitNumber }}</strong></td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ exit.employee?.name }}<br><small class="emp-id">{{ exit.employee?.employeeId }}</small></td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ exit.exitType }}</td>
         <td>{{ exit.exitDate | date:'dd MMM yyyy' }}</td>
         <td>{{ exit.totalAssetsAssigned }}</td>
         <td class="returned">{{ exit.assetsReturned }}</td>
@@ -110,8 +110,8 @@
       </ng-template>
       <ng-template pTemplate="body" let-item>
         <tr>
-          <td>{{ item.asset?.assetName }}</td>
-          <td>{{ item.asset?.assetId }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ item.asset?.assetName }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ item.asset?.assetId }}</td>
           <td><p-tag [value]="item.status" [severity]="itemStatusSeverity(item.status)" /></td>
           <td>
             @if (item.status !== 'RETURNED') {

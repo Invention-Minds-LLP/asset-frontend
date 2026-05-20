@@ -53,9 +53,9 @@
               <span class="muted">—</span>
             }
           </td>
-          <td>{{ a.assetCategory?.name || '—' }}</td>
-          <td>{{ a.assetType || '—' }}</td>
-          <td>{{ a.currentLocation || '—' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ a.assetCategory?.name || '—' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ a.assetType || '—' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ a.currentLocation || '—' }}</td>
           <td>{{ a.assignedOn ? (a.assignedOn | date:'dd MMM yyyy') : '—' }}</td>
           <td><span class="status-pill" [class]="'status-' + getStatusClass(a.status)">{{ a.status }}</span></td>
           <td>

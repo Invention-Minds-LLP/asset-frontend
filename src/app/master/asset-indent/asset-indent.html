@@ -30,10 +30,10 @@
     </ng-template>
     <ng-template pTemplate="body" let-indent>
       <tr>
-        <td><strong>{{ indent.indentNumber }}</strong></td>
-        <td>{{ indent.assetName }}</td>
-        <td>{{ indent.department?.name }}</td>
-        <td>{{ indent.raisedBy?.name }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip><strong>{{ indent.indentNumber }}</strong></td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ indent.assetName }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ indent.department?.name }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ indent.raisedBy?.name }}</td>
         <td>
           <p-tag [value]="indent.urgency"
             [severity]="indent.urgency === 'CRITICAL' ? 'danger' : indent.urgency === 'URGENT' ? 'warn' : 'info'" />

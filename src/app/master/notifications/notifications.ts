@@ -13,6 +13,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { NotificationsService } from '../../services/notifications/notifications';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-notifications',
@@ -29,7 +30,8 @@ import { NotificationsService } from '../../services/notifications/notifications
     FloatLabelModule,
     SelectModule,
     TextareaModule,
-    TooltipModule
+    TooltipModule,
+    OverflowTooltipDirective
   ],
   templateUrl: './notifications.html',
   styleUrl: './notifications.css',

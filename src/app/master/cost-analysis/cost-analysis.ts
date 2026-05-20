@@ -14,6 +14,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { CostAnalysisService } from '../../services/cost-analysis/cost-analysis';
 import { Assets } from '../../services/assets/assets';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-cost-analysis',
@@ -22,6 +23,7 @@ import { Assets } from '../../services/assets/assets';
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, SelectModule, DialogModule, InputNumberModule, TooltipModule,
     DatePicker, TextareaModule,
+    OverflowTooltipDirective,
   ],
   templateUrl: './cost-analysis.html',
   styleUrl: './cost-analysis.css',

@@ -10,12 +10,13 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { Assets } from '../../services/assets/assets';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-department-assets',
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
-    ToastModule, SelectModule, FloatLabelModule, TooltipModule],
+    ToastModule, SelectModule, FloatLabelModule, TooltipModule, OverflowTooltipDirective],
   templateUrl: './department-assets.html',
   styleUrl: './department-assets.css',
   providers: [MessageService]

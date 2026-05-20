@@ -75,9 +75,9 @@
             <tbody>
               @for (err of assetsResponse.summary.errors; track $index) {
                 <tr>
-                  <td>{{ err.sheet }}</td>
+                  <td class="ellipsis-cell" appOverflowTooltip>{{ err.sheet }}</td>
                   <td>{{ err.row }}</td>
-                  <td>{{ err.message }}</td>
+                  <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 420px;">{{ err.message }}</td>
                 </tr>
               }
             </tbody>
@@ -157,9 +157,9 @@
             <tbody>
               @for (err of checklistResponse.summary.errors; track $index) {
                 <tr>
-                  <td>{{ err.sheet }}</td>
+                  <td class="ellipsis-cell" appOverflowTooltip>{{ err.sheet }}</td>
                   <td>{{ err.row }}</td>
-                  <td>{{ err.message }}</td>
+                  <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 420px;">{{ err.message }}</td>
                 </tr>
               }
             </tbody>

@@ -55,9 +55,9 @@
             (click)="toggleExpand(asset)"
           />
         </td>
-        <td><code>{{ asset.assetId }}</code></td>
-        <td>{{ asset.assetName }}</td>
-        <td>{{ asset.category?.name || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip><code>{{ asset.assetId }}</code></td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ asset.assetName }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ asset.category?.name || '—' }}</td>
         <td>
           <p-tag
             [value]="asset.status"
@@ -119,9 +119,9 @@
                   </ng-template>
                   <ng-template pTemplate="body" let-sub>
                     <tr>
-                      <td><code>{{ sub.assetId }}</code></td>
-                      <td>{{ sub.assetName }}</td>
-                      <td>{{ sub.serialNumber || '—' }}</td>
+                      <td class="ellipsis-cell" appOverflowTooltip><code>{{ sub.assetId }}</code></td>
+                      <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ sub.assetName }}</td>
+                      <td class="ellipsis-cell" appOverflowTooltip>{{ sub.serialNumber || '—' }}</td>
                       <td>
                         <p-tag
                           [value]="sub.status"

@@ -13,6 +13,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { EmployeeExitService } from '../../services/employee-exit/employee-exit.service';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-employee-exit',
@@ -20,7 +21,8 @@ import { EmployeeExitService } from '../../services/employee-exit/employee-exit.
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule,
     TagModule, ToastModule, DialogModule, InputTextModule,
-    SelectModule, FloatLabelModule, DatePickerModule, TooltipModule
+    SelectModule, FloatLabelModule, DatePickerModule, TooltipModule,
+    OverflowTooltipDirective
   ],
   templateUrl: './employee-exit.html',
   styleUrl: './employee-exit.css',

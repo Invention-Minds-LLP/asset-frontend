@@ -17,6 +17,7 @@ import { MessageService } from 'primeng/api';
 import { CalibrationService } from '../../services/calibration/calibration';
 import { Assets } from '../../services/assets/assets';
 import { DatePicker } from "primeng/datepicker";
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-calibration',
@@ -36,7 +37,8 @@ import { DatePicker } from "primeng/datepicker";
     DialogModule,
     CheckboxModule,
     DatePicker,
-    TooltipModule
+    TooltipModule,
+    OverflowTooltipDirective
 ],
   templateUrl: './calibration.html',
   styleUrl: './calibration.css',

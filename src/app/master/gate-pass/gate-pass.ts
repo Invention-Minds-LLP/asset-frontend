@@ -16,6 +16,7 @@ import { MessageService } from 'primeng/api';
 import { GatePassService } from '../../services/gate-pass/gate-pass';
 import { Assets } from '../../services/assets/assets';
 import { environment } from '../../../environment/environment.prod';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 interface ItemRow {
   assetId: number | null;
@@ -30,6 +31,7 @@ interface ItemRow {
     CommonModule, FormsModule,
     ButtonModule, TableModule, TagModule, ToastModule, TabViewModule,
     InputTextModule, FloatLabelModule, SelectModule, TextareaModule, TooltipModule, DialogModule,
+    OverflowTooltipDirective,
   ],
   templateUrl: './gate-pass.html',
   styleUrl: './gate-pass.css',

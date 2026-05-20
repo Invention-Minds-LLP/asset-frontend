@@ -117,9 +117,9 @@
             <thead><tr><th>Type</th><th>Contract No</th><th>Vendor</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
             <tbody>
               <tr *ngFor="let c of scanData.serviceContracts">
-                <td>{{ c.contractType }}</td>
-                <td>{{ c.contractNumber || '-' }}</td>
-                <td>{{ c.vendor?.name || '-' }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip>{{ c.contractType }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip>{{ c.contractNumber || '-' }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ c.vendor?.name || '-' }}</td>
                 <td>{{ c.startDate | date:'mediumDate' }}</td>
                 <td>{{ c.endDate | date:'mediumDate' }}</td>
                 <td>{{ c.status || '-' }}</td>
@@ -136,11 +136,11 @@
             <thead><tr><th>Ticket ID</th><th>Issue</th><th>Priority</th><th>Status</th><th>Assigned To</th><th>Date</th></tr></thead>
             <tbody>
               <tr *ngFor="let t of scanData.tickets">
-                <td>{{ t.ticketId }}</td>
-                <td>{{ t.issueType }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip>{{ t.ticketId }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ t.issueType }}</td>
                 <td>{{ t.priority }}</td>
                 <td>{{ t.status }}</td>
-                <td>{{ t.assignedTo?.name || '-' }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 180px;">{{ t.assignedTo?.name || '-' }}</td>
                 <td>{{ t.createdAt | date:'mediumDate' }}</td>
               </tr>
             </tbody>
@@ -157,10 +157,10 @@
               <tr *ngFor="let m of scanData.maintenanceHistory">
                 <td>{{ m.scheduledDue | date:'mediumDate' }}</td>
                 <td>{{ m.actualDoneAt | date:'mediumDate' }}</td>
-                <td>{{ m.performedBy || '-' }}</td>
-                <td>{{ m.serviceType || '-' }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 180px;">{{ m.performedBy || '-' }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip>{{ m.serviceType || '-' }}</td>
                 <td>{{ m.totalCost || '-' }}</td>
-                <td>{{ m.notes || '-' }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ m.notes || '-' }}</td>
               </tr>
             </tbody>
           </table>
@@ -176,9 +176,9 @@
               <tr *ngFor="let c of scanData.calibrationHistory">
                 <td>{{ c.calibratedAt | date:'mediumDate' }}</td>
                 <td>{{ c.result }}</td>
-                <td>{{ c.calibratedByType || '-' }}</td>
-                <td>{{ c.vendor?.name || '-' }}</td>
-                <td>{{ c.certificateNo || '-' }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip>{{ c.calibratedByType || '-' }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ c.vendor?.name || '-' }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip>{{ c.certificateNo || '-' }}</td>
               </tr>
             </tbody>
           </table>
@@ -203,9 +203,9 @@
             <thead><tr><th>Group</th><th>Key</th><th>Value</th><th>Unit</th></tr></thead>
             <tbody>
               <tr *ngFor="let s of scanData.specifications">
-                <td>{{ s.specificationGroup || '-' }}</td>
-                <td>{{ s.key }}</td>
-                <td>{{ s.value }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip>{{ s.specificationGroup || '-' }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip>{{ s.key }}</td>
+                <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ s.value }}</td>
                 <td>{{ s.unit || '-' }}</td>
               </tr>
             </tbody>

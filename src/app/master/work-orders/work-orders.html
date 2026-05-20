@@ -50,12 +50,12 @@
       </ng-template>
       <ng-template pTemplate="body" let-wo>
         <tr>
-          <td><strong>{{ wo.woNumber || 'WO-' + wo.id }}</strong></td>
+          <td class="ellipsis-cell" appOverflowTooltip><strong>{{ wo.woNumber || 'WO-' + wo.id }}</strong></td>
           <td>{{ wo.createdAt | date:'mediumDate' }}</td>
           <td>
             <p-tag [value]="wo.woType" [severity]="getTypeSeverity(wo.woType)"></p-tag>
           </td>
-          <td>{{ wo.asset?.assetName || wo.asset?.assetId || '--' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ wo.asset?.assetName || wo.asset?.assetId || '--' }}</td>
           <td>
             <p-tag [value]="getStatusLabel(wo.status)" [severity]="getStatusSeverity(wo.status)"></p-tag>
           </td>

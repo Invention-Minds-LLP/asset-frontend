@@ -76,11 +76,11 @@
   </ng-template>
   <ng-template pTemplate="body" let-pool>
     <tr class="fa-body-row">
-      <td class="fa-pool-code">
+      <td class="fa-pool-code ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">
         <span class="pool-code-text">{{ pool.poolCode }}</span>
         @if (pool.latestFY) { <span class="pool-fy-badge">{{ pool.latestFY }}</span> }
       </td>
-      <td class="fa-cat">{{ pool.category || '—' }}</td>
+      <td class="fa-cat ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ pool.category || '—' }}</td>
       <td class="fa-qty">{{ pool.originalQuantity }}</td>
       <!-- Gross Block columns (green tint) -->
       <td class="fa-num fa-bg-gross">₹{{ fmt(pool.latestOpeningGrossBlock) }}</td>

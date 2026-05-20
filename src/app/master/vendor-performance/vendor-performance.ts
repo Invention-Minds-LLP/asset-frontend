@@ -8,11 +8,12 @@ import { ToastModule } from 'primeng/toast';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MessageService } from 'primeng/api';
 import { VendorPerformanceService } from '../../services/vendor-performance/vendor-performance';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-vendor-performance',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule, ToastModule, InputNumberModule],
+  imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule, ToastModule, InputNumberModule, OverflowTooltipDirective],
   templateUrl: './vendor-performance.html',
   styleUrl: './vendor-performance.css',
   providers: [MessageService]

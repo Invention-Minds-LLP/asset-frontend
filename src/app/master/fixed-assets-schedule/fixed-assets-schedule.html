@@ -123,6 +123,14 @@
         <div class="dlg-title">{{ detailCategory }} — Asset Breakdown</div>
         <div class="dlg-sub">{{ fyLabel }} · {{ detailRows.length }} assets</div>
       </div>
+      @if (!detailLoading && detailRows.length) {
+        <div class="dlg-hdr-actions">
+          <p-button label="Excel" icon="pi pi-file-excel" size="small" severity="success"
+                    styleClass="dlg-export-btn" (onClick)="exportCategoryDetailExcel()" />
+          <p-button label="Print" icon="pi pi-print" size="small" severity="secondary" [outlined]="true"
+                    styleClass="dlg-print-btn" (onClick)="printCategoryDetail()" />
+        </div>
+      }
     </div>
   </ng-template>
 

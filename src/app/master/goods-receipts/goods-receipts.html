@@ -46,10 +46,10 @@
       </ng-template>
       <ng-template pTemplate="body" let-gra>
         <tr>
-          <td><strong>{{ gra.graNumber || gra.grnNumber || 'GRN-' + gra.id }}</strong></td>
+          <td class="ellipsis-cell" appOverflowTooltip><strong>{{ gra.graNumber || gra.grnNumber || 'GRN-' + gra.id }}</strong></td>
           <td>{{ gra.receiptDate || gra.createdAt | date:'mediumDate' }}</td>
-          <td>{{ gra.purchaseOrder?.poNumber || gra.poNumber || '--' }}</td>
-          <td>{{ gra.purchaseOrder?.vendor?.name || gra.vendorName || '--' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ gra.purchaseOrder?.poNumber || gra.poNumber || '--' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ gra.purchaseOrder?.vendor?.name || gra.vendorName || '--' }}</td>
           <td>
             <p-tag [value]="getStatusLabel(gra.status)" [severity]="getStatusSeverity(gra.status)"></p-tag>
           </td>

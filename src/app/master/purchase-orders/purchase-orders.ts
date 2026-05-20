@@ -16,6 +16,7 @@ import { MessageService } from 'primeng/api';
 import { PurchaseOrderService } from '../../services/purchase-order/purchase-order';
 import { Assets } from '../../services/assets/assets';
 import { AssetIndentService } from '../../services/asset-indent/asset-indent.service';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-purchase-orders',
@@ -24,6 +25,7 @@ import { AssetIndentService } from '../../services/asset-indent/asset-indent.ser
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, SelectModule, DialogModule, InputNumberModule,
     TooltipModule, InputTextModule, DatePickerModule, TextareaModule,
+    OverflowTooltipDirective,
   ],
   templateUrl: './purchase-orders.html',
   styleUrl: './purchase-orders.css',

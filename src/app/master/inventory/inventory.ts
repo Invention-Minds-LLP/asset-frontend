@@ -12,6 +12,7 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
 import { Assets } from '../../services/assets/assets';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-inventory',
@@ -24,7 +25,8 @@ import { Assets } from '../../services/assets/assets';
     FloatLabelModule,
     ButtonModule,
     TabViewModule,
-    ToastModule
+    ToastModule,
+    OverflowTooltipDirective
   ],
   templateUrl: './inventory.html',
   styleUrl: './inventory.css',

@@ -10,13 +10,15 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { MessageService } from 'primeng/api';
 import { AuditTrailService } from '../../services/audit-trail/audit-trail';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-audit-trail',
   standalone: true,
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule,
-    TagModule, ToastModule, InputTextModule, SelectModule, DatePickerModule
+    TagModule, ToastModule, InputTextModule, SelectModule, DatePickerModule,
+    OverflowTooltipDirective
   ],
   templateUrl: './audit-trail.html',
   styleUrl: './audit-trail.css',

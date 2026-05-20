@@ -14,6 +14,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { Transferr } from '../services/transfer/transferr';
+import { OverflowTooltipDirective } from '../shared/directives/overflow-tooltip.directive';
 
 type FilterField = 'assetName' | 'assetId' | 'requestedBy' | 'transferType' | 'status';
 
@@ -32,7 +33,8 @@ type FilterField = 'assetName' | 'assetId' | 'requestedBy' | 'transferType' | 's
     TextareaModule,
     SelectModule,
     TagModule,
-    ToastModule
+    ToastModule,
+    OverflowTooltipDirective
   ],
   providers: [MessageService],
   templateUrl: './asset-transfer.html',

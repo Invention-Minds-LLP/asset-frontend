@@ -94,11 +94,11 @@
                             </td>
 
                             <td>{{ (currentPage-1) * rowsPerPage + i + 1 }}</td>
-                            <td>{{ ticketing.asset?.assetId }}</td>
-                            <td>{{ ticketing.asset?.assetName }}</td>
-                            <td>{{ ticketing.ticketId }}</td>
-                            <td>{{ ticketing.raisedBy ? ticketing.raisedBy.name : '-' }}</td>
-                            <td>{{ ticketing.department?.name }}</td>
+                            <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.asset?.assetId }}</td>
+                            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ ticketing.asset?.assetName }}</td>
+                            <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.ticketId }}</td>
+                            <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.raisedBy ? ticketing.raisedBy.name : '-' }}</td>
+                            <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.department?.name }}</td>
                             <td>{{ ticketing.priority }}</td>
 
                             <td class="actions-cell">
@@ -158,9 +158,9 @@
                                 </span>
                             </td>
                             <td>{{ (currentPage-1) * rowsPerPage + i + 1 }}</td>
-                            <td>{{ t.ticketId }}</td>
-                            <td>{{ t.asset?.assetId }} - {{ t.asset?.assetName }}</td>
-                            <td>{{ t.department?.name }}</td>
+                            <td class="ellipsis-cell" appOverflowTooltip>{{ t.ticketId }}</td>
+                            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 300px;">{{ t.asset?.assetId }} - {{ t.asset?.assetName }}</td>
+                            <td class="ellipsis-cell" appOverflowTooltip>{{ t.department?.name }}</td>
                             <td>{{ t.status }}</td>
                             <td>{{ t.priority }}</td>
                             <td>{{ t.updatedAt | date:'dd-MMM-yyyy' }}</td>
@@ -220,9 +220,9 @@
                                 </span>
                             </td>
                             <td>{{ (currentPage-1) * rowsPerPage + i + 1 }}</td>
-                            <td>{{ t.ticketId }}</td>
-                            <td>{{ t.asset?.assetId }} - {{ t.asset?.assetName }}</td>
-                            <td>{{ t.department?.name }}</td>
+                            <td class="ellipsis-cell" appOverflowTooltip>{{ t.ticketId }}</td>
+                            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 300px;">{{ t.asset?.assetId }} - {{ t.asset?.assetName }}</td>
+                            <td class="ellipsis-cell" appOverflowTooltip>{{ t.department?.name }}</td>
                             <td>{{ t.status }}</td>
                             <td>{{ t.priority }}</td>
                             <td>{{ t.updatedAt | date:'dd-MMM-yyyy' }}</td>

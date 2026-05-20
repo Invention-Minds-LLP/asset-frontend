@@ -118,6 +118,150 @@ export class FixedAssetsSchedule implements OnInit {
     return '₹' + Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
+  /** Download the per-category asset breakdown as an Excel file. */
+  exportCategoryDetailExcel() {
+    if (!this.detailRows.length) {
+      this.messageService.add({ severity: 'warn', summary: 'Nothing to export', detail: 'No assets in this category' });
+      return;
+    }
+    this.reportsService.exportReport(
+      'fixed-assets-schedule/category-detail',
+      'excel',
+      { category: this.detailCategory, fiscalYear: this.selectedYear },
+    ).subscribe({
+      next: (blob: Blob) => {
+        const file = new Blob([blob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        const safeCat = this.detailCategory.replace(/[^A-Za-z0-9]+/g, '-').toLowerCase();
+        a.download = `asset-breakdown-${safeCat}-${this.selectedYear}-${String(this.selectedYear + 1).slice(2)}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.messageService.add({ severity: 'success', summary: 'Exported', detail: 'Asset breakdown downloaded' });
+      },
+      error: () => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Excel export failed' });
+      },
+    });
+  }
+
+  /** Print the per-category asset breakdown as a clean standalone document. */
+  printCategoryDetail() {
+    if (!this.detailRows.length) {
+      this.messageService.add({ severity: 'warn', summary: 'Nothing to print', detail: 'No assets in this category' });
+      return;
+    }
+
+    const esc = (s: any) => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
+    const t = this.detailTotals;
+
+    const bodyRows = this.detailRows.map((r, i) => `
+      <tr>
+        <td class="c">${i + 1}</td>
+        <td>
+          <div class="aname">${esc(r.assetName)}</div>
+          <div class="ameta">${esc(r.assetId)} · ${esc(r.serialNumber || '—')}</div>
+        </td>
+        <td class="n">${this.fmt(r.openingGross)}</td>
+        <td class="n">${r.additions1H ? this.fmt(r.additions1H) : '—'}</td>
+        <td class="n">${r.additions2H ? this.fmt(r.additions2H) : '—'}</td>
+        <td class="n">${r.deletions ? this.fmt(r.deletions) : '—'}</td>
+        <td class="n b">${this.fmt(r.closingGross)}</td>
+        <td class="n">${r.rate > 0 ? r.rate + '%' : '—'}</td>
+        <td class="n">${r.depOnOpening ? this.fmt(r.depOnOpening) : '—'}</td>
+        <td class="n">${r.depOnAdditions ? this.fmt(r.depOnAdditions) : '—'}</td>
+        <td class="n b">${this.fmt(r.closingDep)}</td>
+        <td class="n b">${this.fmt(r.netCurrent)}</td>
+        <td class="n">${this.fmt(r.netPrevious)}</td>
+      </tr>`).join('');
+
+    const totalRow = t ? `
+      <tr class="total">
+        <td class="c" colspan="2">SUBTOTAL (${this.detailRows.length} assets)</td>
+        <td class="n">${this.fmt(t.openingGross)}</td>
+        <td class="n">${this.fmt(t.additions1H)}</td>
+        <td class="n">${this.fmt(t.additions2H)}</td>
+        <td class="n">${this.fmt(t.deletions)}</td>
+        <td class="n">${this.fmt(t.closingGross)}</td>
+        <td class="n">—</td>
+        <td class="n">${this.fmt(t.depOnOpening)}</td>
+        <td class="n">${this.fmt(t.depOnAdditions)}</td>
+        <td class="n">${this.fmt(t.closingDep)}</td>
+        <td class="n">${this.fmt(t.netCurrent)}</td>
+        <td class="n">${this.fmt(t.netPrevious)}</td>
+      </tr>` : '';
+
+    const printedOn = new Date().toLocaleString('en-IN');
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+      <title>${esc(this.detailCategory)} — Asset Breakdown ${esc(this.fyLabel)}</title>
+      <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; margin: 24px; color: #1e293b; }
+        .doc-head { border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 14px; }
+        .doc-head h1 { margin: 0; font-size: 17px; }
+        .doc-head .meta { margin-top: 3px; font-size: 12px; color: #475569; }
+        table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+        th, td { border: 1px solid #cbd5e1; padding: 5px 6px; }
+        thead th { background: #f1f5f9; font-size: 9.5px; text-transform: uppercase; letter-spacing: .3px; }
+        .n { text-align: right; white-space: nowrap; }
+        .c { text-align: center; }
+        .b { font-weight: 700; }
+        .aname { font-weight: 600; }
+        .ameta { font-size: 9px; color: #64748b; }
+        tr.total td { background: #e2e8f0; font-weight: 700; }
+        .grp-gross { background: #d1fae5 !important; }
+        .grp-dep   { background: #fed7aa !important; }
+        .grp-net   { background: #bfdbfe !important; }
+        .foot { margin-top: 14px; font-size: 10px; color: #64748b; display: flex; justify-content: space-between; }
+        @media print { body { margin: 8mm; } }
+      </style></head><body>
+      <div class="doc-head">
+        <h1>${esc(this.detailCategory)} — Asset Breakdown</h1>
+        <div class="meta">Fixed Assets Schedule · ${esc(this.fyLabel)} · ${this.detailRows.length} assets</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2" class="c">#</th>
+            <th rowspan="2">Asset</th>
+            <th colspan="5" class="grp-gross">Gross Block</th>
+            <th colspan="4" class="grp-dep">Depreciation</th>
+            <th colspan="2" class="grp-net">Net Block</th>
+          </tr>
+          <tr>
+            <th class="grp-gross">Opening</th>
+            <th class="grp-gross">Add 1H</th>
+            <th class="grp-gross">Add 2H</th>
+            <th class="grp-gross">Deletions</th>
+            <th class="grp-gross">Closing</th>
+            <th class="grp-dep">Rate %</th>
+            <th class="grp-dep">On Opening</th>
+            <th class="grp-dep">On Additions</th>
+            <th class="grp-dep">Closing Acc.</th>
+            <th class="grp-net">Current Yr</th>
+            <th class="grp-net">Prev. Yr</th>
+          </tr>
+        </thead>
+        <tbody>${bodyRows}${totalRow}</tbody>
+      </table>
+      <div class="foot">
+        <span>Generated by Smart Assets</span>
+        <span>Printed: ${esc(printedOn)}</span>
+      </div>
+      <script>window.onload = function(){ window.print(); }</script>
+      </body></html>`;
+
+    const w = window.open('', '_blank', 'width=1100,height=800');
+    if (!w) {
+      this.messageService.add({ severity: 'error', summary: 'Print blocked', detail: 'Allow pop-ups for this site to print' });
+      return;
+    }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  }
+
   /** Absolute difference between asset subtotal and category total (for reconciliation). */
   absDiff(a: number, b: number): number {
     return Math.abs((a ?? 0) - (b ?? 0));

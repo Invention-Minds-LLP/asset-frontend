@@ -12,6 +12,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { MessageService } from 'primeng/api';
 import { DecisionEngineService } from '../../services/decision-engine/decision-engine';
 import { Assets } from '../../services/assets/assets';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-decision-engine',
@@ -19,6 +20,7 @@ import { Assets } from '../../services/assets/assets';
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, SelectModule, DialogModule, TooltipModule, ProgressBarModule,
+    OverflowTooltipDirective,
   ],
   templateUrl: './decision-engine.html',
   styleUrl: './decision-engine.css',

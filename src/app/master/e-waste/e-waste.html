@@ -37,15 +37,15 @@
     </ng-template>
     <ng-template #body let-row>
       <tr>
-        <td><span class="ref-badge">{{ row.eWasteRefNo }}</span></td>
-        <td>
+        <td class="ellipsis-cell" appOverflowTooltip><span class="ref-badge">{{ row.eWasteRefNo }}</span></td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">
           <div class="asset-cell">
             <span class="asset-id">{{ row.asset?.assetId }}</span>
             <span class="asset-name">{{ row.asset?.assetName }}</span>
           </div>
         </td>
-        <td>{{ row.asset?.assetCategory?.name || '—' }}</td>
-        <td>{{ row.asset?.department?.name || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ row.asset?.assetCategory?.name || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ row.asset?.department?.name || '—' }}</td>
         <td>
           <span class="status-chip status-{{ row.status?.toLowerCase() }}">
             {{ stageLabel(row.status) }}

@@ -16,11 +16,12 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { DatePickerModule } from 'primeng/datepicker';
 import { Assets } from '../../services/assets/assets';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-preventive-maintenance',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule, ToastModule, TabViewModule, SelectModule, TooltipModule, DialogModule, InputNumberModule, InputTextModule, TextareaModule, DatePickerModule],
+  imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule, ToastModule, TabViewModule, SelectModule, TooltipModule, DialogModule, InputNumberModule, InputTextModule, TextareaModule, DatePickerModule, OverflowTooltipDirective],
   templateUrl: './preventive-maintenance.html',
   styleUrl: './preventive-maintenance.css',
   providers: [MessageService]

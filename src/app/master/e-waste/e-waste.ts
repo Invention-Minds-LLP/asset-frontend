@@ -19,6 +19,7 @@ import { MessageService } from 'primeng/api';
 import SignaturePad from 'signature_pad';
 import { EWasteService } from '../../services/e-waste/e-waste';
 import { environment } from '../../../environment/environment.prod';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-e-waste',
@@ -27,6 +28,7 @@ import { environment } from '../../../environment/environment.prod';
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, DialogModule, SelectModule, InputTextModule,
     CheckboxModule, TooltipModule, FloatLabelModule, DatePickerModule,
+    OverflowTooltipDirective,
   ],
   templateUrl: './e-waste.html',
   styleUrl: './e-waste.css',

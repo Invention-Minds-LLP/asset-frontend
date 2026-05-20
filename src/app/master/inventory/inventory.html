@@ -101,11 +101,11 @@
 
           <ng-template pTemplate="body" let-row>
             <tr>
-              <td>{{ row.name }}</td>
-              <td>{{ row.partNumber || '-' }}</td>
-              <td>{{ row.model || '-' }}</td>
-              <td>{{ row.category || '-' }}</td>
-              <td>{{ row.vendor?.name || '-' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ row.name }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ row.partNumber || '-' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ row.model || '-' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ row.category || '-' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ row.vendor?.name || '-' }}</td>
               <td>{{ row.stockQuantity }}</td>
               <td>{{ row.reorderLevel ?? '-' }}</td>
               <td>{{ row.cost ?? '-' }}</td>

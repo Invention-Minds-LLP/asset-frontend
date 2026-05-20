@@ -90,18 +90,14 @@
           <td>
             {{ (currentPage - 1) * rowsPerPage + i + 1 }}
           </td>
-          <td>{{ asset.assetId }}</td>
-          <td style="font-family:monospace;color:#1e3a8a;">{{ asset.storeAssetId || '-' }}</td>
-          <td>
-            {{ asset.referenceCode || '-' }}
-          </td>
-          <td>{{ asset.assetName }}</td>
-          <td>{{ asset.assetType }}</td>
-          <td>
-            {{ asset.department?.name || '-' }}
-          </td>
-          <td>{{ asset.assetCategory?.name || '-' }}</td>
-          <td>{{ asset.allottedTo?.name ? asset.allottedTo.name : 'Not Allotted' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetId }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="font-family:monospace;color:#1e3a8a;">{{ asset.storeAssetId || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ asset.referenceCode || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ asset.assetName }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetType }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ asset.department?.name || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetCategory?.name || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ asset.allottedTo?.name ? asset.allottedTo.name : 'Not Allotted' }}</td>
           <td style="text-align: center;">
             <!-- <img [src]="asset.assetPhoto" class="asset-photo" /> -->
             <img *ngIf="asset.assetPhoto; else noPhoto" [src]="asset.assetPhoto" class="asset-photo" />

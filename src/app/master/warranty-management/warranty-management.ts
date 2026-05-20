@@ -17,11 +17,12 @@ import { Warranty } from '../../services/warranty/warranty';
 import { ServiceContract } from '../../services/service-contract/service-contract';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environment/environment.prod';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-warranty-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule, ToastModule, InputTextModule, SelectModule, DialogModule, TooltipModule, DatePickerModule, InputNumberModule, TextareaModule],
+  imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule, ToastModule, InputTextModule, SelectModule, DialogModule, TooltipModule, DatePickerModule, InputNumberModule, TextareaModule, OverflowTooltipDirective],
   templateUrl: './warranty-management.html',
   styleUrl: './warranty-management.css',
   providers: [MessageService]

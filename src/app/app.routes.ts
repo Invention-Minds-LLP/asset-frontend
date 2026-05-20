@@ -74,6 +74,7 @@ import { QuickActionsPage } from './master/quick-actions/quick-actions';
 import { HierarchyConfig } from './master/hierarchy-config/hierarchy-config';
 import { ApprovalConfigComponent } from './master/approval-config/approval-config';
 import { AssetPoolPage } from './master/asset-pool/asset-pool';
+import { DataExport } from './master/data-export/data-export';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -155,6 +156,7 @@ export const routes: Routes = [
   { path: 'hierarchy-config', component: HierarchyConfig, canActivate: [authGuard] },
   { path: 'approval-config', component: ApprovalConfigComponent, canActivate: [authGuard] },
   { path: 'asset-pool', component: AssetPoolPage, canActivate: [authGuard] },
+  { path: 'data-export', component: DataExport, canActivate: [authGuard] },
   {
     path: 'assets/scan/:assetId',
     component: AssetScan

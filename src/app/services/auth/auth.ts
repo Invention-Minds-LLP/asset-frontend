@@ -62,6 +62,10 @@ export class Auth {
     return this.http.post<any>(this.base, payload);
   }
 
+  updateUser(id: number, payload: { username?: string; role?: string }): Observable<any> {
+    return this.http.put<any>(`${this.base}/${id}`, payload);
+  }
+
   deleteUser(id: number): Observable<any> {
     return this.http.delete(`${this.base}/${id}`);
   }

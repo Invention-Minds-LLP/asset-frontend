@@ -27,8 +27,8 @@
     </ng-template>
     <ng-template pTemplate="body" let-v>
       <tr>
-        <td><strong>{{ v.vendorName }}</strong></td>
-        <td>{{ v.contact || '—' }}<br><small>{{ v.email || '' }}</small></td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;"><strong>{{ v.vendorName }}</strong></td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ v.contact || '—' }}<br><small>{{ v.email || '' }}</small></td>
         <td>{{ v.avgResponseDays != null ? (v.avgResponseDays | number:'1.1-1') + ' days' : '—' }}</td>
         <td>
           @if (v.slaComplianceRate != null) {

@@ -156,9 +156,9 @@
           @else if (row.applicableTo === 'MAINTENANCE') { <span>Maintenance</span> }
           @else { <span>Both</span> }
         </td>
-        <td>{{ row.department?.name || '—' }}</td>
-        <td>{{ row.assetCategory?.name || '—' }}</td>
-        <td>{{ row.notifyRole || row.notifyEmployee?.name || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ row.department?.name || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ row.assetCategory?.name || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ row.notifyRole || row.notifyEmployee?.name || '—' }}</td>
         <td>
           <div class="action-buttons">
             <p-button icon="pi pi-pencil" size="small" severity="secondary" pTooltip="Edit" tooltipPosition="top" (onClick)="edit(row)" />

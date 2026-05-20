@@ -14,6 +14,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 import { GatePassService } from '../../services/gate-pass/gate-pass';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 interface ItemReturn {
   itemId: number;
@@ -29,6 +30,7 @@ interface ItemReturn {
     CommonModule, FormsModule,
     ButtonModule, TableModule, TagModule, ToastModule, TabViewModule,
     InputTextModule, FloatLabelModule, SelectModule, TextareaModule, TooltipModule, DialogModule,
+    OverflowTooltipDirective,
   ],
   templateUrl: './gate-pass-security.html',
   styleUrl: './gate-pass-security.css',

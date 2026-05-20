@@ -20,6 +20,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 
 type FilterField = 'assetName' | 'assetId' | 'assetType' | 'category' | 'allotted';
@@ -28,7 +29,7 @@ type FilterField = 'assetName' | 'assetId' | 'assetType' | 'category' | 'allotte
   selector: 'app-assets-table',
   imports: [TableModule, ButtonModule, InputTextModule, DropdownModule,
      FormsModule, CommonModule, IconFieldModule, InputIconModule, Skeleton, TooltipModule,
-     DialogModule, SelectModule, TextareaModule, TagModule, ToastModule],
+     DialogModule, SelectModule, TextareaModule, TagModule, ToastModule, OverflowTooltipDirective],
   templateUrl: './assets-table.html',
   styleUrl: './assets-table.css',
   providers: [MessageService]

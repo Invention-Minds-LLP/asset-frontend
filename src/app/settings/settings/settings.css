@@ -2,12 +2,12 @@
 
 /* OUTER BORDERED CONTAINER (screenshot box) */
 .settings-outer {
-  max-width: 1100px;
+  max-width: 1500px;            /* wider so the table doesn't get squeezed */
   margin: 24px auto;
   background: var(--surface-ground);
   border: 1px solid var(--table-border-color);
   border-radius: 14px;
-  overflow: hidden; /* IMPORTANT: clips sidebar green */
+  overflow: hidden;             /* clips sidebar green */
 }
 .settings-shell {
   display: flex;
@@ -139,16 +139,18 @@
   flex: 1;
   padding: 26px 28px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;  /* table page hugs left edge instead of centering */
+  min-width: 0;                 /* allow tables to shrink/scroll cleanly */
 }
 
 /* main white card like screenshot */
 .content-card {
-  width: min(900px, 100%);
+  width: 100%;                  /* let card fill the content area — table can use full width */
+  max-width: 100%;
   background: var(--surface-ground);
-  /* border: 1px solid var(--table-border-color); */
   border-radius: 12px;
   padding: 28px;
+  min-width: 0;
 }
 
 .page-title {
@@ -322,6 +324,8 @@
   border-radius: 12px;
   overflow: hidden;
   background: var(--surface-ground);
+  width: 100%;
+  min-width: 0;                 /* let inner table scroll horizontally if needed */
 }
 
 /* PrimeNG table look like screenshot */
@@ -584,4 +588,130 @@
   font-size: 14px;
   font-weight: 400 !important;
   text-transform: capitalize;
+}
+
+/* ─────────── Settings tables (Employee / User) ─────────── */
+/* High-specificity overrides — beat the existing `:host ::ng-deep .p-datatable` rules above */
+:host ::ng-deep .settings-table.p-datatable .p-datatable-thead > tr > th {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+  font-size: 0.78rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  border-bottom: 1px solid #cbd5e1 !important;
+  padding: 12px 14px !important;
+  white-space: nowrap;
+}
+:host ::ng-deep .settings-table.p-datatable .p-datatable-tbody > tr > td {
+  padding: 10px 14px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  vertical-align: middle;
+  text-transform: none !important;       /* kill the global "capitalize" that mangles emails / IDs */
+  color: #1e293b !important;
+}
+:host ::ng-deep .settings-table.p-datatable .p-datatable-tbody > tr:hover {
+  background: #f0fdf4 !important;
+}
+:host ::ng-deep .settings-table.p-datatable .p-datatable-table {
+  border: 0 !important;
+  border-radius: 0 !important;
+  text-transform: none !important;       /* override global capitalize on .p-datatable-table */
+}
+
+.cell-stack { display: flex; flex-direction: column; gap: 2px; }
+.cell-id {
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 0.78rem;
+  color: #047857;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.cell-name { font-weight: 600; color: #0f172a; font-size: 0.92rem; }
+.cell-contact { color: #334155; font-size: 0.85rem; }
+.cell-contact-sub { color: #94a3b8; font-size: 0.78rem; }
+
+/* Role pill — colour by role name */
+.role-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  background: #f1f5f9;
+  color: #475569;
+}
+.role-pill.role-admin     { background: #fee2e2; color: #991b1b; }
+.role-pill.role-ceo_coo   { background: #ede9fe; color: #5b21b6; }
+.role-pill.role-hod       { background: #dbeafe; color: #1e40af; }
+.role-pill.role-finance   { background: #fef3c7; color: #92400e; }
+.role-pill.role-supervisor { background: #cffafe; color: #155e75; }
+.role-pill.role-operations { background: #fce7f3; color: #9d174d; }
+.role-pill.role-executive  { background: #d1fae5; color: #047857; }
+.role-pill.role-security   { background: #f1f5f9; color: #334155; }
+.role-pill.role-user       { background: #d1fae5; color: #047857; }
+
+/* Row action buttons — higher specificity to win against existing .p-button rules */
+:host ::ng-deep .settings-table .row-btn.p-button {
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+  margin: 0 3px;
+  border: 1px solid #e2e8f0 !important;
+  background: #fff !important;
+  color: #64748b !important;
+  transition: all 0.15s ease;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 0 !important;
+  box-shadow: none !important;
+}
+:host ::ng-deep .settings-table .row-btn.p-button:hover { background: #f8fafc !important; }
+:host ::ng-deep .settings-table .row-btn.edit.p-button:hover {
+  background: #d1fae5 !important;
+  color: #047857 !important;
+  border-color: #6ee7b7 !important;
+}
+:host ::ng-deep .settings-table .row-btn.delete.p-button:hover {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border-color: #fca5a5 !important;
+}
+:host ::ng-deep .settings-table .row-btn .p-button-icon { font-size: 0.9rem; }
+
+/* Edit-mode badge on form heading */
+.edit-badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 3px 10px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 10px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.edit-hint {
+  margin: 8px 0 12px;
+  padding: 8px 12px;
+  background: #f0f9ff;
+  border-left: 3px solid #0284c7;
+  color: #0c4a6e;
+  font-size: 0.82rem;
+  border-radius: 4px;
+}
+
+/* Better empty state */
+.empty-msg {
+  text-align: center;
+  padding: 40px 20px !important;
+  color: #94a3b8 !important;
+  font-size: 0.9rem;
 }

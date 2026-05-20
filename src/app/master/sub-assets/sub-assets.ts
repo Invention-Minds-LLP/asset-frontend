@@ -13,6 +13,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { TextareaModule } from 'primeng/textarea';
 import { MessageService } from 'primeng/api';
 import { Assets } from '../../services/assets/assets';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-sub-assets',
@@ -21,6 +22,7 @@ import { Assets } from '../../services/assets/assets';
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, SelectModule, DialogModule, InputTextModule,
     InputNumberModule, TooltipModule, TextareaModule,
+    OverflowTooltipDirective,
   ],
   templateUrl: './sub-assets.html',
   styleUrl: './sub-assets.css',

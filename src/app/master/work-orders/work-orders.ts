@@ -20,6 +20,7 @@ import { Assets } from '../../services/assets/assets';
 import { StoreService } from '../../services/store/store';
 import { Employees } from '../../services/employees/employees';
 import { Ticketing } from '../../services/tickerting/ticketing';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-work-orders',
@@ -28,6 +29,7 @@ import { Ticketing } from '../../services/tickerting/ticketing';
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, SelectModule, DialogModule, InputNumberModule,
     TooltipModule, InputTextModule, DatePickerModule, TextareaModule,
+    OverflowTooltipDirective,
   ],
   templateUrl: './work-orders.html',
   styleUrl: './work-orders.css',

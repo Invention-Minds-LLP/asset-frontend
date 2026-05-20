@@ -120,6 +120,7 @@ export class Sidebar implements OnInit {
         { label: 'Reconciliation', route: '/reconciliation', icon: 'pi pi-equals' },
         { label: 'Asset Pools', route: '/asset-pool', icon: 'pi pi-layer-group' },
         { label: 'Reports', route: '/reports', icon: 'pi pi-file' },
+        { label: 'Data Export', route: '/data-export', icon: 'pi pi-download' },
       ]
     },
 

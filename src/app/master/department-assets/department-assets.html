@@ -53,11 +53,11 @@
     </ng-template>
     <ng-template pTemplate="body" let-a>
       <tr>
-        <td><strong>{{ a.assetId || '—' }}</strong></td>
-        <td>{{ a.assetName }}</td>
-        <td>{{ a.assetCategory?.name || '—' }}</td>
-        <td>{{ a.assetType || '—' }}</td>
-        <td>{{ a.allottedTo?.name || 'Unassigned' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip><strong>{{ a.assetId || '—' }}</strong></td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ a.assetName }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ a.assetCategory?.name || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ a.assetType || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ a.allottedTo?.name || 'Unassigned' }}</td>
         <td><p-tag [value]="a.status" [severity]="getStatusSeverity(a.status)" /></td>
       </tr>
     </ng-template>

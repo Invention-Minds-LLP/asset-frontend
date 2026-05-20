@@ -19,6 +19,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { Assets } from '../../services/assets/assets';
 import { PendingTransfers } from "../pending-transfers/pending-transfers";
 import { DurationPipe } from '../../pipes/duration.pipe';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 type FilterField = 'id' | 'name' | 'ticketid' | 'raisedby' | 'department' | 'priority';
 
@@ -26,7 +27,7 @@ type FilterField = 'id' | 'name' | 'ticketid' | 'raisedby' | 'department' | 'pri
   selector: 'app-ticketing-table',
   imports: [InputIcon, IconField, InputTextModule, FormsModule, ToastModule,
     TableModule, CommonModule, ButtonModule, FormsModule, TabViewModule, DialogModule,
-    SelectModule, TextareaModule, ReactiveFormsModule, DurationPipe],
+    SelectModule, TextareaModule, ReactiveFormsModule, DurationPipe, OverflowTooltipDirective],
   templateUrl: './ticketing-table.html',
   styleUrl: './ticketing-table.css',
   providers: [MessageService]

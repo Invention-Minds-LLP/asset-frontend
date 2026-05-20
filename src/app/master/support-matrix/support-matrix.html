@@ -113,11 +113,11 @@
     <ng-template pTemplate="body" let-row>
       <tr>
         <td><strong>L{{ row.levelNo }}</strong></td>
-        <td>{{ row.assetCategory?.name || '—' }}</td>
-        <td>{{ row.roleName || '—' }}</td>
-        <td>{{ row.personName || row.employee?.name || '—' }}</td>
-        <td>{{ row.contactNumber || '—' }}</td>
-        <td>{{ row.email || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ row.assetCategory?.name || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ row.roleName || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ row.personName || row.employee?.name || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ row.contactNumber || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ row.email || '—' }}</td>
         <td>{{ row.escalationTime ? row.escalationTime + ' ' + row.escalationUnit : '—' }}</td>
         <td>
           <div class="action-buttons">

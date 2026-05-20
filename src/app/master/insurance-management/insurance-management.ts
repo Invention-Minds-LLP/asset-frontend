@@ -10,11 +10,12 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { MessageService } from 'primeng/api';
 import { InsuranceService } from '../../services/insurance/insurance';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-insurance-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule, ToastModule, TabViewModule, InputTextModule, SelectModule],
+  imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule, ToastModule, TabViewModule, InputTextModule, SelectModule, OverflowTooltipDirective],
   templateUrl: './insurance-management.html',
   styleUrl: './insurance-management.css',
   providers: [MessageService]

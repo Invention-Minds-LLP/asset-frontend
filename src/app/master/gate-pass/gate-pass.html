@@ -141,9 +141,9 @@
           <tr>
             <td><strong>{{ row.gatePassNo }}</strong></td>
             <td><p-tag [value]="row.type" /></td>
-            <td>{{ row.items?.length || 0 }}<span style="color:#64748b" *ngIf="row.items?.length"> · {{ row.items[0].asset?.assetName }}<span *ngIf="row.items.length > 1"> +{{ row.items.length - 1 }}</span></span></td>
-            <td>{{ row.issuedTo }}</td>
-            <td>{{ row.purpose }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ row.items?.length || 0 }}<span style="color:#64748b" *ngIf="row.items?.length"> · {{ row.items[0].asset?.assetName }}<span *ngIf="row.items.length > 1"> +{{ row.items.length - 1 }}</span></span></td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ row.purpose }}</td>
             <td><p-tag [value]="row.status" [severity]="getStatusSeverity(row.status)" /></td>
             <td>
               <p-tag *ngIf="row.approvalStatus === 'APPROVED' || row.approvalStatus === 'AUTO_APPROVED'" [value]="row.approvalStatus" severity="success" />
@@ -194,9 +194,9 @@
             <td><strong>{{ row.gatePassNo }}</strong></td>
             <td><p-tag [value]="row.type" /></td>
             <td>{{ row.items?.length || 0 }}</td>
-            <td>{{ row.issuedTo }}</td>
-            <td>{{ row.purpose }}</td>
-            <td>{{ row.requestedBy?.name || '—' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ row.purpose }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.requestedBy?.name || '—' }}</td>
             <td>{{ row.requestedAt | date:'dd MMM yyyy, HH:mm' }}</td>
             <td>
               <p-button label="Approve" icon="pi pi-check" size="small" severity="success" (onClick)="openApprove(row)" />
@@ -226,8 +226,8 @@
         <ng-template pTemplate="body" let-row>
           <tr>
             <td><strong>{{ row.gatePassNo }}</strong></td>
-            <td>{{ row.issuedTo }}</td>
-            <td>{{ row.purpose }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ row.purpose }}</td>
             <td class="text-danger">{{ row.expectedReturnDate | date:'dd MMM yyyy' }}</td>
             <td>{{ row.items?.length || 0 }}</td>
           </tr>

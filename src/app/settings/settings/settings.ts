@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup, FormsModule } from '@angular/forms';
 import { FormControl } from '@angular/forms';
@@ -146,14 +146,19 @@ export class Settings {
     private usersApi: Auth,
     private confirmationService: ConfirmationService,
     private router: Router,
-    private moduleAccessService: ModuleAccessService
+    private moduleAccessService: ModuleAccessService,
+    private cdr: ChangeDetectorRef,
   ) {
     // preload (table uses it)
     this.employeeForm = this.fb.group({
-      name: ['', Validators.required],
-      employeeID: ['', Validators.required],
-      departmentId: [null as number | null, Validators.required],
-      role: ['EXECUTIVE' as EmployeeRole, Validators.required],
+      name:          ['', Validators.required],
+      employeeID:    ['', Validators.required],
+      departmentId:  [null as number | null, Validators.required],
+      role:          ['EXECUTIVE' as EmployeeRole, Validators.required],
+      designation:   [''],
+      email:         ['', [Validators.email]],
+      phone:         [''],
+      reportingToId: [null as number | null],
     });
     this.userForm = this.fb.group({
       employeeID: ['', Validators.required],
@@ -352,10 +357,43 @@ export class Settings {
   loadEmployees() {
     this.loadingEmployees = true;
     this.employeeApi.getEmployees().subscribe({
-      next: (rows) => (this.employees = rows),
-      error: () => this.toastMsg('error', 'Failed', 'Failed to load employees'),
-      complete: () => (this.loadingEmployees = false),
+      next: (rows) => {
+        setTimeout(() => {
+          this.employees = rows;
+          this.loadingEmployees = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        setTimeout(() => {
+          this.loadingEmployees = false;
+          this.toastMsg('error', 'Failed', 'Failed to load employees');
+          this.cdr.detectChanges();
+        });
+      },
     });
+  }
+
+  editingEmployeeId: number | null = null;
+
+  /** Populate form to edit an existing employee. Called from the table's edit button. */
+  editEmployee(row: any) {
+    this.editingEmployeeId = row.id;
+    this.employeeForm.patchValue({
+      name:          row.name ?? '',
+      employeeID:    row.employeeID ?? '',
+      departmentId:  row.departmentId ?? null,
+      role:          row.role ?? 'EXECUTIVE',
+      designation:   row.designation ?? '',
+      email:         row.email ?? '',
+      phone:         row.phone ?? '',
+      reportingToId: row.reportingToId ?? null,
+    });
+    // Switch to the Employee Creation section so the form is visible
+    this.activeSection = 'employee';
+    // Disable Employee ID in edit mode — changing it would break the User FK
+    this.employeeForm.get('employeeID')?.disable();
+    this.cdr.detectChanges();
   }
 
   submitEmployee() {
@@ -365,30 +403,56 @@ export class Settings {
     }
 
     const v = this.employeeForm.getRawValue();
-    this.employeeApi.createEmployee({
-      name: String(v.name).trim(),
-      employeeID: String(v.employeeID).trim(),
-      departmentId: v.departmentId != null ? Number(v.departmentId) : null,
-      role: v.role as EmployeeRole,
-    }).subscribe({
+    const trim = (s: any) => {
+      const t = String(s ?? '').trim();
+      return t ? t : null;
+    };
+
+    const payload = {
+      name:          String(v.name).trim(),
+      employeeID:    String(v.employeeID).trim(),
+      departmentId:  v.departmentId != null ? Number(v.departmentId) : null,
+      role:          v.role as EmployeeRole,
+      designation:   trim(v.designation),
+      email:         trim(v.email),
+      phone:         trim(v.phone),
+      reportingToId: v.reportingToId != null ? Number(v.reportingToId) : null,
+    };
+
+    const call = this.editingEmployeeId
+      ? this.employeeApi.updateEmployee(this.editingEmployeeId, payload)
+      : this.employeeApi.createEmployee(payload);
+
+    const wasEdit = !!this.editingEmployeeId;
+
+    call.subscribe({
       next: () => {
-        this.toastMsg('success', 'Success', 'Employee created');
-        this.employeeForm.reset({ role: 'EXECUTIVE', departmentId: null });
-        this.loadEmployees();
+        setTimeout(() => {
+          this.toastMsg('success', 'Success', wasEdit ? 'Employee updated' : 'Employee created');
+          this.clearEmployeeForm();
+          this.loadEmployees();
+          this.cdr.detectChanges();
+        });
       },
-      error: (err) => this.toastMsg('error', 'Failed', err?.error?.message ?? 'Employee creation failed'),
+      error: (err) => this.toastMsg('error', 'Failed', err?.error?.message ?? (wasEdit ? 'Update failed' : 'Creation failed')),
     });
   }
 
   clearEmployeeForm() {
-    this.employeeForm.reset({ role: 'EXECUTIVE', departmentId: null });
+    this.editingEmployeeId = null;
+    this.employeeForm.reset({ role: 'EXECUTIVE', departmentId: null, reportingToId: null });
+    this.employeeForm.get('employeeID')?.enable();
   }
 
   deleteEmployee(id: number) {
+    if (!confirm('Deactivate this employee?')) return;
     this.employeeApi.deleteEmployee(id).subscribe({
       next: () => {
-        this.toastMsg('success', 'Deleted', 'Employee deleted');
-        this.loadEmployees();
+        setTimeout(() => {
+          this.toastMsg('success', 'Deleted', 'Employee deactivated');
+          this.loadEmployees();
+          this.cdr.detectChanges();
+        });
       },
       error: () => this.toastMsg('error', 'Failed', 'Delete failed'),
     });
@@ -414,40 +478,95 @@ export class Settings {
   loadUsers() {
     this.loadingUsers = true;
     this.usersApi.getUsers().subscribe({
-      next: (rows) => (this.users = rows),
-      error: () => this.toastMsg('error', 'Failed', 'Failed to load users'),
-      complete: () => (this.loadingUsers = false),
+      next: (rows) => {
+        setTimeout(() => {
+          this.users = rows;
+          this.loadingUsers = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        setTimeout(() => {
+          this.loadingUsers = false;
+          this.toastMsg('error', 'Failed', 'Failed to load users');
+          this.cdr.detectChanges();
+        });
+      },
     });
   }
 
-submitUser() {
-  if (this.userForm.invalid) {
-    this.userForm.markAllAsTouched();
-    this.toastMsg('warn', 'Validation', 'Please fill all required fields');
-    return;
+  editingUserId: number | null = null;
+
+  /** Populate the user form to edit an existing user. Password stays blank (use /reset-password to change). */
+  editUser(row: any) {
+    this.editingUserId = row.id;
+    this.userForm.patchValue({
+      employeeID: row.employeeID ?? '',
+      username:   row.username ?? '',
+      password:   '',                  // never pre-populate hashed password
+      role:       row.role ?? 'USER',
+    });
+    // Password not required when editing — clear validators temporarily
+    this.userForm.get('password')?.clearValidators();
+    this.userForm.get('password')?.updateValueAndValidity();
+    // Lock employeeID — it's the FK to Employee
+    this.userForm.get('employeeID')?.disable();
+    this.activeSection = 'user';
+    this.cdr.detectChanges();
   }
 
-  const v = this.userForm.getRawValue();
-  this.usersApi.createUser({
-    employeeID: String(v.employeeID).trim(),
-    username: String(v.username).trim(),
-    password: String(v.password),
-    role: String(v.role),
-  }).subscribe({
-    next: () => {
-      this.toastMsg('success', 'Success', 'User created');
-      this.userForm.reset({ role: 'USER' });
-      this.loadUsers();
-    },
-    error: (err) => this.toastMsg('error', 'Failed', err?.error?.message ?? 'User creation failed'),
-  });
-}
+  clearUserForm() {
+    this.editingUserId = null;
+    this.userForm.reset({ role: 'USER' });
+    this.userForm.get('employeeID')?.enable();
+    // Restore password validator for the next create
+    this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+    this.userForm.get('password')?.updateValueAndValidity();
+  }
+
+  submitUser() {
+    if (this.userForm.invalid) {
+      this.userForm.markAllAsTouched();
+      this.toastMsg('warn', 'Validation', 'Please fill all required fields');
+      return;
+    }
+
+    const v = this.userForm.getRawValue();
+    const wasEdit = !!this.editingUserId;
+
+    const call = wasEdit
+      ? this.usersApi.updateUser(this.editingUserId!, {
+          username: String(v.username).trim(),
+          role:     String(v.role),
+        })
+      : this.usersApi.createUser({
+          employeeID: String(v.employeeID).trim(),
+          username:   String(v.username).trim(),
+          password:   String(v.password),
+          role:       String(v.role),
+        });
+
+    call.subscribe({
+      next: () => {
+        setTimeout(() => {
+          this.toastMsg('success', 'Success', wasEdit ? 'User updated' : 'User created');
+          this.clearUserForm();
+          this.loadUsers();
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => this.toastMsg('error', 'Failed', err?.error?.message ?? (wasEdit ? 'User update failed' : 'User creation failed')),
+    });
+  }
 
   deleteUser(id: number) {
     this.usersApi.deleteUser(id).subscribe({
       next: () => {
-        this.toastMsg('success', 'Deleted', 'User deleted');
-        this.loadUsers();
+        setTimeout(() => {
+          this.toastMsg('success', 'Deleted', 'User deleted');
+          this.loadUsers();
+          this.cdr.detectChanges();
+        });
       },
       error: () => this.toastMsg('error', 'Failed', 'Delete failed'),
     });

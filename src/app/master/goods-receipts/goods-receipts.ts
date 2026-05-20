@@ -16,6 +16,7 @@ import { MessageService } from 'primeng/api';
 import { GoodsReceiptService } from '../../services/goods-receipt/goods-receipt';
 import { PurchaseOrderService } from '../../services/purchase-order/purchase-order';
 import { StoreService } from '../../services/store/store';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-goods-receipts',
@@ -24,6 +25,7 @@ import { StoreService } from '../../services/store/store';
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, SelectModule, DialogModule, InputNumberModule,
     TooltipModule, InputTextModule, DatePickerModule, TextareaModule,
+    OverflowTooltipDirective,
   ],
   templateUrl: './goods-receipts.html',
   styleUrl: './goods-receipts.css',

@@ -11,13 +11,15 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { MessageService } from 'primeng/api';
 import { ReportsService } from '../../services/reports/reports';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule,
-    TagModule, ToastModule, TabViewModule, InputTextModule, SelectModule, DatePickerModule
+    TagModule, ToastModule, TabViewModule, InputTextModule, SelectModule, DatePickerModule,
+    OverflowTooltipDirective
   ],
   templateUrl: './reports.html',
   styleUrl: './reports.css',

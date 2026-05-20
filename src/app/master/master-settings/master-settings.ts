@@ -16,6 +16,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { MessageService } from 'primeng/api';
 import { Assets } from '../../services/assets/assets';
 import { Branches } from '../../services/branches/branches';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-master-settings',
@@ -34,7 +35,8 @@ import { Branches } from '../../services/branches/branches';
     TextareaModule,
     TagModule,
     TooltipModule,
-    CheckboxModule
+    CheckboxModule,
+    OverflowTooltipDirective
   ],
   templateUrl: './master-settings.html',
   styleUrl: './master-settings.css',

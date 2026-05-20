@@ -14,6 +14,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { MessageService } from 'primeng/api';
 import { AssetAuditService } from '../../services/asset-audit/asset-audit';
 import { DatePicker } from 'primeng/datepicker';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-asset-audit',
@@ -21,7 +22,8 @@ import { DatePicker } from 'primeng/datepicker';
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule,
     TagModule, ToastModule, DialogModule, InputTextModule,
-    TextareaModule, SelectModule, ProgressBarModule, CheckboxModule, DatePicker
+    TextareaModule, SelectModule, ProgressBarModule, CheckboxModule, DatePicker,
+    OverflowTooltipDirective
   ],
   templateUrl: './asset-audit.html',
   styleUrl: './asset-audit.css',

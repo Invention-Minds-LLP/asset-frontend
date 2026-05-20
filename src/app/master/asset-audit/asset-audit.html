@@ -25,8 +25,8 @@
 
       <ng-template pTemplate="body" let-audit>
         <tr>
-          <td>{{ audit.auditName }}</td>
-          <td class="desc-cell">{{ audit.description || '—' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ audit.auditName }}</td>
+          <td class="desc-cell ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 320px;">{{ audit.description || '—' }}</td>
           <td><p-tag [value]="audit.status" [severity]="getAuditStatusSeverity(audit.status)"></p-tag></td>
           <td>{{ audit.totalAssets || audit._count?.items || '—' }}</td>
           <td>{{ audit.createdAt | date:'mediumDate' }}</td>
@@ -105,8 +105,8 @@
 
       <ng-template pTemplate="body" let-item>
         <tr>
-          <td>{{ item.asset?.assetId || item.assetId }}</td>
-          <td>{{ item.asset?.assetName || '—' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ item.asset?.assetId || item.assetId }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ item.asset?.assetName || '—' }}</td>
           <td><p-tag [value]="item.status" [severity]="getItemStatusSeverity(item.status)"></p-tag></td>
           <td>
             <i *ngIf="item.locationMatch === true" class="pi pi-check text-green"></i>
@@ -118,8 +118,8 @@
             <i *ngIf="item.conditionMatch === false" class="pi pi-times text-red"></i>
             <span *ngIf="item.conditionMatch == null">—</span>
           </td>
-          <td>{{ item.actualLocation || '—' }}</td>
-          <td class="remarks-cell">{{ item.remarks || '—' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ item.actualLocation || '—' }}</td>
+          <td class="remarks-cell ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ item.remarks || '—' }}</td>
           <td>
             <p-button *ngIf="item.status === 'PENDING' && selectedAudit?.status === 'IN_PROGRESS' && isRole('HOD', 'SUPERVISOR', 'ADMIN')"
               icon="pi pi-check-square" label="Verify" size="small" (onClick)="openVerifyDialog(item)"></p-button>

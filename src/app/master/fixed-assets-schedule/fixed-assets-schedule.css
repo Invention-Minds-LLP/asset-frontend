@@ -236,6 +236,7 @@
 
 .dlg-hdr { display: flex; align-items: center; gap: 12px; }
 .dlg-hdr i { font-size: 1.4rem; color: #1d4ed8; }
+.dlg-hdr-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 .dlg-title { font-size: 1rem; font-weight: 700; color: #1e293b; }
 .dlg-sub { font-size: 0.74rem; color: #64748b; }
 

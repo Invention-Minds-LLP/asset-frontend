@@ -39,7 +39,7 @@
       <ng-template pTemplate="body" let-dept let-i="rowIndex">
         <tr>
           <td>{{ i + 1 }}</td>
-          <td>{{ dept.name }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 320px;">{{ dept.name }}</td>
           <td>
             <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openDeptForm(dept)" />
             <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteDept(dept)" />
@@ -85,7 +85,7 @@
       <ng-template pTemplate="body" let-branch let-i="rowIndex">
         <tr>
           <td>{{ i + 1 }}</td>
-          <td>{{ branch.name }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 320px;">{{ branch.name }}</td>
           <td>
             <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openBranchForm(branch)" />
             <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteBranch(branch)" />
@@ -176,8 +176,8 @@
       <ng-template pTemplate="body" let-cat let-i="rowIndex">
         <tr>
           <td>{{ i + 1 }}</td>
-          <td><strong>{{ cat.name }}</strong></td>
-          <td>{{ cat.code || '—' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;"><strong>{{ cat.name }}</strong></td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ cat.code || '—' }}</td>
           <td>
             <p-tag *ngIf="cat.serialRequired" severity="success" value="Yes"></p-tag>
             <p-tag *ngIf="!cat.serialRequired" severity="secondary" value="No"></p-tag>
@@ -339,13 +339,13 @@
       <ng-template pTemplate="body" let-vendor let-i="rowIndex">
         <tr>
           <td>{{ i + 1 }}</td>
-          <td>{{ vendor.name }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ vendor.name }}</td>
           <td>{{ vendor.vendorType || '-' }}</td>
-          <td>{{ vendor.contactPerson || '-' }}</td>
-          <td>{{ vendor.contact || '-' }}</td>
-          <td>{{ vendor.email || '-' }}</td>
-          <td>{{ vendor.gstNumber || '-' }}</td>
-          <td>{{ vendor.city ? (vendor.city + (vendor.state ? ', ' + vendor.state : '')) : (vendor.state || '-') }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ vendor.contactPerson || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ vendor.contact || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ vendor.email || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ vendor.gstNumber || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip>{{ vendor.city ? (vendor.city + (vendor.state ? ', ' + vendor.state : '')) : (vendor.state || '-') }}</td>
           <td>
             <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openVendorForm(vendor)" />
             <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteVendor(vendor)" />

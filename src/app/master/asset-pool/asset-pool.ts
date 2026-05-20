@@ -15,6 +15,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { CheckboxModule } from 'primeng/checkbox';
 import { MessageService } from 'primeng/api';
 import { AssetPoolService } from '../../services/asset-pool/asset-pool';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-asset-pool',
@@ -23,7 +24,8 @@ import { AssetPoolService } from '../../services/asset-pool/asset-pool';
     CommonModule, FormsModule,
     ButtonModule, TableModule, ToastModule, DialogModule,
     SelectModule, TagModule, ProgressBarModule, CardModule, TooltipModule,
-    InputTextModule, TextareaModule, CheckboxModule
+    InputTextModule, TextareaModule, CheckboxModule,
+    OverflowTooltipDirective
   ],
   templateUrl: './asset-pool.html',
   styleUrl: './asset-pool.css',

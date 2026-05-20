@@ -13,6 +13,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { SupportMatrixService } from '../../services/support-matrix/support-matrix';
 import { Assets } from '../../services/assets/assets';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-support-matrix',
@@ -28,7 +29,8 @@ import { Assets } from '../../services/assets/assets';
     FloatLabelModule,
     SelectModule,
     TextareaModule,
-    TooltipModule
+    TooltipModule,
+    OverflowTooltipDirective
   ],
   templateUrl: './support-matrix.html',
   styleUrl: './support-matrix.css',

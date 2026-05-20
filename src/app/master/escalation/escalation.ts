@@ -13,6 +13,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { EscalationService } from '../../services/escalation/escalation';
 import { Assets } from '../../services/assets/assets';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-escalation',
@@ -28,7 +29,8 @@ import { Assets } from '../../services/assets/assets';
     InputTextModule,
     FloatLabelModule,
     SelectModule,
-    TooltipModule
+    TooltipModule,
+    OverflowTooltipDirective
   ],
   templateUrl: './escalation.html',
   styleUrl: './escalation.css',

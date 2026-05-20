@@ -35,10 +35,10 @@
     </ng-template>
     <ng-template pTemplate="body" let-d>
       <tr>
-        <td>{{ d.title || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 320px;">{{ d.title || '—' }}</td>
         <td><p-tag [value]="d.entityType" [severity]="getTypeSeverity(d.entityType)"></p-tag></td>
-        <td>{{ d.documentType || '—' }}</td>
-        <td>{{ d.uploadedBy?.name || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ d.documentType || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ d.uploadedBy?.name || '—' }}</td>
         <td>{{ d.uploadedAt | date:'mediumDate' }}</td>
         <td>
           <a *ngIf="d.fileUrl" [href]="d.fileUrl" target="_blank">

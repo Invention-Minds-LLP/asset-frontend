@@ -126,7 +126,10 @@
 
         <!-- USER -->
         <ng-container *ngIf="activeSection==='user'">
-          <h2 class="page-title">User Creation</h2>
+          <h2 class="page-title">
+            {{ editingUserId ? 'Edit User' : 'User Creation' }}
+            <span *ngIf="editingUserId" class="edit-badge">Editing #{{ editingUserId }}</span>
+          </h2>
 
           <form class="employee-form" [formGroup]="userForm" (ngSubmit)="submitUser()">
             <p-floatlabel variant="on" class="field">
@@ -139,24 +142,23 @@
               <label for="username">Username</label>
             </p-floatlabel>
 
-            <!-- <p-floatlabel variant="on" class="field">
-              <input pInputText id="password" type="password" formControlName="password" />
-              <label for="password">Password</label>
-            </p-floatlabel> -->
-            <div class="password-field">
-              <p-floatlabel variant="on" class="field">
-                <input pInputText id="password" [type]="showUserPassword ? 'text' : 'password'"
-                  formControlName="password" />
-                <label for="password">Password</label>
-              </p-floatlabel>
+            <!-- Password — only required when creating. To change a password, use Reset Password. -->
+            <ng-container *ngIf="!editingUserId">
+              <div class="password-field">
+                <p-floatlabel variant="on" class="field">
+                  <input pInputText id="password" [type]="showUserPassword ? 'text' : 'password'"
+                    formControlName="password" />
+                  <label for="password">Password</label>
+                </p-floatlabel>
 
-              <i class="pi" [ngClass]="showUserPassword ? 'pi-eye-slash' : 'pi-eye'"
-                (click)="showUserPassword = !showUserPassword">
-              </i>
-            </div>
-            <small class="err" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
-              Password is required and must be at least 6 characters
-            </small>
+                <i class="pi" [ngClass]="showUserPassword ? 'pi-eye-slash' : 'pi-eye'"
+                  (click)="showUserPassword = !showUserPassword">
+                </i>
+              </div>
+              <small class="err" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+                Password is required and must be at least 6 characters
+              </small>
+            </ng-container>
 
             <p-floatlabel variant="on" class="field">
               <p-select inputId="userRole"
@@ -165,17 +167,24 @@
               <label for="userRole">Role</label>
             </p-floatlabel>
 
+            <div *ngIf="editingUserId" class="edit-hint">
+              To change this user's password, use the <strong>Reset Password</strong> section.
+            </div>
+
             <div class="actions">
-              <button pButton type="submit" label="Create" class="btn-create"></button>
-              <button pButton type="button" label="Clear" class="btn-clear"
-                (click)="userForm.reset({role:'USER'})"></button>
+              <button pButton type="submit" [label]="editingUserId ? 'Update' : 'Create'" class="btn-create"></button>
+              <button pButton type="button" [label]="editingUserId ? 'Cancel Edit' : 'Clear'"
+                      class="btn-clear" (click)="clearUserForm()"></button>
             </div>
           </form>
         </ng-container>
 
         <!-- EMPLOYEE CREATION (matches screenshot) -->
         <ng-container *ngIf="activeSection==='employee'">
-          <h2 class="page-title">Employee Creation</h2>
+          <h2 class="page-title">
+            {{ editingEmployeeId ? 'Edit Employee' : 'Employee Creation' }}
+            <span *ngIf="editingEmployeeId" class="edit-badge">Editing #{{ editingEmployeeId }}</span>
+          </h2>
 
           <form class="employee-form" [formGroup]="employeeForm" (ngSubmit)="submitEmployee()">
             <p-floatlabel variant="on" class="field">
@@ -200,9 +209,37 @@
               <label for="role">Role</label>
             </p-floatlabel>
 
+            <p-floatlabel variant="on" class="field">
+              <input pInputText id="designation" formControlName="designation" />
+              <label for="designation">Designation</label>
+            </p-floatlabel>
+
+            <p-floatlabel variant="on" class="field">
+              <input pInputText id="email" type="email" formControlName="email" />
+              <label for="email">Email</label>
+            </p-floatlabel>
+
+            <p-floatlabel variant="on" class="field">
+              <input pInputText id="phone" formControlName="phone" />
+              <label for="phone">Phone</label>
+            </p-floatlabel>
+
+            <p-floatlabel variant="on" class="field">
+              <p-select inputId="reportingToId" [options]="employees" formControlName="reportingToId"
+                optionLabel="name" optionValue="id"
+                [filter]="true" filterBy="name,employeeID" [showClear]="true"
+                appendTo="body" placeholder="—">
+                <ng-template let-emp pTemplate="item">
+                  <div>{{ emp.name }} <small style="color:#94a3b8">({{ emp.employeeID }})</small></div>
+                </ng-template>
+              </p-select>
+              <label for="reportingToId">Reports To</label>
+            </p-floatlabel>
+
             <div class="actions">
-              <button pButton type="submit" label="Create" class="btn-create"></button>
-              <button pButton type="button" label="Clear" class="btn-clear" (click)="clearEmployeeForm()"></button>
+              <button pButton type="submit" [label]="editingEmployeeId ? 'Update' : 'Create'" class="btn-create"></button>
+              <button pButton type="button" [label]="editingEmployeeId ? 'Cancel Edit' : 'Clear'"
+                      class="btn-clear" (click)="clearEmployeeForm()"></button>
             </div>
           </form>
         </ng-container>
@@ -246,66 +283,96 @@
             <div class="table-card">
               <!-- EMPLOYEE TABLE -->
               <p-table *ngIf="tableTab==='employee'" #dt [value]="employees" [loading]="loadingEmployees"
-                [scrollable]="true" scrollHeight="420px" [rowHover]="false" [stripedRows]="false">
+                [scrollable]="true" scrollHeight="500px" [rowHover]="true" [stripedRows]="true"
+                styleClass="settings-table">
                 <ng-template pTemplate="header">
                   <tr>
-                    <th style="width: 70px;">No</th>
-                    <th style="width: 140px;">Employee ID</th>
-                    <th>Employee Name</th>
+                    <th style="width: 60px;">#</th>
+                    <th style="width: 240px;">Employee</th>
                     <th>Department</th>
                     <th>Designation</th>
-                    <th style="width: 160px;">Phone Number</th>
-                    <th style="width: 220px;">Email ID</th>
+                    <th style="width: 120px;">Role</th>
+                    <th>Contact</th>
+                    <th style="width: 160px;">Reports To</th>
+                    <th style="width: 140px; text-align:center;">Actions</th>
                   </tr>
                 </ng-template>
 
                 <ng-template pTemplate="body" let-row let-ri="rowIndex">
                   <tr>
                     <td>{{ (ri + 1) | number:'2.0' }}</td>
-                    <td>{{ row.employeeID }}</td>
-                    <td>{{ row.name }}</td>
-                    <td>{{ row.department?.name ?? '-' }}</td>
-                    <!-- you don’t have designation/phone/email in your Employee model now,
-                 so this shows "-" until you add them in backend -->
-                    <td>{{ row.designation ?? '-' }}</td>
-                    <td>{{ row.phoneNumber ?? '-' }}</td>
-                    <td>{{ row.email ?? '-' }}</td>
+                    <td>
+                      <div class="cell-stack">
+                        <span class="cell-id">{{ row.employeeID }}</span>
+                        <span class="cell-name">{{ row.name }}</span>
+                      </div>
+                    </td>
+                    <td>{{ row.department?.name ?? '—' }}</td>
+                    <td>{{ row.designation ?? '—' }}</td>
+                    <td><span class="role-pill" [class]="'role-' + (row.role || '').toLowerCase()">{{ row.role ?? '—' }}</span></td>
+                    <td>
+                      <div class="cell-stack">
+                        <span class="cell-contact">{{ row.email ?? '—' }}</span>
+                        <span class="cell-contact-sub">{{ row.phone ?? '—' }}</span>
+                      </div>
+                    </td>
+                    <td>{{ row.reportingTo?.name ?? '—' }}</td>
+                    <td style="text-align:center;">
+                      <button pButton icon="pi pi-pencil" class="row-btn edit"
+                              pTooltip="Edit" tooltipPosition="top" (click)="editEmployee(row)"></button>
+                      <button pButton icon="pi pi-trash" class="row-btn delete"
+                              pTooltip="Deactivate" tooltipPosition="top" (click)="deleteEmployee(row.id)"></button>
+                    </td>
                   </tr>
                 </ng-template>
 
                 <ng-template pTemplate="emptymessage">
                   <tr>
-                    <td colspan="7" class="empty-msg">No records found</td>
+                    <td colspan="8" class="empty-msg">
+                      <i class="pi pi-users" style="font-size:1.8rem;color:#cbd5e1;display:block;margin-bottom:8px;"></i>
+                      No employees found
+                    </td>
                   </tr>
                 </ng-template>
               </p-table>
 
-              <!-- USER TABLE (basic layout; you can wire API later) -->
-              <p-table *ngIf="tableTab==='user'" #dtUser [value]="users" [loading]="loadingUsers" [scrollable]="true"
-                scrollHeight="420px">
+              <!-- USER TABLE -->
+              <p-table *ngIf="tableTab==='user'" #dtUser [value]="users" [loading]="loadingUsers"
+                [scrollable]="true" scrollHeight="500px" [rowHover]="true" [stripedRows]="true"
+                styleClass="settings-table">
                 <ng-template pTemplate="header">
                   <tr>
-                    <th style="width: 70px;">No</th>
+                    <th style="width: 60px;">#</th>
                     <th style="width: 160px;">Employee ID</th>
                     <th>Username</th>
-                    <th style="width: 160px;">Role</th>
-                    <th style="width: 220px;">Last Login</th>
+                    <th style="width: 120px;">Role</th>
+                    <th style="width: 200px;">Last Login</th>
+                    <th style="width: 140px; text-align:center;">Actions</th>
                   </tr>
                 </ng-template>
 
                 <ng-template pTemplate="body" let-row let-ri="rowIndex">
                   <tr>
                     <td>{{ (ri + 1) | number:'2.0' }}</td>
-                    <td>{{ row.employeeID }}</td>
-                    <td>{{ row.username }}</td>
-                    <td>{{ row.role }}</td>
-                    <td>{{ row.lastLogin ? (row.lastLogin | date:'medium') : '-' }}</td>
+                    <td><span class="cell-id">{{ row.employeeID }}</span></td>
+                    <td><span class="cell-name">{{ row.username }}</span></td>
+                    <td><span class="role-pill" [class]="'role-' + (row.role || '').toLowerCase()">{{ row.role }}</span></td>
+                    <td>{{ row.lastLogin ? (row.lastLogin | date:'medium') : '—' }}</td>
+                    <td style="text-align:center;">
+                      <button pButton icon="pi pi-pencil" class="row-btn edit"
+                              pTooltip="Edit" tooltipPosition="top" (click)="editUser(row)"></button>
+                      <button pButton icon="pi pi-trash" class="row-btn delete"
+                              pTooltip="Delete" tooltipPosition="top" (click)="deleteUser(row.id)"></button>
+                    </td>
                   </tr>
                 </ng-template>
 
                 <ng-template pTemplate="emptymessage">
                   <tr>
-                    <td colspan="5" class="empty-msg">No records found</td>
+                    <td colspan="6" class="empty-msg">
+                      <i class="pi pi-id-card" style="font-size:1.8rem;color:#cbd5e1;display:block;margin-bottom:8px;"></i>
+                      No users found
+                    </td>
                   </tr>
                 </ng-template>
               </p-table>

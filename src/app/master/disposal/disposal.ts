@@ -13,6 +13,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { MessageService } from 'primeng/api';
 import { DisposalService } from '../../services/disposal/disposal';
 import { Assets } from '../../services/assets/assets';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-disposal',
@@ -20,7 +21,8 @@ import { Assets } from '../../services/assets/assets';
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule,
     TagModule, ToastModule, DialogModule, InputTextModule,
-    TextareaModule, SelectModule, InputNumberModule
+    TextareaModule, SelectModule, InputNumberModule,
+    OverflowTooltipDirective
   ],
   templateUrl: './disposal.html',
   styleUrl: './disposal.css',

@@ -4,6 +4,117 @@
     padding: 0;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   GLOBAL TEXT TRUNCATION (project-wide)
+   Long values in dropdowns, multi-selects, and table cells must NOT push the
+   layout. Truncate visually with ellipsis; pair with the
+   [appOverflowTooltip] directive on cells where you want a hover tooltip
+   showing the full value (it sets the native `title` attr only when the
+   text actually overflows, so short values don't get a redundant tooltip).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── PrimeNG p-select / p-dropdown: selected value (the input itself) ─── */
+.p-select .p-select-label,
+.p-select-label,
+.p-dropdown .p-dropdown-label,
+.p-dropdown-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* ─── PrimeNG p-select panel — cap the panel's own width when appendTo="body"
+   PrimeNG by default sets only `min-width` on the panel (= trigger width) and
+   lets it grow to its longest option. Without this cap, panels overflow the
+   form and the user has to scroll horizontally to read options. ─── */
+.p-select-overlay,
+.p-dropdown-panel,
+.p-multiselect-overlay,
+.p-multiselect-panel {
+  max-width: min(500px, 95vw) !important;
+}
+
+/* ─── PrimeNG p-select panel options (the dropdown items themselves) ─── */
+.p-select-list .p-select-option,
+.p-select-option,
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item,
+.p-dropdown-item,
+.p-multiselect-list .p-multiselect-option,
+.p-multiselect-option,
+.p-multiselect-items .p-multiselect-item {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Browser-native tooltip on truncated options — works on hover */
+.p-select-option,
+.p-dropdown-item,
+.p-multiselect-option,
+.p-multiselect-item { cursor: pointer; }
+
+/* ─── PrimeNG p-multiselect: tokens / chips & selected label ─── */
+.p-multiselect .p-multiselect-label,
+.p-multiselect-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.p-multiselect-token,
+.p-multiselect-chip-item {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.p-multiselect-token .p-multiselect-token-label,
+.p-multiselect-chip-item-label {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* ─── PrimeNG p-autocomplete chips (multi mode) ─── */
+.p-autocomplete-token,
+.p-autocomplete-chip {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Table cells: opt-in via class (.ellipsis-cell) ─────────────────────
+   Apply this class to <td>/<th> cells where you expect long values.
+   Tweak per-cell via the CSS var: style="--ellipsis-max-width: 320px"
+   ────────────────────────────────────────────────────────────────────── */
+.ellipsis-cell,
+table td.ellipsis-cell,
+table th.ellipsis-cell {
+  max-width: var(--ellipsis-max-width, 240px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Utility class for inline text anywhere ─── */
+.text-truncate,
+.ellipsis {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+
 /* ── E-Waste Certificate Print ──────────────────────────────────────────────
    When body has .printing-ewaste, hide the entire app shell and show ONLY
    the certificate. This overrides sidebar, header, router-outlet, everything.

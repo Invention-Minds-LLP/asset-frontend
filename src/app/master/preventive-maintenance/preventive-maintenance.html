@@ -118,7 +118,7 @@
           </ng-template>
           <ng-template pTemplate="body" let-s>
             <tr>
-              <td><strong>{{ s.asset?.assetName || s.asset?.assetId || '—' }}</strong></td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;"><strong>{{ s.asset?.assetName || s.asset?.assetId || '—' }}</strong></td>
               <td>Every {{ s.frequencyValue }} {{ s.frequencyUnit }}</td>
               <td>{{ s.startDate ? (s.startDate | date:'mediumDate') : '—' }}</td>
               <td>{{ s.nextDueAt | date:'mediumDate' }}</td>
@@ -126,7 +126,7 @@
               <td>
                 <p-tag [value]="getScheduleStatus(s)" [severity]="getScheduleStatusSeverity(getScheduleStatus(s))"></p-tag>
               </td>
-              <td>{{ s.reason || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ s.reason || '—' }}</td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">
@@ -197,12 +197,12 @@
           </ng-template>
           <ng-template pTemplate="body" let-h>
             <tr>
-              <td>{{ h.asset?.assetName || '—' }}</td>
-              <td>{{ h.serviceType || '-'}}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ h.asset?.assetName || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip>{{ h.serviceType || '-'}}</td>
               <td>{{ h.actualDoneAt | date:'mediumDate' }}</td>
-              <td>{{ h.performedBy || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ h.performedBy || '—' }}</td>
               <td>₹{{ h.serviceCost || 0 }}</td>
-              <td>{{ h.notes || '—' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ h.notes || '—' }}</td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">

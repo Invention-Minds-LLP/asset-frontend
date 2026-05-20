@@ -71,8 +71,8 @@
         <ng-template pTemplate="body" let-row>
           <tr [class.unread-row]="!row.isRead">
             <td><p-tag [value]="row.notification?.type" /></td>
-            <td>{{ row.notification?.title || '—' }}</td>
-            <td class="msg-cell">{{ row.notification?.message }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ row.notification?.title || '—' }}</td>
+            <td class="msg-cell ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 380px;">{{ row.notification?.message }}</td>
             <td>
               <p-tag *ngIf="row.notification?.priority"
                 [value]="row.notification.priority"
@@ -113,8 +113,8 @@
         <ng-template pTemplate="body" let-row>
           <tr>
             <td><p-tag [value]="row.type" /></td>
-            <td>{{ row.title || '—' }}</td>
-            <td class="msg-cell">{{ row.message }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ row.title || '—' }}</td>
+            <td class="msg-cell ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 380px;">{{ row.message }}</td>
             <td>
               <p-tag *ngIf="row.priority" [value]="row.priority"
                 [severity]="getPrioritySeverity(row.priority)" />

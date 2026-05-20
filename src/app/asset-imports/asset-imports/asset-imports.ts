@@ -2,10 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { ImportExcel, ImportResponse } from '../../services/imports/import-excel';
 import { FormsModule } from '@angular/forms';
+import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
   selector: 'app-asset-imports',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, OverflowTooltipDirective],
   templateUrl: './asset-imports.html',
   styleUrl: './asset-imports.css'
 })

@@ -3,13 +3,17 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environment/environment.prod';
 import { Observable } from 'rxjs';
 
-export type EmployeeRole = 'HOD' | 'SUPERVISOR' | 'EXECUTIVE' | 'ADMIN';
+export type EmployeeRole = 'HOD' | 'SUPERVISOR' | 'EXECUTIVE' | 'ADMIN' | 'CEO_COO' | 'FINANCE' | 'OPERATIONS';
 
 export interface EmployeeCreatePayload {
   name: string;
   employeeID: string;
   departmentId: number | null;
   role: EmployeeRole;
+  designation?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  reportingToId?: number | null;
 }
 
 @Injectable({
@@ -28,6 +32,10 @@ export class Employees {
 
   createEmployee(payload: EmployeeCreatePayload): Observable<any> {
     return this.http.post(this.base, payload);
+  }
+
+  updateEmployee(id: number, payload: Partial<EmployeeCreatePayload>): Observable<any> {
+    return this.http.put(`${this.base}/${id}`, payload);
   }
 
   deleteEmployee(id: number): Observable<any> {

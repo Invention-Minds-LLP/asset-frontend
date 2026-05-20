@@ -33,10 +33,10 @@
     </ng-template>
     <ng-template pTemplate="body" let-r>
       <tr>
-        <td>{{ r.user?.name || r.userName || '—' }}</td>
-        <td>{{ r.user?.employeeID || '—' }}</td>
-        <td>{{ r.ipAddress || '—' }}</td>
-        <td>{{ r.userAgent | slice:0:40 }}{{ r.userAgent?.length > 40 ? '...' : '' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ r.user?.name || r.userName || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ r.user?.employeeID || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ r.ipAddress || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ r.userAgent }}</td>
         <td>{{ r.createdAt | date:'medium' }}</td>
         <td>
           <p-tag [value]="r.success ? 'Success' : 'Failed'" [severity]="r.success ? 'success' : 'danger'"></p-tag>
