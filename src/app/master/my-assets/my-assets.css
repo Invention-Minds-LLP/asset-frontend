@@ -15,7 +15,7 @@
   margin: 0 0 .25rem;
   font-size: 1.4rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--heading-color);
 }
 .page-header-text h2 i { color: #10b981; font-size: 1.2rem; }
 .count-badge {
@@ -34,15 +34,15 @@
 }
 .page-header-text p {
   margin: 0;
-  color: #64748b;
+  color: var(--text-color-secondary);
   font-size: 0.88rem;
 }
-.page-header-text .emp-id { color: #94a3b8; font-size: 0.82rem; }
+.page-header-text .emp-id { color: var(--text-muted); font-size: 0.82rem; }
 
 /* ───── Table wrapper ───── */
 .table-wrap {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(15,23,42,0.04);
@@ -53,18 +53,18 @@
   font-size: 0.88rem;
 }
 ::ng-deep .my-assets-table .p-datatable-thead > tr > th {
-  background: #f8fafc !important;
-  color: #475569 !important;
+  background: var(--surface-section) !important;
+  color: var(--text-color-secondary) !important;
   font-weight: 600 !important;
   font-size: 0.78rem !important;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  border-bottom: 1px solid #e2e8f0 !important;
+  border-bottom: 1px solid var(--border-color) !important;
   padding: 12px 14px !important;
 }
 ::ng-deep .my-assets-table .p-datatable-tbody > tr > td {
   padding: 12px 14px !important;
-  border-bottom: 1px solid #f1f5f9 !important;
+  border-bottom: 1px solid var(--border-color) !important;
   vertical-align: middle;
 }
 ::ng-deep .my-assets-table .p-datatable-tbody > tr:hover {
@@ -89,7 +89,7 @@
 }
 .asset-name {
   font-weight: 600;
-  color: #0f172a;
+  color: var(--heading-color);
   font-size: 0.92rem;
 }
 
@@ -123,9 +123,9 @@
 .status-maint    { background: #fef3c7; color: #92400e; }
 .status-pending  { background: #fef3c7; color: #92400e; }
 .status-disposed { background: #fee2e2; color: #991b1b; }
-.status-default  { background: #f1f5f9; color: #475569; }
+.status-default  { background: var(--surface-hover); color: var(--text-color-secondary); }
 
-.muted { color: #94a3b8; font-size: 0.85rem; }
+.muted { color: var(--text-muted); font-size: 0.85rem; }
 
 /* ───── Action button (matches mint theme) ───── */
 .action-btn {
@@ -159,7 +159,7 @@
 .empty-state {
   padding: 56px 20px;
   text-align: center;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 .empty-state i {
   font-size: 2.4rem;
@@ -170,7 +170,7 @@
 .empty-state h4 {
   margin: 0 0 4px;
   font-size: 1rem;
-  color: #475569;
+  color: var(--text-color-secondary);
   font-weight: 600;
 }
 .empty-state p {
@@ -181,7 +181,7 @@
 /* Paginator alignment */
 ::ng-deep .my-assets-table .p-paginator {
   background: #fcfdfd !important;
-  border-top: 1px solid #e2e8f0 !important;
+  border-top: 1px solid var(--border-color) !important;
   border-bottom: none !important;
 }
 
@@ -190,7 +190,7 @@
    ─────────────────────────────────────────────────────────────────── */
 ::ng-deep .log-usage-dialog .p-dialog-content {
   padding: 0 !important;
-  background: #f8fafc;
+  background: var(--surface-section);
   display: flex;
   flex-direction: column;
   max-height: 85vh;
@@ -267,15 +267,15 @@
 
 /* ───── Section card ───── */
 .log-section {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 14px 16px;
   box-shadow: 0 1px 2px rgba(15,23,42,0.04);
 }
 .log-summary-section {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+  background: var(--surface-hover);
+  border-color: var(--border-color);
 }
 
 .section-head {
@@ -286,7 +286,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.7px;
-  color: #475569;
+  color: var(--text-color-secondary);
   margin-bottom: 12px;
 }
 .section-head i { color: #10b981; font-size: 0.9rem; }
@@ -295,7 +295,7 @@
   font-weight: 400;
   text-transform: none;
   letter-spacing: 0;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.72rem;
   margin-left: 2px;
 }
@@ -312,13 +312,13 @@
 .field.full { grid-column: 1 / -1; margin-top: 12px; }
 .field label {
   font-size: 0.78rem;
-  color: #475569;
+  color: var(--text-color-secondary);
   font-weight: 600;
 }
 .req { color: #dc2626; font-weight: 700; }
 .hint {
   display: inline-flex; align-items: center; gap: 4px;
-  color: #64748b;
+  color: var(--text-color-secondary);
   font-size: 0.7rem;
   font-style: italic;
   margin-top: 2px;
@@ -345,12 +345,12 @@
 }
 .shift-card {
   display: block;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 12px 12px 10px;
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
-  background: #fff;
+  background: var(--surface-card);
   position: relative;
   overflow: hidden;
 }
@@ -364,18 +364,18 @@
 .shift-card.afternoon::before  { background: #f97316; }
 .shift-card.night::before      { background: #475569; }
 .shift-card:hover {
-  border-color: #cbd5e1;
+  border-color: var(--border-color);
   box-shadow: 0 4px 8px rgba(15,23,42,0.06);
 }
 .shift-card .shift-name {
   font-weight: 700;
   font-size: 0.85rem;
-  color: #1e293b;
+  color: var(--heading-color);
   padding-left: 8px;
 }
 .shift-card .shift-time {
   font-size: 0.72rem;
-  color: #64748b;
+  color: var(--text-color-secondary);
   margin: 2px 0 8px;
   padding-left: 8px;
 }
@@ -388,8 +388,8 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 14px 22px;
-  background: #fff;
-  border-top: 1px solid #e2e8f0;
+  background: var(--surface-card);
+  border-top: 1px solid var(--border-color);
   border-radius: 0 0 6px 6px;
   flex-shrink: 0;
 }

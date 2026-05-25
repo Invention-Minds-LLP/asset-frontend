@@ -67,7 +67,7 @@
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  color: #555 !important;
+  color: var(--text-color-secondary) !important;
   font-size: 14px;
   padding: 0 !important;
 }
@@ -197,8 +197,8 @@
 .pool-digi-sub { font-size: 0.78rem; color: #6366f1; margin-top: 2px; }
 .pool-digi-stats { display: flex; gap: 1.5rem; align-items: center; }
 .pool-digi-stat { display: flex; flex-direction: column; align-items: flex-end; }
-.pool-digi-stat span { font-size: 0.72rem; color: #6b7280; }
-.pool-digi-stat b { font-size: 0.9rem; font-weight: 700; color: #111827; }
+.pool-digi-stat span { font-size: 0.72rem; color: var(--text-color-secondary); }
+.pool-digi-stat b { font-size: 0.9rem; font-weight: 700; color: var(--heading-color); }
 .digi-pct { color: #10b981; font-size: 1.1rem; }
 
 /* E-Waste Sign-off Strip */

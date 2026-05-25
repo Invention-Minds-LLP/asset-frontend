@@ -175,6 +175,26 @@ export class AssetsForm implements OnInit {
     return cat.serialRequired !== false;
   }
 
+  /**
+   * Effective placement profile for the Location tab fields.
+   * Per-asset choice wins; falls back to the category's default, then ROOM.
+   * (Categories are broad — IT Equipment, Furniture — so the asset-level pick
+   * is what distinguishes a camera from a laptop within the same category.)
+   */
+  get currentLocationProfile(): string {
+    if (this.asset?.placementProfile) return this.asset.placementProfile;
+    const cat = this.categories.find((c: any) => c.id === this.asset?.assetCategoryId);
+    return cat?.locationProfile || 'ROOM';
+  }
+
+  placementProfileOptions = [
+    { label: 'Room — Block / Floor / Room only', value: 'ROOM' },
+    { label: 'Camera / sensor — mount, coverage, GPS', value: 'CAMERA' },
+    { label: 'Network gear — rack, U-position, port', value: 'NETWORK' },
+    { label: 'Outdoor — GPS', value: 'OUTDOOR' },
+    { label: 'Generic — mount + label', value: 'GENERIC' },
+  ];
+
   // ==============================
   // ASSET DATA MODEL (frontend)
   // ==============================
@@ -1195,6 +1215,39 @@ private returnLastY = 0;
   // ================================
   // LOCATION MANAGEMENT
   // ================================
+  // Phase 1 — precise placement option lists (label + value)
+  placementTypeOptions = [
+    { label: 'Room — inside a room', value: 'ROOM' },
+    { label: 'Corridor / Hallway', value: 'CORRIDOR' },
+    { label: 'Entrance / Lobby', value: 'ENTRANCE' },
+    { label: 'Reception', value: 'RECEPTION' },
+    { label: 'Staircase / Stairwell', value: 'STAIRWELL' },
+    { label: 'Lift / Lift Lobby', value: 'LIFT_LOBBY' },
+    { label: 'Ward / Bay', value: 'WARD' },
+    { label: 'Parking', value: 'PARKING' },
+    { label: 'Perimeter / Boundary Wall', value: 'PERIMETER' },
+    { label: 'Rooftop / Terrace', value: 'ROOFTOP' },
+    { label: 'Gate / Barrier', value: 'GATE' },
+    { label: 'Server / Network Rack', value: 'RACK' },
+    { label: 'Cable Duct / Shaft', value: 'DUCT' },
+    { label: 'Wall / Ceiling Mounted', value: 'MOUNTED' },
+    { label: 'Open Area / Zone', value: 'AREA' },
+    { label: 'Outdoor / Open Ground', value: 'OUTDOOR' },
+  ];
+  mountTypeOptions = [
+    { label: 'Wall', value: 'WALL' },
+    { label: 'Ceiling', value: 'CEILING' },
+    { label: 'Pole / Mast', value: 'POLE' },
+    { label: 'Desk / Table', value: 'DESK' },
+    { label: 'Floor Stand', value: 'FLOOR' },
+    { label: 'Rack Mount (U-position)', value: 'RACK' },
+    { label: 'Pedestal', value: 'PEDESTAL' },
+    { label: 'Tripod', value: 'TRIPOD' },
+    { label: 'Overhead Gantry / Beam', value: 'GANTRY' },
+    { label: 'Bracket / Arm', value: 'BRACKET' },
+    { label: 'Concealed / In-wall', value: 'CONCEALED' },
+  ];
+
   saveLocation() {
     if (!this.asset.id) return;
 
@@ -1205,7 +1258,18 @@ private returnLastY = 0;
       floor: this.asset.floor,
       room: this.asset.room,
       employeeResponsibleId: this.asset.employeeResponsibleId,
-      departmentSnapshot: this.asset.departmentSnapshot
+      departmentSnapshot: this.asset.departmentSnapshot,
+      // precise placement
+      placementProfile: this.currentLocationProfile,
+      placementType: this.asset.placementType ?? null,
+      placementLabel: this.asset.placementLabel ?? null,
+      mountType: this.asset.mountType ?? null,
+      rackCode: this.asset.rackCode ?? null,
+      rackUnit: this.asset.rackUnit ?? null,
+      portRef: this.asset.portRef ?? null,
+      coverageArea: this.asset.coverageArea ?? null,
+      latitude: this.asset.latitude ?? null,
+      longitude: this.asset.longitude ?? null,
     };
 
     // 👉 CREATE (first time)
@@ -1227,6 +1291,7 @@ private returnLastY = 0;
     this.locationAPI.updateLocation(this.currentLocationId, payload).subscribe({
       next: () => {
         this.toast('success', 'Location updated');
+        this.resetLocationForm();
         this.loadLocationHistory(this.asset.id);
       },
       error: () => this.toast('error', 'Failed to update location')
@@ -1241,6 +1306,18 @@ private returnLastY = 0;
       this.asset.room = loc.room;
       this.asset.employeeResponsibleId = loc.employeeResponsibleId;
       this.asset.departmentSnapshot = loc.departmentSnapshot;
+      // precise placement — seed the per-asset profile from saved value, else category default
+      const cat = this.categories.find((c: any) => c.id === this.asset?.assetCategoryId);
+      this.asset.placementProfile = loc.placementProfile || cat?.locationProfile || 'ROOM';
+      this.asset.placementType = loc.placementType;
+      this.asset.placementLabel = loc.placementLabel;
+      this.asset.mountType = loc.mountType;
+      this.asset.rackCode = loc.rackCode;
+      this.asset.rackUnit = loc.rackUnit;
+      this.asset.portRef = loc.portRef;
+      this.asset.coverageArea = loc.coverageArea;
+      this.asset.latitude = loc.latitude;
+      this.asset.longitude = loc.longitude;
     });
   }
 
@@ -2527,6 +2604,18 @@ returnAsset(row: any) {
     this.asset.room = '';
     this.asset.employeeResponsibleId = null;
     this.asset.departmentSnapshot = '';
+    // precise placement
+    this.asset.placementProfile = null;
+    this.asset.placementType = null;
+    this.asset.placementLabel = '';
+    this.asset.mountType = null;
+    this.asset.rackCode = '';
+    this.asset.rackUnit = '';
+    this.asset.portRef = '';
+    this.asset.coverageArea = '';
+    this.asset.latitude = null;
+    this.asset.longitude = null;
+    this.currentLocationId = undefined;
   }
 openReturnChecklist(row: any) {
   this.selectedReturnTransfer = row;

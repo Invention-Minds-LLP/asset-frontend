@@ -1,7 +1,7 @@
 .page-container { padding: 1.5rem; }
 .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
 .page-header h2 { margin: 0 0 0.25rem; display: flex; align-items: center; gap: 0.5rem; }
-.page-header p { margin: 0; color: #6b7280; font-size: 0.875rem; }
+.page-header p { margin: 0; color: var(--text-color-secondary); font-size: 0.875rem; }
 
 .unread-badge {
   background: #ef4444; color: #fff;
@@ -20,7 +20,7 @@
 
 .unread-row { background: transparent; font-weight: 500; }
 .msg-cell { max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.text-center { text-align: center; padding: 1rem; color: #6b7280; }
+.text-center { text-align: center; padding: 1rem; color: var(--text-color-secondary); }
 ::ng-deep .custom-tabs .p-tabview-nav {
   display: flex !important;
   justify-content: center;
@@ -43,7 +43,7 @@
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  color: #555 !important;
+  color: var(--text-color-secondary) !important;
   font-size: 14px;
   padding: 0 !important;
 }

@@ -10,15 +10,18 @@ import { ToastModule } from 'primeng/toast';
 import { BadgeModule } from 'primeng/badge';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 import { NotificationsService } from './services/notifications/notifications';
 import { environment } from '../environment/environment.prod';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule, InputSwitchModule, Sidebar, RouterOutlet, ToastModule, BadgeModule, OverlayPanelModule, ButtonModule],
+  imports: [CommonModule, FormsModule, InputSwitchModule, Sidebar, RouterOutlet, ToastModule, BadgeModule, OverlayPanelModule, ButtonModule, ConfirmDialogModule],
   templateUrl: './app.html',
   styleUrl: './app.css',
-  standalone: true
+  standalone: true,
+  providers: [ConfirmationService]
 })
 export class App implements OnInit, OnDestroy {
 
@@ -27,10 +30,13 @@ export class App implements OnInit, OnDestroy {
     private notifService: NotificationsService,
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
+    private confirmationService: ConfirmationService,
   ) {}
 
   dark = false;
   isSidebarCollapsed = false;
+  name = localStorage.getItem('name') || '';
+  showUserMenu = false;
 
   // Notification state
   unreadCount = 0;
@@ -191,6 +197,25 @@ export class App implements OnInit, OnDestroy {
 
   toggleTheme() {
     document.documentElement.classList.toggle('app-dark', this.dark);
+  }
+
+  settings() {
+    this.router.navigate(['/settings']);
+  }
+
+  logout() {
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to logout?',
+      header: 'Confirm Logout',
+      icon: 'pi pi-sign-out',
+      acceptLabel: 'Logout',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        localStorage.clear();
+        this.router.navigate(['/login']);
+      }
+    });
   }
 
   isLoginRoute(): boolean {

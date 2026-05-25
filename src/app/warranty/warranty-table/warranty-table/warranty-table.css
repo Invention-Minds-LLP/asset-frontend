@@ -19,7 +19,7 @@
 }
 
 .header p {
-    color: #696969;
+    color: var(--text-color-secondary);
     font-family: Biryani;
     font-size: 14px;
     font-style: normal;
@@ -30,7 +30,7 @@
 
 .pi {
     font-size: 18px;
-    color: #8f8f8f;
+    color: var(--text-muted);
 }
 
 .header-actions {
@@ -74,7 +74,7 @@
 }
 
 .button:hover:not(:disabled) {
-    background: #f0f0f0;
+    background: var(--surface-hover);
 }
 
 .button:disabled {
@@ -96,10 +96,10 @@
     align-items: center;
     border-radius: 8px;
     border: 1px solid var(--table-border-color);
-    /* background: #FFF; */
+    /* background: var(--surface-card); */
     font-size: 14px;
     font-weight: 600;
-    color: #8F8F8F;
+    color: var(--text-muted);
 }
 
 .notification-part {
@@ -184,7 +184,7 @@
   position: absolute;
   top: 50px;
   left: 0;
-  background: white;
+  background: var(--surface-card);
   border-radius: 8px; 
   height: 42px;
   z-index: 10;

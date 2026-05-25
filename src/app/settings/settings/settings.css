@@ -26,7 +26,7 @@
 
 /* Dark mode sidebar background should follow your theme variables */
 :host-context(.app-dark) .settings-sidebar {
-  background: #dfffef !important;
+  background: var(--surface-card) !important;
 }
 
 .sidebar-top {
@@ -129,8 +129,13 @@
   font-weight: 700;
 }
 
+:host-context(.app-dark) .nav-item.active {
+  background-color: rgba(0, 162, 61, 0.18) !important;
+  color: #34d399 !important;
+}
+
 .nav-item.active .dot {
-  background: #fff;
+  background: var(--surface-card);
   opacity: 1;
 }
 
@@ -300,7 +305,7 @@
   border-radius: 999px;
   cursor: pointer;
   font-weight: 700;
-  background: #f3f4f6;
+  background: var(--surface-hover);
   color: var(--text-color);
 }
 
@@ -534,7 +539,7 @@
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  color: #555 !important;
+  color: var(--text-color-secondary) !important;
   font-size: 14px;
   padding: 0 !important;
 }
@@ -593,22 +598,22 @@
 /* ─────────── Settings tables (Employee / User) ─────────── */
 /* High-specificity overrides — beat the existing `:host ::ng-deep .p-datatable` rules above */
 :host ::ng-deep .settings-table.p-datatable .p-datatable-thead > tr > th {
-  background: #f1f5f9 !important;
+  background: var(--surface-hover) !important;
   color: #334155 !important;
   font-weight: 700 !important;
   font-size: 0.78rem !important;
   text-transform: uppercase !important;
   letter-spacing: 0.4px !important;
-  border-bottom: 1px solid #cbd5e1 !important;
+  border-bottom: 1px solid var(--border-color) !important;
   padding: 12px 14px !important;
   white-space: nowrap;
 }
 :host ::ng-deep .settings-table.p-datatable .p-datatable-tbody > tr > td {
   padding: 10px 14px !important;
-  border-bottom: 1px solid #f1f5f9 !important;
+  border-bottom: 1px solid var(--border-color) !important;
   vertical-align: middle;
   text-transform: none !important;       /* kill the global "capitalize" that mangles emails / IDs */
-  color: #1e293b !important;
+  color: var(--heading-color) !important;
 }
 :host ::ng-deep .settings-table.p-datatable .p-datatable-tbody > tr:hover {
   background: #f0fdf4 !important;
@@ -627,9 +632,9 @@
   font-weight: 600;
   letter-spacing: 0.2px;
 }
-.cell-name { font-weight: 600; color: #0f172a; font-size: 0.92rem; }
+.cell-name { font-weight: 600; color: var(--heading-color); font-size: 0.92rem; }
 .cell-contact { color: #334155; font-size: 0.85rem; }
-.cell-contact-sub { color: #94a3b8; font-size: 0.78rem; }
+.cell-contact-sub { color: var(--text-muted); font-size: 0.78rem; }
 
 /* Role pill — colour by role name */
 .role-pill {
@@ -640,8 +645,8 @@
   font-weight: 700;
   letter-spacing: 0.3px;
   text-transform: uppercase;
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--surface-hover);
+  color: var(--text-color-secondary);
 }
 .role-pill.role-admin     { background: #fee2e2; color: #991b1b; }
 .role-pill.role-ceo_coo   { background: #ede9fe; color: #5b21b6; }
@@ -650,7 +655,7 @@
 .role-pill.role-supervisor { background: #cffafe; color: #155e75; }
 .role-pill.role-operations { background: #fce7f3; color: #9d174d; }
 .role-pill.role-executive  { background: #d1fae5; color: #047857; }
-.role-pill.role-security   { background: #f1f5f9; color: #334155; }
+.role-pill.role-security   { background: var(--surface-hover); color: #334155; }
 .role-pill.role-user       { background: #d1fae5; color: #047857; }
 
 /* Row action buttons — higher specificity to win against existing .p-button rules */
@@ -660,9 +665,9 @@
   padding: 0 !important;
   border-radius: 6px !important;
   margin: 0 3px;
-  border: 1px solid #e2e8f0 !important;
-  background: #fff !important;
-  color: #64748b !important;
+  border: 1px solid var(--border-color) !important;
+  background: var(--surface-card) !important;
+  color: var(--text-color-secondary) !important;
   transition: all 0.15s ease;
   display: inline-flex !important;
   align-items: center;
@@ -670,7 +675,7 @@
   min-width: 0 !important;
   box-shadow: none !important;
 }
-:host ::ng-deep .settings-table .row-btn.p-button:hover { background: #f8fafc !important; }
+:host ::ng-deep .settings-table .row-btn.p-button:hover { background: var(--surface-section) !important; }
 :host ::ng-deep .settings-table .row-btn.edit.p-button:hover {
   background: #d1fae5 !important;
   color: #047857 !important;
@@ -712,6 +717,6 @@
 .empty-msg {
   text-align: center;
   padding: 40px 20px !important;
-  color: #94a3b8 !important;
+  color: var(--text-muted) !important;
   font-size: 0.9rem;
 }

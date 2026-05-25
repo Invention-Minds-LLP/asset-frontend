@@ -29,7 +29,7 @@
 /* ── Section header ── */
 .section-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; margin-top: 1.5rem; }
 .section-title { font-size: 1rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 0.4rem; }
-.info-icon { font-size: 0.78rem; color: #94a3b8; cursor: help; vertical-align: middle; margin-left: 0.2rem; }
+.info-icon { font-size: 0.78rem; color: var(--text-muted); cursor: help; vertical-align: middle; margin-left: 0.2rem; }
 
 /* ── Rate card bar ── */
 .rate-card-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem; border: 1px solid var(--surface-border); border-radius: 12px; padding: 1rem 1.25rem; background: var(--surface-0); }

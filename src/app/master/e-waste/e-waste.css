@@ -13,12 +13,12 @@
 
 .signed-cell  { display: flex; align-items: center; gap: 5px; font-size: 0.82rem; color: #16a34a; }
 .signed-icon  { color: #16a34a; }
-.pending-cell { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: #9ca3af; }
+.pending-cell { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: var(--text-muted); }
 
 /* Sign-off progress column */
 .signoff-progress { display: flex; align-items: center; gap: 4px; }
 .signoff-step { display: flex; flex-direction: column; align-items: center; gap: 2px;
-  font-size: 0.7rem; color: #9ca3af; cursor: default; }
+  font-size: 0.7rem; color: var(--text-muted); cursor: default; }
 .signoff-step i { font-size: 1rem; }
 .signoff-step.done { color: #16a34a; }
 .signoff-arrow { font-size: 0.85rem; color: #d1d5db; margin-bottom: 10px; }
@@ -101,11 +101,11 @@
 .step-pending-badge { font-size: 0.72rem; font-weight: 700; background: #dbeafe; color: #1e40af; padding: 2px 10px; border-radius: 10px; }
 
 .step-desc    { font-size: 0.85rem; color: var(--text-color-secondary); margin: 0 0 10px; }
-.waiting-msg  { font-size: 0.82rem; color: #9ca3af; margin: 4px 0; font-style: italic; }
+.waiting-msg  { font-size: 0.82rem; color: var(--text-muted); margin: 4px 0; font-style: italic; }
 
 /* Signed result */
 .sign-result { display: flex; align-items: flex-start; gap: 16px; }
-.signature-img { border: 1px solid #d1d5db; border-radius: 6px; background: #fff;
+.signature-img { border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface-card);
   max-width: 220px; max-height: 90px; object-fit: contain; }
 .sign-meta { display: flex; flex-direction: column; gap: 3px; font-size: 0.85rem; }
 .sign-meta strong { font-size: 0.95rem; }
@@ -130,11 +130,11 @@
 
 .sig-pad-label { font-size: 0.82rem; font-weight: 600; color: var(--text-color-secondary);
   margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
-.sig-pad-container { border: 2px dashed #cbd5e1; border-radius: 8px; overflow: hidden;
-  background: #fff; cursor: crosshair; touch-action: none; }
+.sig-pad-container { border: 2px dashed var(--border-color); border-radius: 8px; overflow: hidden;
+  background: var(--surface-card); cursor: crosshair; touch-action: none; }
 .sig-canvas { display: block; width: 100%; height: 180px; }
 .sig-pad-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
-.sig-hint { font-size: 0.75rem; color: #9ca3af; }
+.sig-hint { font-size: 0.75rem; color: var(--text-muted); }
 
 /* ── Printable Certificate ── */
 /* Hidden on screen — only shown when body.printing-ewaste is set (see global styles.css) */
@@ -146,19 +146,19 @@
 .cert-ref-row { display: flex; justify-content: space-between; font-size: 0.9rem;
   margin-bottom: 16px; color: #374151; }
 .cert-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-bottom: 28px; }
-.cert-table td { border: 1px solid #d1d5db; padding: 8px 12px; }
-.ct-label { background: #f1f5f9; font-weight: 600; width: 140px; color: #1e3a5f; }
+.cert-table td { border: 1px solid var(--border-color); padding: 8px 12px; }
+.ct-label { background: var(--surface-hover); font-weight: 600; width: 140px; color: #1e3a5f; }
 .cert-sign-row { display: grid; grid-template-columns: repeat(3, 1fr);
   gap: 16px; border-top: 2px solid #1e3a5f; padding-top: 24px; margin-bottom: 24px; }
 .cert-sign-block { display: flex; flex-direction: column; align-items: center;
-  border: 1px solid #d1d5db; border-radius: 8px; padding: 16px; }
+  border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; }
 .cert-sign-title { font-size: 0.85rem; font-weight: 700; color: #1e3a5f;
   margin-bottom: 10px; text-align: center; }
 .cert-sig-img { width: 180px; height: 70px; object-fit: contain;
   border-bottom: 1px solid #374151; margin-bottom: 8px; }
 .cert-sign-name   { font-weight: 600; font-size: 0.88rem; text-align: center; }
-.cert-sign-date   { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+.cert-sign-date   { font-size: 0.78rem; color: var(--text-color-secondary); margin-top: 2px; }
 .cert-sign-remarks { font-size: 0.75rem; color: #4b5563; font-style: italic;
   margin-top: 4px; text-align: center; }
-.cert-footer { text-align: center; font-size: 0.75rem; color: #9ca3af;
-  border-top: 1px solid #e5e7eb; padding-top: 12px; }
+.cert-footer { text-align: center; font-size: 0.75rem; color: var(--text-muted);
+  border-top: 1px solid var(--border-color); padding-top: 12px; }

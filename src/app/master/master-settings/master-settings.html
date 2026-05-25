@@ -135,6 +135,17 @@
         </label>
 
         <h5 style="margin: 28px 0 14px; color: #475569; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.4px;">
+          Location Profile (which placement fields the Location tab shows)
+        </h5>
+        <div class="form-row">
+          <p-floatlabel>
+            <p-select id="catLocationProfile" [options]="locationProfileOptions" optionLabel="label" optionValue="value"
+              [(ngModel)]="categoryForm.locationProfile" appendTo="body" />
+            <label for="catLocationProfile">Location Profile</label>
+          </p-floatlabel>
+        </div>
+
+        <h5 style="margin: 28px 0 14px; color: #475569; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.4px;">
           Default Depreciation (auto-applied to new assets in this category)
         </h5>
         <div class="form-row">

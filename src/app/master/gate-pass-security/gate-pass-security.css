@@ -3,8 +3,8 @@
   display: flex; justify-content: space-between; align-items: flex-start;
   margin-bottom: 18px; gap: 16px; flex-wrap: wrap;
 }
-.page-header h2 { margin: 0; color: #0f172a; }
-.page-header p { margin: 4px 0 0; color: #64748b; font-size: 0.88rem; }
+.page-header h2 { margin: 0; color: var(--heading-color); }
+.page-header p { margin: 4px 0 0; color: var(--text-color-secondary); font-size: 0.88rem; }
 
 .overdue-row { background: #fef2f2 !important; }
 
@@ -23,4 +23,4 @@
   font-size: 0.72rem; font-weight: 600;
 }
 
-.text-center { text-align: center; color: #94a3b8; padding: 24px; }
+.text-center { text-align: center; color: var(--text-muted); padding: 24px; }

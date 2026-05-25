@@ -8,22 +8,18 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { Router, RouterLink } from '@angular/router';
 import { ModuleAccessService } from '../services/module-access/module-access';
 import { TableModule } from "primeng/table";
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, ButtonModule, InputSwitchModule, PanelMenuModule, FormsModule, SelectButtonModule, RouterLink, TableModule, ConfirmDialogModule],
+  imports: [CommonModule, ButtonModule, InputSwitchModule, PanelMenuModule, FormsModule, SelectButtonModule, RouterLink, TableModule],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.css',
-  providers: [ConfirmationService]
+  styleUrl: './sidebar.css'
 })
 export class Sidebar implements OnInit {
   @Output() collapsedChange = new EventEmitter<boolean>();
 
   isCollapsed = false;
-  darkMode = false;
   activeMenu = 'Assets Master';
 
   // Full hardcoded list — used as base and for admin / fallback
@@ -148,6 +144,7 @@ export class Sidebar implements OnInit {
         { label: 'Gate Pass — Security', route: '/gate-pass/security', icon: 'pi pi-shield' },
         { label: 'Acknowledgement', route: '/acknowledgement', icon: 'pi pi-check-square' },
         { label: 'Physical Audit', route: '/asset-audit', icon: 'pi pi-clipboard' },
+        { label: 'Floor Plans', route: '/floor-plan', icon: 'pi pi-map' },
         { label: 'Employee Exit', route: '/employee-exit', icon: 'pi pi-sign-out' },
         { label: 'Document Vault', route: '/document-vault', icon: 'pi pi-folder-open' },
         { label: 'Knowledge Base', route: '/knowledge-base', icon: 'pi pi-book' },
@@ -182,9 +179,8 @@ export class Sidebar implements OnInit {
   // Displayed list — starts as full list, filtered after getMyAccess resolves
   menuItems: any[] = [...this.allMenuItems];
   activeItem = this.menuItems[0];
-  name: string = localStorage.getItem('name') || ''
 
-  constructor(private router: Router, private moduleAccessService: ModuleAccessService, private cdr: ChangeDetectorRef, private confirmationService: ConfirmationService) {
+  constructor(private router: Router, private moduleAccessService: ModuleAccessService, private cdr: ChangeDetectorRef) {
     this.router.events.subscribe(() => {
       const currentRoute = this.router.url;
 
@@ -266,29 +262,11 @@ export class Sidebar implements OnInit {
     console.log('Sidebar collapsed:', this.isCollapsed);
 
   }
-  themeOptions = [
-    { label: 'Light', value: 'light', icon: 'pi pi-sun' },
-    { label: 'Dark', value: 'dark', icon: 'pi pi-moon' }
-  ];
-  isDarkMode = false;
-
-  toggleDarkMode() {
-    document.documentElement.classList.toggle('app-dark', this.isDarkMode);
-  }
-
-
-  // toggleDarkMode() {
-  //   document.documentElement.classList.toggle('app-dark', this.darkMode);
-  // }
-
   navigate(item: any) {
     this.activeMenu = item.label;
     this.router.navigate([item.route]);
   }
 
-  settings(){
-    this.router.navigate(['/settings'])
-  }
   onMenuClick(item: any) {
     if (item.hasDropdown) {
       this.activeMenu = this.activeMenu === item.label ? '' : item.label;
@@ -306,20 +284,5 @@ export class Sidebar implements OnInit {
     } else {
       this.activeMenu = item.label; // open it otherwise
     }
-  }
-
-  logout() {
-    this.confirmationService.confirm({
-      message: 'Are you sure you want to logout?',
-      header: 'Confirm Logout',
-      icon: 'pi pi-sign-out',
-      acceptLabel: 'Logout',
-      rejectLabel: 'Cancel',
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
-        localStorage.clear();
-        this.router.navigate(['/login']);
-      }
-    });
   }
 }

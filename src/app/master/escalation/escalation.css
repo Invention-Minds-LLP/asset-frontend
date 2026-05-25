@@ -15,7 +15,7 @@
 
 .page-header p {
     margin: 0;
-    color: #6b7280;
+    color: var(--text-color-secondary);
     font-size: 0.875rem;
 }
 
@@ -64,7 +64,7 @@
 .text-center {
     text-align: center;
     padding: 1rem;
-    color: #6b7280;
+    color: var(--text-color-secondary);
 }
 
 ::ng-deep .p-datatable .p-datatable-thead>tr>th {

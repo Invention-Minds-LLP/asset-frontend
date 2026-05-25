@@ -91,7 +91,7 @@
             {{ (currentPage - 1) * rowsPerPage + i + 1 }}
           </td>
           <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetId }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip style="font-family:monospace;color:#1e3a8a;">{{ asset.storeAssetId || '-' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="font-family:monospace;color:var(--menu-color);">{{ asset.storeAssetId || '-' }}</td>
           <td class="ellipsis-cell" appOverflowTooltip>{{ asset.referenceCode || '-' }}</td>
           <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ asset.assetName }}</td>
           <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetType }}</td>

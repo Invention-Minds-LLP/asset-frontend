@@ -1,171 +1,294 @@
 <div class="import-page">
 
-  <!-- Legacy Template Download Banner -->
-  <div class="legacy-template-banner">
-    <div class="legacy-template-info">
-      <i class="pi pi-history" style="color:#92400e;font-size:1.4rem"></i>
-      <div>
-        <strong>Onboarding a company with existing assets?</strong>
-        <p>Download the legacy import template — it includes historical cost fields and relaxes mandatory requirements like serial number and invoice number.</p>
+  <!-- ── Page header ─────────────────────────────────────────────────────── -->
+  <header class="import-header">
+    <h1><i class="pi pi-upload"></i> Bulk Import</h1>
+    <p>Download the template, fill it in, then upload. Each import validates every row independently and shows a result report below the card.</p>
+  </header>
+
+  <!-- ── Cards ───────────────────────────────────────────────────────────── -->
+  <div class="import-grid">
+
+    <!-- ===== ASSETS ===== -->
+    <section class="import-card">
+      <div class="card-head">
+        <span class="card-icon asset"><i class="pi pi-database"></i></span>
+        <div class="card-titles">
+          <h2>Assets</h2>
+          <span class="card-sub">Standard &amp; legacy asset workbook</span>
+        </div>
       </div>
-    </div>
-    <button type="button" class="download-template-btn" (click)="downloadLegacyTemplate()" [disabled]="downloadingTemplate">
-      <i class="pi pi-download"></i>
-      {{ downloadingTemplate ? 'Downloading...' : 'Download Legacy Template' }}
-    </button>
-  </div>
 
-  <div class="import-card">
-    <h2>Asset Workbook Upload</h2>
-    <p class="import-hint">Use this for both the standard template and the <strong>legacy template</strong>. Rows with <code>isLegacyAsset = TRUE</code> are automatically detected and imported with relaxed validation.</p>
+      <p class="card-desc">
+        Use for both the standard and the <strong>legacy</strong> template — rows with
+        <code>isLegacyAsset = TRUE</code> are auto-detected and imported with relaxed validation
+        (historical cost fields, optional serial / invoice number).
+      </p>
 
-    <input
-      #assetsFileInput
-      class="hidden-file-input"
-      type="file"
-      accept=".xlsx,.xls"
-      (change)="onAssetsFileSelected($event)"
-    />
+      <button type="button" class="btn-template" (click)="downloadLegacyTemplate()" [disabled]="downloadingTemplate">
+        <i class="pi pi-download"></i>
+        {{ downloadingTemplate ? 'Downloading…' : 'Download Template' }}
+      </button>
 
-    <button type="button" class="choose-btn" (click)="assetsFileInput.click()">
-      Choose Asset Workbook
-    </button>
+      <input #assetsFileInput class="hidden-file-input" type="file" accept=".xlsx,.xls" (change)="onAssetsFileSelected($event)" />
 
-    @if (assetsFile) {
-      <div class="file-name">Selected: {{ assetsFile.name }}</div>
-    }
+      <div class="dropzone" [class.has-file]="assetsFile" (click)="assetsFileInput.click()">
+        <i class="pi" [ngClass]="assetsFile ? 'pi-file-excel' : 'pi-cloud-upload'"></i>
+        <span class="dz-text">{{ assetsFile ? assetsFile.name : 'Choose asset workbook (.xlsx / .xls)' }}</span>
+      </div>
 
-    <button type="button" (click)="uploadAssetsWorkbook()" [disabled]="isUploadingAssets || !assetsFile">
-      {{ isUploadingAssets ? 'Uploading...' : 'Upload Asset Workbook' }}
-    </button>
+      <button type="button" class="btn-upload" (click)="uploadAssetsWorkbook()" [disabled]="isUploadingAssets || !assetsFile">
+        <i class="pi" [ngClass]="isUploadingAssets ? 'pi-spin pi-spinner' : 'pi-check'"></i>
+        {{ isUploadingAssets ? 'Uploading…' : 'Upload' }}
+      </button>
 
-    @if (assetsError) {
-      <div class="error">{{ assetsError }}</div>
-    }
+      @if (assetsError) { <div class="error"><i class="pi pi-exclamation-triangle"></i> {{ assetsError }}</div> }
 
-    @if (assetsResponse) {
-      <div class="success-box">
-        <h3>{{ assetsResponse.message }}</h3>
-
-        @if (assetsResponse.summary) {
-          <table>
-            <tbody>
+      @if (assetsResponse) {
+        <div class="result-box">
+          <h3 class="result-title">{{ assetsResponse.message }}</h3>
+          @if (assetsResponse.summary) {
+            <div class="chips">
               @for (key of objectKeys(assetsResponse.summary); track key) {
                 @if (key !== 'errors') {
-                  <tr>
-                    <td><strong>{{ key }}</strong></td>
-                    <td>{{ assetsResponse.summary[key] }}</td>
-                  </tr>
+                  <span class="chip"><span class="chip-k">{{ key }}</span><span class="chip-v">{{ assetsResponse.summary[key] }}</span></span>
                 }
               }
-            </tbody>
-          </table>
-        }
+            </div>
+          }
+          @if (assetsResponse.summary?.errors?.length) {
+            <h4 class="result-sub">Errors</h4>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Sheet</th><th>Row</th><th>Message</th></tr></thead>
+                <tbody>
+                  @for (err of assetsResponse.summary.errors; track $index) {
+                    <tr>
+                      <td class="ellipsis-cell" appOverflowTooltip>{{ err.sheet }}</td>
+                      <td>{{ err.row }}</td>
+                      <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 420px;">{{ err.message }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+    </section>
 
-        @if (assetsResponse.summary?.errors?.length) {
-          <h4>Errors</h4>
-          <table>
-            <thead>
-              <tr>
-                <th>Sheet</th>
-                <th>Row</th>
-                <th>Message</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (err of assetsResponse.summary.errors; track $index) {
-                <tr>
-                  <td class="ellipsis-cell" appOverflowTooltip>{{ err.sheet }}</td>
-                  <td>{{ err.row }}</td>
-                  <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 420px;">{{ err.message }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
+    <!-- ===== CHECKLISTS ===== -->
+    <section class="import-card">
+      <div class="card-head">
+        <span class="card-icon checklist"><i class="pi pi-list-check"></i></span>
+        <div class="card-titles">
+          <h2>Checklists</h2>
+          <span class="card-sub">Templates &amp; support matrix</span>
+        </div>
       </div>
-    }
-  </div>
 
-  <div class="import-card">
-    <h2>Checklist Workbook Upload</h2>
-    <p class="import-hint">
-      Upload a workbook with sheets:
-      <code>AssetAcknowledgementTemplates</code>, <code>PMChecklistTemplates</code>,
-      <code>CalibrationChecklistTemplates</code>, <code>AssetSupportMatrix</code>.
-      Only <code>.xlsx</code> / <code>.xls</code> accepted.
-    </p>
+      <p class="card-desc">
+        A single workbook with sheets <code>AssetAcknowledgementTemplates</code>,
+        <code>PMChecklistTemplates</code>, <code>CalibrationChecklistTemplates</code>,
+        <code>AssetSupportMatrix</code>.
+      </p>
 
-    <button type="button" class="download-template-btn" (click)="downloadChecklistTemplate()" [disabled]="downloadingChecklistTemplate" style="margin-bottom:12px;">
-      <i class="pi pi-download"></i>
-      {{ downloadingChecklistTemplate ? 'Downloading...' : 'Download Checklist Template' }}
-    </button>
+      <button type="button" class="btn-template" (click)="downloadChecklistTemplate()" [disabled]="downloadingChecklistTemplate">
+        <i class="pi pi-download"></i>
+        {{ downloadingChecklistTemplate ? 'Downloading…' : 'Download Template' }}
+      </button>
 
-    <input
-      #checklistFileInput
-      class="hidden-file-input"
-      type="file"
-      accept=".xlsx,.xls"
-      (change)="onChecklistFileSelected($event)"
-    />
+      <input #checklistFileInput class="hidden-file-input" type="file" accept=".xlsx,.xls" (change)="onChecklistFileSelected($event)" />
 
-    <button type="button" class="choose-btn" (click)="checklistFileInput.click()">
-      Choose Checklist Workbook
-    </button>
+      <div class="dropzone" [class.has-file]="checklistFile" (click)="checklistFileInput.click()">
+        <i class="pi" [ngClass]="checklistFile ? 'pi-file-excel' : 'pi-cloud-upload'"></i>
+        <span class="dz-text">{{ checklistFile ? checklistFile.name : 'Choose checklist workbook (.xlsx / .xls)' }}</span>
+      </div>
 
-    @if (checklistFile) {
-      <div class="file-name">Selected: {{ checklistFile.name }}</div>
-    }
+      <button type="button" class="btn-upload" (click)="uploadChecklistWorkbook()" [disabled]="isUploadingChecklists || !checklistFile">
+        <i class="pi" [ngClass]="isUploadingChecklists ? 'pi-spin pi-spinner' : 'pi-check'"></i>
+        {{ isUploadingChecklists ? 'Uploading…' : 'Upload' }}
+      </button>
 
-    <button type="button" (click)="uploadChecklistWorkbook()" [disabled]="isUploadingChecklists || !checklistFile">
-      {{ isUploadingChecklists ? 'Uploading...' : 'Upload Checklist Workbook' }}
-    </button>
+      @if (checklistError) { <div class="error"><i class="pi pi-exclamation-triangle"></i> {{ checklistError }}</div> }
 
-    @if (checklistError) {
-      <div class="error">{{ checklistError }}</div>
-    }
-
-    @if (checklistResponse) {
-      <div class="success-box">
-        <h3>{{ checklistResponse.message }}</h3>
-
-        @if (checklistResponse.summary) {
-          <table>
-            <tbody>
+      @if (checklistResponse) {
+        <div class="result-box">
+          <h3 class="result-title">{{ checklistResponse.message }}</h3>
+          @if (checklistResponse.summary) {
+            <div class="chips">
               @for (key of objectKeys(checklistResponse.summary); track key) {
                 @if (key !== 'errors') {
-                  <tr>
-                    <td><strong>{{ key }}</strong></td>
-                    <td>{{ checklistResponse.summary[key] }}</td>
-                  </tr>
+                  <span class="chip"><span class="chip-k">{{ key }}</span><span class="chip-v">{{ checklistResponse.summary[key] }}</span></span>
                 }
               }
-            </tbody>
-          </table>
-        }
+            </div>
+          }
+          @if (checklistResponse.summary?.errors?.length) {
+            <h4 class="result-sub">Errors</h4>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Sheet</th><th>Row</th><th>Message</th></tr></thead>
+                <tbody>
+                  @for (err of checklistResponse.summary.errors; track $index) {
+                    <tr>
+                      <td class="ellipsis-cell" appOverflowTooltip>{{ err.sheet }}</td>
+                      <td>{{ err.row }}</td>
+                      <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 420px;">{{ err.message }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+    </section>
 
-        @if (checklistResponse.summary?.errors?.length) {
-          <h4>Errors</h4>
-          <table>
-            <thead>
-              <tr>
-                <th>Sheet</th>
-                <th>Row</th>
-                <th>Message</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (err of checklistResponse.summary.errors; track $index) {
-                <tr>
-                  <td class="ellipsis-cell" appOverflowTooltip>{{ err.sheet }}</td>
-                  <td>{{ err.row }}</td>
-                  <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 420px;">{{ err.message }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
+    <!-- ===== SUB-ASSETS ===== -->
+    <section class="import-card">
+      <div class="card-head">
+        <span class="card-icon subasset"><i class="pi pi-sitemap"></i></span>
+        <div class="card-titles">
+          <h2>Sub-Assets</h2>
+          <span class="card-sub">Components under existing assets</span>
+        </div>
       </div>
-    }
+
+      <p class="card-desc">
+        One flat sheet — each row links to its parent by <strong>Parent Asset ID</strong> (the parent must already exist).
+        Rows whose value is ≥ 40% of the parent are still created, but <strong>flagged</strong> for review.
+      </p>
+
+      <button type="button" class="btn-template" (click)="downloadSubAssetTemplate()" [disabled]="downloadingSubAssetTemplate">
+        <i class="pi pi-download"></i>
+        {{ downloadingSubAssetTemplate ? 'Downloading…' : 'Download Template' }}
+      </button>
+
+      <input #subAssetsFileInput class="hidden-file-input" type="file" accept=".xlsx,.xls" (change)="onSubAssetsFileSelected($event)" />
+
+      <div class="dropzone" [class.has-file]="subAssetsFile" (click)="subAssetsFileInput.click()">
+        <i class="pi" [ngClass]="subAssetsFile ? 'pi-file-excel' : 'pi-cloud-upload'"></i>
+        <span class="dz-text">{{ subAssetsFile ? subAssetsFile.name : 'Choose sub-asset workbook (.xlsx / .xls)' }}</span>
+      </div>
+
+      <button type="button" class="btn-upload" (click)="uploadSubAssetsWorkbook()" [disabled]="isUploadingSubAssets || !subAssetsFile">
+        <i class="pi" [ngClass]="isUploadingSubAssets ? 'pi-spin pi-spinner' : 'pi-check'"></i>
+        {{ isUploadingSubAssets ? 'Uploading…' : 'Upload' }}
+      </button>
+
+      @if (subAssetsError) { <div class="error"><i class="pi pi-exclamation-triangle"></i> {{ subAssetsError }}</div> }
+
+      @if (subAssetsResponse) {
+        <div class="result-box">
+          <h3 class="result-title">{{ subAssetsResponse.message }}</h3>
+          @if (subAssetsResponse.summary) {
+            <div class="chips">
+              @for (key of objectKeys(subAssetsResponse.summary); track key) {
+                <span class="chip"><span class="chip-k">{{ key }}</span><span class="chip-v">{{ subAssetsResponse.summary[key] }}</span></span>
+              }
+            </div>
+          }
+          @if (subAssetRows().length) {
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Row</th><th>Parent</th><th>Serial</th><th>Status</th><th>Sub-Asset ID</th><th>Reason</th></tr>
+                </thead>
+                <tbody>
+                  @for (r of subAssetRows(); track $index) {
+                    <tr>
+                      <td>{{ r.row }}</td>
+                      <td class="ellipsis-cell" appOverflowTooltip>{{ r.parentAssetId }}</td>
+                      <td class="ellipsis-cell" appOverflowTooltip>{{ r.serialNumber }}</td>
+                      <td>
+                        <span class="status-pill"
+                          [class.s-created]="r.status === 'CREATED'"
+                          [class.s-skipped]="r.status === 'SKIPPED'"
+                          [class.s-error]="r.status === 'ERROR'">{{ r.status }}</span>
+                        @if (r.flagged) { <span class="flag-pill">&gt; 40%</span> }
+                      </td>
+                      <td>{{ r.subAssetId || '—' }}</td>
+                      <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 420px;">{{ r.reason || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- ===== ASSET LOCATIONS ===== -->
+    <section class="import-card">
+      <div class="card-head">
+        <span class="card-icon" style="background:#fef3c7;color:#b45309;"><i class="pi pi-map-marker"></i></span>
+        <div class="card-titles">
+          <h2>Asset Locations</h2>
+          <span class="card-sub">Set location &amp; placement in bulk</span>
+        </div>
+      </div>
+
+      <p class="card-desc">
+        One row per asset (by <strong>Asset ID</strong>) sets its current location and precise placement —
+        branch, block/floor/room, mount, rack/U-position, coverage, GPS. Updates the asset's active location
+        (history preserved). The asset and branch must already exist.
+      </p>
+
+      <button type="button" class="btn-template" (click)="downloadLocationTemplate()" [disabled]="downloadingLocationTemplate">
+        <i class="pi pi-download"></i>
+        {{ downloadingLocationTemplate ? 'Downloading…' : 'Download Template' }}
+      </button>
+
+      <input #locationsFileInput class="hidden-file-input" type="file" accept=".xlsx,.xls" (change)="onLocationsFileSelected($event)" />
+
+      <div class="dropzone" [class.has-file]="locationsFile" (click)="locationsFileInput.click()">
+        <i class="pi" [ngClass]="locationsFile ? 'pi-file-excel' : 'pi-cloud-upload'"></i>
+        <span class="dz-text">{{ locationsFile ? locationsFile.name : 'Choose locations workbook (.xlsx / .xls)' }}</span>
+      </div>
+
+      <button type="button" class="btn-upload" (click)="uploadLocationsWorkbook()" [disabled]="isUploadingLocations || !locationsFile">
+        <i class="pi" [ngClass]="isUploadingLocations ? 'pi-spin pi-spinner' : 'pi-check'"></i>
+        {{ isUploadingLocations ? 'Uploading…' : 'Upload' }}
+      </button>
+
+      @if (locationsError) { <div class="error"><i class="pi pi-exclamation-triangle"></i> {{ locationsError }}</div> }
+
+      @if (locationsResponse) {
+        <div class="result-box">
+          <h3 class="result-title">{{ locationsResponse.message }}</h3>
+          @if (locationsResponse.summary) {
+            <div class="chips">
+              @for (key of objectKeys(locationsResponse.summary); track key) {
+                <span class="chip"><span class="chip-k">{{ key }}</span><span class="chip-v">{{ locationsResponse.summary[key] }}</span></span>
+              }
+            </div>
+          }
+          @if (locationRows().length) {
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Row</th><th>Asset ID</th><th>Status</th><th>Reason</th></tr></thead>
+                <tbody>
+                  @for (r of locationRows(); track $index) {
+                    <tr>
+                      <td>{{ r.row }}</td>
+                      <td class="ellipsis-cell" appOverflowTooltip>{{ r.assetId }}</td>
+                      <td>
+                        <span class="status-pill"
+                          [class.s-created]="r.status === 'UPDATED'"
+                          [class.s-error]="r.status === 'ERROR'">{{ r.status }}</span>
+                      </td>
+                      <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 420px;">{{ r.reason || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
   </div>
 </div>

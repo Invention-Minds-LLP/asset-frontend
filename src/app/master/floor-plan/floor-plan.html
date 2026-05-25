@@ -1,0 +1,127 @@
+<div class="fp-page">
+
+  <!-- ── List view ─────────────────────────────────────────────────────── -->
+  <ng-container *ngIf="!selectedPlan">
+    <header class="fp-header">
+      <div>
+        <h1><i class="pi pi-map"></i> Floor Plans</h1>
+        <p>Upload a floor-plan image per branch/floor, then drop pins to mark exactly where each asset sits — ideal for cameras, sensors and network gear.</p>
+      </div>
+      <button class="btn-primary" (click)="showUpload = !showUpload">
+        <i class="pi" [ngClass]="showUpload ? 'pi-times' : 'pi-upload'"></i>
+        {{ showUpload ? 'Cancel' : 'Upload Floor Plan' }}
+      </button>
+    </header>
+
+    <!-- Upload form -->
+    <div class="fp-card upload-card" *ngIf="showUpload">
+      <div class="upload-grid">
+        <div class="fld">
+          <label>Name</label>
+          <input type="text" [(ngModel)]="uploadForm.name" placeholder="e.g. Block A — 2nd Floor" />
+        </div>
+        <div class="fld">
+          <label>Branch *</label>
+          <select [(ngModel)]="uploadForm.branchId">
+            <option [ngValue]="''">Select branch</option>
+            <option *ngFor="let b of branches" [ngValue]="b.id">{{ b.name }}</option>
+          </select>
+        </div>
+        <div class="fld">
+          <label>Block</label>
+          <input type="text" [(ngModel)]="uploadForm.block" />
+        </div>
+        <div class="fld">
+          <label>Floor</label>
+          <input type="text" [(ngModel)]="uploadForm.floor" />
+        </div>
+        <div class="fld">
+          <label>Image *</label>
+          <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+        </div>
+      </div>
+      <button class="btn-primary" (click)="upload()" [disabled]="uploading">
+        <i class="pi" [ngClass]="uploading ? 'pi-spin pi-spinner' : 'pi-check'"></i>
+        {{ uploading ? 'Uploading…' : 'Save Floor Plan' }}
+      </button>
+    </div>
+
+    <!-- Filter -->
+    <div class="fp-filter">
+      <label>Branch</label>
+      <select [(ngModel)]="filterBranchId" (change)="loadPlans()">
+        <option [ngValue]="''">All</option>
+        <option *ngFor="let b of branches" [ngValue]="b.id">{{ b.name }}</option>
+      </select>
+    </div>
+
+    <!-- Plans grid -->
+    <div class="fp-grid" *ngIf="plans.length; else noPlans">
+      <div class="fp-tile" *ngFor="let p of plans; trackBy: trackById" (click)="openPlan(p)">
+        <div class="fp-thumb"><img [src]="imageUrl(p)" [alt]="p.name" /></div>
+        <div class="fp-tile-meta">
+          <div class="fp-tile-title">{{ p.name }}</div>
+          <div class="fp-tile-sub">
+            {{ p.branch?.name }}<span *ngIf="p.block"> · {{ p.block }}</span><span *ngIf="p.floor"> · {{ p.floor }}</span>
+          </div>
+          <div class="fp-tile-count"><i class="pi pi-map-marker"></i> {{ p._count?.locations || 0 }} pinned</div>
+        </div>
+        <button class="fp-del" (click)="deletePlan(p, $event)" title="Delete"><i class="pi pi-trash"></i></button>
+      </div>
+    </div>
+    <ng-template #noPlans>
+      <div class="fp-empty"><i class="pi pi-map"></i><p>No floor plans yet. Upload one to start pinning assets.</p></div>
+    </ng-template>
+  </ng-container>
+
+  <!-- ── Viewer / pin editor ───────────────────────────────────────────── -->
+  <ng-container *ngIf="selectedPlan">
+    <header class="fp-header">
+      <div>
+        <h1><i class="pi pi-map-marker"></i> {{ selectedPlan.name }}</h1>
+        <p>
+          {{ selectedPlan.branch?.name }}<span *ngIf="selectedPlan.block"> · {{ selectedPlan.block }}</span><span *ngIf="selectedPlan.floor"> · {{ selectedPlan.floor }}</span>
+          &nbsp;—&nbsp; pick an asset on the right, then click the plan to drop its pin.
+        </p>
+      </div>
+      <button class="btn-ghost" (click)="closePlan()"><i class="pi pi-arrow-left"></i> Back to plans</button>
+    </header>
+
+    <div class="fp-editor">
+      <!-- Plan image with pins -->
+      <div class="fp-canvas-wrap">
+        <div class="fp-hint" *ngIf="selectedAssetId">Click on the plan to place the selected asset's pin.</div>
+        <div class="fp-canvas" [class.placing]="selectedAssetId" (click)="onPlanClick($event)">
+          <img [src]="imageUrl(selectedPlan)" [alt]="selectedPlan.name" draggable="false" />
+          <div class="pin" *ngFor="let pin of pins"
+               [style.left.%]="pin.planX" [style.top.%]="pin.planY"
+               (click)="$event.stopPropagation(); removePin(pin)"
+               [title]="pin.asset?.assetName + ' (' + pin.asset?.assetId + ') — click to remove'">
+            <i class="pi pi-map-marker"></i>
+            <span class="pin-label">{{ pin.asset?.assetName }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Asset list -->
+      <aside class="fp-aside">
+        <h3>Assets on this location</h3>
+        <p class="aside-hint">Green = already pinned. Click one, then click the plan.</p>
+        <div class="asset-list">
+          <button class="asset-row" *ngFor="let a of pinnable; trackBy: trackById"
+                  [class.selected]="selectedAssetId === a.assetId"
+                  [class.pinned]="a.pinnedHere"
+                  (click)="selectAsset(a.assetId)">
+            <i class="pi" [ngClass]="a.pinnedHere ? 'pi-map-marker' : 'pi-circle'"></i>
+            <span class="asset-name">
+              {{ a.assetName }}
+              <small>{{ a.assetCode }}<span *ngIf="a.category"> · {{ a.category }}</span></small>
+            </span>
+          </button>
+          <div class="fp-empty small" *ngIf="!pinnable.length"><p>No assets have an active location at this branch/floor yet.</p></div>
+        </div>
+      </aside>
+    </div>
+  </ng-container>
+
+</div>

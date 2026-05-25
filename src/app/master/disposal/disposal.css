@@ -96,14 +96,14 @@
 
 /* Sub-asset resolution dialog */
 .sub-res-dialog { display: flex; flex-direction: column; gap: 16px; }
-.sub-res-intro { margin: 0; color: #475569; font-size: 0.9rem; }
+.sub-res-intro { margin: 0; color: var(--text-color-secondary); font-size: 0.9rem; }
 .sub-res-list { display: flex; flex-direction: column; gap: 12px; }
 .sub-res-row {
   display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 12px; padding: 12px; background: #f8fafc;
-  border: 1px solid #e2e8f0; border-radius: 8px; flex-wrap: wrap;
+  gap: 12px; padding: 12px; background: var(--surface-section);
+  border: 1px solid var(--border-color); border-radius: 8px; flex-wrap: wrap;
 }
 .sub-res-info { display: flex; flex-direction: column; gap: 2px; }
-.sub-res-name { font-weight: 600; color: #1e293b; font-size: 0.9rem; }
-.sub-res-id { font-size: 0.78rem; color: #64748b; }
+.sub-res-name { font-weight: 600; color: var(--heading-color); font-size: 0.9rem; }
+.sub-res-id { font-size: 0.78rem; color: var(--text-color-secondary); }
 .sub-res-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }

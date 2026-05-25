@@ -85,6 +85,25 @@
         </div>
       </section>
 
+      <section class="detail-card" *ngIf="location">
+        <h3>Location &amp; Placement</h3>
+        <div class="detail-grid">
+          <div><span class="dl">Branch</span><span class="dv">{{ location.branch?.name || '-' }}</span></div>
+          <div><span class="dl">Block</span><span class="dv">{{ location.block || '-' }}</span></div>
+          <div><span class="dl">Floor</span><span class="dv">{{ location.floor || '-' }}</span></div>
+          <div><span class="dl">Room</span><span class="dv">{{ location.room || '-' }}</span></div>
+          <div><span class="dl">Department</span><span class="dv">{{ location.departmentSnapshot || '-' }}</span></div>
+          <div><span class="dl">Responsible</span><span class="dv">{{ location.employeeResponsible?.name || '-' }}</span></div>
+          <div><span class="dl">Placement Profile</span><span class="dv">{{ location.placementProfile || 'ROOM' }}</span></div>
+          <div *ngIf="location.mountType"><span class="dl">Mount</span><span class="dv">{{ location.mountType }}</span></div>
+          <div *ngIf="location.placementLabel"><span class="dl">Placement</span><span class="dv">{{ location.placementLabel }}</span></div>
+          <div *ngIf="location.coverageArea"><span class="dl">Coverage Area</span><span class="dv">{{ location.coverageArea }}</span></div>
+          <div *ngIf="location.rackCode"><span class="dl">Rack</span><span class="dv">{{ location.rackCode }}<span *ngIf="location.rackUnit"> / {{ location.rackUnit }}</span></span></div>
+          <div *ngIf="location.portRef"><span class="dl">Port / Panel</span><span class="dv">{{ location.portRef }}</span></div>
+          <div *ngIf="mapLink"><span class="dl">GPS</span><span class="dv"><a [href]="mapLink" target="_blank" rel="noopener">{{ location.latitude }}, {{ location.longitude }} ↗</a></span></div>
+        </div>
+      </section>
+
       <section class="detail-card">
         <h3>Procurement Details</h3>
         <div class="detail-grid">

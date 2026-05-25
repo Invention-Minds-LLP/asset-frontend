@@ -120,7 +120,15 @@
                   <ng-template pTemplate="body" let-sub>
                     <tr>
                       <td class="ellipsis-cell" appOverflowTooltip><code>{{ sub.assetId }}</code></td>
-                      <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ sub.assetName }}</td>
+                      <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">
+                        {{ sub.assetName }}
+                        @if (sub.exceedsParentThreshold) {
+                          <span
+                            class="threshold-flag"
+                            title="This sub-asset's value is 40% or more of its parent — consider reviewing it as a standalone asset."
+                          >&gt; 40%</span>
+                        }
+                      </td>
                       <td class="ellipsis-cell" appOverflowTooltip>{{ sub.serialNumber || '—' }}</td>
                       <td>
                         <p-tag

@@ -74,7 +74,7 @@
 
 .menu-btn:hover {
   border-radius: 12px;
-  background: #dbffe8;
+  background: var(--menu-active-bg);
   border: none;
   color: #00a23d;
   font-size: 14px;
@@ -84,7 +84,7 @@
 }
 
 .menu-btn.active-menu {
-  background-color: #dfffef !important;
+  background-color: var(--menu-active-bg) !important;
   color: #00a23d !important;
   border: none;
   font-weight: 500;
@@ -109,7 +109,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  color: #1f1f1f;
+  color: var(--text-color);
   font-size: 14px;
   font-style: normal;
   font-weight: 400;
@@ -284,7 +284,7 @@
   background: var(--toggle-bg, #f5f6f6);
   font-weight: 500;
   font-size: 14px;
-  color: #343434;
+  color: var(--text-color);
   cursor: pointer;
   user-select: none;
 }
@@ -367,7 +367,7 @@
 .dropdown {
   display: flex;
   flex-direction: column;
-  background-color: #dfffef; /* soft green */
+  background-color: var(--menu-active-bg); /* soft green */
   border-radius: 0px 0px 8px 8px;
   /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
   overflow: hidden;
@@ -389,7 +389,7 @@
 }
 
 .menu-group.group-active {
-  background-color: #dfffef;
+  background-color: var(--menu-active-bg);
 }
 
 /* remove bg from button itself */
@@ -423,7 +423,7 @@
   cursor: pointer;
   padding: 6px 8px;
   font-size: 14px;
-  color: green;
+  color: var(--brand-green);
   border-radius: 4px;
   transition: background-color 0.2s;
 }

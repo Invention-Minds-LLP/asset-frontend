@@ -8,7 +8,38 @@
           <i class="pi pi-bell"></i>
           <span *ngIf="unreadCount > 0" class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
         </div>
+
+        <!-- User menu (Settings / Theme / Logout) -->
+        <div class="topbar-user-menu">
+          <button class="topbar-user-trigger" (click)="showUserMenu = !showUserMenu">
+            <img src="/profile.png" alt="Profile" class="topbar-user-logo" />
+            <span class="topbar-user-name" *ngIf="name">{{ name }}</span>
+            <i class="pi pi-chevron-down chevron" [class.rotated]="showUserMenu"></i>
+          </button>
+
+          <div class="topbar-user-dropdown" *ngIf="showUserMenu">
+            <button class="topbar-menu-item" (click)="settings(); showUserMenu = false">
+              <i class="pi pi-cog"></i>
+              <span>Settings</span>
+            </button>
+
+            <div class="topbar-menu-theme">
+              <input type="checkbox" id="topbarDarkToggle" class="topbarToggleCheckbox" [(ngModel)]="dark"
+                (change)="toggleTheme()" />
+              <label for="topbarDarkToggle" class="topbarToggleContainer">
+                <div class="topbar-toggle-btn"><i class="pi pi-sun"></i><span>Light</span></div>
+                <div class="topbar-toggle-btn"><i class="pi pi-moon"></i><span>Dark</span></div>
+              </label>
+            </div>
+
+            <button class="topbar-menu-item logout" (click)="logout(); showUserMenu = false">
+              <i class="pi pi-sign-out"></i>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
       </div>
+      <div class="topbar-menu-overlay" *ngIf="showUserMenu" (click)="showUserMenu = false"></div>
     </div>
 
     <!-- Notification dropdown panel -->
@@ -49,3 +80,4 @@
 </ng-template>
 
 <p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

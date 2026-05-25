@@ -44,9 +44,9 @@
 .comment-box {
   margin-top: 6px;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
-  background: #fafafa;
+  background: var(--surface-section);
   white-space: pre-wrap;
 }
 

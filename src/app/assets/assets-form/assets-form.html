@@ -547,25 +547,25 @@
                             </p-floatlabel>
                             <p-floatlabel variant="on">
                               <p-datepicker [(ngModel)]="asset.historicalCostAsOf" name="historicalCostAsOf"
-                                appendTo="body" [disabled]="!canEditBasicDetails"
-                                placeholder="Costs accurate as of date"></p-datepicker>
+                                appendTo="body" [disabled]="!canEditBasicDetails"></p-datepicker>
                               <label>Costs As Of Date</label>
                             </p-floatlabel>
                           </div>
 
                           <p-floatlabel variant="on" class="full-field">
                             <p-datepicker [(ngModel)]="asset.dataAvailableSince" name="dataAvailableSince"
-                              appendTo="body" [disabled]="!canEditBasicDetails"
-                              placeholder="Date live tracking begins"></p-datepicker>
+                              appendTo="body" [disabled]="!canEditBasicDetails"></p-datepicker>
                             <label>Live Data Available From</label>
                           </p-floatlabel>
 
                           <p-floatlabel variant="on" class="full-field">
                             <textarea pTextarea [(ngModel)]="asset.historicalCostNote" name="historicalCostNote"
-                              rows="2" [disabled]="!canEditBasicDetails"
-                              placeholder="e.g. Based on service register and vendor invoices from 2022–2024"></textarea>
+                              rows="2" [disabled]="!canEditBasicDetails"></textarea>
                             <label>Source / Notes</label>
                           </p-floatlabel>
+                          <small class="field-hint" style="display:block; margin:-10px 0 14px;">
+                            e.g. Based on service register and vendor invoices from 2022–2024
+                          </small>
 
                           <div class="legacy-total-row" *ngIf="(asset.historicalMaintenanceCost || asset.historicalSparePartsCost || asset.historicalOtherCost)">
                             <span class="legacy-total-label">Total Historical Cost:</span>
@@ -1348,6 +1348,85 @@
                     <label>RFID</label>
                 </p-floatlabel> -->
 
+                <!-- ── Precise placement — fields shown depend on the category's location profile ── -->
+                <h3 class="section-title" style="margin-top:1.25rem;">Precise Placement</h3>
+                <small class="field-hint" style="display:block; margin:-4px 0 10px;">
+                    For assets where Block/Floor/Room isn't enough (cameras, routers, outdoor gear).
+                    Pick the placement profile for <em>this asset</em> — the fields below adapt to it.
+                </small>
+
+                <p-floatlabel variant="on" class="full-field">
+                    <p-select [options]="placementProfileOptions" optionLabel="label" optionValue="value"
+                        name="placementProfile" [(ngModel)]="asset.placementProfile" appendTo="body"></p-select>
+                    <label>Placement Profile</label>
+                </p-floatlabel>
+
+                <!-- Placement type + label: shown for every non-room profile -->
+                <div class="two-fields" *ngIf="currentLocationProfile !== 'ROOM'">
+                    <p-floatlabel variant="on">
+                        <p-select [options]="placementTypeOptions" optionLabel="label" optionValue="value"
+                            name="placementType" [(ngModel)]="asset.placementType" appendTo="body"
+                            [filter]="true" [showClear]="true"></p-select>
+                        <label>Placement Type</label>
+                    </p-floatlabel>
+
+                    <!-- Mount type: cameras, network gear, generic mounted, outdoor -->
+                    <p-floatlabel variant="on" *ngIf="currentLocationProfile !== 'ROOM'">
+                        <p-select [options]="mountTypeOptions" optionLabel="label" optionValue="value"
+                            name="mountType" [(ngModel)]="asset.mountType" appendTo="body"
+                            [filter]="true" [showClear]="true"></p-select>
+                        <label>Mount Type</label>
+                    </p-floatlabel>
+                </div>
+
+                <p-floatlabel variant="on" class="full-field" *ngIf="currentLocationProfile !== 'ROOM'">
+                    <input pInputText name="placementLabel" [(ngModel)]="asset.placementLabel" />
+                    <label>Placement Label (e.g. "Above main entrance, facing reception")</label>
+                </p-floatlabel>
+
+                <!-- Network gear: rack + U-position + port -->
+                <ng-container *ngIf="currentLocationProfile === 'NETWORK'">
+                    <div class="two-fields">
+                        <p-floatlabel variant="on">
+                            <input pInputText name="rackCode" [(ngModel)]="asset.rackCode" />
+                            <label>Rack Code</label>
+                        </p-floatlabel>
+                        <p-floatlabel variant="on">
+                            <input pInputText name="rackUnit" [(ngModel)]="asset.rackUnit" />
+                            <label>Rack Unit (U-position)</label>
+                        </p-floatlabel>
+                    </div>
+                    <p-floatlabel variant="on" class="full-field">
+                        <input pInputText name="portRef" [(ngModel)]="asset.portRef" />
+                        <label>Port / Panel Ref</label>
+                    </p-floatlabel>
+                </ng-container>
+
+                <!-- Cameras / sensors: coverage area -->
+                <p-floatlabel variant="on" class="full-field" *ngIf="currentLocationProfile === 'CAMERA'">
+                    <input pInputText name="coverageArea" [(ngModel)]="asset.coverageArea" />
+                    <label>Coverage Area (e.g. "Lobby + reception desk")</label>
+                </p-floatlabel>
+
+                <!-- GPS: outdoor assets and cameras -->
+                <div class="two-fields" *ngIf="currentLocationProfile === 'OUTDOOR' || currentLocationProfile === 'CAMERA'">
+                    <p-floatlabel variant="on">
+                        <input pInputText type="number" name="latitude" [(ngModel)]="asset.latitude" />
+                        <label>Latitude</label>
+                    </p-floatlabel>
+                    <p-floatlabel variant="on">
+                        <input pInputText type="number" name="longitude" [(ngModel)]="asset.longitude" />
+                        <label>Longitude</label>
+                    </p-floatlabel>
+                </div>
+
+                <a *ngIf="asset.latitude && asset.longitude"
+                   class="map-link"
+                   [href]="'https://www.google.com/maps?q=' + asset.latitude + ',' + asset.longitude"
+                   target="_blank" rel="noopener">
+                    <i class="pi pi-external-link"></i> View on Google Maps
+                </a>
+
                 <button pButton label="Update Location" (click)="saveLocation()"></button>
 
                 <!-- LOCATION HISTORY -->
@@ -1361,6 +1440,9 @@
                                 <th>Department</th>
                                 <th>Floor</th>
                                 <th>Room</th>
+                                <th>Profile</th>
+                                <th>Placement</th>
+                                <th>Mount</th>
                                 <th>Emp Responsible</th>
                                 <th>Date</th>
                             </tr>
@@ -1369,11 +1451,20 @@
                         <ng-template pTemplate="body" let-row>
                             <tr>
                                 <td>{{ row.branch?.name }}</td>
-                                <td>{{ row.block }}</td>
+                                <td>{{ row.block || '-' }}</td>
                                 <td>{{ row.departmentSnapshot || '-' }}</td>
-                                <td>{{ row.floor }}</td>
-                                <td>{{ row.room }}</td>
-                                <td>{{row.employeeResponsible?.name}}</td>
+                                <td>{{ row.floor || '-' }}</td>
+                                <td>{{ row.room || '-' }}</td>
+                                <td>{{ row.placementProfile || 'ROOM' }}</td>
+                                <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">
+                                    {{ row.placementLabel
+                                        || row.coverageArea
+                                        || (row.rackCode ? ('Rack ' + row.rackCode + (row.rackUnit ? ' / ' + row.rackUnit : '')) : '')
+                                        || ((row.latitude && row.longitude) ? (row.latitude + ', ' + row.longitude) : '')
+                                        || '-' }}
+                                </td>
+                                <td>{{ row.mountType || '-' }}</td>
+                                <td>{{ row.employeeResponsible?.name || '-' }}</td>
                                 <td>{{ row.createdAt | date }}</td>
                             </tr>
                         </ng-template>

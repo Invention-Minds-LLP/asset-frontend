@@ -61,10 +61,19 @@ export class MasterSettings implements OnInit {
     name: string;
     code?: string | null;
     serialRequired?: boolean;
+    locationProfile?: string | null;
     defaultDepreciationMethod?: string | null;
     defaultDepreciationRate?: number | null;
     defaultLifeYears?: number | null;
-  } = { name: '', serialRequired: true };
+  } = { name: '', serialRequired: true, locationProfile: 'ROOM' };
+
+  locationProfileOptions = [
+    { label: 'Room (default — Block/Floor/Room)', value: 'ROOM' },
+    { label: 'Network gear (rack / U-position / port)', value: 'NETWORK' },
+    { label: 'Camera / sensor (mount + coverage + GPS)', value: 'CAMERA' },
+    { label: 'Outdoor (GPS)', value: 'OUTDOOR' },
+    { label: 'Generic (mount + label)', value: 'GENERIC' },
+  ];
 
   depMethodOptions = [
     { label: 'Straight Line (SL)', value: 'SL' },
@@ -218,6 +227,7 @@ export class MasterSettings implements OnInit {
         name: cat.name,
         code: cat.code ?? null,
         serialRequired: cat.serialRequired ?? true,
+        locationProfile: cat.locationProfile ?? 'ROOM',
         defaultDepreciationMethod: cat.defaultDepreciationMethod ?? null,
         defaultDepreciationRate: cat.defaultDepreciationRate != null ? Number(cat.defaultDepreciationRate) : null,
         defaultLifeYears: cat.defaultLifeYears ?? null,
@@ -228,6 +238,7 @@ export class MasterSettings implements OnInit {
         name: '',
         code: null,
         serialRequired: true,
+        locationProfile: 'ROOM',
         defaultDepreciationMethod: null,
         defaultDepreciationRate: null,
         defaultLifeYears: null,
@@ -242,6 +253,7 @@ export class MasterSettings implements OnInit {
       name: this.categoryForm.name.trim(),
       code: this.categoryForm.code?.trim() || null,
       serialRequired: this.categoryForm.serialRequired ?? true,
+      locationProfile: this.categoryForm.locationProfile || 'ROOM',
       defaultDepreciationMethod: this.categoryForm.defaultDepreciationMethod || null,
       defaultDepreciationRate: this.categoryForm.defaultDepreciationRate ?? null,
       defaultLifeYears: this.categoryForm.defaultLifeYears ?? null,

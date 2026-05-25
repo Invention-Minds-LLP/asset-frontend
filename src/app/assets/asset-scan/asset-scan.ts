@@ -68,4 +68,18 @@ export class AssetScan implements OnInit {
   get procurement() {
     return this.scanData?.procurementDetails;
   }
+
+  /** Active location (with precise-placement fields) for this asset, if any. */
+  get location() {
+    const list = this.scanData?.currentLocations;
+    return Array.isArray(list) && list.length ? list[0] : null;
+  }
+
+  /** Google Maps link when the active location has GPS coordinates. */
+  get mapLink(): string | null {
+    const l = this.location;
+    return l?.latitude && l?.longitude
+      ? `https://www.google.com/maps?q=${l.latitude},${l.longitude}`
+      : null;
+  }
 }

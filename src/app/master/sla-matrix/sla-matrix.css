@@ -127,9 +127,9 @@
 }
 
 .status-pill.inactive {
-  color: #64748b;
+  color: var(--text-color-secondary);
   background: #e2e8f0;
-  border-color: #cbd5e1;
+  border-color: var(--border-color);
 }
 ::ng-deep .p-datatable .p-datatable-thead > tr > th {
   background: transparent !important;

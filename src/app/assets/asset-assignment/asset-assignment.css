@@ -9,7 +9,7 @@
 }
 
 .header p{
-  color: #696969;
+  color: var(--text-color-secondary);
 font-family: Biryani;
 font-size: 14px;
 font-style: normal;
@@ -96,7 +96,7 @@ margin: 0;
   align-items: center;
   gap: 1rem;
   padding: 0.5rem 0;
-  color: #999;
+  color: var(--text-muted);
   font-family: "Biryani", sans-serif;
 }
 
@@ -121,7 +121,7 @@ margin: 0;
 }
 
 .icon-button:hover:not(:disabled) {
-  background: #f0f0f0;
+  background: var(--surface-hover);
 }
 
 .icon-button:disabled {
@@ -143,7 +143,7 @@ margin: 0;
 
 .pi {
   font-size: 18px;
-  color: #8f8f8f;
+  color: var(--text-muted);
 }
 .header-actions {
   display: flex;
@@ -155,7 +155,7 @@ margin: 0;
   position: absolute;
   top: 50px;
   left: 0;
-  background: white;
+  background: var(--surface-card);
   border-radius: 8px; 
   height: 42px;
   z-index: 10;
@@ -255,7 +255,7 @@ line-height: normal;
   align-items: center;
   gap: 1rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
 }
 .accept-btn {
   background: #c3ffc3;
@@ -286,7 +286,7 @@ line-height: normal;
   align-items: center;
   justify-content: center;
   padding: 40px;
-  color: #999;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -395,7 +395,7 @@ line-height: normal;
 }
 
 .checklist-box {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 12px;
   margin-bottom: 12px;
@@ -418,7 +418,7 @@ line-height: normal;
 
 .desc {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--text-color-secondary);
   margin-bottom: 8px;
 }
 

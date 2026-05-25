@@ -73,7 +73,7 @@
 .status-active     { background: #dcfce7; color: #16a34a; }
 .status-in_store   { background: #e0f2fe; color: #0369a1; }
 .status-in_maintenance { background: #fffbeb; color: #d97706; }
-.status-retired, .status-disposed, .status-scrapped { background: #f3f4f6; color: #6b7280; }
+.status-retired, .status-disposed, .status-scrapped { background: var(--surface-hover); color: var(--text-color-secondary); }
 
 /* ── TCO Detail Dialog ── */
 .tco-dialog-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
@@ -110,7 +110,7 @@
   background: var(--surface-100); color: var(--text-color-secondary);
 }
 .rank-badge.rank-1 { background: #fef3c7; color: #92400e; border: 1.5px solid #f59e0b; }
-.rank-badge.rank-2 { background: #f1f5f9; color: #475569; border: 1.5px solid #94a3b8; }
+.rank-badge.rank-2 { background: var(--surface-hover); color: var(--text-color-secondary); border: 1.5px solid #94a3b8; }
 .rank-badge.rank-3 { background: #fff7ed; color: #9a3412; border: 1.5px solid #fdba74; }
 
 .highest-badge {
@@ -157,16 +157,16 @@
 .bucket-C { background: #fff7ed; border-color: #fdba74; }
 .bucket-D { background: #fdf2f8; border-color: #f0abfc; }
 .bucket-key   { font-size: 1.4rem; font-weight: 800; color: #374151; line-height: 1; }
-.bucket-label { font-size: 0.78rem; color: #6b7280; margin: 2px 0 8px; font-weight: 500; }
-.bucket-count { font-size: 1.5rem; font-weight: 700; color: #111827; line-height: 1; }
+.bucket-label { font-size: 0.78rem; color: var(--text-color-secondary); margin: 2px 0 8px; font-weight: 500; }
+.bucket-count { font-size: 1.5rem; font-weight: 700; color: var(--heading-color); line-height: 1; }
 .bucket-value { font-size: 0.88rem; font-weight: 600; color: #374151; margin-top: 4px; }
-.bucket-book  { font-size: 0.75rem; color: #9ca3af; }
+.bucket-book  { font-size: 0.75rem; color: var(--text-muted); }
 .bucket-pct-bar { height: 6px; background: #e5e7eb; border-radius: 3px; margin-top: 10px; overflow: hidden; }
 .bucket-pct-fill { height: 100%; background: #3b82f6; border-radius: 3px; transition: width 0.4s; }
 .bucket-A .bucket-pct-fill { background: #22c55e; }
 .bucket-B .bucket-pct-fill { background: #3b82f6; }
 .bucket-C .bucket-pct-fill { background: #f97316; }
 .bucket-D .bucket-pct-fill { background: #a855f7; }
-.bucket-pct-label { font-size: 0.72rem; color: #9ca3af; margin-top: 3px; }
+.bucket-pct-label { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
 .bucket-dialog-summary { display: flex; gap: 1.5rem; font-size: 0.88rem; color: var(--text-color-secondary); margin-bottom: 1rem; flex-wrap: wrap; }
-.rank-badge { background: #f1f5f9; color: #374151; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; }
+.rank-badge { background: var(--surface-hover); color: #374151; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; }

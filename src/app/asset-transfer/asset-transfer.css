@@ -9,7 +9,7 @@
 }
 
 .header p{
-  color: #696969;
+  color: var(--text-color-secondary);
 font-family: Biryani;
 font-size: 14px;
 font-style: normal;
@@ -96,7 +96,7 @@ margin: 0;
   align-items: center;
   gap: 1rem;
   padding: 0.5rem 0;
-  color: #999;
+  color: var(--text-muted);
   font-family: "Biryani", sans-serif;
 }
 
@@ -121,7 +121,7 @@ margin: 0;
 }
 
 .icon-button:hover:not(:disabled) {
-  background: #f0f0f0;
+  background: var(--surface-hover);
 }
 
 .icon-button:disabled {
@@ -143,7 +143,7 @@ margin: 0;
 
 .pi {
   font-size: 18px;
-  color: #8f8f8f;
+  color: var(--text-muted);
 }
 .header-actions {
   display: flex;
@@ -155,7 +155,7 @@ margin: 0;
   position: absolute;
   top: 50px;
   left: 0;
-  background: white;
+  background: var(--surface-card);
   border-radius: 8px; 
   height: 42px;
   z-index: 10;
@@ -255,7 +255,7 @@ line-height: normal;
   align-items: center;
   gap: 1rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
 }
 .accept-btn {
   background: #c3ffc3;
@@ -286,7 +286,7 @@ line-height: normal;
   align-items: center;
   justify-content: center;
   padding: 40px;
-  color: #999;
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -508,7 +508,7 @@ line-height: normal;
 ::ng-deep .transfer-dialog .p-dialog-header {
   padding: 1.6rem 1.8rem 0.8rem 1.8rem !important;
   border-bottom: none !important;
-  background: #fff !important;
+  background: var(--surface-card) !important;
 }
 
 ::ng-deep .transfer-dialog .p-dialog-title {
@@ -525,23 +525,23 @@ line-height: normal;
 ::ng-deep .transfer-dialog .p-dialog-header-icon {
   width: 2.2rem !important;
   height: 2.2rem !important;
-  color: #475569 !important;
+  color: var(--text-color-secondary) !important;
   border-radius: 999px !important;
 }
 
 ::ng-deep .transfer-dialog .p-dialog-header-icon:hover {
-  background: #f1f5f9 !important;
+  background: var(--surface-hover) !important;
 }
 
 ::ng-deep .transfer-dialog .p-dialog-content {
   padding: 0.4rem 1.8rem 1rem 1.8rem !important;
-  background: #fff !important;
+  background: var(--surface-card) !important;
 }
 
 ::ng-deep .transfer-dialog .p-dialog-footer {
   padding: 0 1.8rem 1.8rem 1.8rem !important;
   border-top: none !important;
-  background: #fff !important;
+  background: var(--surface-card) !important;
 }
 
 /* Better action buttons in table */

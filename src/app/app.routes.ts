@@ -75,6 +75,7 @@ import { HierarchyConfig } from './master/hierarchy-config/hierarchy-config';
 import { ApprovalConfigComponent } from './master/approval-config/approval-config';
 import { AssetPoolPage } from './master/asset-pool/asset-pool';
 import { DataExport } from './master/data-export/data-export';
+import { FloorPlanPage } from './master/floor-plan/floor-plan';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -157,6 +158,7 @@ export const routes: Routes = [
   { path: 'approval-config', component: ApprovalConfigComponent, canActivate: [authGuard] },
   { path: 'asset-pool', component: AssetPoolPage, canActivate: [authGuard] },
   { path: 'data-export', component: DataExport, canActivate: [authGuard] },
+  { path: 'floor-plan', component: FloorPlanPage, canActivate: [authGuard] },
   {
     path: 'assets/scan/:assetId',
     component: AssetScan

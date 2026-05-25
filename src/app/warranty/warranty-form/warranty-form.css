@@ -26,7 +26,7 @@
 }
 
 .header-part p {
-    color: #696969;
+    color: var(--text-color-secondary);
     font-size: 14px;
     font-style: normal;
     font-weight: 400;
@@ -132,7 +132,7 @@ label {
     border-radius: 50%;
     overflow: hidden;
     position: relative;
-    border: 2px solid #eee;
+    border: 2px solid var(--border-color);
 }
 
 .border-active {

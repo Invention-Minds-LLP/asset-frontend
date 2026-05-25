@@ -57,7 +57,7 @@ h4 { margin: 1.5rem 0 0.75rem 0; font-size: 1.1rem; }
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  color: #555 !important;
+  color: var(--text-color-secondary) !important;
   font-size: 14px;
   padding: 0 !important;
 }
