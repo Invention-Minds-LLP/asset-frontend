@@ -91,6 +91,7 @@
         <p-button label="Generate" icon="pi pi-qrcode" severity="secondary" (onClick)="loadQRData()" [loading]="qrLoading"></p-button>
         @if (qrData.length) {
           <p-button label="Print" icon="pi pi-print" severity="success" (onClick)="printQR()"></p-button>
+          <p-button label="Print Labels" icon="pi pi-tags" severity="help" (onClick)="printLabels()"></p-button>
         }
       </div>
 

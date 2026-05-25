@@ -13,6 +13,7 @@ import { MessageService } from 'primeng/api';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { QuickActionsService } from '../../services/quick-actions/quick-actions';
 import { Assets } from '../../services/assets/assets';
+import { printQrLabels } from '../../assets/qr-label-print';
 
 @Component({
   selector: 'app-quick-actions',
@@ -210,5 +211,25 @@ export class QuickActionsPage implements OnInit {
 </body></html>`;
     win.document.write(html);
     win.document.close();
+  }
+
+  /**
+   * Print one QR per physical label (30×30 mm) for the label printer.
+   * Reuses the already-rendered grid canvases; qrData already includes
+   * every sub-asset of the selected assets (expanded server-side).
+   */
+  printLabels(): void {
+    const cards = Array.from(document.querySelectorAll('#qr-print-area .qr-card')) as HTMLElement[];
+    if (cards.length === 0) return;
+
+    const tiles = cards.map(card => {
+      const canvas = card.querySelector('canvas') as HTMLCanvasElement | null;
+      return {
+        dataUrl: canvas?.toDataURL('image/png') ?? '',
+        id: card.getAttribute('data-asset-id') ?? '',
+      };
+    });
+
+    printQrLabels(tiles, { widthMm: 30, heightMm: 30 });
   }
 }

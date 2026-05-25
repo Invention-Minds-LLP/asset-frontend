@@ -279,7 +279,21 @@
           [(ngModel)]="addForm.assetType"
           optionLabel="label"
           optionValue="value"
-          placeholder="Select type"
+          placeholder="Fixed / Movable"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <p-select
+          [options]="categories"
+          [(ngModel)]="addForm.categoryId"
+          optionLabel="name"
+          optionValue="id"
+          [filter]="true"
+          placeholder="Defaults to parent's category"
+          [showClear]="true"
+          appendTo="body"
           styleClass="w-full"
         />
       </div>

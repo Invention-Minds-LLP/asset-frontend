@@ -29,6 +29,8 @@ import { WarrantyForm } from "../../warranty/warranty-form/warranty-form";
 import { ToastModule } from "primeng/toast";
 import { QRCodeComponent } from "angularx-qrcode";
 import { AssetQr } from "../asset-qr/asset-qr";
+import { QuickActionsService } from "../../services/quick-actions/quick-actions";
+import { printQrLabels } from "../qr-label-print";
 
 type FlowStatus = "NONE" | "PENDING" | "ACKNOWLEDGED" | "REJECTED";
 type PendingRole = "HOD" | "SUPERVISOR" | "END_USER" | null;
@@ -51,7 +53,8 @@ type PendingRole = "HOD" | "SUPERVISOR" | "END_USER" | null;
     TabViewModule,
     WarrantyForm,
     ToastModule,
-    AssetQr
+    AssetQr,
+    QRCodeComponent
   ],
   providers: [MessageService],
   templateUrl: "./assets-form.html",
@@ -646,7 +649,8 @@ private returnLastY = 0;
     private toastService: MessageService,
     private cdr: ChangeDetectorRef,
     private moduleAccessService: ModuleAccessService,
-    private poolService: AssetPoolService
+    private poolService: AssetPoolService,
+    private quickActions: QuickActionsService
   ) { }
 
   ngOnInit() {
@@ -1926,6 +1930,49 @@ returnAsset(row: any) {
       },
       error: () => {
         this.subAssets = [];
+      }
+    });
+  }
+
+  // ── QR label printing (main asset + all descendant sub-assets) ────────────
+  // Hidden QR canvases are rendered for labelQrData, then captured and laid out
+  // one-per-30×30mm-sticker. Reuses the bulk endpoint, which expands a single id
+  // to its whole sub-asset tree server-side.
+  labelQrData: { assetId: string; assetName: string }[] = [];
+  loadingLabels = false;
+
+  qrUrlFor(assetId: string): string {
+    return `${window.location.origin}/assets/scan/${encodeURIComponent(assetId)}`;
+  }
+
+  printAssetLabels() {
+    if (!this.asset?.id) {
+      this.toastService.add({ severity: 'warn', summary: 'Save first', detail: 'Save the asset before printing labels.' });
+      return;
+    }
+    this.loadingLabels = true;
+    this.quickActions.getQRBulkPrintData([this.asset.id]).subscribe({
+      next: (rows: any[]) => {
+        this.labelQrData = (rows || []).map(r => ({ assetId: r.assetId, assetName: r.assetName }));
+        this.loadingLabels = false;
+        this.cdr.detectChanges();
+        // Wait a tick so the hidden <qrcode> canvases finish rendering.
+        setTimeout(() => {
+          const cards = Array.from(document.querySelectorAll('#asset-label-area .qr-card')) as HTMLElement[];
+          const tiles = cards.map(card => {
+            const canvas = card.querySelector('canvas') as HTMLCanvasElement | null;
+            return {
+              dataUrl: canvas?.toDataURL('image/png') ?? '',
+              id: card.getAttribute('data-asset-id') ?? '',
+            };
+          });
+          printQrLabels(tiles, { widthMm: 30, heightMm: 30 });
+        }, 300);
+      },
+      error: () => {
+        this.loadingLabels = false;
+        this.toastService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load QR data for labels.' });
+        this.cdr.detectChanges();
       }
     });
   }

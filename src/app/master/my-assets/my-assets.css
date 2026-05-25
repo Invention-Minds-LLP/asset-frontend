@@ -180,7 +180,7 @@
 
 /* Paginator alignment */
 ::ng-deep .my-assets-table .p-paginator {
-  background: #fcfdfd !important;
+  background: var(--surface-card) !important;
   border-top: 1px solid var(--border-color) !important;
   border-bottom: none !important;
 }

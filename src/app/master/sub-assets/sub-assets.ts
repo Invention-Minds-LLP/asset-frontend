@@ -75,24 +75,14 @@ export class SubAssets implements OnInit {
     { label: 'From Inventory (Spare Part)', value: 'INVENTORY_SPARE' },
   ];
 
+  // Asset Type = how the asset is classified physically (matches the main form).
   readonly assetTypeOptions = [
-    { label: 'Medical Equipment', value: 'MEDICAL_EQUIPMENT' },
-    { label: 'IT Equipment', value: 'IT_EQUIPMENT' },
-    { label: 'Furniture', value: 'FURNITURE' },
-    { label: 'Vehicle', value: 'VEHICLE' },
-    { label: 'Infrastructure', value: 'INFRASTRUCTURE' },
-    { label: 'Other', value: 'OTHER' },
+    { label: 'Fixed', value: 'FIXED' },
+    { label: 'Movable', value: 'MOVABLE' },
   ];
 
-  readonly categoryOptions = [
-    { label: 'Diagnostic', value: 'DIAGNOSTIC' },
-    { label: 'Surgical', value: 'SURGICAL' },
-    { label: 'Monitoring', value: 'MONITORING' },
-    { label: 'Laboratory', value: 'LABORATORY' },
-    { label: 'IT', value: 'IT' },
-    { label: 'Office', value: 'OFFICE' },
-    { label: 'Other', value: 'OTHER' },
-  ];
+  // Real asset categories (id + name), loaded from the API.
+  categories: { id: number; name: string }[] = [];
 
   readonly procurementOptions = [
     { label: 'Purchase', value: 'PURCHASE' },
@@ -116,6 +106,10 @@ export class SubAssets implements OnInit {
 
   ngOnInit() {
     this.loadAssets();
+    this.assetsAPI.getCategories().subscribe({
+      next: (rows: any) => { this.categories = (rows || []).map((c: any) => ({ id: c.id, name: c.name })); },
+      error: () => {},
+    });
   }
 
   // ─── Load ─────────────────────────────────────────────────────────────────
@@ -258,10 +252,12 @@ export class SubAssets implements OnInit {
     }
 
     this.addSaving = true;
+    // Field names must match the backend contract. Category & status are
+    // inherited from the parent server-side, so they're not sent here.
     const payload: any = {
       sourceType: this.addForm.sourceType,
-      condition: this.addForm.condition || 'NEW',
-      notes: this.addForm.notes || null,
+      assetCondition: this.addForm.condition || 'NEW',
+      remarks: this.addForm.notes || null,
     };
 
     if (this.addForm.sourceType === 'INVENTORY_SPARE') {
@@ -271,8 +267,10 @@ export class SubAssets implements OnInit {
       payload.assetName = this.addForm.assetName.trim();
       payload.serialNumber = this.addForm.serialNumber || null;
       payload.assetType = this.addForm.assetType || null;
-      payload.procurementType = this.addForm.procurementType || null;
-      payload.cost = this.addForm.cost ? Number(this.addForm.cost) : null;
+      // Real category id; if left blank the backend inherits the parent's category.
+      if (this.addForm.categoryId) payload.assetCategoryId = Number(this.addForm.categoryId);
+      payload.modeOfProcurement = this.addForm.procurementType || null;
+      payload.purchaseCost = this.addForm.cost ? Number(this.addForm.cost) : null;
       payload.invoiceNumber = this.addForm.invoiceNumber || null;
       payload.purchaseDate = this.addForm.purchaseDate || null;
     }

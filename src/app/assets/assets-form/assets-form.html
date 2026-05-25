@@ -951,6 +951,21 @@
             <app-asset-qr [assetId]="asset.assetId" [assetName]="asset.assetName">
             </app-asset-qr>
 
+            <div class="qr-labels-action" style="margin-top:1rem;">
+                <button pButton type="button" label="Print Labels (incl. sub-assets)" icon="pi pi-tags"
+                    [loading]="loadingLabels" (click)="printAssetLabels()"></button>
+                <p class="subtitle" style="margin-top:6px;">
+                    Prints one 30×30 mm QR sticker for this asset and every sub-asset under it.
+                </p>
+            </div>
+
+            <!-- Hidden render area: QR canvases captured for label printing -->
+            <div id="asset-label-area" style="position:absolute; left:-9999px; top:0;" aria-hidden="true">
+                <div class="qr-card" *ngFor="let item of labelQrData" [attr.data-asset-id]="item.assetId">
+                    <qrcode [qrdata]="qrUrlFor(item.assetId)" [width]="220" [errorCorrectionLevel]="'M'"
+                        [elementType]="'canvas'"></qrcode>
+                </div>
+            </div>
         </p-tabPanel>
         <p-tabPanel header="Sub Assets" *ngIf="canAccessDepartmentTabs">
 
