@@ -240,14 +240,15 @@ export class AssetsTable implements OnInit {
     };
   
     this.assets.forEach(asset => {
-      const status = asset.status as keyof typeof summary;
-      // summary[status]++;
-      
-      if (summary[status] !== undefined) {
-        summary[status]++;
-      }
+      // Status values are stored uppercase (e.g. 'ACTIVE', 'UNDER_REPAIR'),
+      // but the summary buckets are lowercase — normalise before matching.
+      const raw = String(asset.status || '').toLowerCase().replace(/_/g, ' ');
+      if (raw === 'active') summary.active++;
+      else if (raw === 'under repair') summary['under Repair']++;
+      else if (raw === 'retired' || raw === 'disposed') summary.retired++;
+      else summary.unknown++;
     });
-  
+
     return summary;
   }
   getStatusColor(status: string): string {
