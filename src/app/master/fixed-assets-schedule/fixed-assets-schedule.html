@@ -171,7 +171,12 @@
           <tr class="data-row">
             <td class="col-particulars">
               <div class="asset-cell">
-                <strong>{{ row.assetName }}</strong>
+                <strong>
+                  {{ row.assetName }}
+                  @if (row.donated) {
+                    <span class="donated-tag" title="Acquired by donation — capitalised at estimated value">Donated</span>
+                  }
+                </strong>
                 <span class="asset-meta">{{ row.assetId }} · {{ row.serialNumber || '—' }}</span>
               </div>
             </td>

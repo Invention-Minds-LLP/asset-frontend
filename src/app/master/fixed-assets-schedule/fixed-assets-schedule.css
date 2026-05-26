@@ -282,3 +282,18 @@
   font-size: 0.72rem; color: #854d0e;
   display: flex; align-items: center; gap: 6px;
 }
+
+/* "Donated" tag in the FA schedule asset breakdown */
+.donated-tag {
+  display: inline-block;
+  margin-left: 6px;
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  padding: 1px 7px;
+  border-radius: 10px;
+  vertical-align: middle;
+}
