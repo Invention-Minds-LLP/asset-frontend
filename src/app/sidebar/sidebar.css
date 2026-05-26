@@ -199,6 +199,7 @@
   align-items: center;
   gap: 0.5rem;
   justify-content: center;
+  width: 100%;
 }
 
 .logo-icon {
@@ -511,6 +512,18 @@
   background-color: var(--menu-hover-color);
 }
 .img-logo{
-  width: 60px;
-  height: 60px;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 110px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Collapsed sidebar: fit the logo into the narrow rail */
+.sidebar.collapsed .img-logo {
+  width: 100%;
+  max-width: 56px;
+  height: auto;
+  max-height: 56px;
 }
