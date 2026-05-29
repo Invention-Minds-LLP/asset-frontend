@@ -82,6 +82,7 @@ export class DataExport implements OnInit {
       items: [
         { label: 'Schedule II FA Register (Companies Act)', report: 'schedule-ii-fa-register',    filename: 'Schedule_II_FA_Register',    needsFY: true, needsCategory: true, needsDepartment: true },
         { label: 'IT Act FA Register',                       report: 'it-act-fa-register',         filename: 'IT_Act_FA_Register',         needsCategory: true, needsDepartment: true },
+        { label: 'CFO Fixed Asset Register (Tally Format)',  report: 'cfo-fixed-asset-register',   filename: 'CFO_Fixed_Asset_Register',   needsFY: true, needsCategory: true },
         { label: 'Block of Assets Schedule',                 report: 'block-of-assets-schedule',   filename: 'Block_of_Assets_Schedule' },
         { label: 'Year-End FA Snapshot',                     report: 'year-end-fa-snapshot',       filename: 'Year_End_FA_Snapshot' },
         { label: 'Pre-Audit Reconciliation',                 report: 'pre-audit-reconciliation',   filename: 'Pre_Audit_Reconciliation' },
