@@ -172,6 +172,16 @@ export class QuickActionsPage implements OnInit {
   }
 
   /**
+   * Build the scan URL encoded into each QR. Matches the Asset Form's pattern
+   * (assets-form.ts → qrUrlFor) so phone cameras open the same deep link from
+   * either source. The backend-supplied `qrValue` was a JSON blob, which phones
+   * cannot follow as a link — hence this dedicated URL builder.
+   */
+  qrUrlFor(assetId: string): string {
+    return `${window.location.origin}/assets/scan/${encodeURIComponent(assetId)}`;
+  }
+
+  /**
    * Print the QR grid in a fresh window — captures each rendered canvas as an image
    * and lays them out cleanly with asset ID + name labels, no host-page chrome.
    */

@@ -100,7 +100,7 @@
           @for (item of qrData; track item.id) {
             <div class="qr-card" [attr.data-asset-id]="item.assetId">
               <qrcode
-                [qrdata]="item.qrValue || item.assetId"
+                [qrdata]="qrUrlFor(item.assetId)"
                 [width]="140"
                 [errorCorrectionLevel]="'M'"
                 [elementType]="'canvas'">
