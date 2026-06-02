@@ -38,7 +38,10 @@ export class DataExport implements OnInit {
   startDate = '';
   endDate   = '';
   year      = new Date().getFullYear();
-  month     = new Date().getMonth() + 1;
+  // month=0 means "All months" — buildParams skips sending it so reports treat
+  // the FY (or date range) as the only period selector. Picking a real month
+  // (1-12) narrows the FA register to that single month within the chosen FY.
+  month     = 0;
   financialYear   = '';
   assetCategoryId: number | '' = '';
   departmentId:    number | '' = '';
@@ -53,6 +56,7 @@ export class DataExport implements OnInit {
   departments: { id: number; name: string }[] = [];
 
   months = [
+    { value: 0,  label: 'All months' },
     { value: 1,  label: 'January' },  { value: 2,  label: 'February' },
     { value: 3,  label: 'March' },    { value: 4,  label: 'April' },
     { value: 5,  label: 'May' },      { value: 6,  label: 'June' },
@@ -82,7 +86,8 @@ export class DataExport implements OnInit {
       items: [
         { label: 'Schedule II FA Register (Companies Act)', report: 'schedule-ii-fa-register',    filename: 'Schedule_II_FA_Register',    needsFY: true, needsCategory: true, needsDepartment: true },
         { label: 'IT Act FA Register',                       report: 'it-act-fa-register',         filename: 'IT_Act_FA_Register',         needsCategory: true, needsDepartment: true },
-        { label: 'CFO Fixed Asset Register (Tally Format)',  report: 'cfo-fixed-asset-register',   filename: 'CFO_Fixed_Asset_Register',   needsFY: true, needsDate: true, needsCategory: true },
+        { label: 'CFO FA Register — Full (Year-End / Schedule II)',  report: 'cfo-fixed-asset-register',          filename: 'CFO_Fixed_Asset_Register_Full',     needsFY: true, needsDate: true, needsMonth: true, needsCategory: true },
+        { label: 'CFO FA Register — Activity Only (movements)',      report: 'cfo-fixed-asset-register-activity', filename: 'CFO_Fixed_Asset_Register_Activity', needsFY: true, needsDate: true, needsMonth: true, needsCategory: true },
         { label: 'Block of Assets Schedule',                 report: 'block-of-assets-schedule',   filename: 'Block_of_Assets_Schedule' },
         { label: 'Year-End FA Snapshot',                     report: 'year-end-fa-snapshot',       filename: 'Year_End_FA_Snapshot' },
         { label: 'Pre-Audit Reconciliation',                 report: 'pre-audit-reconciliation',   filename: 'Pre_Audit_Reconciliation' },
@@ -266,7 +271,9 @@ export class DataExport implements OnInit {
       if (this.endDate)   p.endDate   = this.endDate;
     }
     if (item.needsYear)        p.year          = this.year;
-    if (item.needsMonth)       p.month         = this.month;
+    // month=0 is the "All months" sentinel — don't send it so the backend
+    // falls through to FY-only or date-range behaviour.
+    if (item.needsMonth && this.month >= 1 && this.month <= 12) p.month = this.month;
     if (item.needsFY  && this.financialYear)      p.financialYear   = this.financialYear;
     if (item.needsCategory   && this.assetCategoryId !== '') p.assetCategoryId = Number(this.assetCategoryId);
     if (item.needsDepartment && this.departmentId    !== '') p.departmentId    = Number(this.departmentId);
@@ -303,7 +310,7 @@ export class DataExport implements OnInit {
     this.startDate = '';
     this.endDate   = '';
     this.year      = new Date().getFullYear();
-    this.month     = new Date().getMonth() + 1;
+    this.month     = 0;                              // "All months"
     this.financialYear   = '';
     this.assetCategoryId = '';
     this.departmentId    = '';
