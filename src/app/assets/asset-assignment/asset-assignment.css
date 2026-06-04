@@ -303,6 +303,41 @@ line-height: normal;
   padding-top: 6px;
 }
 
+/* Asset summary card inside the acknowledge dialog */
+.asset-info-card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.info-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #111827;
+  /* Long asset names wrap instead of overflowing and forcing the dialog to scroll */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
 .field {
   display: flex;
   flex-direction: column;

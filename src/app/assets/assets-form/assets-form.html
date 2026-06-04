@@ -71,6 +71,17 @@
                             </p-floatlabel>
                         </div>
 
+                        <!-- STORE — warehouse the asset is parked in while IN_STORE -->
+                        <div class="two-fields">
+                            <p-floatlabel variant="on">
+                                <p-select [options]="stores" optionLabel="name" optionValue="id"
+                                    name="currentStoreId" [(ngModel)]="asset.currentStoreId" [filter]="true"
+                                    appendTo="body" [disabled]="!canEditBasicDetails">
+                                </p-select>
+                                <label>Store</label>
+                            </p-floatlabel>
+                        </div>
+
                         <!-- INTANGIBLE FIELDS (shown only when assetNature = INTANGIBLE) -->
                         <div *ngIf="asset.assetNature === 'INTANGIBLE'" class="conditional-card">
                             <h4>Intangible Asset Details</h4>

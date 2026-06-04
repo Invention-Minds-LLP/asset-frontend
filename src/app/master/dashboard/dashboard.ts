@@ -13,6 +13,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
 import { MasterService } from '../../services/master/master';
+import { AnalyticsService } from '../../services/analytics/analytics';
 
 @Component({
   selector: 'app-dashboard',
@@ -29,6 +30,8 @@ import { MasterService } from '../../services/master/master';
 export class Dashboard implements OnInit {
   loading = false;
   stats: any = {};
+  inStoreAging: any[] = [];
+  loadingAging = false;
   ticketStatusBreakdown: any[] = [];
   assetsByCategory: any[] = [];
   recentTickets: any[] = [];
@@ -54,6 +57,7 @@ export class Dashboard implements OnInit {
 
   constructor(
     private masterService: MasterService,
+    private analytics: AnalyticsService,
     private messageService: MessageService,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -62,6 +66,25 @@ export class Dashboard implements OnInit {
   ngOnInit(): void {
     this.loadDashboard();
     this.loadExpiryAlerts();
+    this.loadInStoreAging();
+  }
+
+  loadInStoreAging() {
+    this.loadingAging = true;
+    this.analytics.getInStoreAging().subscribe({
+      next: (data: any) => {
+        this.inStoreAging = Array.isArray(data) ? data : (data?.data ?? []);
+        this.loadingAging = false;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.loadingAging = false; this.cdr.detectChanges(); }
+    });
+  }
+
+  getAgingSeverity(days: number): string {
+    if (days > 180) return 'critical';
+    if (days > 90) return 'warning';
+    return '';
   }
 
   loadDashboard() {

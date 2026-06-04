@@ -662,6 +662,7 @@
           <tr>
             <th>Asset</th>
             <th>Category</th>
+            <th>Store</th>
             <th style="text-align:right">Cost</th>
             <th style="text-align:right">Days in Store</th>
           </tr>
@@ -670,6 +671,7 @@
           <tr [class]="getAgingSeverity(row.daysInStore)">
             <td>{{ row.assetName || row.name }}</td>
             <td>{{ row.category }}</td>
+            <td>{{ row.storeName || '—' }}</td>
             <td style="text-align:right">{{ formatCurrency(row.cost ?? row.purchaseCost) }}</td>
             <td style="text-align:right; font-weight:700;" [class.value-low]="row.daysInStore > 180" [class.value-warn]="row.daysInStore > 90 && row.daysInStore <= 180">
               {{ row.daysInStore }}

@@ -60,6 +60,8 @@ export class StoreManagement implements OnInit {
   selectedStoreId: number | null = null;
   stockPositions: any[] = [];
   loadingStock = false;
+  stockAssets: any[] = [];
+  loadingStockAssets = false;
   showAdjustDialog = false;
   adjustForm = this.emptyAdjustForm();
 
@@ -69,6 +71,13 @@ export class StoreManagement implements OnInit {
     { label: 'Spare Part', value: 'SPARE_PART' },
     { label: 'Consumable', value: 'CONSUMABLE' },
   ];
+  // Transfers can also move assets (parked IN_STORE items), not just stock
+  transferItemTypeOptions = [
+    { label: 'Spare Part', value: 'SPARE_PART' },
+    { label: 'Consumable', value: 'CONSUMABLE' },
+    { label: 'Asset', value: 'ASSET' },
+  ];
+  assetOptions: any[] = [];
 
   // Transfers
   transfers: any[] = [];
@@ -101,6 +110,19 @@ export class StoreManagement implements OnInit {
     this.loadStores();
     this.loadTransfers();
     this.loadAlerts();
+    this.loadDepartments();
+  }
+
+  departments: any[] = [];
+
+  loadDepartments() {
+    this.http.get<any>(`${this.apiUrl}/departments`).subscribe({
+      next: (data: any) => {
+        this.departments = Array.isArray(data) ? data : (data?.data ?? []);
+        setTimeout(() => this.cdr.detectChanges());
+      },
+      error: () => {}
+    });
   }
 
   // ── Stores ──
@@ -132,11 +154,13 @@ export class StoreManagement implements OnInit {
   selectedStore: any = null;
   showDetailDialog = false;
   storeLocations: any[] = [];
+  parkedAssets: any[] = [];
+  loadingParkedAssets = false;
   showAddLocationDialog = false;
   locationForm = { rack: '', shelf: '', bin: '', label: '' };
 
   emptyStoreForm() {
-    return { name: '', code: '', storeType: 'MAIN_STORE', parentStoreId: null, address: '' };
+    return { name: '', code: '', storeType: 'MAIN_STORE', parentStoreId: null, departmentId: null, address: '' };
   }
 
   openCreateStore() {
@@ -184,6 +208,21 @@ export class StoreManagement implements OnInit {
       },
       error: () => {}
     });
+
+    // Parked assets — IN_STORE assets physically held in this store
+    this.parkedAssets = [];
+    this.loadingParkedAssets = true;
+    this.http.get<any>(`${this.apiUrl}/assets`, { params: { currentStoreId: String(store.id), status: 'IN_STORE' } }).subscribe({
+      next: (data: any) => {
+        this.parkedAssets = Array.isArray(data) ? data : (data?.data ?? []);
+        this.loadingParkedAssets = false;
+        setTimeout(() => this.cdr.detectChanges());
+      },
+      error: () => {
+        this.loadingParkedAssets = false;
+        setTimeout(() => this.cdr.detectChanges());
+      }
+    });
   }
 
   openAddLocation() {
@@ -222,6 +261,21 @@ export class StoreManagement implements OnInit {
       },
       error: () => {
         this.loadingStock = false;
+        setTimeout(() => this.cdr.detectChanges());
+      }
+    });
+
+    // Parked assets (IN_STORE) physically held in this store
+    this.loadingStockAssets = true;
+    this.stockAssets = [];
+    this.http.get<any>(`${this.apiUrl}/assets`, { params: { currentStoreId: String(storeId), status: 'IN_STORE' } }).subscribe({
+      next: (data: any) => {
+        this.stockAssets = Array.isArray(data) ? data : (data?.data ?? []);
+        this.loadingStockAssets = false;
+        setTimeout(() => this.cdr.detectChanges());
+      },
+      error: () => {
+        this.loadingStockAssets = false;
         setTimeout(() => this.cdr.detectChanges());
       }
     });
@@ -299,11 +353,39 @@ export class StoreManagement implements OnInit {
   }
 
   emptyTransferForm() {
-    return { fromStoreId: null, toStoreId: null, transferType: 'STORE_TO_STORE', remarks: '', items: [this.emptyTransferItem()] };
+    return { fromStoreId: null, toStoreId: null, toDepartmentId: null, transferType: 'STORE_TO_STORE', remarks: '', items: [this.emptyTransferItem()] };
+  }
+
+  onTransferTypeChange() {
+    // Destination depends on the type — clear the other one when switching
+    this.transferForm.toStoreId = null;
+    this.transferForm.toDepartmentId = null;
   }
 
   emptyTransferItem() {
-    return { itemType: 'SPARE_PART' as string, sparePartId: null as number | null, consumableId: null as number | null, quantity: 1 };
+    return { itemType: 'SPARE_PART' as string, sparePartId: null as number | null, consumableId: null as number | null, assetId: null as number | null, quantity: 1 };
+  }
+
+  onTransferItemTypeChange(item: any) {
+    item.sparePartId = null;
+    item.consumableId = null;
+    item.assetId = null;
+    if (item.itemType === 'ASSET') item.quantity = 1;
+  }
+
+  onTransferFromStoreChange() {
+    this.assetOptions = [];
+    const fromId = this.transferForm.fromStoreId;
+    if (!fromId) return;
+    // Assets currently parked (IN_STORE) in the source store are transfer-eligible
+    this.http.get<any>(`${this.apiUrl}/assets`, { params: { currentStoreId: String(fromId), status: 'IN_STORE' } }).subscribe({
+      next: (data: any) => {
+        const list = Array.isArray(data) ? data : (data?.data ?? []);
+        this.assetOptions = list.map((a: any) => ({ label: `${a.assetName} (${a.assetId})`, value: a.id }));
+        setTimeout(() => this.cdr.detectChanges());
+      },
+      error: () => {}
+    });
   }
 
   openCreateTransfer() {
@@ -391,7 +473,7 @@ export class StoreManagement implements OnInit {
   }
 
   getTransferStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    const map: any = { PENDING: 'warn', APPROVED: 'info', IN_TRANSIT: 'contrast', RECEIVED: 'success', CANCELLED: 'danger' };
+    const map: any = { REQUESTED: 'warn', APPROVED: 'info', IN_TRANSIT: 'contrast', RECEIVED: 'success', CANCELLED: 'danger' };
     return map[status] || 'secondary';
   }
 

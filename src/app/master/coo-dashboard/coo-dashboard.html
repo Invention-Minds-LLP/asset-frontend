@@ -292,6 +292,39 @@
     }
 
     <!-- ════════════════════════════════════════════════════════ -->
+    <!-- In-Store Asset Aging                                     -->
+    <!-- ════════════════════════════════════════════════════════ -->
+    @if (inStoreAging.length) {
+      <div class="dashboard-section">
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-clock"></i> In-Store Asset Aging ({{ inStoreAging.length }})</span>
+        </div>
+        <p-table [value]="inStoreAging" [loading]="loadingAging" stripedRows [paginator]="true" [rows]="10"
+          [rowsPerPageOptions]="[10, 25]" sortField="daysInStore" [sortOrder]="-1">
+          <ng-template #header>
+            <tr>
+              <th>Asset</th>
+              <th>Category</th>
+              <th>Store</th>
+              <th style="text-align:right">Days in Store</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-row>
+            <tr [class]="getAgingSeverity(row.daysInStore)">
+              <td>{{ row.assetName }}</td>
+              <td>{{ row.category }}</td>
+              <td>{{ row.storeName || '—' }}</td>
+              <td style="text-align:right; font-weight:700;">{{ row.daysInStore ?? '—' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr><td colspan="4" class="text-center">No assets in store.</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+    }
+
+    <!-- ════════════════════════════════════════════════════════ -->
     <!-- E-Waste Queue                                           -->
     <!-- ════════════════════════════════════════════════════════ -->
     @if (data.eWaste) {

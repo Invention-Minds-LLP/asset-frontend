@@ -16,6 +16,10 @@
 .qr-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem; }
 .qr-card { border: 1px solid var(--border-color); border-radius: 6px; padding: 0.5rem; text-align: center; width: 160px; }
 .qr-img { width: 140px; height: 140px; }
+/* On-screen display only — the underlying canvas pixels stay at 600×600 so the
+   PNG captured for printing keeps high DPI. Without this, the 600px canvas
+   would blow out of the 160px card. */
+.qr-card canvas { width: 140px !important; height: 140px !important; }
 .qr-label { font-size: 0.78rem; font-weight: 700; margin-top: 6px; font-family: monospace; color: var(--info-fg); }
 .qr-name { font-size: 0.72rem; color: var(--text-color-secondary); }
 

@@ -43,6 +43,10 @@ export class CooDashboard implements OnInit {
   repeatTickets: any[] = [];
   slaBreachAlerts: any = null;
 
+  // In-Store Asset Aging
+  inStoreAging: any[] = [];
+  loadingAging = false;
+
   constructor(
     private analytics: AnalyticsService,
     private messageService: MessageService,
@@ -51,6 +55,25 @@ export class CooDashboard implements OnInit {
 
   ngOnInit() {
     this.loadDashboard();
+    this.loadInStoreAging();
+  }
+
+  loadInStoreAging() {
+    this.loadingAging = true;
+    this.analytics.getInStoreAging().subscribe({
+      next: (data: any) => {
+        this.inStoreAging = Array.isArray(data) ? data : (data?.data ?? []);
+        this.loadingAging = false;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.loadingAging = false; this.cdr.detectChanges(); }
+    });
+  }
+
+  getAgingSeverity(days: number): string {
+    if (days > 180) return 'critical';
+    if (days > 90) return 'warning';
+    return '';
   }
 
   loadDashboard() {

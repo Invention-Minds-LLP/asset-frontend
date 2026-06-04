@@ -188,8 +188,8 @@
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
-  [style]="{ width: '650px' }"
-  [contentStyle]="{ overflow: 'auto' }"
+  [style]="{ width: '650px', 'max-width': '95vw' }"
+  [contentStyle]="{ 'max-height': '75vh', overflow: 'auto' }"
 >
   <div class="ack-dialog">
 
@@ -219,6 +219,24 @@
         [(ngModel)]="ackNote"
         placeholder="Enter acknowledgement note"
       ></textarea>
+    </div>
+
+    <!-- Park into Store (sub-store the asset moves into on acceptance) -->
+    <div class="field">
+      <label class="lbl">Park into Store</label>
+      <p-select
+        [options]="ackStores"
+        optionLabel="name"
+        optionValue="id"
+        [(ngModel)]="ackStoreId"
+        [filter]="true"
+        appendTo="body"
+        styleClass="w-full"
+        placeholder="Select your store"
+      ></p-select>
+      <small *ngIf="!ackStores.length" class="hint">
+        No store is tagged to this asset's department yet — set a department on a store first.
+      </small>
     </div>
 
     <!-- Checklist -->

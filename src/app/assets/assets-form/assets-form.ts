@@ -17,6 +17,7 @@ import { TextareaModule } from "primeng/textarea";
 import { Assets } from "../../services/assets/assets";
 import { AssetPoolService } from "../../services/asset-pool/asset-pool";
 import { Branches } from "../../services/branches/branches";
+import { StoreService } from "../../services/store/store";
 import { Location } from "../../services/location/location";
 import { Transferr } from "../../services/transfer/transferr";
 import { Auth } from "../../services/auth/auth";
@@ -162,6 +163,7 @@ export class AssetsForm implements OnInit {
   departments: any[] = [];
   vendors: any[] = [];
   categories: any[] = [];
+  stores: any[] = [];
   employees: any[] = [];
   branches: any[] = [];
 
@@ -218,6 +220,7 @@ export class AssetsForm implements OnInit {
     residualValuePercent: 0,
 
     assetCategoryId: null,
+    currentStoreId: null,
     serialNumber: "",
     assetPhoto: "",
     rfidCode: "",
@@ -642,6 +645,7 @@ private returnLastY = 0;
   constructor(
     private assetAPI: Assets,
     private branchAPI: Branches,
+    private storeService: StoreService,
     private locationAPI: Location,
     private transferAPI: Transferr,
     private auth: Auth,
@@ -707,6 +711,19 @@ private returnLastY = 0;
       next: (res) => {
         this.vendors = res || [];
       }
+    });
+
+    this.storeService.getAll().subscribe({
+      next: (res: any) => {
+        this.stores = Array.isArray(res) ? res : (res?.data ?? []);
+        // On create, default to the Main Store so the asset is parked there.
+        if (!this.asset.id && !this.asset.currentStoreId && this.stores.length) {
+          const mainStore = this.stores.find((s: any) => s.storeType === 'MAIN_STORE') || this.stores[0];
+          this.asset.currentStoreId = mainStore?.id ?? null;
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => {}
     });
 
     this.assetAPI.getDepartments().subscribe({

@@ -8,19 +8,21 @@ import { CommonModule } from '@angular/common';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { Assets } from '../../services/assets/assets';
+import { StoreService } from '../../services/store/store';
 import { ChangeDetectorRef } from '@angular/core';
 import { AssetEditService } from '../../services/assets/assets-edit';
 import { Router } from '@angular/router';
 import { Skeleton } from 'primeng/skeleton';
 import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
+import { SelectModule } from 'primeng/select';
 
 type FilterField = 'assetName' | 'assetId' | 'assignedTo' | 'assignedBy';
 
 @Component({
   selector: 'app-asset-assignment',
   imports: [TableModule, ButtonModule, InputTextModule, DropdownModule, FormsModule,
-    CommonModule, IconFieldModule, InputIconModule, Skeleton, DialogModule, TextareaModule],
+    CommonModule, IconFieldModule, InputIconModule, Skeleton, DialogModule, TextareaModule, SelectModule],
   templateUrl: './asset-assignment.html',
   styleUrl: './asset-assignment.css'
 })
@@ -55,6 +57,10 @@ export class AssetAssignment {
   ackNote = '';
   selectedFile!: File | null;
 
+  // Sub-store the HOD parks the asset into when acknowledging (filtered to the asset's department)
+  ackStores: any[] = [];
+  ackStoreId: number | null = null;
+
   @ViewChild('signatureCanvas') canvas!: ElementRef<HTMLCanvasElement>;
   private ctx!: CanvasRenderingContext2D;
   private drawing = false;
@@ -72,7 +78,7 @@ export class AssetAssignment {
 
 
 
-  constructor(private assetService: Assets, private cdr: ChangeDetectorRef, private assetEditService: AssetEditService, private router: Router) { }
+  constructor(private assetService: Assets, private storeService: StoreService, private cdr: ChangeDetectorRef, private assetEditService: AssetEditService, private router: Router) { }
 
   @ViewChild('filterContainer') filterContainerRef!: ElementRef;
   @HostListener('document:click', ['$event'])
@@ -204,6 +210,20 @@ openAcknowledge(item: any) {
   this.checklistResponses = [];
   this.checklistLoading = true;
 
+  // Offer the asset department's stores (sub-stores) to park it into on acknowledgement
+  this.ackStores = [];
+  this.ackStoreId = null;
+  const deptId = item?.asset?.departmentId ?? item?.asset?.department?.id ?? null;
+  this.storeService.getAll().subscribe({
+    next: (data: any) => {
+      const all = Array.isArray(data) ? data : (data?.data ?? []);
+      this.ackStores = deptId ? all.filter((s: any) => s.departmentId === deptId) : all;
+      if (this.ackStores.length === 1) this.ackStoreId = this.ackStores[0].id;
+      this.cdr.detectChanges();
+    },
+    error: () => {}
+  });
+
   this.assetService.getAssignmentChecklist(item.id).subscribe({
     next: (res) => {
       this.checklistItems = res?.items || [];
@@ -289,6 +309,10 @@ getChecklistError(): string {
 
   if (this.selectedFile) {
     formData.append('photo', this.selectedFile);
+  }
+
+  if (this.ackStoreId) {
+    formData.append('storeId', String(this.ackStoreId));
   }
 
   this.assetService.acknowledgeAssignment(this.selectedAssignmentId, formData)

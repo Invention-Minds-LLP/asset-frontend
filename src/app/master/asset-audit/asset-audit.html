@@ -52,8 +52,18 @@
       <p-button icon="pi pi-arrow-left" label="Back to List" severity="secondary" (onClick)="backToList()"></p-button>
       <h2>{{ selectedAudit?.auditName }}</h2>
       <p-tag [value]="selectedAudit?.status" [severity]="getAuditStatusSeverity(selectedAudit?.status)"></p-tag>
+      <p-button [label]="showMap ? 'Show List' : 'Floor Map'" [icon]="showMap ? 'pi pi-list' : 'pi pi-map'"
+        severity="help" (onClick)="toggleMap()"></p-button>
       <p-button *ngIf="selectedAudit?.status === 'IN_PROGRESS' && isRole('HOD', 'ADMIN')" icon="pi pi-check" label="Complete Audit"
         severity="success" (onClick)="completeAudit(selectedAudit)" [loading]="completingAudit"></p-button>
+    </div>
+
+    <!-- Assigned auditors -->
+    <div class="auditors-bar" *ngIf="auditAuditors.length">
+      <span class="auditors-label"><i class="pi pi-users"></i> Auditors<span *ngIf="selectedAudit?.auditorType"> ({{ selectedAudit.auditorType | titlecase }})</span>:</span>
+      <p-tag *ngFor="let a of auditAuditors" [value]="auditorLabel(a)"
+        [severity]="a.type === 'EXTERNAL' ? 'warn' : 'info'"
+        [icon]="a.type === 'EXTERNAL' ? 'pi pi-building' : 'pi pi-user'"></p-tag>
     </div>
 
     <!-- Progress bar -->
@@ -86,8 +96,75 @@
       </div>
     </div>
 
+    <!-- Floor Map view -->
+    <div class="audit-map" *ngIf="showMap">
+      <div *ngIf="mapLoading" class="map-loading"><i class="pi pi-spin pi-spinner"></i> Loading floor map…</div>
+
+      <div *ngIf="!mapLoading && !mapPlan" class="map-empty">
+        <i class="pi pi-map"></i>
+        <p>No floor plan is linked to this audit's location. Pin assets on the floor plan (Location module) first, or this audit's floor/branch has no uploaded plan.</p>
+      </div>
+
+      <ng-container *ngIf="!mapLoading && mapPlan">
+        <!-- Next-asset guidance banner -->
+        <div class="next-banner" *ngIf="nextItem; else allDone">
+          <div class="next-info">
+            <span class="next-tag"><i class="pi pi-compass"></i> Next asset</span>
+            <strong>{{ nextItem.assetName }}</strong>
+            <small>{{ nextItem.assetCode }}<span *ngIf="nextItem.room"> · {{ nextItem.room }}</span><span *ngIf="nextItem.category"> · {{ nextItem.category }}</span></small>
+          </div>
+          <p-button *ngIf="selectedAudit?.status === 'IN_PROGRESS' && isRole('HOD','SUPERVISOR','ADMIN')"
+            icon="pi pi-check-square" label="Verify this" size="small" (onClick)="verifyMapItem(nextItem)"></p-button>
+        </div>
+        <ng-template #allDone>
+          <div class="next-banner done"><i class="pi pi-check-circle"></i> All pinned assets on this plan have been inspected.</div>
+        </ng-template>
+
+        <div class="map-canvas">
+          <img [src]="planImageUrl()" [alt]="mapPlan.name" draggable="false" />
+
+          <!-- Route line from the last-verified pin to the recommended next pin -->
+          <svg *ngIf="currentPin && nextItem" class="route-line" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <line [attr.x1]="currentPin.planX" [attr.y1]="currentPin.planY"
+                  [attr.x2]="nextItem.planX" [attr.y2]="nextItem.planY"></line>
+          </svg>
+
+          <div class="pin" *ngFor="let it of mapPlaced"
+               [ngClass]="pinClass(it.status)" [class.pin-next]="isNext(it.itemId)"
+               [style.left.%]="it.planX" [style.top.%]="it.planY"
+               (click)="verifyMapItem(it)"
+               [title]="it.assetName + ' (' + (it.assetCode || '') + ') — ' + it.status">
+            <i class="pi pi-map-marker"></i>
+            <span class="pin-seq" *ngIf="routeIndex(it.itemId)">{{ routeIndex(it.itemId) }}</span>
+            <span class="pin-label">{{ it.assetName }}</span>
+          </div>
+        </div>
+
+        <!-- Legend + unplaced list -->
+        <div class="map-side">
+          <div class="map-legend">
+            <span><i class="pi pi-map-marker pin-pending"></i> Pending</span>
+            <span><i class="pi pi-map-marker pin-verified"></i> Verified</span>
+            <span><i class="pi pi-map-marker pin-missing"></i> Missing</span>
+            <span><i class="pi pi-map-marker pin-mismatch"></i> Mismatch</span>
+          </div>
+
+          <div class="unplaced" *ngIf="mapUnplaced.length">
+            <h4><i class="pi pi-exclamation-triangle"></i> Not on the map ({{ mapUnplaced.length }})</h4>
+            <p class="aside-hint">These assets have no pin in the location module — verify them manually.</p>
+            <div class="unplaced-list">
+              <button class="unplaced-row" *ngFor="let u of mapUnplaced" (click)="verifyMapItem(u)">
+                <p-tag [value]="u.status" [severity]="getItemStatusSeverity(u.status)"></p-tag>
+                <span>{{ u.assetName }} <small>{{ u.assetCode }}</small></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
     <!-- Items table -->
-    <p-table [value]="auditItems" [loading]="detailLoading" [paginator]="true" [rows]="20"
+    <p-table *ngIf="!showMap" [value]="auditItems" [loading]="detailLoading" [paginator]="true" [rows]="20"
       [rowsPerPageOptions]="[10,20,50]" styleClass="p-datatable-sm p-datatable-striped">
 
       <ng-template pTemplate="header">
@@ -153,31 +230,81 @@
           <label class="sub-label">Floor</label>
           <p-select [options]="locationFloors" [(ngModel)]="createForm.floor"
             placeholder="All floors" [showClear]="true" appendTo="body" [style]="{'width':'100%'}"
-            [loading]="locationsLoading"></p-select>
+            [loading]="scopeLoading" (onChange)="onScopeFloorChange()" (onClear)="onScopeFloorChange()"></p-select>
         </div>
         <div>
           <label class="sub-label">Block / Wing</label>
           <p-select [options]="locationBlocks" [(ngModel)]="createForm.block"
             placeholder="All blocks" [showClear]="true" appendTo="body" [style]="{'width':'100%'}"
-            [loading]="locationsLoading"></p-select>
+            [loading]="locationsLoading" (onChange)="onScopeFloorChange()" (onClear)="onScopeFloorChange()"></p-select>
         </div>
         <div>
           <label class="sub-label">Room</label>
           <p-select [options]="locationRooms" [(ngModel)]="createForm.room"
             placeholder="All rooms" [showClear]="true" appendTo="body" [style]="{'width':'100%'}"
-            [loading]="locationsLoading"></p-select>
+            [loading]="locationsLoading" (onChange)="loadScopePreview()" (onClear)="loadScopePreview()"></p-select>
         </div>
       </div>
-      @if (createForm.floor || createForm.block || createForm.room) {
+    </div>
+
+    <div class="form-field">
+      <label><i class="pi pi-tags"></i> Categories <span class="optional-hint">(optional — leave blank for all categories on the floor)</span></label>
+      <p-multiSelect [options]="scopeCategories" [(ngModel)]="createForm.categoryIds"
+        optionLabel="name" optionValue="id" placeholder="All categories"
+        appendTo="body" [style]="{'width':'100%'}" [filter]="true" display="chip"
+        (onChange)="onScopeCategoriesChange()">
+        <ng-template let-cat pTemplate="item">
+          <span>{{ cat.name }} <small style="opacity:.6">({{ cat.count }})</small></span>
+        </ng-template>
+      </p-multiSelect>
+
+      @if (scopePreview) {
         <div class="scope-preview">
           <i class="pi pi-info-circle"></i>
-          Only assets currently located at
-          <strong>{{ getScopeLabel() }}</strong>
-          will be included in this audit.
+          This audit will cover <strong>{{ scopePreview.total }}</strong> asset(s)
+          @if (createForm.floor || createForm.block || createForm.room) { at <strong>{{ getScopeLabel() || 'the selected location' }}</strong> }
+          — <strong>{{ scopePreview.pinned }}</strong> pinned on the floor plan,
+          <strong>{{ scopePreview.unpinned }}</strong> not yet pinned.
         </div>
       } @else {
         <div class="scope-preview scope-all">
-          <i class="pi pi-globe"></i> All active assets will be included.
+          <i class="pi pi-globe"></i> Pick a floor and/or categories to scope the audit. Blank = all active assets.
+        </div>
+      }
+    </div>
+
+    <div class="form-field">
+      <label><i class="pi pi-users"></i> Auditor <span class="optional-hint">(optional)</span></label>
+      <p-select [options]="auditorTypeOptions" [(ngModel)]="createForm.auditorType"
+        placeholder="Not assigned" [showClear]="true" appendTo="body" [style]="{'width':'100%'}"
+        (onChange)="onAuditorTypeChange()" (onClear)="onAuditorTypeChange()"></p-select>
+
+      @if (needsInternal) {
+        <div class="auditor-block">
+          <label class="sub-label">Internal auditors (employees)</label>
+          <p-multiSelect [options]="employees" [(ngModel)]="createForm.internalAuditorIds"
+            optionLabel="name" optionValue="id" placeholder="Select employees"
+            appendTo="body" [style]="{'width':'100%'}" [filter]="true" display="chip">
+            <ng-template let-emp pTemplate="item">
+              <span>{{ emp.name }} <small style="opacity:.6">{{ emp.employeeID }}<span *ngIf="emp.designation"> · {{ emp.designation }}</span></small></span>
+            </ng-template>
+          </p-multiSelect>
+        </div>
+      }
+
+      @if (needsExternal) {
+        <div class="auditor-block">
+          <label class="sub-label">External auditors</label>
+          @for (ext of createForm.externalAuditors; track $index) {
+            <div class="ext-row">
+              <input pInputText [(ngModel)]="ext.name" placeholder="Name *" />
+              <input pInputText [(ngModel)]="ext.email" placeholder="Email *" />
+              <input pInputText [(ngModel)]="ext.organization" placeholder="Firm / Organization" />
+              <input pInputText [(ngModel)]="ext.phone" placeholder="Phone" />
+              <button class="ext-del" type="button" (click)="removeExternalAuditor($index)" title="Remove"><i class="pi pi-trash"></i></button>
+            </div>
+          }
+          <p-button label="Add external auditor" icon="pi pi-plus" size="small" severity="secondary" (onClick)="addExternalAuditor()"></p-button>
         </div>
       }
     </div>

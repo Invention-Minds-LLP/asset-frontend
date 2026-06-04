@@ -11,6 +11,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { CheckboxModule } from 'primeng/checkbox';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 import { AssetAuditService } from '../../services/asset-audit/asset-audit';
 import { DatePicker } from 'primeng/datepicker';
@@ -22,7 +23,7 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule,
     TagModule, ToastModule, DialogModule, InputTextModule,
-    TextareaModule, SelectModule, ProgressBarModule, CheckboxModule, DatePicker,
+    TextareaModule, SelectModule, ProgressBarModule, CheckboxModule, MultiSelectModule, DatePicker,
     OverflowTooltipDirective
   ],
   templateUrl: './asset-audit.html',
@@ -48,7 +49,7 @@ export class AssetAudit implements OnInit {
 
   // Create dialog
   showCreateDialog = false;
-  createForm: any = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null, floor: null, block: null, room: null };
+  createForm: any = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null, floor: null, block: null, room: null, categoryIds: [], auditorType: null, internalAuditorIds: [], externalAuditors: [] };
   createLoading = false;
 
   // Location options
@@ -57,8 +58,32 @@ export class AssetAudit implements OnInit {
   locationRooms: string[] = [];
   locationsLoading = false;
 
+  // Scope wizard (floor ↔ category)
+  scopeCategories: { id: number; name: string; count: number }[] = [];
+  scopePreview: { total: number; pinned: number; unpinned: number; byCategory: any[] } | null = null;
+  scopeLoading = false;
+
+  // Auditor assignment
+  employees: any[] = [];
+  auditorTypeOptions = [
+    { label: 'Internal (employees)', value: 'INTERNAL' },
+    { label: 'External (audit firm)', value: 'EXTERNAL' },
+    { label: 'Both', value: 'BOTH' },
+  ];
+  auditAuditors: any[] = []; // auditors of the audit currently open in detail view
+
   startingAudit = false;
   completingAudit = false;
+
+  // Floor map view
+  showMap = false;
+  mapPlan: any = null;
+  mapPlaced: any[] = [];
+  mapUnplaced: any[] = [];
+  mapLoading = false;
+  nextItem: any = null;
+  route: any[] = [];
+  lastVerifiedItemId: number | null = null;
 
   // Verify dialog
   showVerifyDialog = false;
@@ -88,6 +113,19 @@ export class AssetAudit implements OnInit {
   ngOnInit() {
     this.loadAudits();
     this.loadLocationOptions();
+    this.loadEmployees();
+  }
+
+  loadEmployees() {
+    this.auditService.getEmployees().subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          this.employees = (res?.data ?? res) || [];
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
+    });
   }
 
   loadLocationOptions() {
@@ -128,8 +166,102 @@ export class AssetAudit implements OnInit {
 
   // Create
   openCreateDialog() {
-    this.createForm = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null, floor: null, block: null, room: null };
+    this.createForm = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null, floor: null, block: null, room: null, categoryIds: [], auditorType: null, internalAuditorIds: [], externalAuditors: [] };
+    this.scopeCategories = [];
+    this.scopePreview = null;
+    this.loadScopeFloors();
+    this.loadScopeCategories();
+    if (!this.employees.length) this.loadEmployees();
     this.showCreateDialog = true;
+  }
+
+  // ── Auditor assignment ──
+  get needsInternal(): boolean { return this.createForm.auditorType === 'INTERNAL' || this.createForm.auditorType === 'BOTH'; }
+  get needsExternal(): boolean { return this.createForm.auditorType === 'EXTERNAL' || this.createForm.auditorType === 'BOTH'; }
+
+  onAuditorTypeChange() {
+    if (!this.needsInternal) this.createForm.internalAuditorIds = [];
+    if (!this.needsExternal) this.createForm.externalAuditors = [];
+    else if (!this.createForm.externalAuditors.length) this.addExternalAuditor();
+  }
+
+  addExternalAuditor() {
+    this.createForm.externalAuditors.push({ name: '', email: '', organization: '', phone: '' });
+  }
+
+  removeExternalAuditor(i: number) {
+    this.createForm.externalAuditors.splice(i, 1);
+  }
+
+  private scopeParams(extra: any = {}): any {
+    const p: any = { ...extra };
+    if (this.createForm.branchId) p.branchId = this.createForm.branchId;
+    return p;
+  }
+
+  // Floors available for the chosen categories (category-first flow).
+  loadScopeFloors() {
+    const params = this.scopeParams();
+    if (this.createForm.categoryIds?.length) params.categoryIds = this.createForm.categoryIds.join(',');
+    this.scopeLoading = true;
+    this.auditService.getScopeFloors(params).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          this.locationFloors = res.data || [];
+          // Drop a selected floor that is no longer valid for the chosen categories.
+          if (this.createForm.floor && !this.locationFloors.includes(this.createForm.floor)) {
+            this.createForm.floor = null;
+          }
+          this.scopeLoading = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => { this.scopeLoading = false; }
+    });
+  }
+
+  // Categories present on the chosen floor (floor-first flow), with counts.
+  loadScopeCategories() {
+    const params = this.scopeParams();
+    if (this.createForm.floor) params.floor = this.createForm.floor;
+    if (this.createForm.block) params.block = this.createForm.block;
+    this.auditService.getScopeCategories(params).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          this.scopeCategories = res.data || [];
+          // Prune any selected categories no longer available in this scope.
+          const valid = new Set(this.scopeCategories.map(c => c.id));
+          this.createForm.categoryIds = (this.createForm.categoryIds || []).filter((id: number) => valid.has(id));
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
+    });
+  }
+
+  loadScopePreview() {
+    const params = this.scopeParams();
+    if (this.createForm.floor) params.floor = this.createForm.floor;
+    if (this.createForm.block) params.block = this.createForm.block;
+    if (this.createForm.categoryIds?.length) params.categoryIds = this.createForm.categoryIds.join(',');
+    this.auditService.getScopePreview(params).subscribe({
+      next: (res: any) => {
+        setTimeout(() => { this.scopePreview = res.data || null; this.cdr.detectChanges(); });
+      },
+      error: () => { this.scopePreview = null; }
+    });
+  }
+
+  // Floor changed → refresh the categories available on it + preview.
+  onScopeFloorChange() {
+    this.loadScopeCategories();
+    this.loadScopePreview();
+  }
+
+  // Categories changed → refresh which floors contain them + preview.
+  onScopeCategoriesChange() {
+    this.loadScopeFloors();
+    this.loadScopePreview();
   }
 
   submitCreate() {
@@ -141,8 +273,28 @@ export class AssetAudit implements OnInit {
       this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Audit date is required' });
       return;
     }
+
+    // Assemble the auditors payload from the chosen type.
+    const auditors: any[] = [];
+    if (this.needsInternal) {
+      if (!this.createForm.internalAuditorIds?.length) {
+        this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Select at least one internal auditor' });
+        return;
+      }
+      for (const empId of this.createForm.internalAuditorIds) auditors.push({ type: 'INTERNAL', employeeId: empId });
+    }
+    if (this.needsExternal) {
+      const valid = (this.createForm.externalAuditors || []).filter((a: any) => a.name?.trim() && a.email?.trim());
+      if (!valid.length) {
+        this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Add at least one external auditor with a name and email' });
+        return;
+      }
+      for (const a of valid) auditors.push({ type: 'EXTERNAL', name: a.name.trim(), email: a.email.trim(), organization: a.organization?.trim() || null, phone: a.phone?.trim() || null });
+    }
+
+    const payload = { ...this.createForm, auditorType: this.createForm.auditorType || null, auditors };
     this.createLoading = true;
-    this.auditService.create(this.createForm).subscribe({
+    this.auditService.create(payload).subscribe({
       next: () => {
         setTimeout(() => {
           this.createLoading = false;
@@ -198,7 +350,10 @@ export class AssetAudit implements OnInit {
     this.auditService.getById(id).subscribe({
       next: (res) => {
         setTimeout(() => {
-          this.auditItems = (res.data || res)?.items || [];
+          const d = res.data || res;
+          this.auditItems = d?.items || [];
+          this.auditAuditors = d?.auditors || [];
+          this.selectedAudit = { ...this.selectedAudit, auditorType: d?.auditorType ?? this.selectedAudit?.auditorType };
           this.cdr.detectChanges();
         });
       },
@@ -208,10 +363,117 @@ export class AssetAudit implements OnInit {
 
   backToList() {
     this.showDetail = false;
+    this.showMap = false;
     this.selectedAudit = null;
     this.auditItems = [];
+    this.auditAuditors = [];
     this.summary = {};
+    this.resetMap();
     this.loadAudits();
+  }
+
+  auditorLabel(a: any): string {
+    if (a?.type === 'INTERNAL') {
+      const e = a.employee;
+      return e ? `${e.name}${e.designation ? ' · ' + e.designation : ''}` : `Employee #${a.employeeId}`;
+    }
+    return `${a.name}${a.organization ? ' (' + a.organization + ')' : ''}`;
+  }
+
+  // ── Floor map ──
+  resetMap() {
+    this.mapPlan = null;
+    this.mapPlaced = [];
+    this.mapUnplaced = [];
+    this.nextItem = null;
+    this.route = [];
+    this.lastVerifiedItemId = null;
+  }
+
+  toggleMap() {
+    this.showMap = !this.showMap;
+    if (this.showMap && this.selectedAudit) {
+      this.loadFloorMap(this.selectedAudit.id);
+    }
+  }
+
+  loadFloorMap(id: number) {
+    this.mapLoading = true;
+    this.auditService.getFloorMap(id).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          const d = res?.data ?? res;
+          this.mapPlan = d.plan || null;
+          this.mapPlaced = d.placed || [];
+          this.mapUnplaced = d.unplaced || [];
+          this.mapLoading = false;
+          this.loadNextItem(id);
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        setTimeout(() => {
+          this.mapLoading = false;
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load floor map' });
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
+
+  loadNextItem(id: number) {
+    this.auditService.getNextItem(id, this.lastVerifiedItemId).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          const d = res?.data ?? res;
+          this.nextItem = d.next || null;
+          this.route = d.route || [];
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
+    });
+  }
+
+  planImageUrl(): string { return this.auditService.imageUrl(this.mapPlan); }
+
+  pinClass(status: string): string {
+    switch (status) {
+      case 'VERIFIED': return 'pin-verified';
+      case 'MISSING': return 'pin-missing';
+      case 'MISMATCH': return 'pin-mismatch';
+      default: return 'pin-pending';
+    }
+  }
+
+  // 1-based position of an item in the suggested route (0 if not routed).
+  routeIndex(itemId: number): number {
+    const i = this.route.findIndex(r => r.itemId === itemId);
+    return i < 0 ? 0 : i + 1;
+  }
+
+  isNext(itemId: number): boolean {
+    return this.nextItem?.itemId === itemId;
+  }
+
+  // Coordinates of the last-verified pin, for drawing the route line to "next".
+  get currentPin(): any | null {
+    if (this.lastVerifiedItemId == null) return null;
+    return this.mapPlaced.find(p => p.itemId === this.lastVerifiedItemId) || null;
+  }
+
+  // Verify a pin straight from the map.
+  verifyMapItem(item: any) {
+    if (this.selectedAudit?.status !== 'IN_PROGRESS') {
+      this.messageService.add({ severity: 'info', summary: 'Not started', detail: 'Start the audit before verifying items' });
+      return;
+    }
+    this.selectedItemId = item.itemId;
+    this.verifyForm = {
+      status: 'VERIFIED', locationMatch: true, conditionMatch: true,
+      actualLocation: '', actualCondition: '', remarks: ''
+    };
+    this.showVerifyDialog = true;
   }
 
   // Start audit
@@ -277,6 +539,7 @@ export class AssetAudit implements OnInit {
 
   submitVerify() {
     if (!this.selectedItemId) return;
+    const verifiedItemId = this.selectedItemId;
     this.verifyLoading = true;
     this.auditService.verifyItem(this.selectedItemId, this.verifyForm).subscribe({
       next: () => {
@@ -286,6 +549,11 @@ export class AssetAudit implements OnInit {
           this.messageService.add({ severity: 'success', summary: 'Verified', detail: 'Item verified' });
           if (this.selectedAudit) {
             this.loadAuditDetail(this.selectedAudit.id);
+            if (this.showMap) {
+              // Anchor the next-asset suggestion to the pin just inspected.
+              this.lastVerifiedItemId = verifiedItemId;
+              this.loadFloorMap(this.selectedAudit.id);
+            }
           }
           this.cdr.detectChanges();
         });

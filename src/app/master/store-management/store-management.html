@@ -107,6 +107,11 @@
           <p-select [options]="storeOptions" [(ngModel)]="storeForm.parentStoreId" placeholder="None (top-level)" [showClear]="true" appendTo="body"></p-select>
         </div>
         <div class="form-field">
+          <label>Department</label>
+          <p-select [options]="departments" optionLabel="name" optionValue="id" [(ngModel)]="storeForm.departmentId"
+            placeholder="Owning department (for HOD acceptance)" [filter]="true" [showClear]="true" appendTo="body"></p-select>
+        </div>
+        <div class="form-field">
           <label>Address / Description</label>
           <textarea pTextarea [(ngModel)]="storeForm.address" rows="3" placeholder="Optional description"></textarea>
         </div>
@@ -172,6 +177,43 @@
           <div class="empty-state-sm">
             <i class="pi pi-map-marker"></i>
             No locations defined yet. Click <strong>Add Location</strong> to define rack/shelf/bin positions.
+          </div>
+        }
+
+        <!-- Parked Assets (IN_STORE assets physically held in this store, awaiting deployment) -->
+        <div class="section-header" style="margin-top: 1.25rem;">
+          <span class="section-title"><i class="pi pi-box"></i> Parked Assets (awaiting deployment)</span>
+        </div>
+
+        @if (loadingParkedAssets) {
+          <div class="empty-state-sm"><i class="pi pi-spin pi-spinner"></i> Loading…</div>
+        } @else if (parkedAssets.length) {
+          <p-table [value]="parkedAssets" styleClass="p-datatable-sm p-datatable-striped" [rows]="10" [paginator]="parkedAssets.length > 10">
+            <ng-template #header>
+              <tr>
+                <th>Asset ID</th>
+                <th>Stores Ref</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Store</th>
+                <th>Status</th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-asset>
+              <tr>
+                <td>{{ asset.assetId || '—' }}</td>
+                <td>{{ asset.storeAssetId || '—' }}</td>
+                <td>{{ asset.assetName }}</td>
+                <td>{{ asset.assetCategory?.name || '—' }}</td>
+                <td>{{ asset.currentStore?.name || '—' }}</td>
+                <td><p-tag value="In Store" severity="info"></p-tag></td>
+              </tr>
+            </ng-template>
+          </p-table>
+        } @else {
+          <div class="empty-state-sm">
+            <i class="pi pi-box"></i>
+            No assets parked in this store. Assets received here or transferred in will appear while awaiting deployment.
           </div>
         }
       }
@@ -245,6 +287,36 @@
         </ng-template>
         <ng-template #emptymessage>
           <tr><td colspan="7" class="text-center">No stock items found for this store.</td></tr>
+        </ng-template>
+      </p-table>
+
+      <!-- Parked Assets (IN_STORE assets physically held in this store, awaiting deployment) -->
+      <div class="section-header" style="margin-top: 1.75rem;">
+        <span class="section-title"><i class="pi pi-box"></i> Parked Assets (awaiting deployment)</span>
+      </div>
+      <p-table [value]="stockAssets" [loading]="loadingStockAssets" [paginator]="stockAssets.length > 15" [rows]="15" stripedRows>
+        <ng-template #header>
+          <tr>
+            <th>Asset ID</th>
+            <th>Stores Ref</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Store</th>
+            <th>Status</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-asset>
+          <tr>
+            <td>{{ asset.assetId || '—' }}</td>
+            <td>{{ asset.storeAssetId || '—' }}</td>
+            <td>{{ asset.assetName }}</td>
+            <td>{{ asset.assetCategory?.name || '—' }}</td>
+            <td>{{ asset.currentStore?.name || '—' }}</td>
+            <td><p-tag value="In Store" severity="info"></p-tag></td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr><td colspan="6" class="text-center">No assets parked in this store.</td></tr>
         </ng-template>
       </p-table>
     } @else {
@@ -322,7 +394,7 @@
           <td><p-tag [value]="row.status" [severity]="getTransferStatusSeverity(row.status)"></p-tag></td>
           <td>{{ row.createdAt | date:'mediumDate' }}</td>
           <td>
-            @if (row.status === 'PENDING' && isRole('HOD', 'ADMIN')) {
+            @if (row.status === 'REQUESTED' && isRole('HOD', 'ADMIN')) {
               <p-button icon="pi pi-check" [rounded]="true" [text]="true" size="small" pTooltip="Approve" tooltipPosition="top" severity="success" (onClick)="approveTransfer(row.id)" [loading]="approvingTransfer"></p-button>
             }
             @if ((row.status === 'APPROVED' || row.status === 'IN_TRANSIT') && isRole('HOD', 'SUPERVISOR', 'ADMIN')) {
@@ -339,19 +411,24 @@
     <!-- Create Transfer Dialog -->
     <p-dialog header="Create Transfer" [(visible)]="showCreateTransferDialog" [modal]="true" [style]="{'width': '700px'}">
       <div class="form-grid">
+        <div class="form-field">
+          <label>Transfer Type</label>
+          <p-select [options]="transferTypeOptions" [(ngModel)]="transferForm.transferType" (onChange)="onTransferTypeChange()" appendTo="body"></p-select>
+        </div>
         <div style="display:flex; gap:1rem;">
           <div class="form-field" style="flex:1">
             <label>From Store *</label>
-            <p-select [options]="storeOptions" [(ngModel)]="transferForm.fromStoreId" placeholder="Select source store" appendTo="body"></p-select>
+            <p-select [options]="storeOptions" [(ngModel)]="transferForm.fromStoreId" placeholder="Select source store" (onChange)="onTransferFromStoreChange()" appendTo="body"></p-select>
           </div>
           <div class="form-field" style="flex:1">
-            <label>To Store *</label>
-            <p-select [options]="storeOptions" [(ngModel)]="transferForm.toStoreId" placeholder="Select destination store" appendTo="body"></p-select>
+            @if (transferForm.transferType === 'STORE_TO_DEPARTMENT') {
+              <label>To Department *</label>
+              <p-select [options]="departments" optionLabel="name" optionValue="id" [(ngModel)]="transferForm.toDepartmentId" placeholder="Select department" [filter]="true" appendTo="body"></p-select>
+            } @else {
+              <label>To Store *</label>
+              <p-select [options]="storeOptions" [(ngModel)]="transferForm.toStoreId" placeholder="Select destination store" appendTo="body"></p-select>
+            }
           </div>
-        </div>
-        <div class="form-field">
-          <label>Transfer Type</label>
-          <p-select [options]="transferTypeOptions" [(ngModel)]="transferForm.transferType" appendTo="body"></p-select>
         </div>
         <div class="form-field">
           <label>Notes</label>
@@ -368,7 +445,7 @@
             <div class="transfer-item-row">
               <div class="form-field" style="flex:1">
                 <label>Type</label>
-                <p-select [options]="itemTypeOptions" [(ngModel)]="item.itemType" placeholder="Item Type" (onChange)="item.sparePartId = null; item.consumableId = null" appendTo="body"></p-select>
+                <p-select [options]="transferItemTypeOptions" [(ngModel)]="item.itemType" placeholder="Item Type" (onChange)="onTransferItemTypeChange(item)" appendTo="body"></p-select>
               </div>
               <div class="form-field" style="flex:2">
                 <label>Item</label>
@@ -376,13 +453,16 @@
                   <p-select [options]="sparePartOptions" [(ngModel)]="item.sparePartId" placeholder="Select spare part" [filter]="true" appendTo="body"></p-select>
                 } @else if (item.itemType === 'CONSUMABLE') {
                   <p-select [options]="consumableOptions" [(ngModel)]="item.consumableId" placeholder="Select consumable" [filter]="true" appendTo="body"></p-select>
+                } @else if (item.itemType === 'ASSET') {
+                  <p-select [options]="assetOptions" [(ngModel)]="item.assetId" placeholder="Select parked asset" [filter]="true" appendTo="body"
+                    [emptyMessage]="transferForm.fromStoreId ? 'No parked assets in source store' : 'Select a source store first'"></p-select>
                 } @else {
                   <p-select [options]="[]" placeholder="Select item type first" [disabled]="true" appendTo="body"></p-select>
                 }
               </div>
               <div class="form-field" style="flex:0.7">
                 <label>Qty</label>
-                <p-inputNumber [(ngModel)]="item.quantity" [min]="1" [showButtons]="true" appendTo="body"></p-inputNumber>
+                <p-inputNumber [(ngModel)]="item.quantity" [min]="1" [showButtons]="true" [disabled]="item.itemType === 'ASSET'" appendTo="body"></p-inputNumber>
               </div>
               @if (transferForm.items.length > 1) {
                 <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" size="small" pTooltip="Remove Item" tooltipPosition="top" (onClick)="removeTransferItem($index)" styleClass="align-self: flex-end; margin-bottom: 0.3rem;"></p-button>
@@ -394,7 +474,7 @@
       <ng-template #footer>
         <p-button label="Cancel" [text]="true" (onClick)="showCreateTransferDialog = false"></p-button>
         <p-button label="Create Transfer" icon="pi pi-check" (onClick)="createTransfer()" [loading]="savingTransfer"
-          [disabled]="!transferForm.fromStoreId || !transferForm.toStoreId"></p-button>
+          [disabled]="!transferForm.fromStoreId || (transferForm.transferType === 'STORE_TO_DEPARTMENT' ? !transferForm.toDepartmentId : !transferForm.toStoreId)"></p-button>
       </ng-template>
     </p-dialog>
   }
