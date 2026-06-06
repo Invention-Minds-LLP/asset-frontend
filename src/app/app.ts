@@ -35,7 +35,15 @@ export class App implements OnInit, OnDestroy {
 
   dark = false;
   isSidebarCollapsed = false;
-  name = localStorage.getItem('name') || '';
+  // Read from localStorage on every change-detection pass instead of caching
+  // at construction. Reason: the App component is constructed once (before any
+  // login), so a plain field stays empty until a hard refresh — and after a
+  // logout-then-login as a different user, a cached field still shows the
+  // previous user's name. The getter is read at render time, so the topbar
+  // always reflects the current logged-in user.
+  get name(): string {
+    return localStorage.getItem('name') || '';
+  }
   showUserMenu = false;
 
   // Notification state

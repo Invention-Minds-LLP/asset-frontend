@@ -113,6 +113,29 @@ export class FixedAssetsSchedule implements OnInit {
     });
   }
 
+  /**
+   * Combined export: single sheet, each category expands into its asset rows
+   * followed by a subtotal, with a grand total at the bottom (Layout A).
+   * The summary "Export Excel" button stays available for the rolled-up view.
+   */
+  exportCombinedExcel() {
+    this.reportsService.exportReport('fixed-assets-schedule', 'combined', { fiscalYear: this.selectedYear }).subscribe({
+      next: (blob: Blob) => {
+        const file = new Blob([blob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `fixed-assets-schedule-with-breakdown-${this.selectedYear}-${String(this.selectedYear + 1).slice(2)}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.messageService.add({ severity: 'success', summary: 'Exported', detail: 'Schedule with asset breakdown downloaded' });
+      },
+      error: () => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Combined export failed' });
+      }
+    });
+  }
+
   fmt(val: number): string {
     if (val == null || val === 0) return '—';
     return '₹' + Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

@@ -45,7 +45,10 @@ export class ReportsService {
     return this.http.get(`${this.baseUrl}/consolidated`, { params: this.buildParams(filters) });
   }
 
-  exportReport(reportType: string, format: 'csv' | 'excel', filters: any = {}): Observable<Blob> {
+  // 'combined' is a third export mode currently used only by the Fixed Assets
+  // Schedule — it returns a single-sheet workbook with category sections that
+  // each expand into per-asset rows + subtotal + grand total.
+  exportReport(reportType: string, format: 'csv' | 'excel' | 'combined', filters: any = {}): Observable<Blob> {
     const params = this.buildParams({ ...filters, export: format });
     return this.http.get(`${this.baseUrl}/${reportType}`, {
       params,
