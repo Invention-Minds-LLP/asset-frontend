@@ -209,6 +209,6 @@
 }
 
 @media (max-width: 480px) {
-  .qr-summary-fields { grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+  .qr-summary-fields { grid-template-columns: 1fr; gap: 10px 14px; }
   .qr-asset-name { font-size: 20px; }
 }
