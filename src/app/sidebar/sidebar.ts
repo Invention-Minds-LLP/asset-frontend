@@ -163,6 +163,7 @@ export class Sidebar implements OnInit {
         { label: 'Support Matrix', route: '/support-matrix', icon: 'pi pi-users' },
         { label: 'Hierarchy Dashboard', route: '/hierarchy-config', icon: 'pi pi-sitemap' },
         { label: 'Master Settings', route: '/master-settings', icon: 'pi pi-cog' },
+        { label: 'External Auditors', route: '/external-auditors', icon: 'pi pi-id-card' },
         { label: 'Approval Config', route: '/approval-config', icon: 'pi pi-check-circle' },
         { label: 'Module Access', route: '/module-access', icon: 'pi pi-lock' },
         { label: 'System Config', route: '/tenant-config', icon: 'pi pi-sliders-v' },

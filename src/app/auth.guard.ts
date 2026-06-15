@@ -11,7 +11,7 @@ export const authGuard: CanActivateFn = (route, state) => {
 
     if (!token) {
       console.warn('No auth token found, redirecting to login page');
-      router.navigate(['/login']);
+      router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
       return false;
     }
   }

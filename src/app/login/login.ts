@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { CarouselModule } from 'primeng/carousel';
 import { Auth } from '../services/auth/auth';
 import { FormsModule, NgForm, NgModel } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MessageService } from 'primeng/api';
 
 @Component({
@@ -18,9 +18,15 @@ import { MessageService } from 'primeng/api';
 })
 export class Login {
 
-  constructor(private authService: Auth, private router: Router, private messageService: MessageService) {
+  constructor(private authService: Auth, private router: Router, private route: ActivatedRoute, private messageService: MessageService) {
     // Initialize any required services or state
 
+  }
+
+  // Where to land after login — honours ?returnUrl (e.g. set by a QR scan that
+  // needs login to show full details), falling back to the assets list.
+  private get returnUrl(): string {
+    return this.route.snapshot.queryParamMap.get('returnUrl') || '/assets/view';
   }
 
   ngOnInit(): void {
@@ -29,7 +35,7 @@ export class Login {
       const token = localStorage.getItem('authToken');
       if (token) {
         console.log('User already logged in');
-        this.router.navigate(['/assets/view']);
+        this.router.navigateByUrl(this.returnUrl);
       }
     }
   }
@@ -71,7 +77,7 @@ export class Login {
         this.employeeId = '';
         this.password = '';
         this.loading = false;
-        this.router.navigate(['/assets/view']);
+        this.router.navigateByUrl(this.returnUrl);
         this.messageService.add({ severity: 'success', summary: 'Login Successful', detail: 'Welcome back!' });
       },
       error: (error) => {

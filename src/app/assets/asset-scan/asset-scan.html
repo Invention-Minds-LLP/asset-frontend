@@ -3,7 +3,7 @@
   <!-- Loading -->
   <div *ngIf="loading" class="loading-state">
     <div class="spinner"></div>
-    <p>Loading asset details...</p>
+    <p>Loading asset...</p>
   </div>
 
   <!-- Error -->
@@ -13,56 +13,32 @@
   </div>
 
   <!-- Scan Result -->
-  <div *ngIf="scanData && !loading">
+  <div *ngIf="summary && !loading">
 
-    <!-- ── QR Summary Card (shown immediately after scan) ── -->
+    <!-- ── QR Summary Card: name + code only (public, pre-login) ── -->
     <div class="qr-summary-card">
-      <div class="qr-summary-photo" *ngIf="master?.assetPhoto">
-        <img [src]="master?.assetPhoto" alt="Asset Photo" />
-      </div>
-      <div class="qr-summary-photo placeholder" *ngIf="!master?.assetPhoto">
-        <span>&#128248;</span>
-      </div>
-
       <div class="qr-summary-body">
-        <h2 class="qr-asset-name">{{ master?.assetName }}</h2>
+        <h2 class="qr-asset-name">{{ summary.assetName }}</h2>
         <div class="qr-summary-fields">
           <div class="qr-field">
-            <span class="qr-label">Asset ID</span>
-            <span class="qr-value">{{ master?.assetId || '-' }}</span>
-          </div>
-          <div class="qr-field">
-            <span class="qr-label">Reference ID</span>
-            <span class="qr-value">{{ master?.referenceCode || '-' }}</span>
-          </div>
-          <div class="qr-field">
-            <span class="qr-label">Category</span>
-            <span class="qr-value">{{ master?.assetCategory?.name || '-' }}</span>
-          </div>
-          <div class="qr-field">
-            <span class="qr-label">Installed Date</span>
-            <span class="qr-value">{{ master?.installedAt ? (master.installedAt | date:'MMM yyyy') : '-' }}</span>
-          </div>
-          <div class="qr-field">
-            <span class="qr-label">Status</span>
-            <span class="qr-value status-badge" [class]="'status-' + (master?.status || '').toLowerCase()">
-              {{ master?.status || '-' }}
-            </span>
-          </div>
-          <div class="qr-field">
-            <span class="qr-label">Department</span>
-            <span class="qr-value">{{ master?.department?.name || '-' }}</span>
+            <span class="qr-label">Asset Code</span>
+            <span class="qr-value">{{ summary.assetId || '-' }}</span>
           </div>
         </div>
 
-        <button class="view-more-btn" (click)="toggleDetails()">
-          {{ showDetails ? '&#9650; Hide Details' : '&#9660; View More' }}
+        <button class="view-more-btn" (click)="knowMore()" [disabled]="detailsLoading">
+          <ng-container *ngIf="detailsLoading">Loading…</ng-container>
+          <ng-container *ngIf="!detailsLoading">
+            {{ showDetails ? '&#9650; Hide Details' : '&#9660; Know More' }}
+          </ng-container>
         </button>
+
+        <p *ngIf="detailsError" class="details-error">{{ detailsError }}</p>
       </div>
     </div>
 
-    <!-- ── Full Detail Page (shown when View More is clicked) ── -->
-    <div class="detail-sections" *ngIf="showDetails">
+    <!-- ── Full Detail Page (loaded on Know More, login required) ── -->
+    <div class="detail-sections" *ngIf="showDetails && scanData">
 
       <section class="detail-card">
         <h3>Master Details</h3>

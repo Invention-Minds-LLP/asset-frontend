@@ -189,12 +189,11 @@ export class QuickActionsPage implements OnInit {
     const cards = Array.from(document.querySelectorAll('#qr-print-area .qr-card')) as HTMLElement[];
     if (cards.length === 0) return;
 
+    // QR only — no asset code/name text. The QR alone carries the asset identity.
     const tiles = cards.map(card => {
       const canvas = card.querySelector('canvas') as HTMLCanvasElement | null;
       const dataUrl = canvas?.toDataURL('image/png') ?? '';
-      const assetId = card.getAttribute('data-asset-id') ?? '';
-      const name = (card.querySelector('.qr-name')?.textContent ?? '').trim();
-      return `<div class="tile"><img src="${dataUrl}" alt="QR" /><div class="id">${assetId}</div><div class="name">${name}</div></div>`;
+      return `<div class="tile"><img src="${dataUrl}" alt="QR" /></div>`;
     }).join('');
 
     const win = window.open('', '_blank', 'width=900,height=700');

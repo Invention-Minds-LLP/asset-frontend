@@ -1,0 +1,129 @@
+<div class="page-container">
+  <p-toast />
+  <p-confirmDialog></p-confirmDialog>
+
+  <div class="page-header">
+    <div>
+      <h2>External Auditors</h2>
+      <p>Manage the master list of external auditors. Their details are snapshotted onto audits at creation time, so renaming here doesn't rewrite history. Deactivating disables mobile login but keeps their assignments on past audits intact.</p>
+    </div>
+    <div class="header-actions">
+      <p-button [label]="showForm ? 'Cancel' : 'Add Auditor'"
+        [icon]="showForm ? 'pi pi-times' : 'pi pi-plus'"
+        (onClick)="showForm ? resetForm() : openAdd()" />
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-card" *ngIf="showForm">
+    <h3>{{ editingId !== null ? 'Edit Auditor' : 'New External Auditor' }}</h3>
+    <p class="form-note" *ngIf="editingId !== null">Email is the login identifier and cannot be changed. To change the email, deactivate this record and add a new one.</p>
+
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="email" [(ngModel)]="form.email" name="auditorEmail"
+            [disabled]="editingId !== null" autocomplete="off" />
+          <label>Email *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="text" [(ngModel)]="form.name" name="auditorName" />
+          <label>Name *</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="text" [(ngModel)]="form.organization" name="auditorOrg" />
+          <label>Organization</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="text" [(ngModel)]="form.phone" name="auditorPhone" />
+          <label>Phone</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field" *ngIf="editingId !== null">
+        <p-floatlabel variant="on">
+          <p-select [options]="[{label:'Active', value:'ACTIVE'}, {label:'Inactive', value:'INACTIVE'}]"
+            optionLabel="label" optionValue="value"
+            [(ngModel)]="form.status" name="auditorStatus" appendTo="body" />
+          <label>Status</label>
+        </p-floatlabel>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" (onClick)="resetForm()" />
+      <p-button [label]="editingId !== null ? 'Update' : 'Save'" icon="pi pi-save" (onClick)="save()" />
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-row">
+    <div class="filter-field">
+      <p-floatlabel variant="on">
+        <p-select [options]="statusFilterOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="statusFilter" (ngModelChange)="load()" name="filterStatus" appendTo="body" />
+        <label>Status</label>
+      </p-floatlabel>
+    </div>
+
+    <div class="filter-field grow">
+      <p-floatlabel variant="on">
+        <input pInputText type="text" [(ngModel)]="searchTerm"
+          (keyup.enter)="load()" name="filterSearch" />
+        <label>Search by name, email, or organization</label>
+      </p-floatlabel>
+    </div>
+
+    <p-button label="Search" icon="pi pi-search" (onClick)="load()" />
+  </div>
+
+  <!-- Table -->
+  <p-table [value]="auditors" [loading]="loading" [paginator]="true" [rows]="15"
+    responsiveLayout="scroll" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Organization</th>
+        <th>Phone</th>
+        <th>Status</th>
+        <th>Last Used</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td><strong>{{ row.name }}</strong></td>
+        <td>{{ row.email }}</td>
+        <td>{{ row.organization || '—' }}</td>
+        <td>{{ row.phone || '—' }}</td>
+        <td>
+          <p-tag [value]="row.status" [severity]="statusSeverity(row.status)" />
+        </td>
+        <td>{{ formatLastUsed(row.lastUsedAt) }}</td>
+        <td>
+          <div class="action-buttons">
+            <p-button icon="pi pi-pencil" size="small" severity="secondary"
+              pTooltip="Edit" tooltipPosition="top" (onClick)="openEdit(row)" />
+            <p-button icon="pi pi-ban" size="small" severity="danger"
+              pTooltip="Deactivate" tooltipPosition="top"
+              [disabled]="row.status === 'INACTIVE'"
+              (onClick)="confirmDeactivate(row)" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="7" class="text-center">No external auditors found.</td></tr>
+    </ng-template>
+  </p-table>
+</div>

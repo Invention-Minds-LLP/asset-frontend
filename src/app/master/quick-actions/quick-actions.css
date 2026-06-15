@@ -13,14 +13,32 @@
 .field-group input { width: 100%; }
 .bulk-controls { display: flex; flex-direction: column; gap: 0.5rem; }
 .row-selected { background: #e3f2fd !important; }
-.qr-grid { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.5rem; }
-.qr-card { border: 1px solid var(--border-color); border-radius: 6px; padding: 0.5rem; text-align: center; width: 160px; }
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+.qr-card {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;            /* belt-and-braces: never let the canvas spill */
+  background: var(--surface-card, #fff);
+}
 .qr-img { width: 140px; height: 140px; }
 /* On-screen display only — the underlying canvas pixels stay at 600×600 so the
-   PNG captured for printing keeps high DPI. Without this, the 600px canvas
-   would blow out of the 160px card. */
-.qr-card canvas { width: 140px !important; height: 140px !important; }
-.qr-label { font-size: 0.78rem; font-weight: 700; margin-top: 6px; font-family: monospace; color: var(--info-fg); }
+   PNG captured for printing keeps high DPI. ::ng-deep is required because the
+   <canvas> lives inside the angularx-qrcode child component, so a normal
+   encapsulated rule can't reach it and the 600px canvas blows out of the card. */
+:host ::ng-deep .qr-card qrcode { display: block; line-height: 0; }
+:host ::ng-deep .qr-card canvas { width: 140px !important; height: 140px !important; }
+.qr-label { font-size: 0.78rem; font-weight: 700; font-family: monospace; color: var(--info-fg); word-break: break-all; }
 .qr-name { font-size: 0.72rem; color: var(--text-color-secondary); }
 
 @media print { .page-header, .op-card:not(:last-child) { display: none !important; } .qr-grid { display: flex !important; flex-wrap: wrap; } }

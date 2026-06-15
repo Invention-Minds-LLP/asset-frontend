@@ -227,11 +227,12 @@ export class App implements OnInit, OnDestroy {
   }
 
   isLoginRoute(): boolean {
-    return this.router.url === '/login';
+    // Strip any query string (e.g. /login?returnUrl=…) before matching.
+    return this.router.url.split('?')[0] === '/login';
   }
 
   isNoLayoutRoute(): boolean {
-    const url = this.router.url;
+    const url = this.router.url.split('?')[0];
     return url === '/login' || url.startsWith('/assets/scan/');
   }
 

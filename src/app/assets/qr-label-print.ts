@@ -20,14 +20,14 @@ export function printQrLabels(tiles: QrLabelTile[], opts: QrLabelOptions = {}): 
 
   const w = opts.widthMm ?? 30;
   const h = opts.heightMm ?? 30;
-  // QR occupies ~72% of the shorter edge, leaving room for the ID line.
-  const qrMm = Math.max(8, Math.round(Math.min(w, h) * 0.72));
+  // QR only (no ID line) — let it fill most of the label.
+  const qrMm = Math.max(8, Math.round(Math.min(w, h) * 0.9));
 
+  // QR only — no asset-code text. The QR alone carries the asset identity.
   const labels = valid
     .map(
       t => `<div class="label">
   <img src="${t.dataUrl}" alt="QR" />
-  <div class="id">${escapeHtml(t.id)}</div>
 </div>`
     )
     .join('');
@@ -51,13 +51,6 @@ export function printQrLabels(tiles: QrLabelTile[], opts: QrLabelOptions = {}): 
   }
   .label:last-child { page-break-after: auto; break-after: auto; }
   .label img { width: ${qrMm}mm; height: ${qrMm}mm; display: block; }
-  .label .id {
-    font-family: ui-monospace, monospace;
-    font-size: 6pt; font-weight: 700; color: #111;
-    margin-top: 0.6mm; text-align: center;
-    line-height: 1; word-break: break-all;
-    max-width: ${Math.max(1, w - 2)}mm;
-  }
 </style></head>
 <body>
   ${labels}
@@ -68,16 +61,4 @@ export function printQrLabels(tiles: QrLabelTile[], opts: QrLabelOptions = {}): 
 </body></html>`;
   win.document.write(html);
   win.document.close();
-}
-
-function escapeHtml(value: string): string {
-  return (value ?? '').replace(/[&<>"']/g, c => {
-    switch (c) {
-      case '&': return '&amp;';
-      case '<': return '&lt;';
-      case '>': return '&gt;';
-      case '"': return '&quot;';
-      default:  return '&#39;';
-    }
-  });
 }

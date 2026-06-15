@@ -76,6 +76,7 @@ import { ApprovalConfigComponent } from './master/approval-config/approval-confi
 import { AssetPoolPage } from './master/asset-pool/asset-pool';
 import { DataExport } from './master/data-export/data-export';
 import { FloorPlanPage } from './master/floor-plan/floor-plan';
+import { ExternalAuditor } from './master/external-auditor/external-auditor';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -159,6 +160,7 @@ export const routes: Routes = [
   { path: 'asset-pool', component: AssetPoolPage, canActivate: [authGuard] },
   { path: 'data-export', component: DataExport, canActivate: [authGuard] },
   { path: 'floor-plan', component: FloorPlanPage, canActivate: [authGuard] },
+  { path: 'external-auditors', component: ExternalAuditor, canActivate: [authGuard] },
   {
     path: 'assets/scan/:assetId',
     component: AssetScan

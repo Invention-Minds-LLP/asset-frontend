@@ -24,17 +24,17 @@ export const AuthInterceptor: HttpInterceptorFn = (
 
     return next(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
-        if (error.status === 403) {
-          console.warn('403 error encountered. Redirecting to login page...');
+        if (error.status === 401 || error.status === 403) {
+          console.warn(`${error.status} error encountered.`);
           localStorage.removeItem('authToken');
           sessionStorage.removeItem('authToken');
-          router.navigate(['/login']);
-        }
-        if( error.status === 401) {
-          console.warn('401 error encountered. Redirecting to login page...');
-          localStorage.removeItem('authToken');
-          sessionStorage.removeItem('authToken');
-          router.navigate(['/login']);
+          // The QR scan landing is public (name + code shown without login).
+          // A background 401 there — e.g. a stale token rejected by the API —
+          // must NOT hijack the page to /login. The scan page redirects to
+          // login itself only when the user explicitly asks for full details.
+          if (!router.url.startsWith('/assets/scan/')) {
+            router.navigate(['/login']);
+          }
         }
         return throwError(() => error);
       })

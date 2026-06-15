@@ -286,6 +286,14 @@ export class Assets {
     return this.http.put(`${this.assetsUrl}/specifications/${id}`, payload);
   }
 
+  // Public — name + code only, shown on the scan landing before login.
+  getAssetScanSummary(assetId: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.assetsUrl}/scan/${encodeURIComponent(assetId)}/summary`
+    );
+  }
+
+  // Full details — requires login (backend route is auth-gated).
   getAssetScanDetails(assetId: string): Observable<any> {
     return this.http.get<any>(
       `${this.assetsUrl}/scan/${encodeURIComponent(assetId)}`
