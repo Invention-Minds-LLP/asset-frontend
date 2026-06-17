@@ -290,5 +290,76 @@
       }
     </section>
 
+    <!-- ===== DEPARTMENT & ASSIGNMENT ===== -->
+    <section class="import-card">
+      <div class="card-head">
+        <span class="card-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="pi pi-users"></i></span>
+        <div class="card-titles">
+          <h2>Department &amp; Assignment</h2>
+          <span class="card-sub">Set source/target dept, supervisor &amp; end user</span>
+        </div>
+      </div>
+
+      <p class="card-desc">
+        One row per asset (by <strong>Asset ID</strong>) updates its <code>Source Department</code>,
+        <code>Target Department</code>, <code>Supervisor</code> and <code>End User</code>. The
+        <strong>HOD is auto-resolved</strong> from the source department's HOD employee — there is no HOD column.
+        Blank cells are left unchanged. The asset must already exist; supervisor / end-user employees must already exist.
+      </p>
+
+      <button type="button" class="btn-template" (click)="downloadDepartmentTemplate()" [disabled]="downloadingDepartmentTemplate">
+        <i class="pi pi-download"></i>
+        {{ downloadingDepartmentTemplate ? 'Downloading…' : 'Download Template' }}
+      </button>
+
+      <input #departmentsFileInput class="hidden-file-input" type="file" accept=".xlsx,.xls" (change)="onDepartmentsFileSelected($event)" />
+
+      <div class="dropzone" [class.has-file]="departmentsFile" (click)="departmentsFileInput.click()">
+        <i class="pi" [ngClass]="departmentsFile ? 'pi-file-excel' : 'pi-cloud-upload'"></i>
+        <span class="dz-text">{{ departmentsFile ? departmentsFile.name : 'Choose department workbook (.xlsx / .xls)' }}</span>
+      </div>
+
+      <button type="button" class="btn-upload" (click)="uploadDepartmentsWorkbook()" [disabled]="isUploadingDepartments || !departmentsFile">
+        <i class="pi" [ngClass]="isUploadingDepartments ? 'pi-spin pi-spinner' : 'pi-check'"></i>
+        {{ isUploadingDepartments ? 'Uploading…' : 'Upload' }}
+      </button>
+
+      @if (departmentsError) { <div class="error"><i class="pi pi-exclamation-triangle"></i> {{ departmentsError }}</div> }
+
+      @if (departmentsResponse) {
+        <div class="result-box">
+          <h3 class="result-title">{{ departmentsResponse.message }}</h3>
+          @if (departmentsResponse.summary) {
+            <div class="chips">
+              @for (key of objectKeys(departmentsResponse.summary); track key) {
+                <span class="chip"><span class="chip-k">{{ key }}</span><span class="chip-v">{{ departmentsResponse.summary[key] }}</span></span>
+              }
+            </div>
+          }
+          @if (departmentRows().length) {
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Row</th><th>Asset ID</th><th>Status</th><th>Reason</th></tr></thead>
+                <tbody>
+                  @for (r of departmentRows(); track $index) {
+                    <tr>
+                      <td>{{ r.row }}</td>
+                      <td class="ellipsis-cell" appOverflowTooltip>{{ r.assetId }}</td>
+                      <td>
+                        <span class="status-pill"
+                          [class.s-created]="r.status === 'UPDATED'"
+                          [class.s-error]="r.status === 'ERROR'">{{ r.status }}</span>
+                      </td>
+                      <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 420px;">{{ r.reason || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
   </div>
 </div>

@@ -39,7 +39,7 @@
                         <!-- ASSET NAME -->
                         <p-floatlabel variant="on" class="full-field">
                             <input pInputText name="assetName" [(ngModel)]="asset.assetName" required
-                                [disabled]="!canEditBasicDetails" />
+                                [disabled]="!canEditAssetName" />
                             <label>Asset Name *</label>
                         </p-floatlabel>
 
@@ -711,6 +711,12 @@
                             (click)="saveAndDuplicate(basicForm)"></button>
 
                         <button label="Clear" class="clear-btn" (click)="clearForm()">Clear</button>
+                    </div>
+
+                    <!-- HOD of the asset's department: name-only edit, full edit rights not granted -->
+                    <div class="button" *ngIf="!canEditBasicDetails && canEditAssetName">
+                        <button pButton label="Save" class="save-btn"
+                            (click)="saveBasicDetails(basicForm)"></button>
                     </div>
 
                 </div>

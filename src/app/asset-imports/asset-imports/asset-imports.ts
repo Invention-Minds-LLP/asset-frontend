@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, ChangeDetectorRef } from '@angular/core';
-import { ImportExcel, ImportResponse, SubAssetRowResult, LocationRowResult } from '../../services/imports/import-excel';
+import { ImportExcel, ImportResponse, SubAssetRowResult, LocationRowResult, DepartmentRowResult } from '../../services/imports/import-excel';
 import { FormsModule } from '@angular/forms';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
@@ -36,6 +36,13 @@ assetsFile: File | null = null;
   locationsResponse: ImportResponse | null = null;
   locationsError = '';
   downloadingLocationTemplate = false;
+
+  // ── Department & assignment import ──
+  departmentsFile: File | null = null;
+  isUploadingDepartments = false;
+  departmentsResponse: ImportResponse | null = null;
+  departmentsError = '';
+  downloadingDepartmentTemplate = false;
 
   constructor(private assetImportService: ImportExcel) {}
 
@@ -240,5 +247,52 @@ assetsFile: File | null = null;
 
   locationRows(): LocationRowResult[] {
     return (this.locationsResponse?.results as unknown as LocationRowResult[]) ?? [];
+  }
+
+  // ── Department & assignment import handlers ──
+  onDepartmentsFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.departmentsFile = input.files?.[0] || null;
+    this.departmentsResponse = null;
+    this.departmentsError = '';
+  }
+
+  uploadDepartmentsWorkbook(): void {
+    if (!this.departmentsFile) {
+      this.departmentsError = 'Please select a department workbook file.';
+      return;
+    }
+    this.isUploadingDepartments = true;
+    this.departmentsError = '';
+    this.departmentsResponse = null;
+
+    this.assetImportService.uploadDepartmentsWorkbook(this.departmentsFile).subscribe({
+      next: (res) => { this.departmentsResponse = res; },
+      error: (err) => {
+        this.departmentsError =
+          err?.error?.message || err?.error?.error || 'Department workbook upload failed.';
+      },
+      complete: () => { this.isUploadingDepartments = false; }
+    });
+  }
+
+  downloadDepartmentTemplate(): void {
+    this.downloadingDepartmentTemplate = true;
+    this.assetImportService.downloadDepartmentTemplate().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'asset-departments-import-template.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingDepartmentTemplate = false;
+      },
+      error: () => { this.downloadingDepartmentTemplate = false; }
+    });
+  }
+
+  departmentRows(): DepartmentRowResult[] {
+    return (this.departmentsResponse?.results as unknown as DepartmentRowResult[]) ?? [];
   }
 }

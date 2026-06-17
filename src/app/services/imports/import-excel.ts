@@ -27,6 +27,13 @@ export interface LocationRowResult {
   reason?: string;
 }
 
+export interface DepartmentRowResult {
+  row: number;
+  assetId: string;
+  status: 'UPDATED' | 'ERROR';
+  reason?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -77,5 +84,15 @@ export class ImportExcel {
 
   downloadLocationTemplate(): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/locations-template`, { responseType: 'blob' });
+  }
+
+  uploadDepartmentsWorkbook(file: File): Observable<ImportResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ImportResponse>(`${this.baseUrl}/departments-excel`, formData);
+  }
+
+  downloadDepartmentTemplate(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/departments-template`, { responseType: 'blob' });
   }
 }

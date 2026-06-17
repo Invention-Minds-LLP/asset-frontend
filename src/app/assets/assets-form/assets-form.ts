@@ -929,12 +929,19 @@ private returnLastY = 0;
   }
 
   saveBasicDetails(form: any) {
+    // Existing asset (loaded for edit) → PUT update. New asset → POST create.
+    // Without this branch, editing an existing asset re-hits the create endpoint
+    // and fails on the unique serial-number constraint.
+    const isEdit = !!this.asset.id;
+
     if (!form.valid) {
       this.pendingDuplicate = false;
       return this.toast("error", "Fill required fields");
     }
 
-    if (!this.allCreationItemsChecked) {
+    // The store-receipt checklist is a creation-time gate only; it must not block
+    // edits (e.g. an HOD just renaming an existing asset).
+    if (!isEdit && !this.allCreationItemsChecked) {
       this.pendingDuplicate = false;
       return this.toast("error", "Complete all checklist items before saving");
     }
@@ -942,12 +949,16 @@ private returnLastY = 0;
     const isDuplicate = this.pendingDuplicate;
     this.pendingDuplicate = false;
 
-    this.assetAPI.createAsset(this.asset).subscribe({
+    const request$ = isEdit
+      ? this.assetAPI.updateAsset(this.asset.id, this.asset)
+      : this.assetAPI.createAsset(this.asset);
+
+    request$.subscribe({
       next: res => {
-        this.asset.id = res.id;
-        this.asset.assetId = res.assetId;
-        this.asset.storeAssetId = res.storeAssetId;
-        this.toast("success", isDuplicate ? "Saved — form ready for next unit" : "Basic details saved");
+        this.asset.id = res.id ?? this.asset.id;
+        this.asset.assetId = res.assetId ?? this.asset.assetId;
+        this.asset.storeAssetId = res.storeAssetId ?? this.asset.storeAssetId;
+        this.toast("success", isEdit ? "Asset updated" : (isDuplicate ? "Saved — form ready for next unit" : "Basic details saved"));
         if (this.pendingAssetImageFile) {
           this.assetAPI.uploadAssetImage(this.pendingAssetImageFile, res.assetId)
             .subscribe({
@@ -985,8 +996,9 @@ private returnLastY = 0;
               }
             });
         }
-        // 🔥 After creating asset, start HOD acknowledgement flow (if department selected)
-        if (this.asset.departmentId) {
+        // 🔥 After creating asset, start HOD acknowledgement flow (if department selected).
+        // Skipped on edit so re-saving an existing asset doesn't restart the ack workflow.
+        if (!isEdit && this.asset.departmentId) {
           console.log(this.asset.departmentId, 'departmentId')
           if (!this.handoverCondition?.trim()) {
             this.toast("error", "Enter Condition at Handover to send HOD acknowledgement");
@@ -1003,7 +1015,14 @@ private returnLastY = 0;
             });
           }
         }
-        if (isDuplicate) {
+        if (isEdit) {
+          // Keep the edited asset loaded; just mark the form clean.
+          this.activeTab = 0;
+          setTimeout(() => {
+            form.form.markAsPristine();
+            form.form.markAsUntouched();
+          });
+        } else if (isDuplicate) {
           this.prepareDuplicate();
           // Keep on Basic Details tab; mark form pristine so required-field errors don't flash.
           this.activeTab = 0;
@@ -2313,6 +2332,16 @@ returnAsset(row: any) {
 
   get isAssetDepartmentUser(): boolean {
     return Number(this.currentUser?.departmentId) === Number(this.asset?.departmentId);
+  }
+
+  /**
+   * The asset name stays editable for anyone who can edit basic details, PLUS the
+   * HOD of the asset's own department — even though the rest of the basic-detail
+   * fields remain locked for them. Lets HODs correct/rename an asset and save.
+   */
+  get canEditAssetName(): boolean {
+    return this.canEditBasicDetails
+      || (!!this.asset?.id && this.isHod && this.isAssetDepartmentUser);
   }
 
   get isHod(): boolean {
