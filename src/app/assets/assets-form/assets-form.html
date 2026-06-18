@@ -857,11 +857,32 @@
                         </div>
 
                         <div class="two-fields">
-                            <p-floatlabel variant="on">
+                            <!-- <p-floatlabel variant="on">
                                 <p-select [options]="specGroupOptions" optionLabel="label" optionValue="value"
                                     name="specificationGroup" [(ngModel)]="specFormModel.specificationGroup"
                                     appendTo="body" [filter]="true">
                                 </p-select>
+                                <label>Group</label>
+                            </p-floatlabel> -->
+                            <p-floatlabel variant="on">
+                                <!-- <p-select [options]="specGroupOptions" optionLabel="label" optionValue="value"
+                                    name="specificationGroup" [(ngModel)]="specFormModel.specificationGroup"
+                                    appendTo="body" [editable]="true">
+                                </p-select> -->
+                                <!-- Added template reference handle: #mySelect -->
+                                <p-select #mySelect [options]="specGroupOptions" optionLabel="label" optionValue="value"
+                                    name="specificationGroup" [(ngModel)]="specFormModel.specificationGroup"
+                                    appendTo="body" emptyMessage="No record found" [filter]="true" (onFilter)="onDropdownFilter($event)">
+                                    <ng-template #footer>
+                                        <div class="p-3">
+                                            <!-- FIX: Added mySelect.hide() to the click sequence -->
+                                            <p-button label="Add New" fluid severity="secondary" text size="small"
+                                                icon="pi pi-plus" (click)="addNew(currentFilterText); mySelect.hide()"
+                                                [loading]="adding" />
+                                        </div>
+                                    </ng-template>
+                                </p-select>
+
                                 <label>Group</label>
                             </p-floatlabel>
 
@@ -1257,9 +1278,17 @@
 
                 <h3 class="section-title">SLA Config</h3>
 
+                <!-- SLA source: inherit from the category matrix, or enter custom values -->
+                <div class="sla-source-row">
+                    <label class="sla-source-label">SLA Source</label>
+                    <p-selectButton [options]="slaModeOptions" optionLabel="label" optionValue="value" name="slaMode"
+                        [(ngModel)]="asset.slaMode" (onChange)="onSlaModeChange()" [allowEmpty]="false">
+                    </p-selectButton>
+                </div>
+
                 <div class="two-fields">
                     <p-floatlabel variant="on">
-                        <p-select [options]="slaCategoryOptions" optionLabel="label" optionValue="value"
+                        <p-select [options]="displaySlaCategoryOptions" optionLabel="label" optionValue="value"
                             name="slaCategory" [(ngModel)]="asset.slaCategory" (onChange)="onSlaCategoryChange()"
                             appendTo="body" [filter]="true">
                         </p-select>
@@ -1267,8 +1296,8 @@
                     </p-floatlabel>
 
                     <p-floatlabel variant="on">
-                        <p-select [options]="levelOptions" optionLabel="label" optionValue="value" name="level"
-                            [(ngModel)]="asset.level" (onChange)="onSlaCategoryChange()" appendTo="body"
+                        <p-select [options]="displayLevelOptions" optionLabel="label" optionValue="value" name="slaLevel"
+                            [(ngModel)]="asset.slaLevel" (onChange)="onSlaCategoryChange()" appendTo="body"
                             [filter]="true">
                         </p-select>
                         <label>SLA Level</label>
@@ -1279,12 +1308,12 @@
                 <div class="two-fields" style="margin-top: 12px;">
                     <p-floatlabel variant="on">
                         <input type="number" pInputText [(ngModel)]="asset.slaExpectedValue" name="slaExpectedValue"
-                            readonly />
+                            [readonly]="!isCustomSla" />
                         <label>SLA Response Value</label>
                     </p-floatlabel>
                     <p-floatlabel variant="on">
                         <p-select [options]="slaUnits" optionLabel="label" optionValue="value" name="slaExpectedUnit"
-                            [(ngModel)]="asset.slaExpectedUnit" appendTo="body" [disabled]="true" [filter]="true">
+                            [(ngModel)]="asset.slaExpectedUnit" appendTo="body" [disabled]="!isCustomSla" [filter]="true">
                         </p-select>
                         <label>SLA Response Unit</label>
                     </p-floatlabel>
@@ -1294,12 +1323,12 @@
                 <div class="two-fields" style="margin-top: 12px;">
                     <p-floatlabel variant="on">
                         <input type="number" pInputText [(ngModel)]="asset.slaResolutionValue" name="slaResolutionValue"
-                            readonly />
+                            [readonly]="!isCustomSla" />
                         <label>SLA Resolution Value</label>
                     </p-floatlabel>
                     <p-floatlabel variant="on">
                         <p-select [options]="slaUnits" optionLabel="label" optionValue="value" name="slaResolutionUnit"
-                            [(ngModel)]="asset.slaResolutionUnit" appendTo="body" [disabled]="true" [filter]="true">
+                            [(ngModel)]="asset.slaResolutionUnit" appendTo="body" [disabled]="!isCustomSla" [filter]="true">
                         </p-select>
                         <label>SLA Resolution Unit</label>
                     </p-floatlabel>

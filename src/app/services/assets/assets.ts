@@ -314,12 +314,6 @@ export class Assets {
     return this.http.get<any[]>(`${this.slaUrl}/category/${assetCategoryId}`);
   }
 
-  getCategoriesByCategory(assetCategoryId: number): Observable<{ slaCategory: string }[]> {
-    return this.http.get<{ slaCategory: string }[]>(
-      `${this.slaUrl}/category/${assetCategoryId}/categories`
-    );
-  }
-
   getByCategoryAndSla(assetCategoryId: number, slaCategory: string): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.slaUrl}/category/${assetCategoryId}/sla/${slaCategory}`

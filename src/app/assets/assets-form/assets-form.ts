@@ -12,6 +12,7 @@ import { DialogModule } from "primeng/dialog";
 import { TabViewModule } from "primeng/tabview";
 import { ButtonModule } from "primeng/button";
 import { TextareaModule } from "primeng/textarea";
+import { SelectButtonModule } from "primeng/selectbutton";
 
 // Services
 import { Assets } from "../../services/assets/assets";
@@ -52,6 +53,7 @@ type PendingRole = "HOD" | "SUPERVISOR" | "END_USER" | null;
     CheckboxModule,
     DialogModule,
     TabViewModule,
+    SelectButtonModule,
     WarrantyForm,
     ToastModule,
     AssetQr,
@@ -308,12 +310,14 @@ export class AssetsForm implements OnInit {
     notes: "",
 
     // SLA
+    slaMode: 'CATEGORY',       // CATEGORY = inherit from SLA matrix; CUSTOM = manual entry
+    slaCategory: null,
     slaExpectedValue: null,
     slaExpectedUnit: "",
     slaResolutionValue: null,
     slaResolutionUnit: "",
 
-    level: '',
+    slaLevel: '',
 
     // slaDetails: "",
     expectedLifetime: null,
@@ -888,6 +892,8 @@ private returnLastY = 0;
       asset.insurance = {};
     }
 
+    asset.slaMode = asset.slaMode ?? 'CATEGORY';
+    asset.slaLevel = asset.slaLevel ?? '';
     asset.slaExpectedValue = asset.slaExpectedValue ?? null;
     asset.slaExpectedUnit = asset.slaExpectedUnit ?? '';
     asset.slaResolutionValue = asset.slaResolutionValue ?? null;
@@ -910,7 +916,9 @@ private returnLastY = 0;
       this.loadInsuranceHistory();
       this.evaluateAccessRights()
       this.loadSpecifications();
-      this.loadSlaOptionsByCategory();
+      // preserveExisting: keep the asset's stored SLA times on load — don't
+      // recompute/overwrite from the (possibly changed) matrix. (#2 fix)
+      this.loadSlaOptionsByCategory(true);
     }
     console.log(this.asset)
   }
@@ -2548,11 +2556,56 @@ returnAsset(row: any) {
       }
     });
   }
-  loadSlaOptionsByCategory() {
+  slaModeOptions = [
+    { label: 'Based on Category', value: 'CATEGORY' },
+    { label: 'Custom', value: 'CUSTOM' }
+  ];
+
+  // Full lists for CUSTOM mode (nothing tied to the matrix).
+  fullSlaCategoryOptions = [
+    { label: 'LOW', value: 'LOW' },
+    { label: 'MEDIUM', value: 'MEDIUM' },
+    { label: 'HIGH', value: 'HIGH' }
+  ];
+
+  // Options shown in the form depend on the SLA source mode.
+  get displaySlaCategoryOptions() {
+    return this.asset?.slaMode === 'CUSTOM' ? this.fullSlaCategoryOptions : this.slaCategoryOptions;
+  }
+
+  get displayLevelOptions() {
+    if (this.asset?.slaMode === 'CUSTOM') return this.levelOptions;
+    // CATEGORY: only the levels actually configured for the chosen SLA category.
+    const cat = this.asset?.slaCategory;
+    const levels = [...new Set(
+      this.slaMatrixRows
+        .filter(r => !cat || r.slaCategory === cat)
+        .map(r => r.level)
+    )];
+    return levels.map(l => ({ label: l, value: l }));
+  }
+
+  get isCustomSla(): boolean {
+    return this.asset?.slaMode === 'CUSTOM';
+  }
+
+  // Toggle between matrix-driven (CATEGORY) and manual (CUSTOM) SLA.
+  onSlaModeChange() {
+    if (this.asset.slaMode === 'CATEGORY') {
+      // Rebuild the configured options and re-derive times from the matrix.
+      this.loadSlaOptionsByCategory(false);
+    }
+    // CUSTOM: keep whatever is there; the fields just become editable.
+  }
+
+  // preserveExisting: when loading an existing asset, build the dropdowns but
+  // keep the stored SLA times — don't recompute from the (possibly changed)
+  // matrix. Only a user-driven change recomputes. (#2 fix)
+  loadSlaOptionsByCategory(preserveExisting = false) {
     if (!this.asset.assetCategoryId) {
       this.slaCategoryOptions = [];
       this.slaMatrixRows = [];
-      this.asset.slaCategory = null;
+      if (!this.isCustomSla) this.asset.slaCategory = null;
       return;
     }
 
@@ -2567,7 +2620,7 @@ returnAsset(row: any) {
           value: category
         }));
 
-        if (this.asset.slaCategory) {
+        if (!preserveExisting && !this.isCustomSla && this.asset.slaCategory) {
           this.onSlaCategoryChange();
         }
       },
@@ -2580,6 +2633,9 @@ returnAsset(row: any) {
   }
 
   onSlaCategoryChange() {
+    // In CUSTOM mode the user types the values — never overwrite them.
+    if (this.isCustomSla) return;
+
     if (!this.asset.assetCategoryId || !this.asset.slaCategory) {
       this.asset.slaExpectedValue = null;
       this.asset.slaExpectedUnit = null;
@@ -2592,7 +2648,7 @@ returnAsset(row: any) {
       x =>
         x.assetCategoryId === this.asset.assetCategoryId &&
         x.slaCategory === this.asset.slaCategory &&
-        x.level === this.asset.level &&
+        x.level === this.asset.slaLevel &&
         x.isActive
     );
 
@@ -2610,11 +2666,15 @@ returnAsset(row: any) {
   }
 
   onAssetCategoryChange() {
-    this.asset.slaCategory = null;
-    this.asset.slaExpectedValue = null;
-    this.asset.slaExpectedUnit = null;
-    this.asset.slaResolutionValue = null;
-    this.asset.slaResolutionUnit = null;
+    // CUSTOM keeps its manual values; CATEGORY resets and re-derives from matrix.
+    if (!this.isCustomSla) {
+      this.asset.slaCategory = null;
+      this.asset.slaLevel = '';
+      this.asset.slaExpectedValue = null;
+      this.asset.slaExpectedUnit = null;
+      this.asset.slaResolutionValue = null;
+      this.asset.slaResolutionUnit = null;
+    }
     this.loadSlaOptionsByCategory();
   }
   private getEmptyAssetModel() {
@@ -2700,6 +2760,9 @@ returnAsset(row: any) {
       insuranceEndDate: null,
       notes: "",
 
+      slaMode: 'CATEGORY',
+      slaCategory: null,
+      slaLevel: '',
       slaExpectedValue: null,
       slaExpectedUnit: "",
       slaResolutionValue: null,
@@ -2911,5 +2974,70 @@ clearReturnSignature() {
   this.returnCtx.clearRect(0, 0, canvas.width, canvas.height);
   this.returnCtx.beginPath();
 }
+ selectedValue: string | null = null; //set null initially
+  storedData: string[] = [];  //stores all groups in array
+  dropdown = true;
+  adding = false;
 
+  // 1. This variable tracks what is inside the filter in real-time
+  currentFilterText: string = '';
+
+  // 2. This method runs automatically on every keystroke in the filter box
+  onDropdownFilter(event: any): void {
+    // PrimeNG passes the typed text via event.filter
+    this.currentFilterText = event.filter ? event.filter.trim() : '';
+    console.log(this.currentFilterText)
+  }
+
+  addNew(typedSearchQuery: string): void {
+
+    console.log(typedSearchQuery)
+    this.adding = true;
+
+    // 1: Read directly from your form model variable instead of selectedValue
+    // if (!this.specFormModel?.specificationGroup) {
+    //   this.adding = false;
+    //   return;
+    // }
+
+    const typedText = this.currentFilterText;
+    console.log(typedText)
+
+    // Force uppercase transformation
+    const formattedValue = typedText.toUpperCase().replace(/\s+/g, '_');
+    console.log(formattedValue)
+
+    // Check dropdown options duplication
+    const optionExists = this.specGroupOptions.some(
+      option => option.value === formattedValue
+    );
+
+    if (!optionExists) {
+      const formattedLabel = typedText.charAt(0).toUpperCase() + typedText.slice(1);
+      this.specGroupOptions.push({
+          label: formattedLabel,
+          value: formattedValue
+      });
+    }
+
+    console.log(this.storedData)
+
+    // Add to your final stored array
+    if (!this.storedData.includes(formattedValue)) {
+      this.storedData.push(formattedValue);
+
+      console.log(formattedValue)
+
+      // FIX 2: Set the actual form value to the uppercase string 
+      this.specFormModel.specificationGroup = formattedValue;
+      console.log(this.specFormModel.specificationGroup)
+
+      // Turn off loading state
+      this.adding = false;
+      this.cdr.detectChanges();
+    } else {
+      this.adding = false;
+      alert('This group is already added!');
+    }
+  }
 }

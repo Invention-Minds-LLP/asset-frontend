@@ -968,3 +968,17 @@ input[pInputText],
   text-decoration: none;
 }
 .map-link:hover { text-decoration: underline; }
+
+/* SLA Source toggle (segmented) */
+.sla-source-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.sla-source-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-color-secondary);
+}
