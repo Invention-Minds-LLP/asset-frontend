@@ -268,6 +268,11 @@ export class Sidebar implements OnInit {
     this.router.navigate([item.route]);
   }
 
+  // Open the static form-filling guide (served from public/docs) in a new tab
+  openGuide() {
+    window.open('docs/asset-management-filling-guide.html', '_blank');
+  }
+
   onMenuClick(item: any) {
     if (item.hasDropdown) {
       this.activeMenu = this.activeMenu === item.label ? '' : item.label;

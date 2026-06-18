@@ -12,7 +12,6 @@ export interface QrLabelTile {
 export interface QrLabelOptions {
   widthMm?: number;  // sticker width  (default 30)
   heightMm?: number; // sticker height (default 30)
-  gapMm?: number;    // blank gap between stickers on the roll (default 3)
 }
 
 export function printQrLabels(tiles: QrLabelTile[], opts: QrLabelOptions = {}): void {
@@ -21,23 +20,17 @@ export function printQrLabels(tiles: QrLabelTile[], opts: QrLabelOptions = {}): 
 
   const w = opts.widthMm ?? 30;
   const h = opts.heightMm ?? 30;
-  const gap = opts.gapMm ?? 3;
-  // Each printed page must equal the roll PITCH (sticker + gap), or the printer
-  // advances further than the page and every QR drifts up into the previous
-  // label, accumulating down the strip.
-  const pageH = h + gap;
-  // QR only (no ID line). ~66% of the sticker leaves a clear quiet-zone margin
-  // on every side so minor feed drift never bleeds across the gap.
-  const qrMm = Math.max(8, Math.round(Math.min(w, h) * 0.66));
+  // One page == one STICKER (not sticker + gap). The TSC TTP-244 (and any
+  // gap-sensing thermal printer) detects the die-cut gap and positions each
+  // label itself, so the page must NOT include the gap — adding it shifts every
+  // QR onto the next label. The gap is configured in the printer driver's media.
+  // QR ~70% of the sticker leaves a clear quiet-zone margin on every side.
+  const qrMm = Math.max(8, Math.round(Math.min(w, h) * 0.7));
 
   // QR only — no asset-code text. The QR alone carries the asset identity.
-  // The sticker holds the QR centred; the gap below is left blank so it lands
-  // on the die-cut gap between physical labels.
   const labels = valid
     .map(
-      t => `<div class="label">
-  <div class="sticker"><img src="${t.dataUrl}" alt="QR" /></div>
-</div>`
+      t => `<div class="label"><img src="${t.dataUrl}" alt="QR" /></div>`
     )
     .join('');
 
@@ -47,24 +40,18 @@ export function printQrLabels(tiles: QrLabelTile[], opts: QrLabelOptions = {}): 
   const html = `<!doctype html>
 <html><head><title>QR Labels</title>
 <style>
-  @page { size: ${w}mm ${pageH}mm; margin: 0; }
+  @page { size: ${w}mm ${h}mm; margin: 0; }
   html, body { margin: 0; padding: 0; }
   .label {
-    width: ${w}mm; height: ${pageH}mm;
+    width: ${w}mm; height: ${h}mm;
     box-sizing: border-box;
-    display: flex; flex-direction: column;
+    display: flex; align-items: center; justify-content: center;
     overflow: hidden;
     page-break-after: always;
     break-after: page;
   }
   .label:last-child { page-break-after: auto; break-after: auto; }
-  .label .sticker {
-    width: ${w}mm; height: ${h}mm;
-    box-sizing: border-box;
-    display: flex; align-items: center; justify-content: center;
-    padding: 2mm;
-  }
-  .label .sticker img { width: ${qrMm}mm; height: ${qrMm}mm; display: block; }
+  .label img { width: ${qrMm}mm; height: ${qrMm}mm; display: block; }
 </style></head>
 <body>
   ${labels}
