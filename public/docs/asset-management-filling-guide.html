@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smart Assets — Form Filling Guide</title>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#ffffff;
+    --brand:#1e3a8a; --brand2:#2563eb; --soft:#f8fafc; --soft2:#eff6ff;
+    --green:#047857; --amber:#b45309; --red:#b91c1c;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    color:var(--ink); margin:0; background:#f1f5f9; line-height:1.5;
+    font-size:13.5px;
+  }
+  .page{ max-width:980px; margin:0 auto; background:var(--bg); padding:36px 44px; }
+  h1{ color:var(--brand); font-size:26px; margin:0 0 4px; }
+  h2{ color:var(--brand); font-size:19px; margin:34px 0 10px; padding-bottom:6px; border-bottom:2px solid var(--brand); }
+  h3{ color:var(--brand2); font-size:15px; margin:20px 0 6px; }
+  p.sub{ color:var(--muted); margin:0 0 18px; }
+  .lead{ background:var(--soft2); border:1px solid #dbeafe; border-radius:8px; padding:12px 16px; margin:14px 0; }
+  table{ width:100%; border-collapse:collapse; margin:8px 0 16px; font-size:12.5px; }
+  th,td{ border:1px solid var(--line); padding:7px 9px; text-align:left; vertical-align:top; }
+  th{ background:var(--soft); color:var(--brand); font-weight:600; }
+  tbody tr:nth-child(even){ background:#fafafa; }
+  code{ background:#f1f5f9; padding:1px 5px; border-radius:4px; font-size:12px; color:#0f172a; }
+  .pill{ display:inline-block; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:600; }
+  .pill.opt{ background:#eef2ff; color:#3730a3; }
+  .tip{ border-left:4px solid var(--green); background:#ecfdf5; padding:10px 14px; border-radius:0 6px 6px 0; margin:10px 0; }
+  .warn{ border-left:4px solid var(--amber); background:#fffbeb; padding:10px 14px; border-radius:0 6px 6px 0; margin:10px 0; }
+  .toc{ columns:2; gap:30px; background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:14px 20px; }
+  .toc a{ color:var(--brand2); text-decoration:none; display:block; padding:3px 0; font-size:12.5px; }
+  .toc a:hover{ text-decoration:underline; }
+  .opts span{ display:inline-block; background:#eef2ff; color:#3730a3; border-radius:5px; padding:1px 7px; margin:2px 3px 2px 0; font-size:11.5px; }
+  .muted{ color:var(--muted); }
+  .printbar{ position:sticky; top:0; background:var(--brand); color:#fff; padding:10px 16px; display:flex; justify-content:space-between; align-items:center; z-index:10; }
+  .printbar button{ background:#fff; color:var(--brand); border:none; padding:8px 16px; border-radius:6px; font-weight:600; cursor:pointer; font-size:13px; }
+  .meta{ font-size:12px; color:var(--muted); margin-top:4px; }
+  @media print{
+    body{ background:#fff; font-size:11.5px; }
+    .page{ max-width:none; padding:0 8px; }
+    .printbar{ display:none; }
+    h2{ page-break-after:avoid; }
+    table, .tip, .warn, .lead{ page-break-inside:avoid; }
+    .toc{ columns:2; }
+    a{ color:var(--ink); text-decoration:none; }
+  }
+</style>
+</head>
+<body>
+<div class="printbar">
+  <strong>Smart Assets — Form Filling Guide</strong>
+  <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+</div>
+
+<div class="page">
+  <h1>Smart Assets — Form Filling Guide</h1>
+  <p class="sub">How to fill the dropdowns and key fields across the application, with examples.</p>
+  <p class="meta">Reference for HOD / Supervisor / Store / Finance / End-User roles. Use your browser's <strong>Print → Save as PDF</strong> (button top-right) to export.</p>
+
+  <div class="lead">
+    <strong>How to read this guide.</strong> Each section lists a screen's dropdowns. For each dropdown you get its
+    <strong>options</strong>, a one-line <strong>meaning</strong>, and a <strong>what-to-give example</strong>.
+    Values shown in <span class="pill opt">blue pills</span> are the exact choices in the dropdown.
+  </div>
+
+  <h2 id="toc">Contents</h2>
+  <div class="toc">
+    <a href="#asset-basic">1. Asset Form — Basic Details</a>
+    <a href="#asset-procure">2. Asset Form — Procurement &amp; Inspection</a>
+    <a href="#asset-dep">3. Asset Form — Depreciation</a>
+    <a href="#asset-sla">4. Asset Form — SLA (explained)</a>
+    <a href="#asset-spec">5. Asset Form — Specifications (+ templates)</a>
+    <a href="#asset-loc">6. Asset Form — Location / Placement</a>
+    <a href="#store">7. Store &amp; Inventory Management</a>
+    <a href="#assign">8. Assignment &amp; Acknowledgement</a>
+    <a href="#tickets">9. Tickets</a>
+    <a href="#wo">10. Work Orders</a>
+    <a href="#pm">11. Preventive Maintenance</a>
+    <a href="#calib">12. Calibration</a>
+    <a href="#procure-docs">13. Indent / PO / Goods Receipt</a>
+    <a href="#gatepass">14. Gate Pass</a>
+    <a href="#contracts">15. Insurance / Warranty / Service Contracts</a>
+    <a href="#disposal">16. Disposal &amp; E-Waste</a>
+    <a href="#accounts">17. Accounts (Vouchers)</a>
+    <a href="#config">18. SLA Matrix / Escalation / Notifications</a>
+    <a href="#status">19. Status Reference (lifecycle values)</a>
+  </div>
+
+  <!-- ============================================================= -->
+  <h2 id="asset-basic">1. Asset Form — Basic Details</h2>
+  <table>
+    <thead><tr><th width="20%">Field</th><th width="34%">Options</th><th>Meaning &amp; example</th></tr></thead>
+    <tbody>
+      <tr><td><b>Asset Nature</b></td><td><span class="pill opt">Tangible</span> <span class="pill opt">Intangible</span></td>
+        <td>Physical vs non-physical. <em>Laptop, MRI = Tangible. Software licence, patent = Intangible.</em></td></tr>
+      <tr><td><b>Intangible Sub-Type</b> <span class="muted">(if Intangible)</span></td>
+        <td><span class="pill opt">Software</span> <span class="pill opt">License</span> <span class="pill opt">Patent</span> <span class="pill opt">Copyright</span> <span class="pill opt">Trademark</span> <span class="pill opt">Franchise Rights</span> <span class="pill opt">Goodwill</span> <span class="pill opt">Accreditation Rights (NABH/JCI)</span> <span class="pill opt">Subscription (SaaS/Cloud)</span> <span class="pill opt">Other</span></td>
+        <td>What kind of intangible. <em>Tally licence = License; NABH cert = Accreditation Rights; M365 = Subscription.</em></td></tr>
+      <tr><td><b>Asset Type</b></td><td><span class="pill opt">Fixed</span> <span class="pill opt">Movable</span></td>
+        <td>Fixed = bolted/installed (HVAC, building). Movable = can be relocated (laptop, wheelchair).</td></tr>
+      <tr><td><b>Category</b></td><td class="muted">Master list (Medical Equipment, IT Equipment, Surgical, Furniture, Vehicles…)</td>
+        <td><b>Important:</b> the category drives the <b>depreciation rate</b> auto-fill and whether a <b>serial number</b> is required.</td></tr>
+      <tr><td><b>Service Coverage Type</b></td><td><span class="pill opt">24/7</span> <span class="pill opt">8/5</span> <span class="pill opt">9/6</span> <span class="pill opt">12/7</span> <span class="pill opt">Custom</span></td>
+        <td>Support window the asset is covered for. <em>ICU ventilator = 24/7; office printer = 9/6.</em></td></tr>
+      <tr><td><b>Working Condition</b></td><td><span class="pill opt">Working</span> <span class="pill opt">Partial</span> <span class="pill opt">Not Working</span></td>
+        <td>Current functional state at the time of entry.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="asset-procure">2. Asset Form — Procurement &amp; Inspection</h2>
+  <table>
+    <thead><tr><th width="22%">Field</th><th width="34%">Options</th><th>Meaning &amp; example</th></tr></thead>
+    <tbody>
+      <tr><td><b>Mode of Procurement</b></td><td><span class="pill opt">Purchase</span> <span class="pill opt">Donation</span> <span class="pill opt">Lease</span> <span class="pill opt">Rental / On-Hire</span></td>
+        <td>How the asset was acquired. Each choice reveals its own fields (invoice / donor / lease / rental).</td></tr>
+      <tr><td><b>Donation Condition</b> <span class="muted">(if Donation)</span></td><td><span class="pill opt">New</span> <span class="pill opt">Used</span></td>
+        <td>Condition the donated item arrived in.</td></tr>
+      <tr><td><b>Inspection Condition</b> <span class="muted">(Donation/Lease/Rental)</span></td>
+        <td><span class="pill opt">Good</span> <span class="pill opt">Fair</span> <span class="pill opt">Sealed (Unopened)</span> <span class="pill opt">Unsealed</span> <span class="pill opt">Damaged</span></td>
+        <td>Physical state at inspection. <em>Factory-sealed carton = Sealed.</em></td></tr>
+      <tr><td><b>Physical / Functional Inspection Status</b></td><td><span class="pill opt">Pass</span> <span class="pill opt">Fail</span> <span class="pill opt">Pending</span></td>
+        <td>Result of the inspection checklist. Both must be filled for Donation/Lease/Rental before saving.</td></tr>
+    </tbody>
+  </table>
+  <div class="tip"><b>Tip:</b> For a normal hospital purchase, choose <b>Purchase</b> and fill invoice no., PO no., purchase date and cost.</div>
+
+  <!-- ============================================================= -->
+  <h2 id="asset-dep">3. Asset Form — Depreciation <span class="muted" style="font-size:13px;">(Finance role only)</span></h2>
+  <table>
+    <thead><tr><th width="22%">Field</th><th width="34%">Options</th><th>Meaning &amp; example</th></tr></thead>
+    <tbody>
+      <tr><td><b>Method</b></td><td><span class="pill opt">Straight Line / Life-based (SL)</span> <span class="pill opt">Written Down Value / Rate-based (WDV)</span> <span class="pill opt">Other</span></td>
+        <td>SL = equal amount each year (uses Life in years). WDV = % of book value each year (uses Rate).</td></tr>
+      <tr><td><b>Rate (%)</b></td><td class="muted">Auto-filled, locked</td>
+        <td>Comes from the <b>category's default rate</b> — cannot be typed. <em>IT Equipment = 20%, Building = 5%.</em></td></tr>
+      <tr><td><b>Expected Life (Years)</b> <span class="muted">(SL)</span></td><td class="muted">Number</td>
+        <td>Useful life for straight-line. <em>Laptop = 5; Furniture = 10.</em></td></tr>
+      <tr><td><b>Frequency</b></td><td><span class="pill opt">Yearly</span> <span class="pill opt">Monthly</span></td>
+        <td>How often depreciation is posted.</td></tr>
+      <tr><td><b>Residual / Salvage Value</b></td><td class="muted">Number (₹)</td>
+        <td>Scrap value at end of life. Auto-suggested as 5% of cost basis.</td></tr>
+      <tr><td><b>Rounding Precision</b></td><td><span class="pill opt">Nearest Rupee</span> <span class="pill opt">2 Decimal (paise)</span></td>
+        <td>How posted amounts are rounded.</td></tr>
+    </tbody>
+  </table>
+  <div class="warn"><b>Note:</b> HOD / Supervisor / End-User can <b>view</b> this tab but only <b>Finance</b> can edit and save it. The rate is always category-driven.</div>
+
+  <!-- ============================================================= -->
+  <h2 id="asset-sla">4. Asset Form — SLA (the confusing one, explained)</h2>
+  <p class="sub">SLA = the time commitments for responding to and fixing a problem with this asset.</p>
+  <table>
+    <thead><tr><th width="20%">Field</th><th width="30%">Options</th><th>Meaning &amp; example</th></tr></thead>
+    <tbody>
+      <tr><td><b>SLA Source</b></td><td><span class="pill opt">Based on Category</span> <span class="pill opt">Custom</span></td>
+        <td><b>Based on Category</b> = auto-fills response/resolution from the configured SLA Matrix (recommended). <b>Custom</b> = you type the times manually for this one asset.</td></tr>
+      <tr><td><b>SLA Category</b></td><td><span class="pill opt">LOW</span> <span class="pill opt">MEDIUM</span> <span class="pill opt">HIGH</span></td>
+        <td>Criticality of the asset. <em>ICU ventilator = HIGH; waiting-room TV = LOW.</em></td></tr>
+      <tr><td><b>SLA Level</b></td><td><span class="pill opt">L1</span> <span class="pill opt">L2</span> <span class="pill opt">L3</span></td>
+        <td>Escalation tier (which support level handles it). In Category mode, only the levels configured for that category appear.</td></tr>
+      <tr><td><b>SLA Response Value + Unit</b></td><td class="muted">Number + <span class="pill opt">Minutes</span>/<span class="pill opt">Hours</span>/<span class="pill opt">Days</span>/<span class="pill opt">Months</span>/<span class="pill opt">Years</span></td>
+        <td><b>Response time</b> = how fast someone must <em>acknowledge / attend</em>. <em>e.g. 2 Hours.</em> (Read-only unless Source = Custom.)</td></tr>
+      <tr><td><b>SLA Resolution Value + Unit</b></td><td class="muted">Number + unit (same list)</td>
+        <td><b>Resolution time</b> = how fast it must be <em>fixed</em>. <em>e.g. 24 Hours.</em> (Read-only unless Source = Custom.)</td></tr>
+    </tbody>
+  </table>
+  <div class="tip"><b>Worked example — ICU Ventilator:</b> Source = <b>Based on Category</b> → Category = <b>HIGH</b> → Level = <b>L1</b> → Response/Resolution auto-fill (e.g. <b>30 Minutes</b> response, <b>4 Hours</b> resolution) from the matrix. You don't type them.</div>
+  <div class="tip"><b>Worked example — Office Printer:</b> Source = <b>Custom</b> → Category = <b>LOW</b> → type Response = <b>1 Day</b>, Resolution = <b>3 Days</b>.</div>
+
+  <!-- ============================================================= -->
+  <h2 id="asset-spec">5. Asset Form — Specifications (+ per-category templates)</h2>
+  <p class="sub">Each spec is one technical attribute stored as <b>Key + Value</b>, with metadata. Add as many rows as needed.</p>
+  <table>
+    <thead><tr><th width="16%">Field</th><th width="36%">Options</th><th>Meaning &amp; example</th></tr></thead>
+    <tbody>
+      <tr><td><b>Key</b></td><td class="muted">Free text</td><td>The attribute name. <em>e.g. RAM, Power Rating.</em></td></tr>
+      <tr><td><b>Value</b></td><td class="muted">Free text</td><td>The value. <em>e.g. 16, 150.</em></td></tr>
+      <tr><td><b>Group</b></td><td><span class="pill opt">General</span> <span class="pill opt">Electrical</span> <span class="pill opt">Mechanical</span> <span class="pill opt">Software</span> <span class="pill opt">Accessory</span> <span class="pill opt">Sub Asset</span></td>
+        <td>Which section of the datasheet this belongs to.</td></tr>
+      <tr><td><b>Value Type</b></td><td><span class="pill opt">Text</span> <span class="pill opt">Number</span> <span class="pill opt">Boolean</span> <span class="pill opt">Date</span> <span class="pill opt">JSON</span></td>
+        <td>Data type of the value. Number+Unit for ratings; Boolean for yes/no; JSON for structured lists.</td></tr>
+      <tr><td><b>Unit</b></td><td class="muted">Free text</td><td>Goes with Number values. <em>GB, kg, V, W, mm, °C.</em></td></tr>
+      <tr><td><b>Source</b></td><td><span class="pill opt">OEM</span> <span class="pill opt">Client</span> <span class="pill opt">Technician</span> <span class="pill opt">Import</span></td>
+        <td>Where the spec came from. OEM = datasheet; Technician = measured on-site.</td></tr>
+      <tr><td><b>Mandatory</b></td><td class="muted">Checkbox</td><td>Flags a must-have spec (for audits).</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Template — Laptop / Desktop (IT Equipment / Computer)</h3>
+  <table>
+    <thead><tr><th>Key</th><th>Example Value</th><th>Group</th><th>Type</th><th>Unit</th><th>Source</th><th>Mandatory</th></tr></thead>
+    <tbody>
+      <tr><td>Processor</td><td>Intel Core i7-1355U</td><td>General</td><td>Text</td><td>—</td><td>OEM</td><td>✔</td></tr>
+      <tr><td>RAM</td><td>16</td><td>General</td><td>Number</td><td>GB</td><td>OEM</td><td>✔</td></tr>
+      <tr><td>Storage Capacity</td><td>512</td><td>General</td><td>Number</td><td>GB</td><td>OEM</td><td>✔</td></tr>
+      <tr><td>Storage Type</td><td>NVMe SSD</td><td>General</td><td>Text</td><td>—</td><td>OEM</td><td></td></tr>
+      <tr><td>Operating System</td><td>Windows 11 Pro</td><td>Software</td><td>Text</td><td>—</td><td>OEM</td><td></td></tr>
+      <tr><td>MAC Address</td><td>00:1A:2B:3C:4D:5E</td><td>Software</td><td>Text</td><td>—</td><td>Technician</td><td>✔</td></tr>
+      <tr><td>Power Adapter</td><td>65</td><td>Electrical</td><td>Number</td><td>W</td><td>OEM</td><td></td></tr>
+      <tr><td>Charger Included</td><td>true</td><td>Accessory</td><td>Boolean</td><td>—</td><td>Technician</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Template — Ventilator / Patient Monitor (Medical)</h3>
+  <table>
+    <thead><tr><th>Key</th><th>Example Value</th><th>Group</th><th>Type</th><th>Unit</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>Make / Model</td><td>Medtronic PB980</td><td>General</td><td>Text</td><td>—</td><td>OEM</td></tr>
+      <tr><td>Power Rating</td><td>150</td><td>Electrical</td><td>Number</td><td>W</td><td>OEM</td></tr>
+      <tr><td>Supply Voltage</td><td>230</td><td>Electrical</td><td>Number</td><td>V</td><td>OEM</td></tr>
+      <tr><td>Battery Backup</td><td>true</td><td>General</td><td>Boolean</td><td>—</td><td>Technician</td></tr>
+      <tr><td>Modes / Parameters</td><td>{"modes":["B","M"]}</td><td>General</td><td>JSON</td><td>—</td><td>OEM</td></tr>
+      <tr><td>Regulatory Approval</td><td>CE-12345</td><td>General</td><td>Text</td><td>—</td><td>OEM</td></tr>
+      <tr><td>Calibration Interval</td><td>12</td><td>General</td><td>Number</td><td>months</td><td>OEM</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Template starters — other categories</h3>
+  <table>
+    <thead><tr><th width="22%">Category</th><th>Suggested keys (Type / Unit)</th></tr></thead>
+    <tbody>
+      <tr><td><b>Electrical Equipment</b></td><td>Power Rating (Number/kW) · Supply Voltage (Number/V) · Phase 1Φ/3Φ (Text) · Frequency (Number/Hz) · IP Rating (Text)</td></tr>
+      <tr><td><b>HVAC Systems</b></td><td>Cooling Capacity (Number/TR) · Power Rating (Number/kW) · Refrigerant Type (Text) · Airflow (Number/CFM)</td></tr>
+      <tr><td><b>Laboratory Equipment</b></td><td>Capacity/Throughput (Text) · Temperature Range (Text/°C) · Supply Voltage (Number/V) · Calibration Interval (Number/months)</td></tr>
+      <tr><td><b>Vehicles</b></td><td>Registration No. (Text) · Chassis No. (Text) · Engine No. (Text) · Fuel Type (Text) · Insurance Expiry (Date)</td></tr>
+      <tr><td><b>Furniture / Office</b></td><td>Material (Text) · Dimensions (Text/mm) · Color (Text) · Quantity per Unit (Number)</td></tr>
+      <tr><td><b>Building</b></td><td>Built-up Area (Number/sq.ft) · Floors (Number) · Construction Type (Text) · Year Built (Date)</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="asset-loc">6. Asset Form — Location / Placement</h2>
+  <table>
+    <thead><tr><th width="24%">Field</th><th width="40%">Options</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>Placement Profile</b></td><td><span class="pill opt">Room (Block/Floor/Room)</span> <span class="pill opt">Camera (mount/coverage/GPS)</span> <span class="pill opt">Network (rack/U/port)</span> <span class="pill opt">Outdoor (GPS)</span> <span class="pill opt">Generic (mount+label)</span></td>
+        <td>Chooses which placement fields show. <em>Bedside monitor = Room; CCTV = Camera; switch = Network.</em></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="store">7. Store &amp; Inventory Management</h2>
+  <table>
+    <thead><tr><th width="24%">Field</th><th width="34%">Options</th><th>Meaning &amp; example</th></tr></thead>
+    <tbody>
+      <tr><td><b>Store Type</b></td><td><span class="pill opt">Main Store</span> <span class="pill opt">Sub Store</span></td>
+        <td>Main = central warehouse; Sub = department store (e.g. IT Sub Store). A Sub Store needs a parent + department.</td></tr>
+      <tr><td><b>Stock Item Type</b> <span class="muted">(Add/Adjust Stock)</span></td><td><span class="pill opt">Spare Part</span> <span class="pill opt">Consumable</span></td>
+        <td>Only spares &amp; consumables hold a stock quantity. <em>Assets are tracked individually, not as quantity.</em></td></tr>
+      <tr><td><b>Transfer Item Type</b></td><td><span class="pill opt">Spare Part</span> <span class="pill opt">Consumable</span> <span class="pill opt">Asset</span></td>
+        <td>What you're moving. Asset = pick a parked asset from the source store (qty always 1).</td></tr>
+      <tr><td><b>Transfer Type</b></td><td><span class="pill opt">Store to Store</span> <span class="pill opt">Store to Department</span></td>
+        <td>Store→Store keeps it in inventory at the new store. Store→Department issues it out to a department (pick the <b>To Department</b>).</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="assign">8. Assignment &amp; Acknowledgement</h2>
+  <p class="sub">An asset is handed down a chain: HOD (Source) → Supervisor → HOD (Target) → End User. Each person acknowledges their stage.</p>
+  <table>
+    <thead><tr><th width="24%">Field</th><th width="30%">Options</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>HOD Decision</b></td><td><span class="pill opt">Approve</span> <span class="pill opt">Reject</span></td><td>HOD approval of an asset (issues the permanent Asset ID on approve).</td></tr>
+      <tr><td><b>Acknowledge — Park into Store</b></td><td class="muted">Your department's store</td><td>When the HOD acknowledges, choose the sub-store the asset is parked into.</td></tr>
+      <tr><td><b>Assignment Type</b></td><td><span class="pill opt">Permanent</span> <span class="pill opt">Temporary</span></td><td>Whether the allocation is long-term or short-term.</td></tr>
+    </tbody>
+  </table>
+  <div class="tip"><b>Activation rule:</b> an asset becomes <b>ACTIVE</b> only when the <b>End User acknowledges</b> the handover, or when its <b>Installed Date</b> is reached. HOD/Supervisor steps keep it <b>IN_STORE</b>.</div>
+
+  <!-- ============================================================= -->
+  <h2 id="tickets">9. Tickets (Breakdown / Service Requests)</h2>
+  <table>
+    <thead><tr><th width="22%">Field</th><th width="40%">Options</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>Status</b></td><td><span class="pill opt">Open</span> <span class="pill opt">Assigned</span> <span class="pill opt">In Progress</span> <span class="pill opt">On Hold</span> <span class="pill opt">Work Completed</span> <span class="pill opt">Resolved</span> <span class="pill opt">Closed</span> <span class="pill opt">Rejected</span> <span class="pill opt">Terminated</span></td>
+        <td>The ticket lifecycle. Resolved/Closed sets the asset back to ACTIVE.</td></tr>
+      <tr><td><b>Priority</b></td><td><span class="pill opt">Low</span> <span class="pill opt">Medium</span> <span class="pill opt">High</span> <span class="pill opt">Critical</span></td>
+        <td>Urgency, drives SLA timers/escalation. <em>ICU device down = Critical.</em></td></tr>
+      <tr><td><b>Transfer Type</b></td><td><span class="pill opt">Internal Department</span> <span class="pill opt">External Vendor</span> <span class="pill opt">External Service</span></td>
+        <td>Where a ticket is routed if the first team can't fix it.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="wo">10. Work Orders</h2>
+  <table>
+    <thead><tr><th width="22%">Field</th><th width="40%">Options</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>Status</b></td><td><span class="pill opt">Draft</span> <span class="pill opt">Approved</span> <span class="pill opt">In Progress</span> <span class="pill opt">Completed</span> <span class="pill opt">Closed</span> <span class="pill opt">Cancelled</span></td><td>Work-order lifecycle.</td></tr>
+      <tr><td><b>WO Type</b></td><td><span class="pill opt">OpEx</span> <span class="pill opt">CapEx</span></td><td>OpEx = expensed repair. CapEx = capitalised (creates a new asset on completion).</td></tr>
+      <tr><td><b>Priority</b></td><td><span class="pill opt">Low</span> <span class="pill opt">Medium</span> <span class="pill opt">High</span> <span class="pill opt">Critical</span></td><td>Urgency of the work.</td></tr>
+      <tr><td><b>Material Item Type</b></td><td><span class="pill opt">Spare Part</span> <span class="pill opt">Consumable</span></td><td>What was consumed during the work.</td></tr>
+      <tr><td><b>Quality Check</b></td><td><span class="pill opt">Pass</span> <span class="pill opt">Fail</span> <span class="pill opt">Conditional</span></td><td>Result of the completion quality check.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="pm">11. Preventive Maintenance</h2>
+  <table>
+    <thead><tr><th width="24%">Field</th><th width="40%">Options</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>Frequency Unit</b></td><td><span class="pill opt">Days</span> <span class="pill opt">Months</span> <span class="pill opt">Years</span></td><td>How often the PM repeats. <em>Every 3 Months.</em></td></tr>
+      <tr><td><b>Month</b></td><td class="muted">January … December</td><td>Scheduling month for annual plans.</td></tr>
+      <tr><td><b>Checklist Result</b></td><td><span class="pill opt">PASS</span> <span class="pill opt">FAIL</span> <span class="pill opt">N/A</span></td><td>Per checklist item during a PM run.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="calib">12. Calibration</h2>
+  <table>
+    <thead><tr><th width="24%">Field</th><th width="40%">Options</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>Interval Unit</b></td><td><span class="pill opt">Days</span> <span class="pill opt">Months</span> <span class="pill opt">Years</span></td><td>Calibration cycle. <em>Every 12 Months.</em></td></tr>
+      <tr><td><b>Result</b></td><td><span class="pill opt">Pass</span> <span class="pill opt">Fail</span> <span class="pill opt">N/A</span></td><td>Outcome of a calibration.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="procure-docs">13. Indent / Purchase Order / Goods Receipt</h2>
+  <table>
+    <thead><tr><th width="20%">Screen — Field</th><th width="42%">Options</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>Asset Indent — Urgency</b></td><td><span class="pill opt">Normal</span> <span class="pill opt">Urgent</span> <span class="pill opt">Critical</span></td><td>Priority of the request.</td></tr>
+      <tr><td><b>Indent — Status</b></td><td><span class="pill opt">Submitted</span> <span class="pill opt">HOD Approved</span> <span class="pill opt">Management Approved</span> <span class="pill opt">Fulfilled</span> <span class="pill opt">Rejected</span> <span class="pill opt">Cancelled</span></td><td>Indent approval lifecycle.</td></tr>
+      <tr><td><b>PO / GRN — Item Type</b></td><td><span class="pill opt">Asset</span> <span class="pill opt">Spare Part</span> <span class="pill opt">Consumable</span> <span class="pill opt">Service</span></td><td>What's being ordered/received. Asset lines create asset records; spares/consumables add to store stock.</td></tr>
+      <tr><td><b>PO — Status</b></td><td><span class="pill opt">Draft</span> <span class="pill opt">HOD Approved</span> <span class="pill opt">Management Approved</span> <span class="pill opt">Sent to Vendor</span> <span class="pill opt">Partially Received</span> <span class="pill opt">Fully Received</span> <span class="pill opt">Cancelled</span></td><td>PO lifecycle.</td></tr>
+      <tr><td><b>GRN — Status</b></td><td><span class="pill opt">Draft</span> <span class="pill opt">Inspected</span> <span class="pill opt">Accepted</span> <span class="pill opt">Rejected</span></td><td>Goods receipt lifecycle.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="gatepass">14. Gate Pass</h2>
+  <table>
+    <thead><tr><th width="24%">Field</th><th width="36%">Options</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>Type</b></td><td><span class="pill opt">Returnable</span> <span class="pill opt">Non-Returnable</span></td><td>Whether the item is expected back. <em>Sent for repair = Returnable.</em></td></tr>
+      <tr><td><b>Vehicle Type</b></td><td><span class="pill opt">Hospital Vehicle</span> <span class="pill opt">Outside Vehicle</span></td><td>Who's carrying it out.</td></tr>
+      <tr><td><b>Security Condition Check</b></td><td><span class="pill opt">Good</span> <span class="pill opt">Damaged</span> <span class="pill opt">Partial</span></td><td>Condition logged at the gate.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="contracts">15. Insurance / Warranty / Service Contracts</h2>
+  <table>
+    <thead><tr><th width="22%">Screen — Field</th><th width="40%">Options</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>Insurance — Policy Type</b></td><td><span class="pill opt">Comprehensive</span> <span class="pill opt">Fire</span> <span class="pill opt">Theft</span> <span class="pill opt">Damage</span></td><td>Coverage type of the policy.</td></tr>
+      <tr><td><b>Insurance — Claim Status</b></td><td><span class="pill opt">Filed</span> <span class="pill opt">Under Review</span> <span class="pill opt">Approved</span> <span class="pill opt">Rejected</span> <span class="pill opt">Settled</span></td><td>Claim lifecycle.</td></tr>
+      <tr><td><b>Warranty — Type</b></td><td><span class="pill opt">Replacement</span> <span class="pill opt">Service</span></td><td>Replace the unit vs repair it.</td></tr>
+      <tr><td><b>Service Contract — Type</b></td><td><span class="pill opt">AMC</span> <span class="pill opt">CMC</span></td><td>AMC = labour only; CMC = labour + spares (comprehensive).</td></tr>
+      <tr><td><b>Service Visit — Type</b></td><td><span class="pill opt">Preventive Maintenance</span> <span class="pill opt">Repair</span></td><td>Reason for the vendor visit.</td></tr>
+      <tr><td><b>Performed By</b></td><td><span class="pill opt">Internal Staff</span> <span class="pill opt">Vendor</span> <span class="pill opt">External Service Center</span></td><td>Who did the work.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="disposal">16. Disposal &amp; E-Waste</h2>
+  <table>
+    <thead><tr><th width="22%">Field</th><th width="40%">Options</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>Disposal Type</b></td><td><span class="pill opt">Condemn</span> <span class="pill opt">Auction</span> <span class="pill opt">Scrap</span> <span class="pill opt">Donate</span> <span class="pill opt">Return to Vendor</span></td><td>How the asset leaves service.</td></tr>
+      <tr><td><b>Disposal Status</b></td><td><span class="pill opt">Requested</span> <span class="pill opt">Committee Review</span> <span class="pill opt">Approved</span> <span class="pill opt">Rejected</span> <span class="pill opt">Completed</span></td><td>Approval lifecycle.</td></tr>
+      <tr><td><b>E-Waste Condition</b></td><td><span class="pill opt">Functional</span> <span class="pill opt">Non-Functional</span> <span class="pill opt">Damaged</span></td><td>State of the e-waste item.</td></tr>
+      <tr><td><b>Data Wipe Method</b></td><td><span class="pill opt">DBAN</span> <span class="pill opt">Secure Erase</span> <span class="pill opt">Physical Destruction</span> <span class="pill opt">Not Applicable</span></td><td>How data was destroyed before disposal.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="accounts">17. Accounts (Vouchers)</h2>
+  <table>
+    <thead><tr><th width="22%">Field</th><th width="42%">Options</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>Voucher Status</b></td><td><span class="pill opt">Draft</span> <span class="pill opt">Pending Approval</span> <span class="pill opt">Approved</span> <span class="pill opt">Posted</span> <span class="pill opt">Cancelled</span> <span class="pill opt">Rejected</span></td><td>Payment / purchase voucher lifecycle.</td></tr>
+      <tr><td><b>Payment Mode</b></td><td><span class="pill opt">Cash</span> <span class="pill opt">Cheque</span> <span class="pill opt">NEFT</span> <span class="pill opt">RTGS</span> <span class="pill opt">IMPS</span> <span class="pill opt">UPI</span> <span class="pill opt">Bank Transfer</span> <span class="pill opt">Demand Draft</span></td><td>How a payment was made.</td></tr>
+      <tr><td><b>Service Invoice Status</b></td><td><span class="pill opt">Pending Approval</span> <span class="pill opt">Approved</span> <span class="pill opt">Paid</span> <span class="pill opt">Rejected</span></td><td>Vendor invoice lifecycle.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="config">18. SLA Matrix / Escalation / Notifications (config)</h2>
+  <table>
+    <thead><tr><th width="22%">Screen — Field</th><th width="40%">Options</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>SLA Matrix — Category / Level / Unit</b></td><td><span class="pill opt">LOW/MEDIUM/HIGH</span> · <span class="pill opt">L1/L2/L3</span> · <span class="pill opt">Min/Hrs/Days/Months/Years</span></td><td>Defines the response/resolution times the asset form inherits in "Based on Category" mode.</td></tr>
+      <tr><td><b>Escalation — SLA Type</b></td><td><span class="pill opt">Both (Internal+Vendor)</span> <span class="pill opt">Internal Only</span> <span class="pill opt">Vendor Only</span></td><td>Which path the escalation rule applies to.</td></tr>
+      <tr><td><b>Escalation — Applicable To</b></td><td><span class="pill opt">Both</span> <span class="pill opt">Tickets Only</span> <span class="pill opt">Maintenance Only</span></td><td>Where the rule fires.</td></tr>
+      <tr><td><b>Notification — Type</b></td><td><span class="pill opt">Warranty/Insurance/AMC Expiry</span> <span class="pill opt">Maintenance Due</span> <span class="pill opt">SLA Breach</span> <span class="pill opt">Low Stock</span> <span class="pill opt">Gate Pass Overdue</span> <span class="pill opt">Other</span></td><td>Category of the alert.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================================================= -->
+  <h2 id="status">19. Status Reference (lifecycle values)</h2>
+  <table>
+    <thead><tr><th width="22%">Entity</th><th>Statuses (in order)</th></tr></thead>
+    <tbody>
+      <tr><td><b>Asset</b></td><td><code>IN_STORE</code> → <code>ACTIVE</code> → <code>IN_MAINTENANCE</code> · <code>RETIRED</code> · <code>DISPOSED</code> · <code>SCRAPPED</code> · <code>CONDEMNED</code> · <code>REJECTED</code></td></tr>
+      <tr><td><b>Assignment</b></td><td><code>PENDING</code> → <code>ACKNOWLEDGED</code> · <code>REJECTED</code> · <code>RETURNED</code></td></tr>
+      <tr><td><b>Ticket</b></td><td><code>OPEN</code> → <code>ASSIGNED</code> → <code>IN_PROGRESS</code> → <code>ON_HOLD</code> → <code>WORK_COMPLETED</code> → <code>RESOLVED</code> → <code>CLOSED</code> (· <code>REJECTED</code> · <code>TERMINATED</code>)</td></tr>
+      <tr><td><b>Store Transfer</b></td><td><code>REQUESTED</code> → <code>APPROVED</code> → <code>IN_TRANSIT</code> → <code>RECEIVED</code> (· <code>CANCELLED</code>)</td></tr>
+      <tr><td><b>Purchase Order</b></td><td><code>DRAFT</code> → <code>HOD_APPROVED</code> → <code>MGMT_APPROVED</code> → <code>SENT_TO_VENDOR</code> → <code>PARTIALLY_RECEIVED</code> → <code>FULLY_RECEIVED</code> (· <code>CANCELLED</code>)</td></tr>
+      <tr><td><b>Goods Receipt</b></td><td><code>DRAFT</code> → <code>INSPECTION_PENDING</code> → <code>ACCEPTED</code> / <code>PARTIALLY_ACCEPTED</code> / <code>REJECTED</code></td></tr>
+      <tr><td><b>Voucher</b></td><td><code>DRAFT</code> → <code>PENDING_APPROVAL</code> → <code>APPROVED</code> → <code>POSTED</code> (· <code>REJECTED</code> · <code>CANCELLED</code>)</td></tr>
+      <tr><td><b>Employee Roles</b></td><td><code>CEO_COO</code> · <code>HOD</code> · <code>SUPERVISOR</code> · <code>EXECUTIVE</code> · <code>FINANCE</code> · <code>OPERATIONS</code></td></tr>
+    </tbody>
+  </table>
+
+  <p class="meta" style="margin-top:30px; border-top:1px solid var(--line); padding-top:12px;">
+    Smart Assets — internal filling reference. Options are taken from the live application dropdowns and the database schema.
+    If a dropdown changes in the app, update this guide.
+  </p>
+</div>
+</body>
+</html>
