@@ -515,7 +515,7 @@ export class AssetsForm implements OnInit {
     { label: 'Mechanical', value: 'MECHANICAL' },
     { label: 'Software', value: 'SOFTWARE' },
     { label: 'Accessory', value: 'ACCESSORY' },
-    { label: 'Sub Asset', value: 'SUB_ASSET' },
+    { label: 'Hardware', value: 'HARDWARE' },
   ];
 
   specValueTypeOptions = [
@@ -1154,8 +1154,12 @@ private returnLastY = 0;
     if (this.depreciationForm.depreciationMethod === 'SL') {
       this.depreciationForm.depreciationRate = null;
     }
-    // DB/WDV: expectedLifeYears is not needed (rate-driven), set a default so backend doesn't reject
+    // DB/WDV: rate is disabled in the UI, so pull it from the category default when missing
     if (this.depreciationForm.depreciationMethod === 'DB') {
+      if (!this.depreciationForm.depreciationRate) {
+        const cat = this.categories.find((c: any) => c.id === Number(this.asset?.assetCategoryId));
+        if (cat?.defaultDepreciationRate != null) this.depreciationForm.depreciationRate = Number(cat.defaultDepreciationRate);
+      }
       if (!this.depreciationForm.expectedLifeYears) {
         const rate = Number(this.depreciationForm.depreciationRate || 15);
         this.depreciationForm.expectedLifeYears = rate > 0 ? Math.ceil(100 / rate) : 10;
@@ -2358,6 +2362,29 @@ returnAsset(row: any) {
 
   get isEndUser(): boolean {
     return this.currentUser?.role === 'USER';
+  }
+
+  get isFinance(): boolean {
+    return this.currentUser?.role === 'FINANCE';
+  }
+
+  // Depreciation inputs are editable only by Finance (admins override).
+  get canEditDepreciation(): boolean {
+    return this.isFinance || this.isAdmin;
+  }
+
+  // Depreciation tab is visible to the dept HOD/supervisor, the end user, Finance, and admin.
+  get canSeeDepreciationTab(): boolean {
+    return this.canAccessDepartmentTabs || this.canAccessAsEndUser || (this.isFinance && !!this.asset?.id);
+  }
+
+  // Autofill depreciation defaults from the selected category (rate is category-driven).
+  onCategoryChange() {
+    const cat = this.categories.find((c: any) => c.id === Number(this.asset?.assetCategoryId));
+    if (!cat) return;
+    if (cat.defaultDepreciationMethod) this.depreciationForm.depreciationMethod = cat.defaultDepreciationMethod;
+    if (cat.defaultDepreciationRate != null) this.depreciationForm.depreciationRate = Number(cat.defaultDepreciationRate);
+    if (cat.defaultLifeYears != null) this.depreciationForm.expectedLifeYears = Number(cat.defaultLifeYears);
   }
 
   private evaluateAccessRights(): void {

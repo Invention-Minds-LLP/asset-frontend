@@ -65,6 +65,7 @@
                             <p-floatlabel variant="on">
                                 <p-select [options]="categories" optionLabel="name" optionValue="id"
                                     name="assetCategoryId" [(ngModel)]="asset.assetCategoryId" [filter]="true" required
+                                    (onChange)="onCategoryChange()"
                                     appendTo="body" [disabled]="!canEditBasicDetails">
                                 </p-select>
                                 <label>Category *</label>
@@ -1802,7 +1803,7 @@
             </div>
 
         </p-tabPanel>
-        <p-tabPanel header="Depreciation" *ngIf="canAccessDepartmentTabs">
+        <p-tabPanel header="Depreciation" *ngIf="canSeeDepreciationTab">
 
             <div class="tab-section">
 
@@ -1879,14 +1880,14 @@
                     <p-floatlabel variant="on">
                         <p-select [options]="depreciationMethods" optionLabel="label" optionValue="value"
                             name="depreciationMethods" [(ngModel)]="depreciationForm.depreciationMethod" appendTo="body"
-                            [filter]="true" (ngModelChange)="onDepreciationMethodChange()"></p-select>
+                            [filter]="true" [disabled]="!canEditDepreciation" (ngModelChange)="onDepreciationMethodChange()"></p-select>
                         <label>Method *</label>
                     </p-floatlabel>
 
                     <p-floatlabel variant="on" *ngIf="depreciationForm.depreciationMethod === 'DB'">
                         <input type="number" name="depreciationRate" pInputText
-                            [(ngModel)]="depreciationForm.depreciationRate" />
-                        <label>Rate (%) *</label>
+                            [(ngModel)]="depreciationForm.depreciationRate" [disabled]="true" />
+                        <label>Rate (%) — from category</label>
                     </p-floatlabel>
                 </div>
 
@@ -1894,7 +1895,7 @@
                     @if (depreciationForm.depreciationMethod !== 'DB') {
                       <p-floatlabel variant="on">
                           <input type="number" pInputText name="expectedLifeYears"
-                              [(ngModel)]="depreciationForm.expectedLifeYears" />
+                              [(ngModel)]="depreciationForm.expectedLifeYears" [disabled]="!canEditDepreciation" />
                           <label>Expected Life (Years) *</label>
                       </p-floatlabel>
                     }
@@ -1902,7 +1903,7 @@
                     <p-floatlabel variant="on">
                         <p-select [options]="depreciationFrequencies" optionLabel="label" optionValue="value"
                             name="depreciationFrequency" [(ngModel)]="depreciationForm.depreciationFrequency"
-                            appendTo="body"></p-select>
+                            [disabled]="!canEditDepreciation" appendTo="body"></p-select>
                         <label>Frequency *</label>
                     </p-floatlabel>
                 </div>
@@ -1910,13 +1911,13 @@
                 <div class="two-fields">
                     <p-floatlabel variant="on">
                         <p-datepicker [(ngModel)]="depreciationForm.depreciationStart" name="depreciationStartDate"
-                            appendTo="body"></p-datepicker>
+                            [disabled]="!canEditDepreciation" appendTo="body"></p-datepicker>
                         <label>Depreciation Start Date</label>
                     </p-floatlabel>
 
                     <div class="field-with-hint">
                         <p-floatlabel variant="on">
-                            <input type="number" pInputText [(ngModel)]="depreciationForm.salvageValue" name="salvageValue" />
+                            <input type="number" pInputText [(ngModel)]="depreciationForm.salvageValue" name="salvageValue" [disabled]="!canEditDepreciation" />
                             <label>Residual Value</label>
                         </p-floatlabel>
                         <small class="field-hint" *ngIf="depreciationCostBasis > 0">
@@ -1931,7 +1932,7 @@
                     <i class="pi pi-history"></i>
                     <p-floatlabel variant="on" style="flex:1">
                       <input type="number" pInputText name="openingAccumulatedDepreciation"
-                        [(ngModel)]="depreciationForm.openingAccumulatedDepreciation" min="0" />
+                        [(ngModel)]="depreciationForm.openingAccumulatedDepreciation" min="0" [disabled]="!canEditDepreciation" />
                       <label>Opening Accumulated Depreciation</label>
                     </p-floatlabel>
                     <span class="legacy-dep-hint">
@@ -1948,7 +1949,7 @@
                 <div class="roundoff-row">
                     <div class="roundoff-toggle">
                         <p-checkbox [(ngModel)]="depreciationForm.roundOff" [binary]="true"
-                            name="roundOff" inputId="roundOffChk"></p-checkbox>
+                            name="roundOff" inputId="roundOffChk" [disabled]="!canEditDepreciation"></p-checkbox>
                         <label for="roundOffChk">
                             Round off depreciation amounts
                             <span class="roundoff-hint">Applies to batch runs and WDV schedule</span>
@@ -1958,13 +1959,13 @@
                         <p-floatlabel variant="on" style="width:220px">
                             <p-select [options]="decimalPlacesOptions" optionLabel="label" optionValue="value"
                                 name="decimalPlaces" [(ngModel)]="depreciationForm.decimalPlaces"
-                                appendTo="body"></p-select>
+                                [disabled]="!canEditDepreciation" appendTo="body"></p-select>
                             <label>Rounding Precision</label>
                         </p-floatlabel>
                     }
                 </div>
 
-                <button pButton [label]="depreciationButtonLabel" style="margin-top: 10px;"
+                <button pButton [label]="depreciationButtonLabel" style="margin-top: 10px;" *ngIf="canEditDepreciation"
                     [disabled]="!depreciationForm.depreciationMethod || (depreciationForm.depreciationMethod === 'SL' && !depreciationForm.expectedLifeYears) || (depreciationForm.depreciationMethod === 'DB' && !depreciationForm.depreciationRate)"
                     (click)="saveDepreciation()">
                 </button>
