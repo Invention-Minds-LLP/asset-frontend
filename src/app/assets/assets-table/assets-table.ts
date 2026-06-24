@@ -100,8 +100,7 @@ export class AssetsTable implements OnInit {
     this.assetService.getAllAssets().subscribe((assets) => {
       setTimeout(() => {  // ✅ defer update after Angular’s first check
         this.assets = assets;
-        this.isLoading = false; // 
-        console.log(this.assets);
+        this.isLoading = false; //
         const statusSummary = this.getAssetStatusSummary();
         this.activeAssets = statusSummary.active || 0;
         this.cdr.detectChanges();
