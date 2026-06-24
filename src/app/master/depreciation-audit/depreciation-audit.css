@@ -1,0 +1,184 @@
+.page-container {
+  padding: 1.5rem 2rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+.page-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.page-sub {
+  color: var(--text-color-secondary, #6b7280);
+  font-size: 0.9rem;
+  margin: 0 0 1.25rem 0;
+}
+
+.create-card {
+  background: var(--surface-card, #fff);
+  border: 1px solid var(--surface-border, #e5e7eb);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.create-card h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+}
+.create-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.create-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.create-field.grow { flex: 1; min-width: 220px; }
+.create-field label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.section-loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.preview-loading {
+  margin-top: 1rem;
+  color: var(--text-color-secondary, #6b7280);
+  font-size: 0.9rem;
+}
+
+.preview-box {
+  margin-top: 1rem;
+  border-top: 1px dashed var(--surface-border, #e5e7eb);
+  padding-top: 1rem;
+}
+.preview-summary {
+  display: flex;
+  gap: 2.5rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.preview-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.ps-label {
+  font-size: 0.78rem;
+  color: var(--text-color-secondary, #6b7280);
+}
+.ps-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+.ps-link {
+  color: var(--primary-color, #2563eb);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.basis-half { color: #d97706; font-weight: 600; }
+.first-fy { color: var(--text-color-secondary, #6b7280); font-size: 0.72rem; }
+
+/* ── Details dialog ── */
+.detail-summary {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.9rem;
+}
+.detail-summary .ds-label { color: var(--text-color-secondary, #6b7280); margin-right: 0.35rem; }
+.detail-summary .ds-value { font-weight: 700; }
+
+.asset-cell { display: flex; flex-direction: column; line-height: 1.25; }
+.asset-cell .asset-code { font-weight: 600; font-size: 0.8rem; }
+.asset-cell .asset-name { color: var(--text-color-secondary, #6b7280); font-size: 0.74rem; }
+
+:host ::ng-deep .dep-detail-table .p-datatable-thead > tr > th {
+  font-size: 0.76rem;
+  padding: 0.5rem 0.6rem;
+  white-space: nowrap;
+  background: var(--surface-100, #f8fafc);
+}
+:host ::ng-deep .dep-detail-table .p-datatable-tbody > tr > td {
+  font-size: 0.8rem;
+  padding: 0.45rem 0.6rem;
+  white-space: nowrap;
+}
+
+.preview-warn {
+  margin: 0.75rem 0 0;
+  color: #d97706;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.appr {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+}
+.appr.ok { color: #16a34a; }
+.appr.wait { color: #d97706; }
+
+.reject-note {
+  color: #dc2626;
+  font-size: 0.82rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.35rem;
+  white-space: nowrap;
+  justify-content: flex-end;
+}
+
+/* ── Main audit list table ── */
+:host ::ng-deep .audit-table .p-datatable-thead > tr > th {
+  font-size: 0.78rem;
+  padding: 0.55rem 0.65rem;
+  white-space: nowrap;
+  background: var(--surface-100, #f8fafc);
+}
+:host ::ng-deep .audit-table .p-datatable-tbody > tr > td {
+  font-size: 0.82rem;
+  padding: 0.5rem 0.65rem;
+  vertical-align: middle;
+}
+:host ::ng-deep .audit-table .p-button.p-button-sm {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.76rem;
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.dialog-body label {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.w-full { width: 100%; }

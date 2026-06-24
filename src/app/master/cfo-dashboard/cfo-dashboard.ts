@@ -279,7 +279,7 @@ export class CfoDashboard implements OnInit {
     const items = [
       { label: 'Purchase / Capital Cost', value: this.tcoDetail.capitalCost ?? 0,      color: '#6366f1' },
       { label: 'Repair (Tickets)',         value: this.tcoDetail.repairCost ?? 0,       color: '#dc2626' },
-      { label: 'Planned Maintenance (PM)', value: this.tcoDetail.pmCost ?? 0,           color: '#f59e0b' },
+      { label: 'Preventive Maintenance (PM)', value: this.tcoDetail.pmCost ?? 0,           color: '#f59e0b' },
       { label: 'Spare Parts',             value: this.tcoDetail.sparePartCost ?? 0,    color: '#0ea5e9' },
       { label: 'Labor / Staff Time',      value: this.tcoDetail.laborCost ?? 0,        color: '#8b5cf6' },
       { label: 'Consumables / Materials', value: this.tcoDetail.consumableCost ?? 0,   color: '#10b981' },

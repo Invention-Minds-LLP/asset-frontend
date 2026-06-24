@@ -1,0 +1,225 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-verified"></i> Depreciation Audit</h2>
+    <p-button label="Refresh" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="loadAudits()"></p-button>
+  </div>
+
+  <p class="page-sub">
+    Per financial year, Finance initiates and approves the depreciation position; the CFO and the External CA
+    then each approve. Once both sign off, the year is marked <strong>Audited</strong>.
+  </p>
+
+  <!-- Finance: initiate a new FY audit -->
+  <div class="create-card" *ngIf="isFinance">
+    <h3>Initiate Audit (Finance)</h3>
+    <div class="create-row">
+      <div class="create-field">
+        <label>Financial Year</label>
+        <p-select [options]="yearOptions" optionLabel="label" optionValue="value" [(ngModel)]="newFiscalYear"
+          (onChange)="onYearChange()" placeholder="Select FY" [filter]="true" appendTo="body"></p-select>
+      </div>
+      <div class="create-field grow">
+        <label>Notes (optional)</label>
+        <input pInputText [(ngModel)]="newNotes" placeholder="Context for approvers" class="w-full" />
+      </div>
+      <div class="create-field">
+        <p-button label="Initiate & Approve" icon="pi pi-check" [loading]="creating"
+          [disabled]="!preview || preview.alreadyExists || preview.assetCount === 0" (onClick)="createAudit()"></p-button>
+      </div>
+    </div>
+
+    <!-- Review the position for the selected year before initiating -->
+    <div *ngIf="previewLoading" class="preview-loading">
+      <i class="pi pi-spin pi-spinner"></i> Loading {{ '' }} year position…
+    </div>
+
+    <div *ngIf="preview && !previewLoading" class="preview-box">
+      <div class="preview-summary">
+        <div class="preview-stat">
+          <span class="ps-label">Assets with depreciation</span>
+          <span class="ps-value">{{ preview.assetCount }}</span>
+        </div>
+        <div class="preview-stat">
+          <span class="ps-label">Total depreciation (FY {{ preview.fyLabel?.replace('FY','') }})</span>
+          <span class="ps-value">{{ formatCurrency(preview.totalDepreciation) }}</span>
+        </div>
+        <div class="preview-stat" *ngIf="preview.breakdown?.length">
+          <a class="ps-link" (click)="showBreakdown = !showBreakdown">
+            {{ showBreakdown ? 'Hide' : 'Review' }} asset-wise breakdown
+            <i class="pi" [ngClass]="showBreakdown ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+          </a>
+        </div>
+      </div>
+
+      <p *ngIf="preview.alreadyExists" class="preview-warn">
+        <i class="pi pi-exclamation-triangle"></i> An audit for this year already exists ({{ preview.status }}).
+      </p>
+      <p *ngIf="preview.assetCount === 0 && !preview.alreadyExists" class="preview-warn">
+        <i class="pi pi-info-circle"></i> No depreciation has been booked for this year — nothing to audit yet.
+      </p>
+
+      <p-table *ngIf="showBreakdown" [value]="preview.breakdown" styleClass="p-datatable-sm p-datatable-striped p-datatable-gridlines"
+        [paginator]="preview.breakdown.length > 10" [rows]="10">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Asset</th>
+            <th>Name</th>
+            <th>Method</th>
+            <th style="text-align:right">Rate %</th>
+            <th>Year Basis</th>
+            <th style="text-align:right">Opening WDV</th>
+            <th style="text-align:right">Depreciation</th>
+            <th style="text-align:right">Closing Book Value</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-b>
+          <tr>
+            <td>{{ b.assetCode }}</td>
+            <td>{{ b.assetName }}</td>
+            <td>{{ b.method || '—' }}</td>
+            <td style="text-align:right">{{ b.rate ? (b.rate | number:'1.0-2') + '%' : '—' }}</td>
+            <td>
+              <span [class.basis-half]="b.yearBasis === 'Half year'">{{ b.yearBasis }}</span>
+              <span *ngIf="b.isFirstFY" class="first-fy" title="First year of depreciation"> · 1st FY</span>
+            </td>
+            <td style="text-align:right">{{ formatCurrency(b.openingWdv) }}</td>
+            <td style="text-align:right; font-weight:600">{{ formatCurrency(b.depreciation) }}</td>
+            <td style="text-align:right">{{ formatCurrency(b.closingBookValue) }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="section-loading">
+    <p-progressSpinner [style]="{width: '40px', height: '40px'}" strokeWidth="4"></p-progressSpinner>
+  </div>
+
+  <!-- Informative empty state (reliable, role-aware) -->
+  <div *ngIf="!loading && audits.length === 0" class="empty-state">
+    <i class="pi pi-inbox"></i>
+    <p class="empty-title">No depreciation audits yet</p>
+    <p class="empty-hint" *ngIf="isFinance">Use <strong>Initiate &amp; Approve</strong> above to start the sign-off for a financial year.</p>
+    <p class="empty-hint" *ngIf="isCfo">Once Finance initiates a year, it will appear here for your approval.</p>
+    <p class="empty-hint" *ngIf="!isFinance && !isCfo">Only the <strong>Finance</strong> role can initiate an audit; the CFO and External CA then approve. Nothing has been submitted yet.</p>
+  </div>
+
+  <p-table *ngIf="!loading && audits.length > 0" [value]="audits" styleClass="p-datatable-sm audit-table" [paginator]="audits.length > 12" [rows]="12">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Financial Year</th>
+        <th>Status</th>
+        <th style="text-align:right">Depreciation</th>
+        <th style="text-align:right">Assets</th>
+        <th>Finance</th>
+        <th>CFO</th>
+        <th>External CA</th>
+        <th>Notes</th>
+        <th></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-a>
+      <tr>
+        <td><strong>FY {{ a.fyLabel }}</strong></td>
+        <td><p-tag [value]="a.status" [severity]="statusSeverity(a.status)"></p-tag></td>
+        <td style="text-align:right">{{ formatCurrency(a.totalDepreciation) }}</td>
+        <td style="text-align:right">{{ a.assetCount }}</td>
+        <td>
+          <span class="appr ok" *ngIf="a.financeApprovedAt">
+            <i class="pi pi-check-circle"></i> {{ a.financeApprovedBy?.name || 'Finance' }}
+          </span>
+        </td>
+        <td>
+          <span class="appr ok" *ngIf="a.cfoApprovedAt"><i class="pi pi-check-circle"></i> {{ a.cfoApprovedBy?.name || 'CFO' }}</span>
+          <span class="appr wait" *ngIf="!a.cfoApprovedAt && a.status !== 'REJECTED'"><i class="pi pi-clock"></i> Pending</span>
+        </td>
+        <td>
+          <span class="appr ok" *ngIf="a.caApprovedAt"><i class="pi pi-check-circle"></i> {{ a.caApprovedByName || 'CA' }}</span>
+          <span class="appr wait" *ngIf="!a.caApprovedAt && a.status !== 'REJECTED'"><i class="pi pi-clock"></i> Pending</span>
+        </td>
+        <td>
+          <span *ngIf="a.status === 'REJECTED'" class="reject-note">
+            Rejected by {{ a.rejectedByRole }}: {{ a.rejectionReason || '—' }}
+          </span>
+          <span *ngIf="a.status !== 'REJECTED'">{{ a.notes || '—' }}</span>
+        </td>
+        <td class="actions">
+          <p-button label="Details" icon="pi pi-eye" size="small" severity="secondary" [outlined]="true" (onClick)="viewDetails(a)"></p-button>
+          <ng-container *ngIf="canCfoAct(a)">
+            <p-button label="Approve" icon="pi pi-check" size="small" severity="success" (onClick)="approve(a)"></p-button>
+            <p-button label="Reject" icon="pi pi-times" size="small" severity="danger" [outlined]="true" (onClick)="openReject(a)"></p-button>
+          </ng-container>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="empty">
+      <tr><td colspan="9" style="text-align:center; padding:2rem; color:#999;">No depreciation audits yet.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Details dialog — per-asset depreciation for the year (for approver review) -->
+<p-dialog [header]="'Depreciation Detail — FY ' + (detailFyLabel | slice:2)" [(visible)]="detailVisible" [modal]="true"
+  [style]="{width: '92vw', maxWidth: '1040px'}" [draggable]="false">
+  <div *ngIf="detailLoading" class="section-loading">
+    <p-progressSpinner [style]="{width: '36px', height: '36px'}" strokeWidth="4"></p-progressSpinner>
+  </div>
+
+  <div *ngIf="detailData && !detailLoading">
+    <div class="detail-summary">
+      <span><span class="ds-label">Assets</span> <span class="ds-value">{{ detailData.assetCount }}</span></span>
+      <span><span class="ds-label">Total Depreciation</span> <span class="ds-value">{{ formatCurrency(detailData.totalDepreciation) }}</span></span>
+    </div>
+
+    <p-table [value]="detailData.breakdown" styleClass="p-datatable-sm dep-detail-table"
+      [paginator]="detailData.breakdown.length > 10" [rows]="10" [scrollable]="true" scrollHeight="50vh">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="min-width:200px">Asset</th>
+          <th style="min-width:90px">Method</th>
+          <th style="text-align:right; min-width:70px">Rate %</th>
+          <th style="min-width:110px">Year Basis</th>
+          <th style="text-align:right; min-width:130px">Opening WDV</th>
+          <th style="text-align:right; min-width:120px">Depreciation</th>
+          <th style="text-align:right; min-width:140px">Closing Book Value</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-b>
+        <tr>
+          <td style="min-width:200px">
+            <div class="asset-cell">
+              <span class="asset-code">{{ b.assetCode }}</span>
+              <span class="asset-name">{{ b.assetName }}</span>
+            </div>
+          </td>
+          <td>{{ b.method || '—' }}</td>
+          <td style="text-align:right">{{ b.rate ? (b.rate | number:'1.0-2') + '%' : '—' }}</td>
+          <td>
+            <span [class.basis-half]="b.yearBasis === 'Half year'">{{ b.yearBasis }}</span>
+            <span *ngIf="b.isFirstFY" class="first-fy" title="First year of depreciation"> · 1st FY</span>
+          </td>
+          <td style="text-align:right">{{ formatCurrency(b.openingWdv) }}</td>
+          <td style="text-align:right; font-weight:600">{{ formatCurrency(b.depreciation) }}</td>
+          <td style="text-align:right">{{ formatCurrency(b.closingBookValue) }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="empty">
+        <tr><td colspan="7" style="text-align:center; padding:1.5rem; color:#999;">No asset-level depreciation found for this year.</td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+</p-dialog>
+
+<!-- CFO reject dialog -->
+<p-dialog header="Reject Audit" [(visible)]="rejectVisible" [modal]="true" [style]="{width: '460px'}">
+  <div class="dialog-body">
+    <label>Reason for rejection</label>
+    <textarea pTextarea [(ngModel)]="rejectReason" rows="4" class="w-full" placeholder="Explain what needs correction"></textarea>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="rejectVisible = false"></p-button>
+    <p-button label="Reject" severity="danger" (onClick)="confirmReject()"></p-button>
+  </ng-template>
+</p-dialog>

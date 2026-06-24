@@ -84,6 +84,9 @@ export class Sidebar implements OnInit {
         { label: 'Preventive Maintenance', route: '/preventive-maintenance', icon: 'pi pi-calendar' },
         { label: 'Calibration', route: '/calibration', icon: 'pi pi-sliders-h' },
         { label: 'PM Checklists', route: '/pm-checklist', icon: 'pi pi-list-check' },
+        { label: 'Hierarchy Dashboard', route: '/hierarchy-config', icon: 'pi pi-sitemap' },
+        { label: 'Knowledge Base', route: '/knowledge-base', icon: 'pi pi-book' },
+        { label: 'Root Cause Analysis', route: '/rca', icon: 'pi pi-search-minus' },
       ]
     },
 
@@ -110,6 +113,7 @@ export class Sidebar implements OnInit {
         { label: 'Cost Analysis', route: '/cost-analysis', icon: 'pi pi-chart-bar' },
         { label: 'Decision Engine', route: '/decision-engine', icon: 'pi pi-microchip' },
         { label: 'Batch Depreciation', route: '/batch-depreciation', icon: 'pi pi-chart-line' },
+        { label: 'Depreciation Audit', route: '/depreciation-audit', icon: 'pi pi-verified' },
         { label: 'Fixed Assets Schedule', route: '/fixed-assets-schedule', icon: 'pi pi-table' },
         { label: 'Finance Centre', route: '/finance-centre', icon: 'pi pi-building-columns' },
         { label: 'Legacy Migration', route: '/legacy-migration', icon: 'pi pi-history' },
@@ -147,8 +151,6 @@ export class Sidebar implements OnInit {
         { label: 'Floor Plans', route: '/floor-plan', icon: 'pi pi-map' },
         { label: 'Employee Exit', route: '/employee-exit', icon: 'pi pi-sign-out' },
         { label: 'Document Vault', route: '/document-vault', icon: 'pi pi-folder-open' },
-        { label: 'Knowledge Base', route: '/knowledge-base', icon: 'pi pi-book' },
-        { label: 'Root Cause Analysis', route: '/rca', icon: 'pi pi-search-minus' },
         { label: 'Bulk Operations', route: '/quick-actions', icon: 'pi pi-bolt' },
       ]
     },
@@ -161,7 +163,6 @@ export class Sidebar implements OnInit {
         { label: 'SLA Matrix', route: '/sla', icon: 'pi pi-clock' },
         { label: 'Escalation Matrix', route: '/escalation', icon: 'pi pi-sort-alt' },
         { label: 'Support Matrix', route: '/support-matrix', icon: 'pi pi-users' },
-        { label: 'Hierarchy Dashboard', route: '/hierarchy-config', icon: 'pi pi-sitemap' },
         { label: 'Master Settings', route: '/master-settings', icon: 'pi pi-cog' },
         { label: 'External Auditors', route: '/external-auditors', icon: 'pi pi-id-card' },
         { label: 'Approval Config', route: '/approval-config', icon: 'pi pi-check-circle' },

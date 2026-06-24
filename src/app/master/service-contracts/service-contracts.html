@@ -61,7 +61,7 @@
       <div class="field">
         <p-floatlabel variant="on">
           <p-inputnumber [(ngModel)]="form.cost" name="scCost" mode="decimal" />
-          <label>Contract Cost</label>
+          <label>{{ form.contractType ? form.contractType + ' Cost' : 'Contract Cost' }}</label>
         </p-floatlabel>
       </div>
 
@@ -154,7 +154,8 @@
         <th>Asset</th>
         <th>Vendor</th>
         <th>Type</th>
-        <th>Cost</th>
+        <th>AMC Cost</th>
+        <th>CMC Cost</th>
         <th>Start</th>
         <th>End</th>
         <th>Status</th>
@@ -168,7 +169,8 @@
         <td>{{ c.asset?.assetName || '—' }}</td>
         <td>{{ c.vendor?.name || '—' }}</td>
         <td>{{ c.contractType }}</td>
-        <td>{{ formatCurrency(c.cost) }}</td>
+        <td>{{ c.contractType === 'AMC' ? formatCurrency(c.cost) : '—' }}</td>
+        <td>{{ c.contractType === 'CMC' ? formatCurrency(c.cost) : '—' }}</td>
         <td>{{ c.startDate | date:'mediumDate' }}</td>
         <td>{{ c.endDate | date:'mediumDate' }}</td>
         <td><p-tag [value]="c.status" [severity]="getStatusSeverity(c.status)"></p-tag></td>
@@ -191,7 +193,7 @@
       </tr>
     </ng-template>
     <ng-template pTemplate="emptymessage">
-      <tr><td colspan="10" class="text-center">No contracts found.</td></tr>
+      <tr><td colspan="11" class="text-center">No contracts found.</td></tr>
     </ng-template>
   </p-table>
 </div>

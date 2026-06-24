@@ -237,7 +237,7 @@
                     </div>
 
                     <div class="form-field half">
-                        <label class="field-label">Cost</label>
+                        <label class="field-label">{{ contractForm.contractType ? contractForm.contractType + ' Cost' : 'Contract Cost' }}</label>
                         <input pInputText class="w-full" type="number" name="cost" [(ngModel)]="contractForm.cost" />
                     </div>
                 </div>

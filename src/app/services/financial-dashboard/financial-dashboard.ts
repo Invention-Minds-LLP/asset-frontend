@@ -21,6 +21,10 @@ export class FinancialDashboardService {
     return this.http.get(`${this.baseUrl}/fy-breakdown`, { params: this.buildParams(filters) });
   }
 
+  getCategoryBreakdown(filters: any = {}): Observable<any> {
+    return this.http.get(`${this.baseUrl}/category-breakdown`, { params: this.buildParams(filters) });
+  }
+
   getMonthlyAssets(params: any = {}): Observable<any> {
     return this.http.get(`${this.baseUrl}/monthly-assets`, { params: this.buildParams(params) });
   }

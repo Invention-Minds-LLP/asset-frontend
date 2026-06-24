@@ -16,6 +16,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageService, TreeNode } from 'primeng/api';
 import { FinancialDashboardService } from '../../services/financial-dashboard/financial-dashboard';
+import { DepreciationAuditService } from '../../services/depreciation-audit/depreciation-audit';
 
 @Component({
   selector: 'app-financial-dashboard',
@@ -66,9 +67,11 @@ export class FinancialDashboard implements OnInit {
   // ── Data ─────────────────────────────────────────────────────────────────
   summary: any = {};
   fyTreeData: TreeNode[] = [];
+  categoryTreeData: TreeNode[] = [];
   loading = false;
   filtersLoading = true;
   treeLoading = false;
+  categoryTreeLoading = false;
 
   // Asset detail when month is expanded
   expandedMonthAssets: Map<string, any[]> = new Map();
@@ -79,8 +82,12 @@ export class FinancialDashboard implements OnInit {
   userRole = '';
   userDepartmentId: number | null = null;
 
+  // Depreciation audit status per FY start year: { [fyStartYear]: 'AUDITED' | 'PENDING' | 'REJECTED' }
+  auditStatuses: Record<number, string> = {};
+
   constructor(
     private financialService: FinancialDashboardService,
+    private depAuditService: DepreciationAuditService,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -88,6 +95,28 @@ export class FinancialDashboard implements OnInit {
   ngOnInit() {
     this.loadUserContext();
     this.loadFilterOptions();
+    this.loadAuditStatuses();
+  }
+
+  loadAuditStatuses() {
+    this.depAuditService.getStatuses().subscribe({
+      next: (res) => { this.auditStatuses = res.statuses || {}; this.cdr.detectChanges(); },
+      error: () => {},
+    });
+  }
+
+  // For an FY tree node (level 'fy'), the audit status of that financial year.
+  auditStatusFor(fyStartYear: number): string {
+    return this.auditStatuses[fyStartYear] || 'UNAUDITED';
+  }
+
+  auditStatusSeverity(status: string): 'success' | 'warn' | 'danger' | 'secondary' {
+    switch (status) {
+      case 'AUDITED': return 'success';
+      case 'PENDING': return 'warn';
+      case 'REJECTED': return 'danger';
+      default: return 'secondary';
+    }
   }
 
   private loadUserContext() {
@@ -135,6 +164,7 @@ export class FinancialDashboard implements OnInit {
   applyFilters() {
     this.loading = true;
     this.treeLoading = true;
+    this.categoryTreeLoading = true;
     this.expandedMonthAssets.clear();
     this.expandedMonthPagination.clear();
 
@@ -168,6 +198,20 @@ export class FinancialDashboard implements OnInit {
         this.toast('error', 'Failed to load FY breakdown');
       },
     });
+
+    this.financialService.getCategoryBreakdown(params).subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          this.categoryTreeData = this.transformCategoriesToTreeNodes(res.categories || []);
+          this.categoryTreeLoading = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        setTimeout(() => { this.categoryTreeLoading = false; this.cdr.detectChanges(); });
+        this.toast('error', 'Failed to load category breakdown');
+      },
+    });
   }
 
   onViewChange() {
@@ -190,7 +234,7 @@ export class FinancialDashboard implements OnInit {
 
   // ── Tree Node Transform ──────────────────────────────────────────────────
 
-  private transformToTreeNodes(financialYears: any[]): TreeNode[] {
+  private transformToTreeNodes(financialYears: any[], categoryId: number | null = null): TreeNode[] {
     return financialYears.map((fy) => ({
       data: {
         label: `FY ${fy.fy}`,
@@ -198,6 +242,7 @@ export class FinancialDashboard implements OnInit {
         assetCount: fy.assetCount,
         level: 'fy',
         fyStartYear: fy.fyStartYear,
+        categoryId,
       },
       children: fy.quarters.map((q: any) => ({
         data: {
@@ -205,6 +250,7 @@ export class FinancialDashboard implements OnInit {
           total: q.total,
           assetCount: q.assetCount,
           level: 'quarter',
+          categoryId,
         },
         children: q.months.map((m: any) => ({
           data: {
@@ -214,6 +260,7 @@ export class FinancialDashboard implements OnInit {
             level: 'month',
             month: m.month,
             year: m.year,
+            categoryId,
           },
           children: [], // lazy loaded
           leaf: false,
@@ -222,10 +269,26 @@ export class FinancialDashboard implements OnInit {
     }));
   }
 
+  // Category > FY > Quarter > Month > Assets — mirrors the FY tree, one level deeper.
+  private transformCategoriesToTreeNodes(categories: any[]): TreeNode[] {
+    return categories.map((c) => ({
+      data: {
+        label: c.categoryName,
+        total: c.total,
+        assetCount: c.assetCount,
+        level: 'category',
+        categoryId: c.categoryId,
+      },
+      children: this.transformToTreeNodes(c.financialYears || [], c.categoryId),
+      leaf: false,
+    }));
+  }
+
   onNodeExpand(event: any) {
     const node = event.node;
     if (node.data.level === 'month' && node.data.assetCount > 0) {
-      const key = `${node.data.year}-${node.data.month}`;
+      // Scope the cache key by category so FY-tree and category-tree months don't collide.
+      const key = `${node.data.categoryId ?? 'all'}-${node.data.year}-${node.data.month}`;
       if (this.expandedMonthAssets.has(key)) {
         // Already loaded
         node.children = this.buildAssetChildNodes(this.expandedMonthAssets.get(key)!);
@@ -239,6 +302,8 @@ export class FinancialDashboard implements OnInit {
     this.expandedMonthLoading.add(key);
     this.financialService.getMonthlyAssets({
       ...this.filters,
+      // For category-tree months, scope to that category (overrides any filter).
+      ...(node.data.categoryId != null ? { categoryId: node.data.categoryId } : {}),
       year: node.data.year,
       month: node.data.month,
       page,
@@ -276,11 +341,21 @@ export class FinancialDashboard implements OnInit {
     });
   }
 
+  private viewAmountFields: Record<string, string> = {
+    purchase: 'purchaseCost',
+    maintenance: 'maintenanceCost',
+    insurance: 'insurancePremium',
+    amc_cmc: 'amcCmcCost',
+    depreciation: 'depreciation',
+    total_cost: 'totalCost',
+  };
+
   private buildAssetChildNodes(assets: any[]): TreeNode[] {
+    const field = this.viewAmountFields[this.selectedView] ?? 'purchaseCost';
     return assets.map((a) => ({
       data: {
         label: `${a.assetId} - ${a.assetName}`,
-        total: a.purchaseCost,
+        total: a[field] ?? 0,
         assetCount: null,
         level: 'asset',
         asset: a,
@@ -297,7 +372,7 @@ export class FinancialDashboard implements OnInit {
 
   isMonthLoading(node: any): boolean {
     if (node.data?.level === 'month') {
-      return this.expandedMonthLoading.has(`${node.data.year}-${node.data.month}`);
+      return this.expandedMonthLoading.has(`${node.data.categoryId ?? 'all'}-${node.data.year}-${node.data.month}`);
     }
     return false;
   }
@@ -346,6 +421,7 @@ export class FinancialDashboard implements OnInit {
 
   getRowClass(node: any): string {
     switch (node.data?.level) {
+      case 'category': return 'row-category';
       case 'fy': return 'row-fy';
       case 'quarter': return 'row-quarter';
       case 'month': return 'row-month';
@@ -366,7 +442,10 @@ export class FinancialDashboard implements OnInit {
   }
 
   getMonthLabel(key: string): string {
-    const [yr, mo] = key.split('-').map(Number);
+    // Keys are `<categoryId|all>-<year>-<month>`; take the last two parts.
+    const parts = key.split('-');
+    const mo = Number(parts[parts.length - 1]);
+    const yr = Number(parts[parts.length - 2]);
     const months = ['', 'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'];
     return `${months[mo]} ${yr}`;

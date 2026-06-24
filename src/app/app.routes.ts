@@ -36,6 +36,7 @@ import { WarrantyManagement } from './master/warranty-management/warranty-manage
 import { ServiceContracts } from './master/service-contracts/service-contracts';
 import { DocumentVault } from './master/document-vault/document-vault';
 import { BatchDepreciation } from './master/batch-depreciation/batch-depreciation';
+import { DepreciationAudit } from './master/depreciation-audit/depreciation-audit';
 import { UserActivity } from './master/user-activity/user-activity';
 import { PreventiveMaintenance } from './master/preventive-maintenance/preventive-maintenance';
 import { VendorPerformance } from './master/vendor-performance/vendor-performance';
@@ -119,6 +120,7 @@ export const routes: Routes = [
   { path: 'service-contracts', component: ServiceContracts, canActivate: [authGuard] },
   { path: 'document-vault', component: DocumentVault, canActivate: [authGuard] },
   { path: 'batch-depreciation', component: BatchDepreciation, canActivate: [authGuard] },
+  { path: 'depreciation-audit', component: DepreciationAudit, canActivate: [authGuard] },
   { path: 'user-activity', component: UserActivity, canActivate: [authGuard] },
   { path: 'preventive-maintenance', component: PreventiveMaintenance, canActivate: [authGuard] },
   { path: 'vendor-performance', component: VendorPerformance, canActivate: [authGuard] },

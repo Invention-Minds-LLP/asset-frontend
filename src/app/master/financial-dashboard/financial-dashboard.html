@@ -94,8 +94,15 @@
       <div class="kpi-card kpi-teal">
         <div class="kpi-icon"><i class="pi pi-file-check"></i></div>
         <div class="kpi-content">
-          <span class="kpi-value">{{ formatCurrency(summary.totalAmcCmcCost) }}</span>
-          <span class="kpi-label">AMC/CMC Cost</span>
+          <span class="kpi-value">{{ formatCurrency(summary.totalAmcCost) }}</span>
+          <span class="kpi-label">AMC Cost</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-teal">
+        <div class="kpi-icon"><i class="pi pi-file-check"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ formatCurrency(summary.totalCmcCost) }}</span>
+          <span class="kpi-label">CMC Cost</span>
         </div>
       </div>
       <div class="kpi-card kpi-red">
@@ -157,6 +164,11 @@
               <span *ngIf="rowData.level !== 'load_more' && rowData.level !== 'asset'" class="node-label">
                 {{ rowData.label }}
               </span>
+              <!-- Depreciation audit status badge, shown per FY when viewing depreciation -->
+              <p-tag *ngIf="rowData.level === 'fy' && selectedView === 'depreciation'"
+                [value]="auditStatusFor(rowData.fyStartYear)"
+                [severity]="auditStatusSeverity(auditStatusFor(rowData.fyStartYear))"
+                styleClass="audit-badge"></p-tag>
               <span *ngIf="rowData.level === 'asset'" class="asset-link" [routerLink]="['/assets/form', rowData.asset?.id]">
                 <i class="pi pi-external-link" style="font-size: 0.75rem; margin-right: 4px;"></i>
                 {{ rowData.label }}
@@ -167,8 +179,7 @@
               <p-progressSpinner *ngIf="isMonthLoading(rowNode)" [style]="{width:'18px',height:'18px',marginLeft:'8px'}" strokeWidth="5"></p-progressSpinner>
             </td>
             <td style="text-align:right; font-weight:500;">
-              <span *ngIf="rowData.level === 'asset'">{{ formatCurrency(rowData.asset?.purchaseCost) }}</span>
-              <span *ngIf="rowData.level !== 'asset' && rowData.level !== 'load_more'">{{ formatCurrency(rowData.total) }}</span>
+              <span *ngIf="rowData.level !== 'load_more'">{{ formatCurrency(rowData.total) }}</span>
             </td>
             <td style="text-align:right;">
               <span *ngIf="rowData.assetCount !== null && rowData.level !== 'load_more'">{{ rowData.assetCount }}</span>
@@ -183,31 +194,56 @@
 
     <!-- ───── TAB 2: Category Breakdown ───── -->
     <p-tabPanel header="By Category">
-      <div class="breakdown-section" *ngIf="summary.costByCategory?.length > 0">
-        <p-table [value]="summary.costByCategory" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-gridlines">
-          <ng-template pTemplate="header">
-            <tr>
-              <th>Category</th>
-              <th style="text-align:right">Total Cost</th>
-              <th style="text-align:right">Asset Count</th>
-              <th style="text-align:right">% of Total</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-row>
-            <tr>
-              <td>{{ row.category }}</td>
-              <td style="text-align:right; font-weight:500">{{ formatCurrency(row.total) }}</td>
-              <td style="text-align:right">{{ row.count }}</td>
-              <td style="text-align:right">
-                {{ summary.totalPurchaseCost > 0 ? ((row.total / summary.totalPurchaseCost) * 100).toFixed(1) : 0 }}%
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="empty">
-            <tr><td colspan="4" class="empty-msg">No category data</td></tr>
-          </ng-template>
-        </p-table>
+      <div class="view-switcher">
+        <label>View By:</label>
+        <p-selectButton [options]="viewOptions" [(ngModel)]="selectedView" (onChange)="onViewChange()"
+          optionLabel="label" optionValue="value"></p-selectButton>
+      </div>
 
+      <div *ngIf="categoryTreeLoading" class="section-loading">
+        <p-progressSpinner [style]="{width: '40px', height: '40px'}" strokeWidth="4"></p-progressSpinner>
+      </div>
+
+      <p-treeTable *ngIf="!categoryTreeLoading" [value]="categoryTreeData"
+        [columns]="[{field:'label'},{field:'total'},{field:'assetCount'}]"
+        (onNodeExpand)="onNodeExpand($event)" styleClass="fy-tree-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width:50%">Category / Period</th>
+            <th style="width:30%; text-align:right">Amount</th>
+            <th style="width:20%; text-align:right">Assets</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+          <tr [ngClass]="getRowClass(rowNode)">
+            <td>
+              <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+              <span *ngIf="rowData.level !== 'load_more' && rowData.level !== 'asset'" class="node-label">
+                {{ rowData.label }}
+              </span>
+              <span *ngIf="rowData.level === 'asset'" class="asset-link" [routerLink]="['/assets/form', rowData.asset?.id]">
+                <i class="pi pi-external-link" style="font-size: 0.75rem; margin-right: 4px;"></i>
+                {{ rowData.label }}
+              </span>
+              <a *ngIf="rowData.level === 'load_more'" class="load-more-link" (click)="onLoadMore(rowData)">
+                <i class="pi pi-ellipsis-h"></i> {{ rowData.label }}
+              </a>
+              <p-progressSpinner *ngIf="isMonthLoading(rowNode)" [style]="{width:'18px',height:'18px',marginLeft:'8px'}" strokeWidth="5"></p-progressSpinner>
+            </td>
+            <td style="text-align:right; font-weight:500;">
+              <span *ngIf="rowData.level !== 'load_more'">{{ formatCurrency(rowData.total) }}</span>
+            </td>
+            <td style="text-align:right;">
+              <span *ngIf="rowData.assetCount !== null && rowData.level !== 'load_more'">{{ rowData.assetCount }}</span>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="empty">
+          <tr><td colspan="3" style="text-align:center; padding:2rem; color:#999;">No category data available for the selected filters.</td></tr>
+        </ng-template>
+      </p-treeTable>
+
+      <div class="breakdown-section" *ngIf="summary.costByCategory?.length > 0">
         <!-- Visual Bar Chart -->
         <div class="chart-bars">
           <h4>Category-wise Distribution</h4>

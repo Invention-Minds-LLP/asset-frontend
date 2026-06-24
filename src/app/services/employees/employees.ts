@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environment/environment.prod';
 import { Observable } from 'rxjs';
 
-export type EmployeeRole = 'HOD' | 'SUPERVISOR' | 'EXECUTIVE' | 'ADMIN' | 'CEO_COO' | 'FINANCE' | 'OPERATIONS';
+export type EmployeeRole = 'HOD' | 'SUPERVISOR' | 'EXECUTIVE' | 'ADMIN' | 'CEO_COO' | 'FINANCE' | 'OPERATIONS' | 'CFO';
 
 export interface EmployeeCreatePayload {
   name: string;

@@ -50,6 +50,7 @@ export class ModuleAccess implements OnInit {
     { label: 'Supervisor', value: 'SUPERVISOR' },
     { label: 'Executive', value: 'EXECUTIVE' },
     { label: 'Finance', value: 'FINANCE' },
+    { label: 'CFO', value: 'CFO' },
     { label: 'Operations', value: 'OPERATIONS' },
     { label: 'Security', value: 'SECURITY' },
   ];

@@ -77,6 +77,7 @@ export class Settings {
     { name: 'Supervisor', value: 'SUPERVISOR' as EmployeeRole },
     { name: 'Executive', value: 'EXECUTIVE' as EmployeeRole },
     { name: 'Finance', value: 'FINANCE' as EmployeeRole },
+    { name: 'CFO', value: 'CFO' as EmployeeRole },
     { name: 'Operations', value: 'OPERATIONS' as EmployeeRole },
     { name: 'Admin', value: 'ADMIN' as EmployeeRole },
   ];
