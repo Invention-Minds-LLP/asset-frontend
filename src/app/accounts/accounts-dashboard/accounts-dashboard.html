@@ -1,5 +1,8 @@
 <div class="accounts-dashboard-container">
-  <h2>Accounts Dashboard</h2>
+  <h2>Accounts Dashboard
+    <i class="pi pi-info-circle" style="font-size:0.8rem; color:#94a3b8; cursor:help; margin-left:8px; vertical-align:middle;"
+       pTooltip="Overview of accounting activity — purchase &amp; payment vouchers, journal entries and ledgers." tooltipPosition="right"></i>
+  </h2>
   <p class="subtitle">Overview of all financial vouchers and entries</p>
   <div class="divider-container"><hr class="divider" /></div>
 
@@ -8,6 +11,7 @@
   <div *ngIf="!loading && summary" class="kpi-grid">
     <!-- Purchase Vouchers KPI -->
     <div class="kpi-card">
+      <i class="pi pi-info-circle kpi-info" pTooltip="Vendor purchase vouchers — total count, posted vs pending, and posted amount." tooltipPosition="top"></i>
       <div class="kpi-icon"><i class="pi pi-file-edit"></i></div>
       <div class="kpi-content">
         <div class="kpi-label">Purchase Vouchers</div>
@@ -19,6 +23,7 @@
 
     <!-- Payment Vouchers KPI -->
     <div class="kpi-card">
+      <i class="pi pi-info-circle kpi-info" pTooltip="Payment vouchers — total count, posted vs pending, and posted amount." tooltipPosition="top"></i>
       <div class="kpi-icon"><i class="pi pi-credit-card"></i></div>
       <div class="kpi-content">
         <div class="kpi-label">Payment Vouchers</div>
@@ -30,6 +35,7 @@
 
     <!-- Journal Entries KPI -->
     <div class="kpi-card">
+      <i class="pi pi-info-circle kpi-info" pTooltip="Accounting journal entries (auto-generated and manual)." tooltipPosition="top"></i>
       <div class="kpi-icon"><i class="pi pi-book"></i></div>
       <div class="kpi-content">
         <div class="kpi-label">Journal Entries</div>
@@ -40,6 +46,7 @@
 
     <!-- Chart of Accounts KPI -->
     <div class="kpi-card">
+      <i class="pi pi-info-circle kpi-info" pTooltip="Number of active ledger accounts in the chart of accounts." tooltipPosition="top"></i>
       <div class="kpi-icon"><i class="pi pi-list"></i></div>
       <div class="kpi-content">
         <div class="kpi-label">Chart of Accounts</div>

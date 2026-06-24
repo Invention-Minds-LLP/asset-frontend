@@ -8,7 +8,9 @@
 .kpi-5 { grid-template-columns: repeat(5, 1fr); }
 .kpi-4 { grid-template-columns: repeat(4, 1fr); }
 .kpi-3 { grid-template-columns: repeat(3, 1fr); }
-.kpi-card { border: 1px solid var(--surface-border); border-radius: 10px; padding: 1rem 1.25rem; background: var(--surface-0); }
+.kpi-card { border: 1px solid var(--surface-border); border-radius: 10px; padding: 1rem 1.25rem; background: var(--surface-0); position: relative; }
+.kpi-info { position: absolute; top: 8px; right: 10px; font-size: 0.72rem; color: var(--text-color-secondary, #9ca3af); cursor: help; }
+.section-info { font-size: 0.75rem; color: var(--text-color-secondary, #9ca3af); cursor: help; margin-left: 6px; vertical-align: middle; }
 .kpi-card.subtle { background: var(--surface-50, var(--surface-0)); }
 .kpi-label { font-size: 0.8rem; color: var(--text-color-secondary); font-weight: 500; margin-bottom: 0.35rem; }
 .kpi-value { font-size: 1.35rem; font-weight: 700; color: var(--text-color); }

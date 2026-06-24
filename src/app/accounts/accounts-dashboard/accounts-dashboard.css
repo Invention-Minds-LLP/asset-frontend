@@ -6,7 +6,8 @@ h2 { font-size: 1.4rem; font-weight: 700; margin: 0; }
 .loading-msg { padding: 2rem; text-align: center; color: var(--text-color-secondary); }
 
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-.kpi-card { background: var(--p-content-background, #fff); border: 1px solid var(--p-content-border-color, #e5e7eb); border-radius: 10px; padding: 1.2rem; display: flex; gap: 1rem; align-items: flex-start; }
+.kpi-card { background: var(--p-content-background, #fff); border: 1px solid var(--p-content-border-color, #e5e7eb); border-radius: 10px; padding: 1.2rem; display: flex; gap: 1rem; align-items: flex-start; position: relative; }
+.kpi-info { position: absolute; top: 8px; right: 10px; font-size: 0.72rem; color: var(--text-color-secondary, #9ca3af); cursor: help; }
 .kpi-icon { font-size: 1.6rem; color: #2563eb; background: #eff6ff; border-radius: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .kpi-label { font-size: 0.8rem; color: var(--text-color-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
 .kpi-value { font-size: 1.8rem; font-weight: 700; line-height: 1.2; }

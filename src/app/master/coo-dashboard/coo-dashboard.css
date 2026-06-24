@@ -17,7 +17,9 @@
 .kpi-3 { grid-template-columns: repeat(3, 1fr); }
 .kpi-2 { grid-template-columns: repeat(2, 1fr); }
 .kpi-grid.compact { margin-bottom: 0.75rem; }
-.kpi-card { border: 1px solid var(--surface-border); border-radius: 10px; padding: 1rem 1.25rem; background: var(--surface-0); }
+.kpi-card { border: 1px solid var(--surface-border); border-radius: 10px; padding: 1rem 1.25rem; background: var(--surface-0); position: relative; }
+/* Visible info marker on every KPI card; the card's own pTooltip explains it on hover. */
+.kpi-card::after { content: 'ⓘ'; position: absolute; top: 6px; right: 9px; font-size: 0.8rem; color: var(--text-color-secondary, #9ca3af); pointer-events: none; }
 .kpi-card.subtle { background: var(--surface-50, var(--surface-0)); }
 .kpi-card.mini { padding: 0.75rem 1rem; }
 .kpi-label { font-size: 0.8rem; color: var(--text-color-secondary); font-weight: 500; margin-bottom: 0.35rem; }

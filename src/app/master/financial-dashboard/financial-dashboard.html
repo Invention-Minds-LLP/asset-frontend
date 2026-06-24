@@ -3,7 +3,10 @@
 <div class="financial-dashboard">
   <!-- ═══════════════════════ HEADER ═══════════════════════ -->
   <div class="dashboard-header">
-    <h2>Financial Dashboard</h2>
+    <h2>Financial Dashboard
+      <i class="pi pi-info-circle" style="font-size:0.8rem; color:#94a3b8; cursor:help; margin-left:8px; vertical-align:middle;"
+         pTooltip="Asset financials by year and category — purchase, maintenance, AMC/CMC, insurance and depreciation, with audit status." tooltipPosition="right"></i>
+    </h2>
     <div class="header-actions">
       <p-button label="Reset Filters" icon="pi pi-refresh" severity="secondary" [outlined]="true" (click)="resetFilters()"></p-button>
       <p-button label="Apply" icon="pi pi-filter" (click)="applyFilters()"></p-button>
@@ -64,6 +67,7 @@
   <div class="kpi-section" *ngIf="!loading && summary.assetCount !== undefined">
     <div class="kpi-grid">
       <div class="kpi-card kpi-blue">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Count of all assets in the current filter scope (excludes disposed/scrapped)." tooltipPosition="top"></i>
         <div class="kpi-icon"><i class="pi pi-box"></i></div>
         <div class="kpi-content">
           <span class="kpi-value">{{ formatNumber(summary.assetCount) }}</span>
@@ -71,6 +75,7 @@
         </div>
       </div>
       <div class="kpi-card kpi-green">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Sum of the acquisition (purchase) cost of all assets in scope." tooltipPosition="top"></i>
         <div class="kpi-icon"><i class="pi pi-indian-rupee"></i></div>
         <div class="kpi-content">
           <span class="kpi-value">{{ formatCurrency(summary.totalPurchaseCost) }}</span>
@@ -78,6 +83,7 @@
         </div>
       </div>
       <div class="kpi-card kpi-orange">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Total spend on maintenance history and repair tickets." tooltipPosition="top"></i>
         <div class="kpi-icon"><i class="pi pi-wrench"></i></div>
         <div class="kpi-content">
           <span class="kpi-value">{{ formatCurrency(summary.totalMaintenanceCost) }}</span>
@@ -85,6 +91,7 @@
         </div>
       </div>
       <div class="kpi-card kpi-purple">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Total insurance premium paid — the recurring policy fee, not the coverage/sum-insured." tooltipPosition="top"></i>
         <div class="kpi-icon"><i class="pi pi-shield"></i></div>
         <div class="kpi-content">
           <span class="kpi-value">{{ formatCurrency(summary.totalInsurancePremiums) }}</span>
@@ -92,6 +99,7 @@
         </div>
       </div>
       <div class="kpi-card kpi-teal">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Total spend on AMC (Annual Maintenance Contract) service contracts." tooltipPosition="top"></i>
         <div class="kpi-icon"><i class="pi pi-file-check"></i></div>
         <div class="kpi-content">
           <span class="kpi-value">{{ formatCurrency(summary.totalAmcCost) }}</span>
@@ -99,6 +107,7 @@
         </div>
       </div>
       <div class="kpi-card kpi-teal">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Total spend on CMC (Comprehensive Maintenance Contract) service contracts." tooltipPosition="top"></i>
         <div class="kpi-icon"><i class="pi pi-file-check"></i></div>
         <div class="kpi-content">
           <span class="kpi-value">{{ formatCurrency(summary.totalCmcCost) }}</span>
@@ -106,6 +115,7 @@
         </div>
       </div>
       <div class="kpi-card kpi-red">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Accumulated depreciation booked across all assets in scope." tooltipPosition="top"></i>
         <div class="kpi-icon"><i class="pi pi-chart-line"></i></div>
         <div class="kpi-content">
           <span class="kpi-value">{{ formatCurrency(summary.totalDepreciation) }}</span>
@@ -113,6 +123,7 @@
         </div>
       </div>
       <div class="kpi-card kpi-dark">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Lifetime cost: purchase + maintenance + AMC/CMC + insurance + lease/rental + spares." tooltipPosition="top"></i>
         <div class="kpi-icon"><i class="pi pi-wallet"></i></div>
         <div class="kpi-content">
           <span class="kpi-value">{{ formatCurrency(summary.totalCostOfOwnership) }}</span>
@@ -120,6 +131,7 @@
         </div>
       </div>
       <div class="kpi-card kpi-gray">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Total cost of ownership divided by the number of assets in scope." tooltipPosition="top"></i>
         <div class="kpi-icon"><i class="pi pi-calculator"></i></div>
         <div class="kpi-content">
           <span class="kpi-value">{{ formatCurrency(summary.avgCostPerAsset) }}</span>
@@ -246,7 +258,9 @@
       <div class="breakdown-section" *ngIf="summary.costByCategory?.length > 0">
         <!-- Visual Bar Chart -->
         <div class="chart-bars">
-          <h4>Category-wise Distribution</h4>
+          <h4>Category-wise Distribution
+            <i class="pi pi-info-circle chart-info" pTooltip="Each bar shows a category's purchase cost as a share of the total purchase cost." tooltipPosition="top"></i>
+          </h4>
           <div *ngFor="let item of summary.costByCategory" class="bar-row">
             <div class="bar-label">{{ item.category }}</div>
             <div class="bar-track">
@@ -292,7 +306,9 @@
 
         <!-- Visual Bar Chart -->
         <div class="chart-bars">
-          <h4>Department-wise Distribution</h4>
+          <h4>Department-wise Distribution
+            <i class="pi pi-info-circle chart-info" pTooltip="Each bar shows a department's purchase cost as a share of the total purchase cost." tooltipPosition="top"></i>
+          </h4>
           <div *ngFor="let item of summary.costByDepartment" class="bar-row">
             <div class="bar-label">{{ item.department }}</div>
             <div class="bar-track">
@@ -332,7 +348,9 @@
         </p-table>
 
         <div class="chart-bars" style="margin-top:1.5rem;">
-          <h4>Procurement Mode Distribution</h4>
+          <h4>Procurement Mode Distribution
+            <i class="pi pi-info-circle chart-info" pTooltip="Each bar shows a procurement mode's value as a share of total cost of ownership." tooltipPosition="top"></i>
+          </h4>
           <div *ngFor="let item of summary.costByProcurement" class="bar-row">
             <div class="bar-label">{{ item.mode }}</div>
             <div class="bar-track">

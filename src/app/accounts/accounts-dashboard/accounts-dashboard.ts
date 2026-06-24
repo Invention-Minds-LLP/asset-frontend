@@ -5,12 +5,13 @@ import { CardModule } from 'primeng/card';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 import { AccountsService } from '../../services/accounts/accounts';
 
 @Component({
   selector: 'app-accounts-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, CardModule, TableModule, TagModule, ButtonModule],
+  imports: [CommonModule, RouterLink, CardModule, TableModule, TagModule, ButtonModule, TooltipModule],
   templateUrl: './accounts-dashboard.html',
   styleUrl: './accounts-dashboard.css'
 })

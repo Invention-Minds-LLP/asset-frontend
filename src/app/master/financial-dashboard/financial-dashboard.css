@@ -72,6 +72,24 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   border-left: 4px solid transparent;
   transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+
+.kpi-info {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 0.72rem;
+  color: var(--text-color-secondary, #9ca3af);
+  cursor: help;
+}
+
+.chart-info {
+  font-size: 0.72rem;
+  color: var(--text-color-secondary, #9ca3af);
+  cursor: help;
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 .kpi-card:hover {

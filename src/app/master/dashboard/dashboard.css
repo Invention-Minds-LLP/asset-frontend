@@ -18,7 +18,10 @@
   color: #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   background-color: var(--surface-ground);
+  position: relative;
 }
+/* Visible info marker; the card's own pTooltip explains it on hover. */
+.stat-card::after { content: 'ⓘ'; position: absolute; top: 7px; right: 9px; font-size: 0.8rem; color: rgba(255,255,255,0.8); pointer-events: none; }
 
 .stat-icon { font-size: 2rem; opacity: 0.85; }
 .stat-value { font-size: 1.8rem; font-weight: 700; line-height: 1; }

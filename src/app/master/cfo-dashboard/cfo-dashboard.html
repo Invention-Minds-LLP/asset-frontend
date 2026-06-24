@@ -3,7 +3,10 @@
 <div class="page-container">
   <div class="page-header">
     <div>
-      <h2><i class="pi pi-chart-line"></i> CFO Dashboard</h2>
+      <h2><i class="pi pi-chart-line"></i> CFO Dashboard
+        <i class="pi pi-info-circle" style="font-size:0.8rem; color:#94a3b8; cursor:help; margin-left:8px; vertical-align:middle;"
+           pTooltip="Financial overview for leadership — spend, capex vs maintenance and cost trends across the asset base." tooltipPosition="right"></i>
+      </h2>
       <p class="subtitle">Enterprise Financial Analytics & Asset Intelligence</p>
     </div>
     <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadDashboard(); loadTCO(); loadTurnover(); loadIdleCapital(); loadInStoreAging()"
@@ -27,21 +30,25 @@
     <!-- ── Primary KPI Row ── -->
     <div class="kpi-grid kpi-4">
       <div class="kpi-card">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Sum of purchase cost of all active assets." tooltipPosition="top"></i>
         <div class="kpi-label">Total Asset Value</div>
         <div class="kpi-value accent">{{ formatCurrency(dashboard.totalAssetValue) }}</div>
         <div class="kpi-sub">Sum of purchase cost of all active assets</div>
       </div>
       <div class="kpi-card">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Current depreciated (written-down) book value of all assets." tooltipPosition="top"></i>
         <div class="kpi-label">Total Book Value</div>
         <div class="kpi-value">{{ formatCurrency(dashboard.totalBookValue) }}</div>
         <div class="kpi-sub">Current depreciated value</div>
       </div>
       <div class="kpi-card">
+        <i class="pi pi-info-circle kpi-info" pTooltip="All-time repairs plus preventive maintenance spend." tooltipPosition="top"></i>
         <div class="kpi-label">Total Maintenance Cost</div>
         <div class="kpi-value warn">{{ formatCurrency(dashboard.totalMaintenanceCost) }}</div>
         <div class="kpi-sub">Repairs + PM (all time)</div>
       </div>
       <div class="kpi-card">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Maintenance cost as a percentage of total asset value — higher means costlier upkeep." tooltipPosition="top"></i>
         <div class="kpi-label">Maintenance / Asset Ratio</div>
         <div class="kpi-value" [class.danger]="dashboard.maintenanceToAssetRatio > 50" [class.warn]="dashboard.maintenanceToAssetRatio > 25 && dashboard.maintenanceToAssetRatio <= 50">
           {{ formatPct(dashboard.maintenanceToAssetRatio) }}
@@ -53,14 +60,17 @@
     <!-- ── Secondary KPI Row ── -->
     <div class="kpi-grid kpi-3">
       <div class="kpi-card subtle">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Assets currently active and in service." tooltipPosition="top"></i>
         <div class="kpi-label">Active Assets</div>
         <div class="kpi-value">{{ dashboard.activeAssets ?? 0 }}</div>
       </div>
       <div class="kpi-card subtle">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Assets that have been disposed of or scrapped." tooltipPosition="top"></i>
         <div class="kpi-label">Disposed / Scrapped</div>
         <div class="kpi-value">{{ dashboard.disposedAssets ?? 0 }}</div>
       </div>
       <div class="kpi-card subtle">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Active assets with no recent usage or activity." tooltipPosition="top"></i>
         <div class="kpi-label">Idle Assets</div>
         <div class="kpi-value danger">{{ idleAssets.length }}</div>
       </div>
@@ -91,7 +101,9 @@
     @if (monthlyTrend.length) {
       <div class="dashboard-section">
         <div class="section-header">
-          <span class="section-title"><i class="pi pi-calendar"></i> Monthly Trend (Last 12 Months)</span>
+          <span class="section-title"><i class="pi pi-calendar"></i> Monthly Trend (Last 12 Months)
+            <i class="pi pi-info-circle section-info" pTooltip="Asset acquisitions and maintenance spend for each of the last 12 months." tooltipPosition="top"></i>
+          </span>
         </div>
         <p-table [value]="monthlyTrend" stripedRows>
           <ng-template #header>
@@ -141,7 +153,9 @@
   <!-- ── Asset Value Distribution (Buckets) ── -->
   <div class="dashboard-section">
     <div class="section-header">
-      <span class="section-title"><i class="pi pi-chart-bar"></i> Asset Value Distribution</span>
+      <span class="section-title"><i class="pi pi-chart-bar"></i> Asset Value Distribution
+        <i class="pi pi-info-circle section-info" pTooltip="Assets grouped into purchase-cost ranges (buckets). Click a bucket to see those assets." tooltipPosition="top"></i>
+      </span>
       <span class="section-sub">Click any bucket to view assets in that range</span>
     </div>
     @if (loadingBuckets) {
@@ -212,7 +226,9 @@
   @if (tcoData.length) {
     <div class="dashboard-section">
       <div class="section-header">
-        <span class="section-title"><i class="pi pi-money-bill"></i> Total Cost of Ownership by Category</span>
+        <span class="section-title"><i class="pi pi-money-bill"></i> Total Cost of Ownership by Category
+          <i class="pi pi-info-circle section-info" pTooltip="Lifetime cost (purchase + maintenance + contracts) grouped by asset category." tooltipPosition="top"></i>
+        </span>
         <small style="color:var(--text-color-secondary)">Click a row to see individual assets</small>
       </div>
       <p-table [value]="tcoData" [loading]="loadingTCO" stripedRows>
@@ -302,7 +318,9 @@
   <!-- ── Maintenance Cost by Category ── -->
   <div class="dashboard-section">
     <div class="section-header">
-      <span class="section-title"><i class="pi pi-wrench"></i> Maintenance Cost by Category</span>
+      <span class="section-title"><i class="pi pi-wrench"></i> Maintenance Cost by Category
+        <i class="pi pi-info-circle section-info" pTooltip="Total maintenance and repair spend grouped by asset category." tooltipPosition="top"></i>
+      </span>
       <small style="color:var(--text-color-secondary)">Repairs + Preventive Maintenance · Highest first · Click to expand assets</small>
     </div>
 
@@ -508,7 +526,9 @@
   @if (turnoverData) {
     <div class="dashboard-section">
       <div class="section-header">
-        <span class="section-title"><i class="pi pi-sync"></i> Asset Turnover Performance</span>
+        <span class="section-title"><i class="pi pi-sync"></i> Asset Turnover Performance
+          <i class="pi pi-info-circle section-info" pTooltip="Best and worst performing assets by revenue/utilization relative to their cost." tooltipPosition="top"></i>
+        </span>
       </div>
       <div class="turnover-grid">
         <!-- Top 5 -->
@@ -573,7 +593,9 @@
   @if (idleAssets.length) {
     <div class="dashboard-section">
       <div class="section-header">
-        <span class="section-title"><i class="pi pi-pause-circle"></i> Idle Capital (Unused Assets)</span>
+        <span class="section-title"><i class="pi pi-pause-circle"></i> Idle Capital (Unused Assets)
+          <i class="pi pi-info-circle section-info" pTooltip="Capital tied up in active assets that show no recent usage or activity." tooltipPosition="top"></i>
+        </span>
       </div>
       <p-table [value]="idleAssets" [loading]="loadingIdle" [paginator]="true" [rows]="10" stripedRows
         [rowsPerPageOptions]="[10, 25]" sortField="currentBookValue" [sortOrder]="-1">
@@ -613,7 +635,9 @@
   @if (uncoveredAssets.length) {
     <div class="dashboard-section">
       <div class="section-header">
-        <span class="section-title"><i class="pi pi-shield"></i> Uncovered Assets</span>
+        <span class="section-title"><i class="pi pi-shield"></i> Uncovered Assets
+          <i class="pi pi-info-circle section-info" pTooltip="Active assets with no warranty, insurance or AMC/CMC coverage — financial risk." tooltipPosition="top"></i>
+        </span>
         <span class="section-badge danger">{{ uncoveredTotal }} assets · {{ formatCurrency(uncoveredValue) }} at risk</span>
       </div>
       <p-table [value]="uncoveredAssets" [loading]="loadingUncovered" [paginator]="true" [rows]="10" stripedRows
@@ -654,7 +678,9 @@
   @if (inStoreAging.length) {
     <div class="dashboard-section">
       <div class="section-header">
-        <span class="section-title"><i class="pi pi-clock"></i> In-Store Aging</span>
+        <span class="section-title"><i class="pi pi-clock"></i> In-Store Aging
+          <i class="pi pi-info-circle section-info" pTooltip="Assets sitting in store undeployed, grouped by how long they have been idle." tooltipPosition="top"></i>
+        </span>
       </div>
       <p-table [value]="inStoreAging" [loading]="loadingAging" [paginator]="true" [rows]="10" stripedRows
         [rowsPerPageOptions]="[10, 25]" sortField="daysInStore" [sortOrder]="-1">
