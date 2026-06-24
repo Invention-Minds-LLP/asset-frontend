@@ -59,6 +59,11 @@ export class Calibration implements OnInit {
   showHistoryForm = false;
   editingScheduleId: number | null = null;
   editingTemplateId: number | null = null;
+  saving = false;
+  updating = false;
+  updatingTemplate = false;
+  savingTemplate =  false;
+  logging= false;
 
   scheduleForm = this.getEmptyScheduleForm();
   templateForm = this.getEmptyTemplateForm();
@@ -166,6 +171,7 @@ export class Calibration implements OnInit {
   }
 
   saveSchedule() {
+    this.saving = true;
     if (!this.scheduleForm.assetId || !this.scheduleForm.nextDueAt) {
       this.toast('warn', 'Asset and Next Due Date are required');
       return;
@@ -174,14 +180,19 @@ export class Calibration implements OnInit {
     const payload = { ...this.scheduleForm, assetId: Number(this.scheduleForm.assetId) };
 
     if (this.editingScheduleId) {
+      this.updating=true;
       this.calibrationService.updateSchedule(this.editingScheduleId, payload).subscribe({
-        next: () => { setTimeout(() => { this.toast('success', 'Schedule updated'); this.resetScheduleForm(); this.loadSchedules(); this.cdr.detectChanges(); }); },
-        error: (err) => this.toast('error', err?.error?.message || 'Failed')
+        next: () => { setTimeout(() => { this.toast('success', 'Schedule updated'); this.resetScheduleForm(); this.loadSchedules();this.updating=false; this.cdr.detectChanges(); }); },
+        error: (err) =>{
+          setTimeout(() => { this.updating=false; this.cdr.detectChanges(); });
+         this.toast('error', err?.error?.message || 'Failed')}
       });
     } else {
       this.calibrationService.createSchedule(payload).subscribe({
-        next: () => { setTimeout(() => { this.toast('success', 'Schedule created'); this.resetScheduleForm(); this.loadSchedules(); this.loadDue(); this.cdr.detectChanges(); }); },
-        error: (err) => this.toast('error', err?.error?.message || 'Failed')
+        next: () => { setTimeout(() => { this.toast('success', 'Schedule created'); this.resetScheduleForm(); this.loadSchedules(); this.loadDue();this.saving =false; this.cdr.detectChanges(); }); },
+        error: (err) =>{
+          setTimeout(() => { this.saving=false; this.cdr.detectChanges(); });
+         this.toast('error', err?.error?.message || 'Failed')}
       });
     }
   }
@@ -214,14 +225,20 @@ export class Calibration implements OnInit {
     if (!this.templateForm.name) { this.toast('warn', 'Name is required'); return; }
     const payload = { ...this.templateForm };
     if (this.editingTemplateId) {
+      this.updatingTemplate = false;
       this.calibrationService.updateTemplate(this.editingTemplateId, payload).subscribe({
-        next: () => { setTimeout(() => { this.toast('success', 'Template updated'); this.resetTemplateForm(); this.loadTemplates(); this.cdr.detectChanges(); }); },
-        error: () => this.toast('error', 'Failed')
+        next: () => { setTimeout(() => { this.toast('success', 'Template updated'); this.resetTemplateForm(); this.loadTemplates();this.updatingTemplate = true; this.cdr.detectChanges(); }); },
+        error: () => {
+          setTimeout(() => { this.updatingTemplate = false; this.cdr.detectChanges(); });
+          this.toast('error', 'Failed')}
       });
     } else {
+    this.savingTemplate = true;
       this.calibrationService.createTemplate(payload).subscribe({
-        next: () => { setTimeout(() => { this.toast('success', 'Template created'); this.resetTemplateForm(); this.loadTemplates(); this.cdr.detectChanges(); }); },
-        error: () => this.toast('error', 'Failed')
+        next: () => { setTimeout(() => { this.toast('success', 'Template created'); this.resetTemplateForm();this.savingTemplate = true; this.loadTemplates(); this.cdr.detectChanges(); }); },
+        error: () => {
+          setTimeout(() => { this.savingTemplate = false; this.cdr.detectChanges(); });
+          this.toast('error', 'Failed')}
       });
     }
   }
@@ -309,6 +326,7 @@ export class Calibration implements OnInit {
   }
 
   logHistory() {
+    this.logging = true;
     if (!this.historyForm.assetId) { this.toast('warn', 'Asset is required'); return; }
     const payload = { ...this.historyForm, assetId: Number(this.historyForm.assetId) };
     this.calibrationService.logHistory(payload).subscribe({
@@ -321,10 +339,13 @@ export class Calibration implements OnInit {
           this.loadDue();
           // Refresh history tab if same asset
           if (this.historyAssetId === payload.assetId) this.loadHistory();
+          this.logging = false;
           this.cdr.detectChanges();
         });
       },
-      error: (err) => this.toast('error', err?.error?.message || 'Failed')
+      error: (err) =>{setTimeout(() => {this.logging = false; this.cdr.detectChanges(); });
+        this.toast('error', err?.error?.message || 'Failed')
+      } 
     });
   }
 

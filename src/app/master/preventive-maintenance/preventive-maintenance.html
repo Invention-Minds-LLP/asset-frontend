@@ -114,6 +114,7 @@
               <th>Reminder</th>
               <th>Status</th>
               <th>Reason</th>
+              <!-- <th>Action</th> -->
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-s>
@@ -126,7 +127,7 @@
               <td>
                 <p-tag [value]="getScheduleStatus(s)" [severity]="getScheduleStatusSeverity(getScheduleStatus(s))"></p-tag>
               </td>
-              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ s.reason || '—' }}</td>
+              <td class="ellipsis-cell" [pTooltip]="getReason(s.reason)" tooltipPosition="top" style="--ellipsis-max-width: 240px;">{{ s.reason || '—' }}</td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">
@@ -137,7 +138,7 @@
     </p-tabpanel>
 
     <!-- Create Schedule Dialog -->
-    <p-dialog header="Create PM Schedule" [(visible)]="showCreateScheduleDialog" [modal]="true" [style]="{'width':'520px'}">
+    <p-dialog header="Create PM Schedule" [(visible)]="showCreateScheduleDialog" [modal]="true" [style]="{'width':'560px'}">
       <div class="form-grid">
         <div class="form-field">
           <label>Asset *</label>
@@ -162,7 +163,7 @@
         </div>
         <div class="form-field">
           <label>Reminder (days before due)</label>
-          <p-inputNumber [(ngModel)]="scheduleForm.reminderDays" [min]="1" [max]="90" [showButtons]="true" [style]="{'width':'100%'}"></p-inputNumber>
+          <p-inputNumber [(ngModel)]="scheduleForm.reminderDays" [min]="1" [max]="90" [showButtons]="true"  [style]="{'width':'100%'}"></p-inputNumber>
         </div>
         <div class="form-field">
           <label>Reason / Type</label>

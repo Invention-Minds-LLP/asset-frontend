@@ -22,6 +22,8 @@ rows: any[] = [];
 
   form: any = this.getEmptyForm();
   editingId: number | null = null;
+  saving = false;
+  updating = false;
 
   slaCategoryOptions = [
     { label: 'LOW', value: 'LOW' },
@@ -88,6 +90,7 @@ rows: any[] = [];
   }
 
   save() {
+    // this.saving = true;
     const payload = {
       assetCategoryId: this.form.assetCategoryId,
       slaCategory: this.form.slaCategory,
@@ -113,14 +116,22 @@ rows: any[] = [];
     }
 
     if (this.editingId) {
+      this.updating = true;
       this.assetSlaMatrixAPI.update(this.editingId, payload).subscribe({
-        next: () => { setTimeout(() => { this.toast('success', 'SLA matrix updated'); this.resetForm(); this.loadRows(); this.cdr.detectChanges(); }); },
-        error: (err) => this.toast('error', err?.error?.message || 'Failed to update SLA matrix')
+        next: () => { setTimeout(() => { this.toast('success', 'SLA matrix updated'); this.resetForm(); this.loadRows();this.updating = false; this.cdr.detectChanges(); }); },
+        error: (err) =>{
+          setTimeout(() => { this.updating = false; this.cdr.detectChanges(); });
+          this.toast('error', err?.error?.message || 'Failed to update SLA matrix')
+        } 
       });
     } else {
+      this.saving = true;
       this.assetSlaMatrixAPI.create(payload).subscribe({
-        next: () => { setTimeout(() => { this.toast('success', 'SLA matrix created'); this.resetForm(); this.loadRows(); this.cdr.detectChanges(); }); },
-        error: (err) => this.toast('error', err?.error?.message || 'Failed to create SLA matrix')
+        next: () => { setTimeout(() => { this.toast('success', 'SLA matrix created'); this.resetForm(); this.loadRows();this.saving = false; this.cdr.detectChanges(); }); },
+        error: (err) => {
+          setTimeout(() => { this.saving = false; this.cdr.detectChanges(); });
+          this.toast('error', err?.error?.message || 'Failed to create SLA matrix')
+        }
       });
     }
   }

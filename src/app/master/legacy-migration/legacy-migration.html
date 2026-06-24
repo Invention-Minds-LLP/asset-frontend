@@ -35,9 +35,9 @@
     <p-select [options]="modeOptions" optionLabel="label" optionValue="value"
       [(ngModel)]="filters.mode" placeholder="Filter by Mode" (onChange)="load()" appendTo="body" />
     <p-datepicker [(ngModel)]="filters.fromDate" placeholder="From Migration Date"
-      (onSelect)="load()" appendTo="body" dateFormat="dd/mm/yy" />
+      (onSelect)="load()" appendTo="body" dateFormat="dd/mm/yy" [showIcon]="true"/>
     <p-datepicker [(ngModel)]="filters.toDate" placeholder="To Migration Date"
-      (onSelect)="load()" appendTo="body" dateFormat="dd/mm/yy" />
+      (onSelect)="load()" appendTo="body" dateFormat="dd/mm/yy" [showIcon]="true"/>
   </div>
 
   <!-- Migrated Assets Table -->
@@ -99,25 +99,25 @@
     <p-floatlabel variant="on" class="full-field">
       <p-select [options]="assetOptions" optionLabel="label" optionValue="value"
         [(ngModel)]="singleForm.assetId" appendTo="body" [filter]="true"
-        (onChange)="onAssetSelect($event.value)" />
+        (onChange)="onAssetSelect($event.value)" ngClass="asset-category" />
       <label>Asset *</label>
     </p-floatlabel>
 
     <div class="two-fields">
       <p-floatlabel variant="on">
         <p-select [options]="modeOptions" optionLabel="label" optionValue="value"
-          [(ngModel)]="singleForm.migrationMode" appendTo="body" />
+          [(ngModel)]="singleForm.migrationMode" appendTo="body" ngClass="asset-category" />
         <label>Migration Mode *</label>
       </p-floatlabel>
       <p-floatlabel variant="on">
-        <p-datepicker [(ngModel)]="singleForm.migrationDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <p-datepicker [(ngModel)]="singleForm.migrationDate" appendTo="body" dateFormat="dd/mm/yy" ngClass="asset-category"[showIcon]="true"/>
         <label>Migration Cut-off Date *</label>
       </p-floatlabel>
     </div>
 
     <p-floatlabel variant="on" class="full-field">
-      <p-datepicker [(ngModel)]="singleForm.originalPurchaseDate" appendTo="body" dateFormat="dd/mm/yy" />
-      <label>Original Purchase Date (pre-migration)</label>
+      <p-datepicker [(ngModel)]="singleForm.originalPurchaseDate" appendTo="body" dateFormat="dd/mm/yy" [showIcon]="true"/>
+      <label class="heading">Original Purchase Date (pre-migration)</label>
     </p-floatlabel>
 
     <div class="section-label">Audited Values (frozen — engine will not recompute these)</div>
@@ -157,7 +157,7 @@
     }
 
     <p-floatlabel variant="on" class="full-field">
-      <textarea pTextarea [(ngModel)]="singleForm.migrationNotes" rows="2"></textarea>
+      <textarea pTextarea [(ngModel)]="singleForm.migrationNotes" rows="3" class="text-area"></textarea>
       <label>Migration Notes</label>
     </p-floatlabel>
   </div>
@@ -170,7 +170,7 @@
 
 <!-- ── Proportional Migration Dialog ──────────────────────────────────── -->
 <p-dialog [(visible)]="showProportionalDialog" header="Proportional Migration (Pro-rate from Category Totals)"
-  [modal]="true" [style]="{width:'560px'}" [closable]="true">
+  [modal]="true" [style]="{width:'595px'}" [closable]="true">
   <div class="dialog-form">
     <p class="dialog-intro">
       System will distribute the audited totals across all assets in the selected category,
@@ -180,11 +180,11 @@
     <div class="two-fields">
       <p-floatlabel variant="on">
         <p-select [options]="categoryOptions" optionLabel="label" optionValue="value"
-          [(ngModel)]="propForm.categoryId" appendTo="body" [filter]="true" />
+          [(ngModel)]="propForm.categoryId" appendTo="body" [filter]="true" ngClass="asset-category" />
         <label>Asset Category *</label>
       </p-floatlabel>
       <p-floatlabel variant="on">
-        <p-datepicker [(ngModel)]="propForm.migrationDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <p-datepicker [(ngModel)]="propForm.migrationDate" appendTo="body" dateFormat="dd/mm/yy" [showIcon]="true"/>
         <label>Migration Cut-off Date *</label>
       </p-floatlabel>
     </div>

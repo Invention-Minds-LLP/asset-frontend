@@ -1,5 +1,5 @@
 <p-toast />
-<div class="table-wrapper">
+<div class="table-wrapper" *ngIf="role === 'HOD'">
     <div class="header">
         <div class="header-part">
             <div>
@@ -92,7 +92,7 @@
                     <td class="ellipsis-cell" appOverflowTooltip>{{ item.asset?.assetId || '-' }}</td>
                     <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ item.asset?.assetName || '-' }}</td>
                     <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 180px;">{{ item.requestedBy?.name || '-' }}</td>
-                    <td class="ellipsis-cell" appOverflowTooltip>{{ getRequestTypeLabel(item) }}</td>
+                    <td class="ellipsis-cell status" appOverflowTooltip>{{ getRequestTypeLabel(item) }}</td>
                     <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ getDestination(item) }}</td>
                     <td>{{ item.temporary ? 'Yes' : 'No' }}</td>
                     <td>{{ item.requestedAt | date:'dd-MM-yyyy' }}</td>
@@ -104,11 +104,11 @@
 
                     <td class="action-btns">
                         <button class="accept-btn" (click)="openApprove(item)">
-                            {{ item.transferType === 'RETURN' ? 'Approve Return' : 'Approve' }}
+                            {{ item.transferType === 'RETURN' ? 'Approve' : 'Approve' }}
                         </button>
 
                         <button class="reject-btn" (click)="openReject(item)">
-                            {{ item.transferType === 'RETURN' ? 'Reject Return' : 'Reject' }}
+                            {{ item.transferType === 'RETURN' ? 'Reject' : 'Reject' }}
                         </button>
                     </td>
                 </tr>
@@ -256,7 +256,8 @@
                 [label]="selectedTransfer?.transferType === 'RETURN' ? 'Approve Return' : 'Approve'"
                 severity="success"
                 class="dialog-btn approve-btn"
-                (click)="confirmApprove()">
+                (click)="confirmApprove()"
+                [loading]="actionLoading">
             </button>
         </div>
     </ng-template>

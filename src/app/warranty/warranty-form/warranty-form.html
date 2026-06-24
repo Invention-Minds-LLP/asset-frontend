@@ -111,11 +111,12 @@
                 </div>
 
                 <div class="btn-row">
-                    <button *ngIf="!isRenewMode" pButton type="submit" [disabled]="isLoading" label="Save">
+                    <button *ngIf="!isRenewMode" pButton type="submit" >
+                        {{savingWarranty ? 'Saving...' : 'Save'}}
                     </button>
 
                     <button *ngIf="isRenewMode" pButton type="button" [disabled]="isLoading" label="Submit Renewal"
-                        (click)="renewWarranty(wForm)">
+                        (click)="renewWarranty(wForm)" [loading]="submitRenewal">
                     </button>
 
                     <button *ngIf="warranty.id && !isRenewMode" pButton type="button" severity="secondary"

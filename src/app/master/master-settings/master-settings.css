@@ -1,3 +1,5 @@
+.page-container { padding: 1.5rem; }
+
 .page-header {
   margin-bottom: 1.5rem;
 }
@@ -44,7 +46,7 @@
 
 /* Section labels (Basic Info / Address / Tax / Bank) */
 .form-section-label {
-  margin: 28px 0 22px !important;       /* enough room above for floated labels of next row */
+  margin: 28px 0 15px !important;       /* enough room above for floated labels of next row */
   font-size: 0.72rem !important;
   font-weight: 700 !important;
   text-transform: uppercase;

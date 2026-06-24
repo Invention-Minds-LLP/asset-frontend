@@ -62,6 +62,9 @@ export class TicketingForm {
   isEditMode: boolean = false;
   ticketImage: any;
   oldTicket: any = null;
+  submitting = false;
+  assigning = false; 
+  reassigning = false;
 
   userRole: string = '';
 
@@ -129,7 +132,7 @@ export class TicketingForm {
 
   constructor(private ticketService: Ticketing, private assetService: Assets, private route: ActivatedRoute,
     private cdr: ChangeDetectorRef, private toastService: MessageService, private fb: FormBuilder,
-    private kbService: KnowledgeBaseService) { }
+    private kbService: KnowledgeBaseService, private msg: MessageService) { }
 
   ngOnInit() {
     // reactive forms
@@ -283,6 +286,7 @@ export class TicketingForm {
 
 
   onSubmit(form: NgForm) {
+    this.submitting = true;
     if (form.valid) {
       console.log(this.ticket)
       if (this.isEditMode) {
@@ -296,12 +300,22 @@ export class TicketingForm {
           this.ticketService.updateTicket(id, rest).subscribe({
             next: (response: any) => {
               console.log('Ticket updated:', response);
-              alert('TicketDetails updated successfully');
+              // alert('TicketDetails updated successfully');
+              this.msg.add({
+                severity: 'success',
+                summary: 'Updated',
+                detail: 'Ticket Updated successfully'
+             });
               form.resetForm();
+              this.submitting = false;
             },
             error: (err: any) => {
               console.error('Error updating ticket:', err);
-              alert('Something went wrong while updating the ticket');
+              // alert('Something went wrong while updating the ticket');
+              this.msg.add({severity: 'error',
+                summary: 'Error',
+                detail: 'Something went wrong while updating the ticket'
+              });
             }
           });
         }
@@ -311,7 +325,13 @@ export class TicketingForm {
         this.ticketService.createTicket(payload).subscribe({
           next: (response: any) => {
             console.log('Ticket submitted:', response);
-            alert('TicketDetails saved successfully');
+            // alert('TicketDetails saved successfully');
+            this.msg.add({
+              severity: 'success',
+              summary: 'Raised',
+              detail: 'Ticket submitted successfully'
+           });
+            this.submitting = false;
             if (this.ticketImage) {
               this.ticketService.uploadAssetImage(this.ticketImage, response.ticketId).subscribe({
                 next: (imageResponse: any) => {
@@ -320,15 +340,23 @@ export class TicketingForm {
                 },
                 error: (imageError: any) => {
                   console.error('Error uploading image:', imageError);
-                  alert('Something went wrong while uploading the ticket image');
+                  // alert('Something went wrong while uploading the ticket image');
+                  this.msg.add({severity: 'error',
+                    summary: 'Error',
+                    detail:'Something went wrong while uploading the ticket image'});
                 }
               });
             }
             form.resetForm();
           },
           error: (err: any) => {
+            setTimeout(() => { this.submitting = false; this.cdr.detectChanges(); });
             console.error('Error submitting ticket:', err);
-            alert('Something went wrong while saving the ticket');
+            // alert('Something went wrong while saving the ticket');
+            this.msg.add({severity: 'error',
+              summary: 'Error',
+              detail: 'Something went wrong while saving the ticket'
+            });
           }
         });
       }
@@ -477,6 +505,7 @@ export class TicketingForm {
     this.showCloseDialog = true;
   }
   submitAssign() {
+    this.assigning = true;
     if (!this.ticket?.id || this.assignForm.invalid) return;
 
     const toEmployeeId = Number(this.assignForm.value.toEmployeeId);
@@ -486,13 +515,16 @@ export class TicketingForm {
       next: () => {
         this.toast('success', 'Ticket assigned successfully');
         this.showAssignDialog = false;
+        this.assigning = false;
         this.reloadTicket(); // optional refresh
       },
-      error: () => this.toast('error', 'Failed to assign ticket')
+      error: () => { setTimeout(() => { this.assigning = false; this.cdr.detectChanges(); });
+        this.toast('error', 'Failed to assign ticket')}
     });
   }
 
   submitReassign() {
+    this.reassigning = true;
     if (!this.ticket?.id || this.reassignForm.invalid) return;
 
     const toEmployeeId = Number(this.reassignForm.value.toEmployeeId);
@@ -502,9 +534,11 @@ export class TicketingForm {
       next: () => {
         this.toast('success', 'Ticket reassigned successfully');
         this.showReassignDialog = false;
+        this.reassigning = false;
         this.reloadTicket();
       },
-      error: () => this.toast('error', 'Failed to reassign ticket')
+      error: () => { setTimeout(() => { this.reassigning = false; this.cdr.detectChanges(); });
+        this.toast('error', 'Failed to reassign ticket')}
     });
   }
 

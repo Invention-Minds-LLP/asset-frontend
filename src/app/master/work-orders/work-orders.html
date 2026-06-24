@@ -202,11 +202,11 @@
       </div>
       <div class="info-item">
         <span class="info-label">Department</span>
-        <span class="info-value">{{ detailWO.department?.name || detailWO.departmentName || '--' }}</span>
+        <span class="info-value">{{ detailWO.department?.name || detailWO.departmentName || detailWO.departmentId || '--' }}</span>
       </div>
       <div class="info-item">
         <span class="info-label">Assigned To</span>
-        <span class="info-value">{{ detailWO.assignedTo?.name || detailWO.contractorName || '--' }}</span>
+        <span class="info-value">{{ detailWO.assignedTo?.name || detailWO.contractorName || detailWO.assignedTo?.assignedToId || '--' }}</span>
       </div>
       <div class="info-item">
         <span class="info-label">Linked Ticket</span>
@@ -222,11 +222,11 @@
       </div>
       <div class="info-item">
         <span class="info-label">Scheduled Start</span>
-        <span class="info-value">{{ detailWO.scheduledStartDate ? (detailWO.scheduledStartDate | date:'mediumDate') : '--' }}</span>
+        <span class="info-value">{{ detailWO.scheduledStart ? (detailWO.scheduledStart | date:'mediumDate') : '--' }}</span>
       </div>
       <div class="info-item">
         <span class="info-label">Scheduled End</span>
-        <span class="info-value">{{ detailWO.scheduledEndDate ? (detailWO.scheduledEndDate | date:'mediumDate') : '--' }}</span>
+        <span class="info-value">{{ detailWO.scheduledEnd ? (detailWO.scheduledEnd | date:'mediumDate') : '--' }}</span>
       </div>
     </div>
 

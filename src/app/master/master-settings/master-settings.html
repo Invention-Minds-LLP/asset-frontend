@@ -1,371 +1,373 @@
 <p-toast />
 
-<div class="page-header">
-  <h2><i class="pi pi-cog"></i> Master Settings</h2>
-  <p class="subtitle">Manage departments, branches, asset categories, and vendors</p>
-</div>
-
-<p-tabView class="custom-tabs">
-  <!-- ── Departments ──────────────────────────────────────────────────────── -->
-  <p-tabPanel header="Departments">
-    <div class="tab-toolbar">
-      <p-button label="Add Department" icon="pi pi-plus" (onClick)="openDeptForm()" />
-    </div>
-
-    @if (showDeptForm) {
-      <div class="inline-form card">
-        <h4>{{ editingDeptId ? 'Edit Department' : 'New Department' }}</h4>
-        <div class="form-row">
-          <p-floatlabel>
-            <input pInputText id="deptName" [(ngModel)]="deptForm.name" />
-            <label for="deptName">Department Name</label>
-          </p-floatlabel>
-        </div>
-        <div class="form-actions">
-          <p-button label="Save" icon="pi pi-check" (onClick)="saveDept()" />
-          <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showDeptForm = false" />
-        </div>
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-cog"></i> Master Settings</h2>
+    <p class="subtitle">Manage departments, branches, asset categories, and vendors</p>
+  </div>
+  
+  <p-tabView class="custom-tabs">
+    <!-- ── Departments ──────────────────────────────────────────────────────── -->
+    <p-tabPanel header="Departments">
+      <div class="tab-toolbar">
+        <p-button label="Add Department" icon="pi pi-plus" (onClick)="openDeptForm()" />
       </div>
-    }
-
-    <p-table [value]="departments" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th style="width:120px">Actions</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-dept let-i="rowIndex">
-        <tr>
-          <td>{{ i + 1 }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 320px;">{{ dept.name }}</td>
-          <td>
-            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openDeptForm(dept)" />
-            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteDept(dept)" />
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="emptymessage">
-        <tr><td colspan="3" class="empty-msg">No departments found.</td></tr>
-      </ng-template>
-    </p-table>
-  </p-tabPanel>
-
-  <!-- ── Branches ────────────────────────────────────────────────────────── -->
-  <p-tabPanel header="Branches">
-    <div class="tab-toolbar">
-      <p-button label="Add Branch" icon="pi pi-plus" (onClick)="openBranchForm()" />
-    </div>
-
-    @if (showBranchForm) {
-      <div class="inline-form card">
-        <h4>{{ editingBranchId ? 'Edit Branch' : 'New Branch' }}</h4>
-        <div class="form-row">
-          <p-floatlabel>
-            <input pInputText id="branchName" [(ngModel)]="branchForm.name" />
-            <label for="branchName">Branch Name</label>
-          </p-floatlabel>
-        </div>
-        <div class="form-actions">
-          <p-button label="Save" icon="pi pi-check" (onClick)="saveBranch()" />
-          <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showBranchForm = false" />
-        </div>
-      </div>
-    }
-
-    <p-table [value]="branches" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th style="width:120px">Actions</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-branch let-i="rowIndex">
-        <tr>
-          <td>{{ i + 1 }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 320px;">{{ branch.name }}</td>
-          <td>
-            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openBranchForm(branch)" />
-            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteBranch(branch)" />
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="emptymessage">
-        <tr><td colspan="3" class="empty-msg">No branches found.</td></tr>
-      </ng-template>
-    </p-table>
-  </p-tabPanel>
-
-  <!-- ── Asset Categories ─────────────────────────────────────────────────── -->
-  <p-tabPanel header="Asset Categories">
-    <div class="tab-toolbar">
-      <p-button label="Add Category" icon="pi pi-plus" (onClick)="openCategoryForm()" />
-    </div>
-
-    @if (showCategoryForm) {
-      <div class="inline-form card">
-        <h4>{{ editingCategoryId ? 'Edit Category' : 'New Category' }}</h4>
-        <div class="form-row">
-          <p-floatlabel>
-            <input pInputText id="catName" [(ngModel)]="categoryForm.name" />
-            <label for="catName">Category Name</label>
-          </p-floatlabel>
-          <p-floatlabel>
-            <input pInputText id="catCode" [(ngModel)]="categoryForm.code" maxlength="5" />
-            <label for="catCode">Code (3-5 letters)</label>
-          </p-floatlabel>
-        </div>
-
-        <label for="catSerialReq"
-               style="display:flex; align-items:flex-start; gap:12px;
-                      padding:12px 14px; margin-top:14px;
-                      background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;
-                      cursor:pointer;">
-          <p-checkbox inputId="catSerialReq" [binary]="true" [(ngModel)]="categoryForm.serialRequired"></p-checkbox>
-          <div style="line-height:1.4;">
-            <div style="font-size:0.9rem; font-weight:500; color:#0f172a;">
-              Serial Number required for assets in this category
-            </div>
-            <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">
-              Uncheck for non-serialized items (Office Equipment, Furniture, Stationery, etc.)
-            </div>
+  
+      @if (showDeptForm) {
+        <div class="inline-form card">
+          <h4>{{ editingDeptId ? 'Edit Department' : 'New Department' }}</h4>
+          <div class="form-row">
+            <p-floatlabel>
+              <input pInputText id="deptName" [(ngModel)]="deptForm.name" />
+              <label for="deptName">Department Name</label>
+            </p-floatlabel>
           </div>
-        </label>
-
-        <h5 style="margin: 28px 0 14px; color: #475569; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.4px;">
-          Location Profile (which placement fields the Location tab shows)
-        </h5>
-        <div class="form-row">
-          <p-floatlabel>
-            <p-select id="catLocationProfile" [options]="locationProfileOptions" optionLabel="label" optionValue="value"
-              [(ngModel)]="categoryForm.locationProfile" appendTo="body" />
-            <label for="catLocationProfile">Location Profile</label>
-          </p-floatlabel>
+          <div class="form-actions">
+            <p-button label="Save" icon="pi pi-check" (onClick)="saveDept()"  [loading]="savingDept"/>
+            <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showDeptForm = false" />
+          </div>
         </div>
-
-        <h5 style="margin: 28px 0 14px; color: #475569; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.4px;">
-          Default Depreciation (auto-applied to new assets in this category)
-        </h5>
-        <div class="form-row">
-          <p-floatlabel>
-            <p-select id="catDepMethod" [options]="depMethodOptions" optionLabel="label" optionValue="value"
-              [(ngModel)]="categoryForm.defaultDepreciationMethod" [showClear]="true" appendTo="body" />
-            <label for="catDepMethod">Depreciation Method</label>
-          </p-floatlabel>
-          <p-floatlabel>
-            <input pInputText type="number" id="catDepRate" [(ngModel)]="categoryForm.defaultDepreciationRate" />
-            <label for="catDepRate">Rate (%)</label>
-          </p-floatlabel>
-          <p-floatlabel>
-            <input pInputText type="number" id="catLife" [(ngModel)]="categoryForm.defaultLifeYears" />
-            <label for="catLife">Useful Life (Years)</label>
-          </p-floatlabel>
-        </div>
-
-        <div class="form-actions">
-          <p-button label="Save" icon="pi pi-check" (onClick)="saveCategory()" />
-          <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showCategoryForm = false" />
-        </div>
+      }
+  
+      <p-table [value]="departments" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th style="width:120px">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-dept let-i="rowIndex">
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 320px;">{{ dept.name }}</td>
+            <td>
+              <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openDeptForm(dept)" />
+              <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteDept(dept)" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="3" class="empty-msg">No departments found.</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+  
+    <!-- ── Branches ────────────────────────────────────────────────────────── -->
+    <p-tabPanel header="Branches">
+      <div class="tab-toolbar">
+        <p-button label="Add Branch" icon="pi pi-plus" (onClick)="openBranchForm()" />
       </div>
-    }
-
-    <p-table [value]="categories" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Code</th>
-          <th>Serial Req?</th>
-          <th>Dep. Method</th>
-          <th>Rate %</th>
-          <th>Life (Yrs)</th>
-          <th style="width:120px">Actions</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-cat let-i="rowIndex">
-        <tr>
-          <td>{{ i + 1 }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;"><strong>{{ cat.name }}</strong></td>
-          <td class="ellipsis-cell" appOverflowTooltip>{{ cat.code || '—' }}</td>
-          <td>
-            <p-tag *ngIf="cat.serialRequired" severity="success" value="Yes"></p-tag>
-            <p-tag *ngIf="!cat.serialRequired" severity="secondary" value="No"></p-tag>
-          </td>
-          <td>{{ cat.defaultDepreciationMethod || '—' }}</td>
-          <td>{{ cat.defaultDepreciationRate ? cat.defaultDepreciationRate + '%' : '—' }}</td>
-          <td>{{ cat.defaultLifeYears || '—' }}</td>
-          <td>
-            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openCategoryForm(cat)" />
-            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteCategory(cat)" />
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="emptymessage">
-        <tr><td colspan="8" class="empty-msg">No categories found.</td></tr>
-      </ng-template>
-    </p-table>
-  </p-tabPanel>
-
-  <!-- ── Vendors ──────────────────────────────────────────────────────────── -->
-  <p-tabPanel header="Vendors">
-    <div class="tab-toolbar">
-      <p-button label="Add Vendor" icon="pi pi-plus" (onClick)="openVendorForm()" />
-    </div>
-
-    @if (showVendorForm) {
-      <div class="inline-form card">
-        <h4>{{ editingVendorId ? 'Edit Vendor' : 'New Vendor' }}</h4>
-
-        <!-- Basic Info -->
-        <p class="form-section-label">Basic Information</p>
-        <div class="form-row">
-          <p-floatlabel>
-            <input pInputText id="vendorName" [(ngModel)]="vendorForm.name" />
-            <label for="vendorName">Vendor Name *</label>
-          </p-floatlabel>
-          <p-floatlabel>
-            <input pInputText id="vendorContact" [(ngModel)]="vendorForm.contact" />
-            <label for="vendorContact">Primary Contact Number *</label>
-          </p-floatlabel>
-          <p-floatlabel>
-            <input pInputText id="vendorAlternatePhone" [(ngModel)]="vendorForm.alternatePhone" />
-            <label for="vendorAlternatePhone">Alternate Phone</label>
-          </p-floatlabel>
-          <p-floatlabel>
-            <input pInputText id="vendorEmail" [(ngModel)]="vendorForm.email" type="email" />
-            <label for="vendorEmail">Email</label>
-          </p-floatlabel>
-          <p-floatlabel>
-            <input pInputText id="vendorContactPerson" [(ngModel)]="vendorForm.contactPerson" />
-            <label for="vendorContactPerson">Contact Person</label>
-          </p-floatlabel>
-          <p-floatlabel variant="on">
-            <p-select id="vendorType" [options]="vendorTypeOptions" [(ngModel)]="vendorForm.vendorType" optionLabel="label" optionValue="value" placeholder="Select type..." [showClear]="true" />
-            <label for="vendorType">Vendor Type</label>
-          </p-floatlabel>
+  
+      @if (showBranchForm) {
+        <div class="inline-form card">
+          <h4>{{ editingBranchId ? 'Edit Branch' : 'New Branch' }}</h4>
+          <div class="form-row">
+            <p-floatlabel>
+              <input pInputText id="branchName" [(ngModel)]="branchForm.name" />
+              <label for="branchName">Branch Name</label>
+            </p-floatlabel>
+          </div>
+          <div class="form-actions">
+            <p-button label="Save" icon="pi pi-check" (onClick)="saveBranch()"  [loading]="savingBranch"/>
+            <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showBranchForm = false" />
+          </div>
         </div>
-
-        <!-- Departments Served (multi-select) -->
-        <p class="form-section-label">Departments Served</p>
-        <div class="form-row">
-          <p-floatlabel variant="on" class="full-width">
-            <p-multiselect id="vendorDepartments"
-                           [options]="departments"
-                           [(ngModel)]="vendorForm.departmentIds"
-                           optionLabel="name" optionValue="id"
-                           [filter]="true"
-                           display="chip"
-                           placeholder="Select one or more departments..."
-                           [showHeader]="true"
-                           styleClass="full-multiselect" />
-            <label for="vendorDepartments">Departments this vendor serves</label>
-          </p-floatlabel>
-        </div>
-
-        <!-- Address -->
-        <p class="form-section-label">Address</p>
-        <div class="form-row">
-          <p-floatlabel class="full-width">
-            <textarea pTextarea id="vendorAddress" [(ngModel)]="vendorForm.address" rows="2"></textarea>
-            <label for="vendorAddress">Street Address</label>
-          </p-floatlabel>
-        </div>
-        <div class="form-row">
-          <p-floatlabel>
-            <input pInputText id="vendorCity" [(ngModel)]="vendorForm.city" />
-            <label for="vendorCity">City</label>
-          </p-floatlabel>
-          <p-floatlabel>
-            <input pInputText id="vendorState" [(ngModel)]="vendorForm.state" />
-            <label for="vendorState">State</label>
-          </p-floatlabel>
-          <p-floatlabel>
-            <input pInputText id="vendorPincode" [(ngModel)]="vendorForm.pincode" />
-            <label for="vendorPincode">Pincode</label>
-          </p-floatlabel>
-        </div>
-
-        <!-- Tax & Compliance -->
-        <p class="form-section-label">Tax &amp; Compliance</p>
-        <div class="form-row">
-          <p-floatlabel>
-            <input pInputText id="vendorGst" [(ngModel)]="vendorForm.gstNumber" style="text-transform:uppercase" />
-            <label for="vendorGst">GST Number</label>
-          </p-floatlabel>
-          <p-floatlabel>
-            <input pInputText id="vendorPan" [(ngModel)]="vendorForm.panNumber" style="text-transform:uppercase" />
-            <label for="vendorPan">PAN Number</label>
-          </p-floatlabel>
-        </div>
-
-        <!-- Bank Details -->
-        <p class="form-section-label">Bank Details</p>
-        <div class="form-row">
-          <p-floatlabel>
-            <input pInputText id="vendorBankName" [(ngModel)]="vendorForm.bankName" />
-            <label for="vendorBankName">Bank Name</label>
-          </p-floatlabel>
-          <p-floatlabel>
-            <input pInputText id="vendorBankAccount" [(ngModel)]="vendorForm.bankAccount" />
-            <label for="vendorBankAccount">Account Number</label>
-          </p-floatlabel>
-          <p-floatlabel>
-            <input pInputText id="vendorBankIfsc" [(ngModel)]="vendorForm.bankIfsc" style="text-transform:uppercase" />
-            <label for="vendorBankIfsc">IFSC Code</label>
-          </p-floatlabel>
-        </div>
-
-        <!-- Notes -->
-        <p class="form-section-label">Additional Notes</p>
-        <div class="form-row">
-          <p-floatlabel class="full-width">
-            <textarea pTextarea id="vendorNotes" [(ngModel)]="vendorForm.notes" rows="2" style="width:100%"></textarea>
-            <label for="vendorNotes">Notes</label>
-          </p-floatlabel>
-        </div>
-
-        <div class="form-actions">
-          <p-button label="Save" icon="pi pi-check" (onClick)="saveVendor()" />
-          <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showVendorForm = false" />
-        </div>
+      }
+  
+      <p-table [value]="branches" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th style="width:120px">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-branch let-i="rowIndex">
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 320px;">{{ branch.name }}</td>
+            <td>
+              <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openBranchForm(branch)" />
+              <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteBranch(branch)" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="3" class="empty-msg">No branches found.</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+  
+    <!-- ── Asset Categories ─────────────────────────────────────────────────── -->
+    <p-tabPanel header="Asset Categories">
+      <div class="tab-toolbar">
+        <p-button label="Add Category" icon="pi pi-plus" (onClick)="openCategoryForm()" />
       </div>
-    }
-
-    <p-table [value]="vendors" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Contact Person</th>
-          <th>Primary Contact</th>
-          <th>Email</th>
-          <th>GST Number</th>
-          <th>City / State</th>
-          <th style="width:120px">Actions</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-vendor let-i="rowIndex">
-        <tr>
-          <td>{{ i + 1 }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ vendor.name }}</td>
-          <td>{{ vendor.vendorType || '-' }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip>{{ vendor.contactPerson || '-' }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip>{{ vendor.contact || '-' }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ vendor.email || '-' }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip>{{ vendor.gstNumber || '-' }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip>{{ vendor.city ? (vendor.city + (vendor.state ? ', ' + vendor.state : '')) : (vendor.state || '-') }}</td>
-          <td>
-            <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openVendorForm(vendor)" />
-            <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteVendor(vendor)" />
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="emptymessage">
-        <tr><td colspan="9" class="empty-msg">No vendors found.</td></tr>
-      </ng-template>
-    </p-table>
-  </p-tabPanel>
-</p-tabView>
+  
+      @if (showCategoryForm) {
+        <div class="inline-form card">
+          <h4>{{ editingCategoryId ? 'Edit Category' : 'New Category' }}</h4>
+          <div class="form-row">
+            <p-floatlabel variant="on">
+              <input pInputText id="catName" [(ngModel)]="categoryForm.name" />
+              <label for="catName">Category Name</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText id="catCode" [(ngModel)]="categoryForm.code" maxlength="5" />
+              <label for="catCode">Code (3-5 letters)</label>
+            </p-floatlabel>
+          </div>
+  
+          <label for="catSerialReq"
+                 style="display:flex; align-items:flex-start; gap:12px;
+                        padding:12px 14px; margin-top:14px;
+                        background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;
+                        cursor:pointer;">
+            <p-checkbox inputId="catSerialReq" [binary]="true" [(ngModel)]="categoryForm.serialRequired"></p-checkbox>
+            <div style="line-height:1.4;">
+              <div style="font-size:0.9rem; font-weight:500; color:#0f172a;">
+                Serial Number required for assets in this category
+              </div>
+              <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">
+                Uncheck for non-serialized items (Office Equipment, Furniture, Stationery, etc.)
+              </div>
+            </div>
+          </label>
+  
+          <h5 style="margin: 28px 0 14px; color: #475569; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.4px;">
+            Location Profile (which placement fields the Location tab shows)
+          </h5>
+          <div class="form-row">
+            <p-floatlabel variant="on">
+              <p-select id="catLocationProfile" [options]="locationProfileOptions" optionLabel="label" optionValue="value"
+                [(ngModel)]="categoryForm.locationProfile" appendTo="body" />
+              <label for="catLocationProfile">Location Profile</label>
+            </p-floatlabel>
+          </div>
+  
+          <h5 style="margin: 28px 0 14px; color: #475569; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.4px;">
+            Default Depreciation (auto-applied to new assets in this category)
+          </h5>
+          <div class="form-row">
+            <p-floatlabel variant="on">
+              <p-select id="catDepMethod" [options]="depMethodOptions" optionLabel="label" optionValue="value"
+                [(ngModel)]="categoryForm.defaultDepreciationMethod" [showClear]="true" appendTo="body" />
+              <label for="catDepMethod">Depreciation Method</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText type="number" id="catDepRate" [(ngModel)]="categoryForm.defaultDepreciationRate" />
+              <label for="catDepRate">Rate (%)</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText type="number" id="catLife" [(ngModel)]="categoryForm.defaultLifeYears" />
+              <label for="catLife">Useful Life (Years)</label>
+            </p-floatlabel>
+          </div>
+  
+          <div class="form-actions">
+            <p-button label="Save" icon="pi pi-check" (onClick)="saveCategory()"  [loading]="savingAsset"/>
+            <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showCategoryForm = false" />
+          </div>
+        </div>
+      }
+  
+      <p-table [value]="categories" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Serial Req?</th>
+            <th>Dep. Method</th>
+            <th>Rate %</th>
+            <th>Life (Yrs)</th>
+            <th style="width:120px">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-cat let-i="rowIndex">
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;"><strong>{{ cat.name }}</strong></td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ cat.code || '—' }}</td>
+            <td>
+              <p-tag *ngIf="cat.serialRequired" severity="success" value="Yes"></p-tag>
+              <p-tag *ngIf="!cat.serialRequired" severity="secondary" value="No"></p-tag>
+            </td>
+            <td>{{ cat.defaultDepreciationMethod || '—' }}</td>
+            <td>{{ cat.defaultDepreciationRate ? cat.defaultDepreciationRate + '%' : '—' }}</td>
+            <td>{{ cat.defaultLifeYears || '—' }}</td>
+            <td>
+              <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openCategoryForm(cat)" />
+              <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteCategory(cat)" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="8" class="empty-msg">No categories found.</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+  
+    <!-- ── Vendors ──────────────────────────────────────────────────────────── -->
+    <p-tabPanel header="Vendors">
+      <div class="tab-toolbar">
+        <p-button label="Add Vendor" icon="pi pi-plus" (onClick)="openVendorForm()" />
+      </div>
+  
+      @if (showVendorForm) {
+        <div class="inline-form card">
+          <h4>{{ editingVendorId ? 'Edit Vendor' : 'New Vendor' }}</h4>
+  
+          <!-- Basic Info -->
+          <p class="form-section-label">Basic Information</p>
+          <div class="form-row">
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorName" [(ngModel)]="vendorForm.name" />
+              <label for="vendorName">Vendor Name *</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorContact" [(ngModel)]="vendorForm.contact" />
+              <label for="vendorContact">Primary Contact Number *</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorAlternatePhone" [(ngModel)]="vendorForm.alternatePhone" />
+              <label for="vendorAlternatePhone">Alternate Phone</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorEmail" [(ngModel)]="vendorForm.email" type="email" />
+              <label for="vendorEmail">Email</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorContactPerson" [(ngModel)]="vendorForm.contactPerson" />
+              <label for="vendorContactPerson">Contact Person</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <p-select id="vendorType" [options]="vendorTypeOptions" [(ngModel)]="vendorForm.vendorType" optionLabel="label" optionValue="value" [showClear]="true" />
+              <label for="vendorType">Vendor Type</label>
+            </p-floatlabel>
+          </div>
+  
+          <!-- Departments Served (multi-select) -->
+          <p class="form-section-label">Departments Served</p>
+          <div class="form-row">
+            <p-floatlabel variant="on" class="full-width">
+              <p-multiselect id="vendorDepartments"
+                             [options]="departments"
+                             [(ngModel)]="vendorForm.departmentIds"
+                             optionLabel="name" optionValue="id"
+                             [filter]="true"
+                             display="chip"
+                             placeholder="Select one or more departments..."
+                             [showHeader]="true"
+                             styleClass="full-multiselect" />
+              <label for="vendorDepartments">Departments this vendor serves</label>
+            </p-floatlabel>
+          </div>
+  
+          <!-- Address -->
+          <p class="form-section-label">Address</p>
+          <div class="form-row">
+            <p-floatlabel class="full-width" variant="on">
+              <textarea pTextarea id="vendorAddress" [(ngModel)]="vendorForm.address" rows="2"></textarea>
+              <label for="vendorAddress">Street Address</label>
+            </p-floatlabel>
+          </div>
+          <div class="form-row">
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorCity" [(ngModel)]="vendorForm.city" />
+              <label for="vendorCity">City</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorState" [(ngModel)]="vendorForm.state" />
+              <label for="vendorState">State</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorPincode" [(ngModel)]="vendorForm.pincode" />
+              <label for="vendorPincode">Pincode</label>
+            </p-floatlabel>
+          </div>
+  
+          <!-- Tax & Compliance -->
+          <p class="form-section-label">Tax &amp; Compliance</p>
+          <div class="form-row">
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorGst" [(ngModel)]="vendorForm.gstNumber" style="text-transform:uppercase" />
+              <label for="vendorGst">GST Number</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorPan" [(ngModel)]="vendorForm.panNumber" style="text-transform:uppercase" />
+              <label for="vendorPan">PAN Number</label>
+            </p-floatlabel>
+          </div>
+  
+          <!-- Bank Details -->
+          <p class="form-section-label">Bank Details</p>
+          <div class="form-row">
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorBankName" [(ngModel)]="vendorForm.bankName" />
+              <label for="vendorBankName">Bank Name</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorBankAccount" [(ngModel)]="vendorForm.bankAccount" />
+              <label for="vendorBankAccount">Account Number</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText id="vendorBankIfsc" [(ngModel)]="vendorForm.bankIfsc" style="text-transform:uppercase" />
+              <label for="vendorBankIfsc">IFSC Code</label>
+            </p-floatlabel>
+          </div>
+  
+          <!-- Notes -->
+          <p class="form-section-label">Additional Notes</p>
+          <div class="form-row">
+            <p-floatlabel class="full-width" variant="on">
+              <textarea pTextarea id="vendorNotes" [(ngModel)]="vendorForm.notes" rows="2" style="width:100%"></textarea>
+              <label for="vendorNotes">Notes</label>
+            </p-floatlabel>
+          </div>
+  
+          <div class="form-actions" >
+            <p-button label="Save" icon="pi pi-check" (onClick)="saveVendor()"  [loading]="savingVendor"/>
+            <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showVendorForm = false" />
+          </div>
+        </div>
+      }
+  
+      <p-table [value]="vendors" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Contact Person</th>
+            <th>Primary Contact</th>
+            <th>Email</th>
+            <th>GST Number</th>
+            <th>City / State</th>
+            <th style="width:120px">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-vendor let-i="rowIndex">
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ vendor.name }}</td>
+            <td>{{ vendor.vendorType || '-' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ vendor.contactPerson || '-' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ vendor.contact || '-' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ vendor.email || '-' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ vendor.gstNumber || '-' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ vendor.city ? (vendor.city + (vendor.state ? ', ' + vendor.state : '')) : (vendor.state || '-') }}</td>
+            <td>
+              <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openVendorForm(vendor)" />
+              <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteVendor(vendor)" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="9" class="empty-msg">No vendors found.</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+  </p-tabView>
+</div>

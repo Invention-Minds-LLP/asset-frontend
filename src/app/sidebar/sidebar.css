@@ -520,6 +520,15 @@
   display: block;
 }
 
+ .small{
+  width: 77px;
+  /* max-width: 100%; */
+  /* height: auto; */
+  /* max-height: 110px; */
+  object-fit: contain;
+  display: block;
+}
+
 /* Collapsed sidebar: fit the logo into the narrow rail */
 .sidebar.collapsed .img-logo {
   width: 100%;

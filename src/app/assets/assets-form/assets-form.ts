@@ -67,6 +67,20 @@ export class AssetsForm implements OnInit {
 
   role: "store_user" | "department_user" | "superadmin" = "store_user";
   activeTab = 0;
+  saving = false;
+  savingDuplicate = false;
+  savingInsurance = false;
+  renewalSubmitting = false;
+  updatingSpec = false;
+  addingSpec = false;
+  savingSubAsset = false;
+  savingSLA = false;
+  updatingLocation = false;
+  submittingTransfer = false;
+  updatingDepreciation = false;
+  submitting = false;
+  editingSpec = false;
+  savingSpec = false;
 
   // =============================
   // DROPDOWNS
@@ -201,6 +215,8 @@ export class AssetsForm implements OnInit {
     { label: 'Outdoor — GPS', value: 'OUTDOOR' },
     { label: 'Generic — mount + label', value: 'GENERIC' },
   ];
+
+  sendingAssignment = false;
 
   // ==============================
   // ASSET DATA MODEL (frontend)
@@ -519,7 +535,7 @@ export class AssetsForm implements OnInit {
     { label: 'Mechanical', value: 'MECHANICAL' },
     { label: 'Software', value: 'SOFTWARE' },
     { label: 'Accessory', value: 'ACCESSORY' },
-    { label: 'Hardware', value: 'HARDWARE' },
+    { label: 'Sub Asset', value: 'SUB_ASSET' },
   ];
 
   specValueTypeOptions = [
@@ -571,11 +587,11 @@ export class AssetsForm implements OnInit {
 
   // ── Asset Creation Checklist (mandatory before Basic Details save) ──────────
   readonly creationChecklist = [
-    { key: 'serial',     label: 'Serial number / asset tag verified and matches physical unit' },
-    { key: 'condition',  label: 'Physical condition inspected and documented' },
-    { key: 'accessories',label: 'All accessories / components accounted for' },
-    { key: 'docs',       label: 'Invoice / GRN / delivery note received and filed' },
-    { key: 'location',   label: 'Storage location / department confirmed' },
+    { key: 'serial', label: 'Serial number / asset tag verified and matches physical unit' },
+    { key: 'condition', label: 'Physical condition inspected and documented' },
+    { key: 'accessories', label: 'All accessories / components accounted for' },
+    { key: 'docs', label: 'Invoice / GRN / delivery note received and filed' },
+    { key: 'location', label: 'Storage location / department confirmed' },
   ];
   creationChecklistDone: Record<string, boolean> = {};
 
@@ -605,27 +621,27 @@ export class AssetsForm implements OnInit {
     { label: 'Custom', value: 'CUSTOM' },
   ];
 
-showReturnChecklistDialog = false;
-selectedReturnTransfer: any = null;
-selectedReturnTransferId: number | null = null;
+  showReturnChecklistDialog = false;
+  selectedReturnTransfer: any = null;
+  selectedReturnTransferId: number | null = null;
 
-returnChecklistItems: any[] = [];
-returnChecklistResponses: {
-  itemId: number;
-  checked: boolean;
-  remarks: string;
-}[] = [];
+  returnChecklistItems: any[] = [];
+  returnChecklistResponses: {
+    itemId: number;
+    checked: boolean;
+    remarks: string;
+  }[] = [];
 
-returnChecklistLoading = false;
-returnError = '';
-returnNote = '';
-returnSelectedFile: File | null = null;
+  returnChecklistLoading = false;
+  returnError = '';
+  returnNote = '';
+  returnSelectedFile: File | null = null;
 
-@ViewChild('returnSignatureCanvas') returnCanvas!: ElementRef<HTMLCanvasElement>;
-private returnCtx!: CanvasRenderingContext2D;
-private returnDrawing = false;
-private returnLastX = 0;
-private returnLastY = 0;
+  @ViewChild('returnSignatureCanvas') returnCanvas!: ElementRef<HTMLCanvasElement>;
+  private returnCtx!: CanvasRenderingContext2D;
+  private returnDrawing = false;
+  private returnLastX = 0;
+  private returnLastY = 0;
 
 
   get assignmentButtonLabel(): string {
@@ -727,7 +743,7 @@ private returnLastY = 0;
         }
         this.cdr.detectChanges();
       },
-      error: () => {}
+      error: () => { }
     });
 
     this.assetAPI.getDepartments().subscribe({
@@ -764,7 +780,7 @@ private returnLastY = 0;
           value: p.id,
         }));
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -931,13 +947,16 @@ private returnLastY = 0;
   // preserves PO/GRN/vendor/etc. instead of clearing the whole form.
   pendingDuplicate = false;
 
+  isSaving = this.saving;
+
   saveAndDuplicate(form: any) {
+    this.savingDuplicate = true;
     this.pendingDuplicate = true;
     this.saveBasicDetails(form);
   }
 
   saveBasicDetails(form: any) {
-    // Existing asset (loaded for edit) → PUT update. New asset → POST create.
+        // Existing asset (loaded for edit) → PUT update. New asset → POST create.
     // Without this branch, editing an existing asset re-hits the create endpoint
     // and fails on the unique serial-number constraint.
     const isEdit = !!this.asset.id;
@@ -951,6 +970,7 @@ private returnLastY = 0;
     // edits (e.g. an HOD just renaming an existing asset).
     if (!isEdit && !this.allCreationItemsChecked) {
       this.pendingDuplicate = false;
+      this.saving = false;
       return this.toast("error", "Complete all checklist items before saving");
     }
 
@@ -963,15 +983,16 @@ private returnLastY = 0;
 
     request$.subscribe({
       next: res => {
-        this.asset.id = res.id ?? this.asset.id;
-        this.asset.assetId = res.assetId ?? this.asset.assetId;
-        this.asset.storeAssetId = res.storeAssetId ?? this.asset.storeAssetId;
-        this.toast("success", isEdit ? "Asset updated" : (isDuplicate ? "Saved — form ready for next unit" : "Basic details saved"));
+        this.asset.id = res.id;
+        this.asset.assetId = res.assetId;
+        this.asset.storeAssetId = res.storeAssetId;
+        this.toast("success", isDuplicate ? "Saved — form ready for next unit" : "Basic details saved");
         if (this.pendingAssetImageFile) {
           this.assetAPI.uploadAssetImage(this.pendingAssetImageFile, res.assetId)
             .subscribe({
               next: (imageUrl) => {
                 console.log("Uploaded image URL:", imageUrl);
+
 
                 // Update backend model
                 this.asset.assetPhoto = imageUrl;
@@ -1023,14 +1044,7 @@ private returnLastY = 0;
             });
           }
         }
-        if (isEdit) {
-          // Keep the edited asset loaded; just mark the form clean.
-          this.activeTab = 0;
-          setTimeout(() => {
-            form.form.markAsPristine();
-            form.form.markAsUntouched();
-          });
-        } else if (isDuplicate) {
+        if (isDuplicate) {
           this.prepareDuplicate();
           // Keep on Basic Details tab; mark form pristine so required-field errors don't flash.
           this.activeTab = 0;
@@ -1041,10 +1055,14 @@ private returnLastY = 0;
         } else {
           form.resetForm();
           this.clearForm();
+          this.savingDuplicate = false;
           this.activeTab = 0;
         }
       },
-      error: () => this.toast("error", "Failed to save")
+      error: () => {
+        setTimeout(() => this.saving = false);
+        this.toast("error", "Failed to save");
+      }
     });
   }
 
@@ -1180,6 +1198,7 @@ private returnLastY = 0;
   }
 
   saveDepreciation() {
+    this.updatingDepreciation = true;
     const payload: any = {
       assetId: this.asset.id,
       depreciationMethod: this.depreciationForm.depreciationMethod,
@@ -1209,9 +1228,13 @@ private returnLastY = 0;
         next: res => {
           this.asset.depreciation = res;
           this.toast("success", "Saved");
+          this.updatingDepreciation = false;
           this.loadDepreciation()
         },
-        error: () => this.toast("error", "Failed to add depreciation")
+        error: () => {
+          setTimeout(() => this.updatingDepreciation = false);
+          this.toast("error", "Failed to add depreciation")
+        }
       });
       return;
     }
@@ -1221,12 +1244,17 @@ private returnLastY = 0;
       next: res => {
         this.asset.depreciation = res;
         this.toast("success", "Saved");
+        this.updatingDepreciation = false;
       },
-      error: () => this.toast("error", "Failed to update depreciation")
+      error: () => {
+        setTimeout(() => this.updatingDepreciation = false);
+        this.toast("error", "Failed to update depreciation")
+      }
     });
   }
 
   saveInsurance() {
+    this.savingInsurance = true;
     const payload = {
       assetId: this.asset.id,
       provider: this.asset.insuranceProvider,
@@ -1244,6 +1272,7 @@ private returnLastY = 0;
     if (!this.asset.insurance.id) {
       this.assetAPI.addInsurance(payload).subscribe({
         next: res => {
+          this.savingInsurance = false;
           this.asset.insurance = res;
           this.toast("success", "Insurance policy added");
         },
@@ -1262,7 +1291,10 @@ private returnLastY = 0;
     });
   }
 
-  saveSLA() { this.updateSection("SLA updated"); }
+  saveSLA() {
+    this.savingSLA = true;
+    this.updateSection("SLA updated");
+  }
 
   // ================================
   // LOCATION MANAGEMENT
@@ -1301,6 +1333,7 @@ private returnLastY = 0;
   ];
 
   saveLocation() {
+    this.updatingLocation = true;
     if (!this.asset.id) return;
 
     const payload = {
@@ -1332,9 +1365,12 @@ private returnLastY = 0;
           // this.loadCurrentLocation();
           this.resetLocationForm();
           this.loadLocationHistory(this.asset.id);
-
+          this.updatingLocation = false;
         },
-        error: () => this.toast('error', 'Failed to add location')
+        error: () => {
+          setTimeout(() => this.updatingLocation = false);
+          this.toast('error', 'Failed to add location')
+        }
       });
       return;
     }
@@ -1345,8 +1381,12 @@ private returnLastY = 0;
         this.toast('success', 'Location updated');
         this.resetLocationForm();
         this.loadLocationHistory(this.asset.id);
+        this.updatingLocation = false;
       },
-      error: () => this.toast('error', 'Failed to update location')
+      error: () => {
+        setTimeout(() => this.updatingLocation = false);
+        this.toast('error', 'Failed to update location')
+      }
     });
   }
   loadCurrentLocation() {
@@ -1397,8 +1437,12 @@ private returnLastY = 0;
   // }
 
   saveAssignment() {
+    this.sendingAssignment = true;
     if (!this.asset?.id) return this.toast("error", "Save basic details first");
-    if (!this.handoverCondition?.trim()) return this.toast("error", "Condition at Handover is required");
+    if (!this.handoverCondition?.trim()) {
+      this.sendingAssignment = false;
+      return this.toast("error", "Condition at Handover is required")
+    };
 
     // 1) Source HOD must ACK before supervisor assignment
     if (this.flowState.sourceHodStatus !== "ACKNOWLEDGED") {
@@ -1417,9 +1461,13 @@ private returnLastY = 0;
         .subscribe({
           next: () => {
             this.toast("success", "Supervisor acknowledgement request sent");
+            this.sendingAssignment = false;
             this.refreshFlowState();
           },
-          error: () => this.toast("error", "Failed to send Supervisor acknowledgement"),
+          error: () => {
+            setTimeout(() => this.sendingAssignment = false);
+            this.toast("error", "Failed to send Supervisor acknowledgement");
+          }
         });
     }
 
@@ -1444,7 +1492,10 @@ private returnLastY = 0;
               this.toast("success", "Target HOD acknowledgement request sent");
               this.refreshFlowState();
             },
-            error: () => this.toast("error", "Failed to send Target HOD acknowledgement"),
+            error: () => {
+              setTimeout(() => this.sendingAssignment = false);
+              this.toast("error", "Failed to send Target HOD acknowledgement")
+            }
           });
       }
 
@@ -1495,6 +1546,7 @@ private returnLastY = 0;
         .subscribe({
           next: () => {
             this.toast("success", "Flow closed (No End User)");
+            this.sendingAssignment = false;
             this.refreshFlowState();
           },
           error: () => this.toast("error", "Failed to close flow"),
@@ -1521,6 +1573,7 @@ private returnLastY = 0;
   // TRANSFER
   // ================================
   submitTransfer() {
+    this.submittingTransfer = true;
     if (!this.asset.id) return;
 
     const payload = {
@@ -1534,9 +1587,13 @@ private returnLastY = 0;
         this.toast("success", "Transfer request submitted");
         this.loadTransferHistory(this.asset.id);
         this.showTransferModal = false;
+        this.submittingTransfer = false;
         this.resetTransferForm();
       },
-      error: (err) => this.toast("error", err?.error?.message || "Transfer request failed")
+      error: (err) => {
+        setTimeout(() => this.submittingTransfer = false);
+        this.toast("error", err?.error?.message || "Transfer request failed")
+      }
     });
   }
   resetTransferForm() {
@@ -1558,21 +1615,21 @@ private returnLastY = 0;
       assetId: this.asset?.id ?? null
     };
   }
-returnAsset(row: any) {
-  if (!row?.id) return;
+  returnAsset(row: any) {
+    if (!row?.id) return;
 
-  const returnReason = prompt('Enter return reason') || '';
+    const returnReason = prompt('Enter return reason') || '';
 
-  this.transferAPI.returnTransfer(row.id, { returnReason }).subscribe({
-    next: () => {
-      this.toast('success', 'Return request submitted successfully');
-      this.loadTransferHistory(this.asset.id);
-    },
-    error: (err) => {
-      this.toast('error', err?.error?.message || 'Failed to submit return request');
-    }
-  });
-}
+    this.transferAPI.returnTransfer(row.id, { returnReason }).subscribe({
+      next: () => {
+        this.toast('success', 'Return request submitted successfully');
+        this.loadTransferHistory(this.asset.id);
+      },
+      error: (err) => {
+        this.toast('error', err?.error?.message || 'Failed to submit return request');
+      }
+    });
+  }
 
   getTransferToLabel(row: any): string {
     return row?.toBranch?.name || row?.destinationName || '-';
@@ -1773,6 +1830,7 @@ returnAsset(row: any) {
     this.showRenewDialog = true;
   }
   submitRenewal() {
+    // this.renewalSubmitting = true;
     if (!this.asset?.id) return;
 
     const f = this.renewForm;
@@ -1807,12 +1865,15 @@ returnAsset(row: any) {
 
         // refresh
         this.loadInsuranceHistory();
+        // this.renewalSubmitting = false;
         this.checkEditMode(); // reload active policy
       },
-      error: () => this.toast('error', 'Renewal failed')
+      error: () =>
+        this.toast('error', 'Renewal failed')
     });
   }
   submitClaim() {
+    this.renewalSubmitting = true;
     if (!this.asset?.id) return this.toast('error', 'Save asset first');
     if (!this.asset?.insurance?.id) return this.toast('error', 'Add/Select an active insurance policy first');
 
@@ -1837,10 +1898,11 @@ returnAsset(row: any) {
 
         // reset form
         this.claimForm = { claimNumber: '', claimDate: null, claimAmount: null, reason: '' };
-
         this.loadClaims();
+        this.renewalSubmitting = false;
       },
       error: (err) => {
+        setTimeout(() => this.renewalSubmitting = false);
         // common error: duplicate claimNumber for same insurance
         this.toast('error', err?.error?.message || 'Claim submit failed');
       }
@@ -2128,6 +2190,7 @@ returnAsset(row: any) {
     this.showSubAssetDialog = true;
   }
   createSubAsset() {
+    this.savingSubAsset = true;
     if (!this.asset?.assetId) return;
 
     const f = this.subAssetForm;
@@ -2166,9 +2229,11 @@ returnAsset(row: any) {
         next: () => {
           this.toast("success", "Sub-asset created from inventory spare");
           this.showSubAssetDialog = false;
+          this.savingSubAsset = false;
           this.loadSubAssets();
         },
         error: (err) => {
+          setTimeout(() => this.savingSubAsset = false);
           this.toast("error", err?.error?.message || "Failed to create sub-asset from spare");
         }
       });
@@ -2245,9 +2310,11 @@ returnAsset(row: any) {
       next: () => {
         this.toast("success", "Sub-asset created");
         this.showSubAssetDialog = false;
+        this.savingSubAsset = false;
         this.loadSubAssets();
       },
       error: (err) => {
+        setTimeout(() => this.savingSubAsset = false);
         this.toast("error", err?.error?.message || "Failed to create sub-asset");
       }
     });
@@ -2319,6 +2386,74 @@ returnAsset(row: any) {
       remarks: spec.remarks || '',
     };
   }
+
+  selectedValue: string | null = null; //set null initially
+  storedData: string[] = [];  //stores all groups in array
+  dropdown = true;
+  adding = false;
+
+  // 1. This variable tracks what is inside the filter in real-time
+  currentFilterText: string = '';
+
+  // 2. This method runs automatically on every keystroke in the filter box
+  onDropdownFilter(event: any): void {
+    // PrimeNG passes the typed text via event.filter
+    this.currentFilterText = event.filter ? event.filter.trim() : '';
+    console.log(this.currentFilterText)
+  }
+
+  addNew(typedSearchQuery: string): void {
+
+    console.log(typedSearchQuery)
+    this.adding = true;
+
+    // 1: Read directly from your form model variable instead of selectedValue
+    // if (!this.specFormModel?.specificationGroup) {
+    //   this.adding = false;
+    //   return;
+    // }
+
+    const typedText = this.currentFilterText;
+    console.log(typedText)
+
+    // Force uppercase transformation
+    const formattedValue = typedText.toUpperCase().replace(/\s+/g, '_');
+    console.log(formattedValue)
+
+    // Check dropdown options duplication
+    const optionExists = this.specGroupOptions.some(
+      option => option.value === formattedValue
+    );
+
+    if (!optionExists) {
+      const formattedLabel = typedText.charAt(0).toUpperCase() + typedText.slice(1);
+      this.specGroupOptions.push({
+          label: formattedLabel,
+          value: formattedValue
+      });
+    }
+
+    console.log(this.storedData)
+
+    // Add to your final stored array
+    if (!this.storedData.includes(formattedValue)) {
+      this.storedData.push(formattedValue);
+
+      console.log(formattedValue)
+
+      // FIX 2: Set the actual form value to the uppercase string 
+      this.specFormModel.specificationGroup = formattedValue;
+      console.log(this.specFormModel.specificationGroup)
+
+      // Turn off loading state
+      this.adding = false;
+      this.cdr.detectChanges();
+    } else {
+      this.adding = false;
+      alert('This group is already added!');
+    }
+  }
+
 
   resetSpecificationForm(form?: any) {
     if (form) {
@@ -2401,10 +2536,10 @@ returnAsset(row: any) {
 
     // ── ADMIN: unrestricted access to everything ──────────────────────────
     if (this.isAdmin) {
-      this.canEditBasicDetails    = true;
+      this.canEditBasicDetails = true;
       this.canAccessDepartmentTabs = true;
-      this.canAccessAsEndUser      = true;
-      this.canDeleteAsset          = true;
+      this.canAccessAsEndUser = true;
+      this.canDeleteAsset = true;
       return;
     }
 
@@ -2427,13 +2562,13 @@ returnAsset(row: any) {
     // Only the HOD or Supervisor of the department the asset is ASSIGNED TO
     // can see these tabs. A HOD from a different department cannot.
     this.canAccessDepartmentTabs = false;
-    this.canAccessAsEndUser      = false;
+    this.canAccessAsEndUser = false;
 
     // Department tabs require the asset to already be assigned to a department
     if (!this.asset?.id || !this.asset?.departmentId) return;
 
     this.canAccessDepartmentTabs = this.isHod || this.isSupervisor;
-    this.canAccessAsEndUser      = this.isEndUser;
+    this.canAccessAsEndUser = this.isEndUser;
   }
   onSubAssetSourceChange() {
     if (this.subAssetForm.sourceType === 'NEW') {
@@ -2800,244 +2935,183 @@ returnAsset(row: any) {
     this.asset.longitude = null;
     this.currentLocationId = undefined;
   }
-openReturnChecklist(row: any) {
-  this.selectedReturnTransfer = row;
-  this.selectedReturnTransferId = row.id;
-  this.showReturnChecklistDialog = true;
+  openReturnChecklist(row: any) {
+    this.selectedReturnTransfer = row;
+    this.selectedReturnTransferId = row.id;
+    this.showReturnChecklistDialog = true;
 
-  this.returnChecklistItems = [];
-  this.returnChecklistResponses = [];
-  this.returnChecklistLoading = true;
-  this.returnError = '';
-  this.returnNote = '';
-  this.returnSelectedFile = null;
+    this.returnChecklistItems = [];
+    this.returnChecklistResponses = [];
+    this.returnChecklistLoading = true;
+    this.returnError = '';
+    this.returnNote = '';
+    this.returnSelectedFile = null;
 
-  this.transferAPI.getReturnChecklist(row.id).subscribe({
-    next: (res: any) => {
-      this.returnChecklistItems = res?.items || [];
-      this.returnChecklistResponses = this.returnChecklistItems.map((x: any) => ({
-        itemId: x.id,
-        checked: false,
-        remarks: ''
-      }));
+    this.transferAPI.getReturnChecklist(row.id).subscribe({
+      next: (res: any) => {
+        this.returnChecklistItems = res?.items || [];
+        this.returnChecklistResponses = this.returnChecklistItems.map((x: any) => ({
+          itemId: x.id,
+          checked: false,
+          remarks: ''
+        }));
 
-      this.returnChecklistLoading = false;
-      setTimeout(() => this.initReturnCanvas(), 0);
-    },
-    error: () => {
-      this.returnChecklistLoading = false;
-      this.returnError = 'Failed to load return checklist';
-      setTimeout(() => this.initReturnCanvas(), 0);
-    }
-  });
-}
-
-closeReturnChecklistDialog() {
-  this.showReturnChecklistDialog = false;
-  this.selectedReturnTransfer = null;
-  this.selectedReturnTransferId = null;
-  this.returnChecklistItems = [];
-  this.returnChecklistResponses = [];
-  this.returnChecklistLoading = false;
-  this.returnError = '';
-  this.returnNote = '';
-  this.returnSelectedFile = null;
-}
-
-isReturnChecklistValid(): boolean {
-  for (let i = 0; i < this.returnChecklistItems.length; i++) {
-    const item = this.returnChecklistItems[i];
-    const response = this.returnChecklistResponses[i];
-
-    if (item?.isRequired && !response?.checked) {
-      return false;
-    }
-  }
-  return true;
-}
-
-getReturnChecklistError(): string {
-  for (let i = 0; i < this.returnChecklistItems.length; i++) {
-    const item = this.returnChecklistItems[i];
-    const response = this.returnChecklistResponses[i];
-
-    if (item?.isRequired && !response?.checked) {
-      return `${item.title} is required`;
-    }
-  }
-  return '';
-}
-
-onReturnFileSelect(event: any) {
-  this.returnSelectedFile = event?.target?.files?.[0] || null;
-}
-
-completeReturnWithChecklist() {
-  this.returnError = '';
-
-  if (!this.selectedReturnTransferId) return;
-
-  if (!this.isReturnChecklistValid()) {
-    this.returnError = this.getReturnChecklistError();
-    return;
+        this.returnChecklistLoading = false;
+        setTimeout(() => this.initReturnCanvas(), 0);
+      },
+      error: () => {
+        this.returnChecklistLoading = false;
+        this.returnError = 'Failed to load return checklist';
+        setTimeout(() => this.initReturnCanvas(), 0);
+      }
+    });
   }
 
-  const signature = this.returnCanvas?.nativeElement?.toDataURL() || '';
-
-  const formData = new FormData();
-  formData.append('returnNote', this.returnNote || '');
-  formData.append('digitalSignature', signature);
-  formData.append('checklist', JSON.stringify(this.returnChecklistResponses));
-
-  if (this.returnSelectedFile) {
-    formData.append('photo', this.returnSelectedFile);
+  closeReturnChecklistDialog() {
+    this.showReturnChecklistDialog = false;
+    this.selectedReturnTransfer = null;
+    this.selectedReturnTransferId = null;
+    this.returnChecklistItems = [];
+    this.returnChecklistResponses = [];
+    this.returnChecklistLoading = false;
+    this.returnError = '';
+    this.returnNote = '';
+    this.returnSelectedFile = null;
   }
 
-  this.transferAPI.completeReturn(this.selectedReturnTransferId, formData).subscribe({
-    next: () => {
-      this.closeReturnChecklistDialog();
-      this.loadTransferHistory(this.asset.id);
-    },
-    error: (err: any) => {
-      this.returnError = err?.error?.message || 'Failed to complete return';
+  isReturnChecklistValid(): boolean {
+    for (let i = 0; i < this.returnChecklistItems.length; i++) {
+      const item = this.returnChecklistItems[i];
+      const response = this.returnChecklistResponses[i];
+
+      if (item?.isRequired && !response?.checked) {
+        return false;
+      }
     }
-  });
-}
-initReturnCanvas() {
-  const canvas = this.returnCanvas.nativeElement;
-  const dpr = window.devicePixelRatio || 1;
+    return true;
+  }
 
-  const rect = canvas.getBoundingClientRect();
-  canvas.width = Math.floor(rect.width * dpr);
-  canvas.height = Math.floor(rect.height * dpr);
+  getReturnChecklistError(): string {
+    for (let i = 0; i < this.returnChecklistItems.length; i++) {
+      const item = this.returnChecklistItems[i];
+      const response = this.returnChecklistResponses[i];
 
-  this.returnCtx = canvas.getContext('2d')!;
-  this.returnCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  this.returnCtx.lineWidth = 2;
-  this.returnCtx.lineCap = 'round';
-  this.returnCtx.lineJoin = 'round';
-  this.returnCtx.strokeStyle = '#111';
+      if (item?.isRequired && !response?.checked) {
+        return `${item.title} is required`;
+      }
+    }
+    return '';
+  }
 
-  canvas.onpointerdown = (e) => this.onReturnPointerDown(e);
-  canvas.onpointermove = (e) => this.onReturnPointerMove(e);
-  canvas.onpointerup = () => this.onReturnPointerUp();
-  canvas.onpointerleave = () => this.onReturnPointerUp();
+  onReturnFileSelect(event: any) {
+    this.returnSelectedFile = event?.target?.files?.[0] || null;
+  }
 
-  canvas.style.touchAction = 'none';
-}
+  completeReturnWithChecklist() {
+    this.submitting = true;
+    this.returnError = '';
 
-private getReturnCanvasPoint(e: PointerEvent) {
-  const canvas = this.returnCanvas.nativeElement;
-  const rect = canvas.getBoundingClientRect();
+    if (!this.selectedReturnTransferId) return;
 
-  return {
-    x: e.clientX - rect.left,
-    y: e.clientY - rect.top
-  };
-}
+    if (!this.isReturnChecklistValid()) {
+      this.returnError = this.getReturnChecklistError();
+      return;
+    }
 
-private onReturnPointerDown(e: PointerEvent) {
-  e.preventDefault();
-  const canvas = this.returnCanvas.nativeElement;
-  canvas.setPointerCapture(e.pointerId);
+    const signature = this.returnCanvas?.nativeElement?.toDataURL() || '';
 
-  this.returnDrawing = true;
+    const formData = new FormData();
+    formData.append('returnNote', this.returnNote || '');
+    formData.append('digitalSignature', signature);
+    formData.append('checklist', JSON.stringify(this.returnChecklistResponses));
 
-  const p = this.getReturnCanvasPoint(e);
-  this.returnLastX = p.x;
-  this.returnLastY = p.y;
+    if (this.returnSelectedFile) {
+      formData.append('photo', this.returnSelectedFile);
+    }
 
-  this.returnCtx.beginPath();
-  this.returnCtx.moveTo(this.returnLastX, this.returnLastY);
-}
+    this.transferAPI.completeReturn(this.selectedReturnTransferId, formData).subscribe({
+      next: () => {
+        this.closeReturnChecklistDialog();
+        this.loadTransferHistory(this.asset.id);
+        this.submitting = false;
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        setTimeout(() => this.submitting = false);
+        this.returnError = err?.error?.message || 'Failed to complete return';
+      }
+    });
+  }
+  initReturnCanvas() {
+    const canvas = this.returnCanvas.nativeElement;
+    const dpr = window.devicePixelRatio || 1;
 
-private onReturnPointerMove(e: PointerEvent) {
-  if (!this.returnDrawing) return;
-  e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
 
-  const p = this.getReturnCanvasPoint(e);
+    this.returnCtx = canvas.getContext('2d')!;
+    this.returnCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.returnCtx.lineWidth = 2;
+    this.returnCtx.lineCap = 'round';
+    this.returnCtx.lineJoin = 'round';
+    this.returnCtx.strokeStyle = '#111';
 
-  this.returnCtx.lineTo(p.x, p.y);
-  this.returnCtx.stroke();
+    canvas.onpointerdown = (e) => this.onReturnPointerDown(e);
+    canvas.onpointermove = (e) => this.onReturnPointerMove(e);
+    canvas.onpointerup = () => this.onReturnPointerUp();
+    canvas.onpointerleave = () => this.onReturnPointerUp();
 
-  this.returnLastX = p.x;
-  this.returnLastY = p.y;
-}
+    canvas.style.touchAction = 'none';
+  }
 
-private onReturnPointerUp() {
-  this.returnDrawing = false;
-  this.returnCtx.beginPath();
-}
+  private getReturnCanvasPoint(e: PointerEvent) {
+    const canvas = this.returnCanvas.nativeElement;
+    const rect = canvas.getBoundingClientRect();
+
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
+
+  private onReturnPointerDown(e: PointerEvent) {
+    e.preventDefault();
+    const canvas = this.returnCanvas.nativeElement;
+    canvas.setPointerCapture(e.pointerId);
+
+    this.returnDrawing = true;
+
+    const p = this.getReturnCanvasPoint(e);
+    this.returnLastX = p.x;
+    this.returnLastY = p.y;
+
+    this.returnCtx.beginPath();
+    this.returnCtx.moveTo(this.returnLastX, this.returnLastY);
+  }
+
+  private onReturnPointerMove(e: PointerEvent) {
+    if (!this.returnDrawing) return;
+    e.preventDefault();
+
+    const p = this.getReturnCanvasPoint(e);
+
+    this.returnCtx.lineTo(p.x, p.y);
+    this.returnCtx.stroke();
+
+    this.returnLastX = p.x;
+    this.returnLastY = p.y;
+  }
+
+  private onReturnPointerUp() {
+    this.returnDrawing = false;
+    this.returnCtx.beginPath();
+  }
 
 clearReturnSignature() {
   const canvas = this.returnCanvas.nativeElement;
   this.returnCtx.clearRect(0, 0, canvas.width, canvas.height);
   this.returnCtx.beginPath();
 }
- selectedValue: string | null = null; //set null initially
-  storedData: string[] = [];  //stores all groups in array
-  dropdown = true;
-  adding = false;
 
-  // 1. This variable tracks what is inside the filter in real-time
-  currentFilterText: string = '';
-
-  // 2. This method runs automatically on every keystroke in the filter box
-  onDropdownFilter(event: any): void {
-    // PrimeNG passes the typed text via event.filter
-    this.currentFilterText = event.filter ? event.filter.trim() : '';
-    console.log(this.currentFilterText)
-  }
-
-  addNew(typedSearchQuery: string): void {
-
-    console.log(typedSearchQuery)
-    this.adding = true;
-
-    // 1: Read directly from your form model variable instead of selectedValue
-    // if (!this.specFormModel?.specificationGroup) {
-    //   this.adding = false;
-    //   return;
-    // }
-
-    const typedText = this.currentFilterText;
-    console.log(typedText)
-
-    // Force uppercase transformation
-    const formattedValue = typedText.toUpperCase().replace(/\s+/g, '_');
-    console.log(formattedValue)
-
-    // Check dropdown options duplication
-    const optionExists = this.specGroupOptions.some(
-      option => option.value === formattedValue
-    );
-
-    if (!optionExists) {
-      const formattedLabel = typedText.charAt(0).toUpperCase() + typedText.slice(1);
-      this.specGroupOptions.push({
-          label: formattedLabel,
-          value: formattedValue
-      });
-    }
-
-    console.log(this.storedData)
-
-    // Add to your final stored array
-    if (!this.storedData.includes(formattedValue)) {
-      this.storedData.push(formattedValue);
-
-      console.log(formattedValue)
-
-      // FIX 2: Set the actual form value to the uppercase string 
-      this.specFormModel.specificationGroup = formattedValue;
-      console.log(this.specFormModel.specificationGroup)
-
-      // Turn off loading state
-      this.adding = false;
-      this.cdr.detectChanges();
-    } else {
-      this.adding = false;
-      alert('This group is already added!');
-    }
-  }
 }

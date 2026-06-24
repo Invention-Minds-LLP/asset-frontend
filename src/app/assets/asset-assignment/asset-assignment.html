@@ -81,7 +81,8 @@
             <ng-template pTemplate="body" let-item let-i="rowIndex">
                 <tr>
                     <td>
-                        <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(item.status) }"></span>
+                        <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(item.status) }"
+                        [pTooltip]="getStatusLabel(item.status)" tooltipPosition="top"></span>
                     </td>
 
                     <td>
@@ -103,8 +104,9 @@
                     </td>
 
                     <td class="action-btns">
-                        <button class="accept-btn" (click)="openAcknowledge(item)">
-                            Accept
+                        <button class="accept-btn" (click)="openAcknowledge(item)" >
+                            <!-- Accept -->
+                             {{ isAccepting ? 'Accepting...' : 'Accept' }}
                         </button>
 
                         <button class="reject-btn" (click)="openReject(item)">
@@ -176,7 +178,7 @@
 
   <ng-template pTemplate="footer">
     <button pButton label="Cancel" (click)="showRejectDialog=false"></button>
-    <button pButton label="Reject" severity="danger" (click)="confirmReject()"></button>
+    <button pButton label="Reject" severity="danger" (click)="confirmReject()" [loading]="rejecting"></button>
   </ng-template>
 </p-dialog>
 
@@ -195,12 +197,12 @@
 
     <div class="asset-info-card" *ngIf="selectedAssignment?.asset">
       <div class="info-row">
-        <span class="info-label">Asset Name</span>
+        <span class="info-label">Asset Name :</span>
         <span class="info-value">{{ selectedAssignment.asset.assetName || '-' }}</span>
       </div>
 
       <div class="info-row">
-        <span class="info-label">Reference Code</span>
+        <span class="info-label">Reference Code:</span>
         <span class="info-value">{{ selectedAssignment.asset.referenceCode || '-' }}</span>
       </div>
     </div>
@@ -335,6 +337,7 @@
         label="Submit"
         class="btn-submit"
         (click)="confirmAcknowledge()"
+        [loading]="submittingAck"
       ></button>
     </div>
   </ng-template>

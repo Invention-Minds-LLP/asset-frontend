@@ -41,6 +41,8 @@ export class SupportMatrix implements OnInit {
   loading = false;
   editingId: number | null = null;
   showForm = false;
+  saving = false;
+  updating = false;
 
   form = this.getEmptyForm();
 
@@ -105,6 +107,7 @@ export class SupportMatrix implements OnInit {
   }
 
   save() {
+    this.saving = true;
     if (!this.form.levelNo || (!this.form.assetCategoryId && !this.form.assetId)) {
       this.toast('warn', 'Level and at least Asset Category or Asset are required');
       return;
@@ -113,14 +116,21 @@ export class SupportMatrix implements OnInit {
     const payload = { ...this.form };
 
     if (this.editingId) {
+      this.updating = true;
       this.supportMatrixService.update(this.editingId, payload).subscribe({
-        next: () => { setTimeout(() => { this.toast('success', 'Entry updated'); this.reset(); this.loadAll(); this.cdr.detectChanges(); }); },
-        error: (err) => this.toast('error', err?.error?.message || 'Failed')
+        next: () => { setTimeout(() => { this.toast('success', 'Entry updated'); this.reset(); this.loadAll();this.updating = false; this.cdr.detectChanges(); }); },
+        error: (err) => {
+          setTimeout(() => { this.updating= false; this.cdr.detectChanges(); });
+          this.toast('error', err?.error?.message || 'Failed')
+        }
       });
     } else {
       this.supportMatrixService.create(payload).subscribe({
-        next: () => { setTimeout(() => { this.toast('success', 'Entry created'); this.reset(); this.loadAll(); this.cdr.detectChanges(); }); },
-        error: (err) => this.toast('error', err?.error?.message || 'Failed')
+        next: () => { setTimeout(() => { this.toast('success', 'Entry created'); this.reset(); this.loadAll();this.saving = false; this.cdr.detectChanges(); }); },
+        error: (err) => {
+          setTimeout(() => { this.saving = false; this.cdr.detectChanges(); });
+          this.toast('error', err?.error?.message || 'Failed')
+        }
       });
     }
   }

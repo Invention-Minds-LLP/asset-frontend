@@ -6,8 +6,8 @@ const isLocal = host === 'localhost' || host === '127.0.0.1';
 
 export const environment = {
     production: true,
-  apiUrl: isLan
-    ? 'http://192.168.14.36:3001/api'
-    : '/api'
-  // apiUrl: 'http://localhost:3001/api'
+  // apiUrl: isLan
+  //   ? 'http://192.168.14.36:3001/api'
+  //   : '/api'
+  apiUrl: 'http://localhost:3001/api'
 };

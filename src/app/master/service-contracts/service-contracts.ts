@@ -41,8 +41,10 @@ export class ServiceContracts implements OnInit {
   contractType = '';
   page = 1;
   savingContract = false;
+  updatingContract = false;
   loggingVisit = false;
   approvingCharge = false;
+  pageTop = 0;
 
   showForm = false;
   editingId: number | null = null;
@@ -149,36 +151,43 @@ export class ServiceContracts implements OnInit {
     if (!payload.terms) delete payload.terms;
     if (!payload.vendorId) payload.vendorId = null;
 
-    this.savingContract = true;
     if (this.editingId) {
+      this.updatingContract = true;
       this.scService.update(this.editingId, payload).subscribe({
         next: () => {
           setTimeout(() => {
-            this.savingContract = false;
             this.messageService.add({ severity: 'success', summary: 'Updated', detail: 'Contract updated' });
             this.resetForm();
             this.loadContracts();
             this.loadStats();
+            this.updatingContract = false;
             this.cdr.detectChanges();
           });
         },
-        error: (err) => { this.savingContract = false; this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || 'Failed to update' }); }
+        error: (err) => { setTimeout(() => { this.updatingContract = false; this.cdr.detectChanges(); });
+           this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || 'Failed to update' }); }
       });
     } else {
+      this.savingContract = true;
       this.scService.create(payload).subscribe({
         next: () => {
           setTimeout(() => {
-            this.savingContract = false;
             this.messageService.add({ severity: 'success', summary: 'Created', detail: 'Contract created' });
             this.resetForm();
             this.loadContracts();
             this.loadStats();
+            this.savingContract = false;
             this.cdr.detectChanges();
           });
         },
-        error: (err) => { this.savingContract = false; this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || 'Failed to create' }); }
+        error: (err) => { setTimeout(() => { this.savingContract = false; this.cdr.detectChanges(); });
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || 'Failed to create' }); }
       });
     }
+  }
+
+  scrollToTop() {
+    this.pageTop = 1000;
   }
 
   editContract(c: any) {
@@ -204,6 +213,7 @@ export class ServiceContracts implements OnInit {
       vendorResolutionValue: c.vendorResolutionValue ?? null,
       vendorResolutionUnit: c.vendorResolutionUnit || 'HOURS',
     };
+    console.log('Regular visits:', c.regularVisitsPerYear, 'Emergency visits:', c.emergencyVisitsPerYear);
   }
 
   resetForm() {

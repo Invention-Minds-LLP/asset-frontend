@@ -24,7 +24,7 @@
   display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
 }
 .filters-row p-select, .filters-row p-datepicker { min-width: 200px; }
-
+.asset-category{ width: 100%;}
 .empty-msg { text-align: center; padding: 24px; color: var(--text-muted); }
 
 .asset-cell { display: flex; flex-direction: column; gap: 2px; }
@@ -37,7 +37,7 @@
 
 .dialog-form { display: flex; flex-direction: column; gap: 16px; padding: 8px 0; }
 .two-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.three-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.three-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .full-field { width: 100%; }
 .section-label {
   font-size: 0.78rem; font-weight: 600; color: var(--text-color-secondary);
@@ -54,3 +54,11 @@
   background: #fef3c7; border-color: #fde68a; color: #92400e;
 }
 .variance-banner i { font-size: 1.1rem; }
+
+.text-area{
+  width: 100%;
+}
+
+.heading{
+  width: 44%;
+}

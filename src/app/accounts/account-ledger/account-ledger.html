@@ -13,8 +13,8 @@
     <p-select [options]="accounts" optionLabel="name" optionValue="id"
       [(ngModel)]="selectedAccountId" placeholder="Select Account *" appendTo="body"
       [filter]="true" [style]="{minWidth:'260px'}" />
-    <p-datepicker [(ngModel)]="fromDate" placeholder="From Date" appendTo="body" />
-    <p-datepicker [(ngModel)]="toDate" placeholder="To Date" appendTo="body" />
+    <p-datepicker [(ngModel)]="fromDate" placeholder="From Date" appendTo="body" [showIcon]="true"/>
+    <p-datepicker [(ngModel)]="toDate" placeholder="To Date" appendTo="body"[showIcon]="true" />
     <p-button label="Search" icon="pi pi-search" (onClick)="search()" [loading]="loading" />
   </div>
 

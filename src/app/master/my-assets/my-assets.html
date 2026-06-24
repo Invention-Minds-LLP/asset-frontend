@@ -11,7 +11,7 @@
       <p>{{ employeeName }} <span class="emp-id">({{ employeeID }})</span> — assets you own or supervise</p>
     </div>
     <p-button icon="pi pi-refresh" label="Refresh" severity="secondary" [outlined]="true"
-              (onClick)="load()" pTooltip="Reload list" tooltipPosition="top" />
+              (onClick)="load()" pTooltip="Reload list" tooltipPosition="top" [loading]="refreshing"/>
   </div>
 
   <div class="table-wrap">

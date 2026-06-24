@@ -313,6 +313,8 @@ export class PmChecklist implements OnInit {
     this.submittingChecklist = true;
     const results = this.fillResults.map(r => ({
       itemId: r.itemId,
+      itemTitle: r.title,
+      description: r.description,
       result: r.result,
       remarks: r.remarks
     }));

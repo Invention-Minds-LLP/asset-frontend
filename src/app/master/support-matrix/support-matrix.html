@@ -91,7 +91,7 @@
     </div>
     <div class="form-actions">
       <p-button label="Cancel" severity="secondary" (onClick)="reset()" />
-      <p-button [label]="editingId ? 'Update' : 'Save'" icon="pi pi-save" (onClick)="save()" />
+      <p-button [label]="editingId ? 'Update' : 'Save'" icon="pi pi-save" (onClick)="save()" [loading]="editingId ? updating : saving"/>
     </div>
   </div>
 

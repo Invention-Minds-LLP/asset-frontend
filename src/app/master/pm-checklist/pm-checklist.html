@@ -76,7 +76,7 @@
         <ng-template pTemplate="body" let-r>
           <tr>
             <td>{{ r.template?.name || r.templateName || '—' }}</td>
-            <td>{{ r.asset?.assetName || r.assetName || '—' }}</td>
+            <td>{{ r.asset?.assetName || r.assetName || r.name || '—' }}</td>
             <td>{{ r.scheduledDue ? (r.scheduledDue | date:'mediumDate') : '—' }}</td>
             <td>{{ r.performedAt ? (r.performedAt | date:'medium') : '—' }}</td>
             <td><p-tag [value]="r.status" [severity]="getStatusSeverity(r.status)"></p-tag></td>
@@ -142,7 +142,7 @@
           <div class="item-row">
             <input pInputText [(ngModel)]="item.title" placeholder="Item title *" />
             <input pInputText [(ngModel)]="item.description" placeholder="Description" />
-            <p-inputNumber [(ngModel)]="item.sortOrder" [min]="1" placeholder="Sort" [style]="{'width':'100%'}"></p-inputNumber>
+            <input [(ngModel)]="item.sortOrder" [min]="1" placeholder="Sort" ngClass="sort"/>
             <p-checkbox [(ngModel)]="item.isRequired" [binary]="true" label="Req"></p-checkbox>
             <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
               pTooltip="Remove item" tooltipPosition="top"

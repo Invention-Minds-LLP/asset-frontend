@@ -35,7 +35,7 @@
   >
     <ng-template pTemplate="header">
       <tr>
-        <th style="width:3rem"></th>
+        <th style="width:3rem "></th>
         <th>Asset ID</th>
         <th>Name</th>
         <th>Category</th>
@@ -57,7 +57,7 @@
         </td>
         <td class="ellipsis-cell" appOverflowTooltip><code>{{ asset.assetId }}</code></td>
         <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ asset.assetName }}</td>
-        <td class="ellipsis-cell" appOverflowTooltip>{{ asset.category?.name || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetCategory?.name  || '—' }}</td>
         <td>
           <p-tag
             [value]="asset.status"
@@ -65,7 +65,7 @@
           />
         </td>
         <td>
-          <span class="sub-count">{{ asset.subAssets?.length ?? 0 }}</span>
+          <span class="sub-count">{{ asset.subAssets?.total ?? 0 }}</span>
         </td>
         <td>
           <div class="row-actions">

@@ -379,4 +379,11 @@ export class Assets {
   getEmployeeAssets(employeeId: number): Observable<any> {
     return this.http.get(`${environment.apiUrl}/employees/${employeeId}/assets`);
   }
+
+  exportCsv(params: any = {}): Observable<Blob> {
+    let q = new URLSearchParams();
+    Object.keys(params).forEach(k => { if (params[k]) q.set(k, params[k]); });
+    q.set('exportCsv', 'true');
+    return this.http.get(`${environment.apiUrl}/assets?${q.toString()}`, { responseType: 'blob' });
+  }
 }

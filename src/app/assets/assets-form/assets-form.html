@@ -26,11 +26,11 @@
                     <form #basicForm="ngForm">
 
                         <!-- STORES REFERENCE ID (permanent, generated on create) -->
-                        <div *ngIf="asset.storeAssetId" class="store-id-banner"
-                             style="display:flex; align-items:center; gap:10px; padding:8px 12px; margin-bottom:12px;
+                        <div *ngIf="asset.storeAssetId" class="store-id-banner" style="display:flex; align-items:center; gap:10px; padding:8px 12px; margin-bottom:12px;
                                     background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px;">
                             <i class="pi pi-id-card" style="color:#1d4ed8;"></i>
-                            <span style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.4px; color:#1e3a8a;">
+                            <span
+                                style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.4px; color:#1e3a8a;">
                                 Stores Reference
                             </span>
                             <strong style="font-family:monospace; color:#1e3a8a;">{{ asset.storeAssetId }}</strong>
@@ -46,8 +46,8 @@
                         <!-- ASSET NATURE (Tangible / Intangible) -->
                         <p-floatlabel variant="on" class="full-field">
                             <p-select [options]="assetNatureOptions" optionLabel="label" optionValue="value"
-                                name="assetNature" [(ngModel)]="asset.assetNature" required
-                                appendTo="body" [disabled]="!canEditBasicDetails">
+                                name="assetNature" [(ngModel)]="asset.assetNature" required appendTo="body"
+                                [disabled]="!canEditBasicDetails">
                             </p-select>
                             <label>Asset Nature *</label>
                         </p-floatlabel>
@@ -75,9 +75,9 @@
                         <!-- STORE — warehouse the asset is parked in while IN_STORE -->
                         <div class="two-fields">
                             <p-floatlabel variant="on">
-                                <p-select [options]="stores" optionLabel="name" optionValue="id"
-                                    name="currentStoreId" [(ngModel)]="asset.currentStoreId" [filter]="true"
-                                    appendTo="body" [disabled]="!canEditBasicDetails">
+                                <p-select [options]="stores" optionLabel="name" optionValue="id" name="currentStoreId"
+                                    [(ngModel)]="asset.currentStoreId" [filter]="true" appendTo="body"
+                                    [disabled]="!canEditBasicDetails">
                                 </p-select>
                                 <label>Store</label>
                             </p-floatlabel>
@@ -98,14 +98,15 @@
                             <div class="two-fields">
                                 <p-floatlabel variant="on">
                                     <input pInputText type="number" name="usefulLifeYears"
-                                        [(ngModel)]="asset.usefulLifeYears" required [disabled]="!canEditBasicDetails" />
+                                        [(ngModel)]="asset.usefulLifeYears" required
+                                        [disabled]="!canEditBasicDetails" />
                                     <label>Useful Life (Years) *</label>
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on">
                                     <p-select [options]="amortizationMethods" optionLabel="label" optionValue="value"
-                                        name="amortizationMethod" [(ngModel)]="asset.amortizationMethod"
-                                        appendTo="body" [disabled]="!canEditBasicDetails">
+                                        name="amortizationMethod" [(ngModel)]="asset.amortizationMethod" appendTo="body"
+                                        [disabled]="!canEditBasicDetails">
                                     </p-select>
                                     <label>Amortization Method</label>
                                 </p-floatlabel>
@@ -113,16 +114,15 @@
 
                             <div class="two-fields">
                                 <p-floatlabel variant="on">
-                                    <p-datepicker name="amortizationStartDate"
-                                        [(ngModel)]="asset.amortizationStartDate"
-                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                                    <p-datepicker name="amortizationStartDate" [(ngModel)]="asset.amortizationStartDate"
+                                        [disabled]="!canEditBasicDetails" appendTo="body"
+                                        [showIcon]="true"></p-datepicker>
                                     <label>Amortization Start Date</label>
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on">
                                     <input pInputText type="number" name="residualValuePercent"
-                                        [(ngModel)]="asset.residualValuePercent"
-                                        [disabled]="!canEditBasicDetails" />
+                                        [(ngModel)]="asset.residualValuePercent" [disabled]="!canEditBasicDetails" />
                                     <label>Residual Value %</label>
                                 </p-floatlabel>
                             </div>
@@ -133,7 +133,8 @@
                             <input pInputText name="serialNumber" [(ngModel)]="asset.serialNumber"
                                 [required]="!asset.isLegacyAsset && isSerialRequiredForCategory"
                                 [disabled]="!canEditBasicDetails" />
-                            <label>Serial Number{{ (!asset.isLegacyAsset && isSerialRequiredForCategory) ? ' *' : '' }}</label>
+                            <label>Serial Number{{ (!asset.isLegacyAsset && isSerialRequiredForCategory) ? ' *' : ''
+                                }}</label>
                         </p-floatlabel>
 
                         <!-- PROCUREMENT MODE -->
@@ -156,15 +157,14 @@
                             <div class="two-fields">
                                 <p-floatlabel variant="on">
                                     <input pInputText name="invoiceNumber" [(ngModel)]="asset.invoiceNumber"
-                                        [required]="!asset.isLegacyAsset"
-                                        [disabled]="!canEditBasicDetails" />
+                                        [required]="!asset.isLegacyAsset" [disabled]="!canEditBasicDetails" />
                                     <label>Invoice Number {{ asset.isLegacyAsset ? '' : '*' }}</label>
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on">
                                     <p-datepicker name="purchaseDate" [(ngModel)]="asset.purchaseDate"
-                                        [required]="!asset.isLegacyAsset"
-                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                                        [required]="!asset.isLegacyAsset" [disabled]="!canEditBasicDetails"
+                                        appendTo="body" [showIcon]="true"></p-datepicker>
                                     <label>Purchase Date {{ asset.isLegacyAsset ? '' : '*' }}</label>
                                 </p-floatlabel>
                             </div>
@@ -178,7 +178,8 @@
 
                                 <p-floatlabel variant="on">
                                     <p-datepicker name="purchaseOrderDate" [(ngModel)]="asset.purchaseOrderDate"
-                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                                        [disabled]="!canEditBasicDetails" appendTo="body"
+                                        [showIcon]="true"></p-datepicker>
                                     <label>PO Date</label>
                                 </p-floatlabel>
                             </div>
@@ -193,9 +194,8 @@
                             <!-- Vendor -->
                             <p-floatlabel variant="on" class="full-field">
                                 <p-select [options]="vendors" optionLabel="name" optionValue="id"
-                                    [(ngModel)]="asset.vendorId" name="vendorId"
-                                    [required]="!asset.isLegacyAsset" appendTo="body"
-                                    [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
+                                    [(ngModel)]="asset.vendorId" name="vendorId" [required]="!asset.isLegacyAsset"
+                                    appendTo="body" [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
                                 <label>Vendor {{ asset.isLegacyAsset ? '' : '*' }}</label>
                             </p-floatlabel>
 
@@ -235,7 +235,7 @@
 
                             <p-floatlabel variant="on" class="full-field">
                                 <p-datepicker [(ngModel)]="asset.donationDate" name="donationDate" required
-                                    [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                                    [disabled]="!canEditBasicDetails" appendTo="body" [showIcon]="true"></p-datepicker>
                                 <label>Donation Date *</label>
                             </p-floatlabel>
 
@@ -278,7 +278,8 @@
                                 </p-floatlabel>
                                 <p-floatlabel variant="on">
                                     <p-datepicker [(ngModel)]="asset.physicalInspectionDate" name="don_physDate"
-                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy" />
+                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy"
+                                        [showIcon]="true" />
                                     <label>Physical Inspection Date</label>
                                 </p-floatlabel>
                             </div>
@@ -292,7 +293,8 @@
                                 </p-floatlabel>
                                 <p-floatlabel variant="on">
                                     <p-datepicker [(ngModel)]="asset.functionalInspectionDate" name="don_funcDate"
-                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy" />
+                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy"
+                                        [showIcon]="true" />
                                     <label>Functional Inspection Date</label>
                                 </p-floatlabel>
                             </div>
@@ -328,13 +330,15 @@
                             <div class="two-fields">
                                 <p-floatlabel variant="on">
                                     <p-datepicker [(ngModel)]="asset.leaseStartDate" name="leaseStartDate" required
-                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                                        [disabled]="!canEditBasicDetails" appendTo="body"
+                                        [showIcon]="true"></p-datepicker>
                                     <label>Start Date *</label>
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on">
                                     <p-datepicker [(ngModel)]="asset.leaseEndDate" name="leaseEndDate" required
-                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                                        [disabled]="!canEditBasicDetails" appendTo="body"
+                                        [showIcon]="true"></p-datepicker>
                                     <label>End Date *</label>
                                 </p-floatlabel>
                             </div>
@@ -351,7 +355,8 @@
                                 <label>Asset Value / ROU Value (for depreciation)</label>
                             </p-floatlabel>
                             <small class="field-hint" style="margin-top:-8px; display:block;">
-                                Right-of-use or fair market value — used as cost basis if depreciation is set up for this asset.
+                                Right-of-use or fair market value — used as cost basis if depreciation is set up for
+                                this asset.
                             </small>
 
                             <!-- Inspection sub-section -->
@@ -380,7 +385,8 @@
                                 </p-floatlabel>
                                 <p-floatlabel variant="on">
                                     <p-datepicker [(ngModel)]="asset.physicalInspectionDate" name="lease_physDate"
-                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy" />
+                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy"
+                                        [showIcon]="true" />
                                     <label>Physical Inspection Date</label>
                                 </p-floatlabel>
                             </div>
@@ -394,7 +400,8 @@
                                 </p-floatlabel>
                                 <p-floatlabel variant="on">
                                     <p-datepicker [(ngModel)]="asset.functionalInspectionDate" name="lease_funcDate"
-                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy" />
+                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy"
+                                        [showIcon]="true" />
                                     <label>Functional Inspection Date</label>
                                 </p-floatlabel>
                             </div>
@@ -425,13 +432,15 @@
                             <div class="two-fields">
                                 <p-floatlabel variant="on">
                                     <p-datepicker [(ngModel)]="asset.rentalStartDate" name="rentalStartDate" required
-                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                                        [disabled]="!canEditBasicDetails" appendTo="body"
+                                        [showIcon]="true"></p-datepicker>
                                     <label>Start Date *</label>
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on">
                                     <p-datepicker [(ngModel)]="asset.rentalEndDate" name="rentalEndDate" required
-                                        [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                                        [disabled]="!canEditBasicDetails" appendTo="body"
+                                        [showIcon]="true"></p-datepicker>
                                     <label>End Date *</label>
                                 </p-floatlabel>
                             </div>
@@ -468,7 +477,8 @@
                                 </p-floatlabel>
                                 <p-floatlabel variant="on">
                                     <p-datepicker [(ngModel)]="asset.physicalInspectionDate" name="rent_physDate"
-                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy" />
+                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy"
+                                        [showIcon]="true" />
                                     <label>Physical Inspection Date</label>
                                 </p-floatlabel>
                             </div>
@@ -482,7 +492,8 @@
                                 </p-floatlabel>
                                 <p-floatlabel variant="on">
                                     <p-datepicker [(ngModel)]="asset.functionalInspectionDate" name="rent_funcDate"
-                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy" />
+                                        appendTo="body" [disabled]="!canEditBasicDetails" dateFormat="dd/mm/yy"
+                                        [showIcon]="true" />
                                     <label>Functional Inspection Date</label>
                                 </p-floatlabel>
                             </div>
@@ -497,94 +508,99 @@
 
                         <!-- ============= LEGACY ASSET ============== -->
                         <div class="legacy-toggle-row">
-                          <p-checkbox [(ngModel)]="asset.isLegacyAsset" name="isLegacyAsset" [binary]="true"
-                            inputId="isLegacyAsset" [disabled]="!canEditBasicDetails"></p-checkbox>
-                          <label for="isLegacyAsset" class="legacy-toggle-label">
-                            <i class="pi pi-history"></i> This is a legacy asset (already in use before system onboarding)
-                          </label>
+                            <p-checkbox [(ngModel)]="asset.isLegacyAsset" name="isLegacyAsset" [binary]="true"
+                                inputId="isLegacyAsset" [disabled]="!canEditBasicDetails"></p-checkbox>
+                            <label for="isLegacyAsset" class="legacy-toggle-label">
+                                <i class="pi pi-history"></i> This is a legacy asset (already in use before system
+                                onboarding)
+                            </label>
                         </div>
 
                         <div *ngIf="asset.isLegacyAsset" class="legacy-section">
 
-                          <!-- Pool Reference -->
-                          <div class="pool-ref-row">
-                            <i class="pi pi-layer-group" style="color:#6366f1;font-size:1.1rem"></i>
-                            <p-floatlabel variant="on" style="flex:1">
-                              <p-select [options]="poolOptions" optionLabel="label" optionValue="value"
-                                [(ngModel)]="asset.assetPoolId" name="assetPoolId"
-                                (onChange)="onPoolChange()" appendTo="body"
-                                [disabled]="!canEditBasicDetails" [filter]="true"
-                                placeholder="Link to FA Register Pool (optional)"></p-select>
-                              <label>FA Register Pool</label>
-                            </p-floatlabel>
-                            @if (propDepLoading) {
-                              <i class="pi pi-spin pi-spinner" style="color:#6366f1"></i>
-                            }
-                          </div>
-                          @if (asset.assetPoolId) {
+                            <!-- Pool Reference -->
+                            <div class="pool-ref-row">
+                                <i class="pi pi-layer-group" style="color:#6366f1;font-size:1.1rem"></i>
+                                <p-floatlabel variant="on" style="flex:1">
+                                    <p-select [options]="poolOptions" optionLabel="label" optionValue="value"
+                                        [(ngModel)]="asset.assetPoolId" name="assetPoolId" (onChange)="onPoolChange()"
+                                        appendTo="body" [disabled]="!canEditBasicDetails" [filter]="true"
+                                        placeholder="Link to FA Register Pool (optional)"></p-select>
+                                    <label>FA Register Pool</label>
+                                </p-floatlabel>
+                                @if (propDepLoading) {
+                                <i class="pi pi-spin pi-spinner" style="color:#6366f1"></i>
+                                }
+                            </div>
+                            @if (asset.assetPoolId) {
                             <p class="pool-ref-hint">
-                              <i class="pi pi-info-circle"></i>
-                              Proportional depreciation will be auto-calculated when purchase cost is set.
-                              Switch to the <strong>Depreciation</strong> tab to review the opening accumulated depreciation.
+                                <i class="pi pi-info-circle"></i>
+                                Proportional depreciation will be auto-calculated when purchase cost is set.
+                                Switch to the <strong>Depreciation</strong> tab to review the opening accumulated
+                                depreciation.
                             </p>
-                          }
+                            }
 
-                          <h3 class="section-title legacy-title" style="margin-top:14px">
-                            <i class="pi pi-history"></i> Historical Cost Opening Balance
-                            <span class="legacy-badge">Legacy</span>
-                          </h3>
-                          <p class="legacy-hint">
-                            Enter the total amounts spent on this asset <strong>before</strong> it was added to this system.
-                            These figures will be included in lifetime cost analysis and TCO reports.
-                          </p>
+                            <h3 class="section-title legacy-title" style="margin-top:14px">
+                                <i class="pi pi-history"></i> Historical Cost Opening Balance
+                                <span class="legacy-badge">Legacy</span>
+                            </h3>
+                            <p class="legacy-hint">
+                                Enter the total amounts spent on this asset <strong>before</strong> it was added to this
+                                system.
+                                These figures will be included in lifetime cost analysis and TCO reports.
+                            </p>
 
-                          <div class="two-fields">
-                            <p-floatlabel variant="on">
-                              <input pInputText type="number" [(ngModel)]="asset.historicalMaintenanceCost"
-                                name="historicalMaintenanceCost" [disabled]="!canEditBasicDetails" min="0" />
-                              <label>Historical Maintenance Cost (₹)</label>
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <input pInputText type="number" [(ngModel)]="asset.historicalMaintenanceCost"
+                                        name="historicalMaintenanceCost" [disabled]="!canEditBasicDetails" min="0" />
+                                    <label>Historical Maintenance Cost (₹)</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <input pInputText type="number" [(ngModel)]="asset.historicalSparePartsCost"
+                                        name="historicalSparePartsCost" [disabled]="!canEditBasicDetails" min="0" />
+                                    <label>Historical Spare Parts Cost (₹)</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <input pInputText type="number" [(ngModel)]="asset.historicalOtherCost"
+                                        name="historicalOtherCost" [disabled]="!canEditBasicDetails" min="0" />
+                                    <label>Other Historical Costs (₹)</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <p-datepicker [(ngModel)]="asset.historicalCostAsOf" name="historicalCostAsOf"
+                                        appendTo="body" [disabled]="!canEditBasicDetails"
+                                        [showIcon]="true"></p-datepicker>
+                                    <label>Costs As Of Date</label>
+                                </p-floatlabel>
+                            </div>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <p-datepicker [(ngModel)]="asset.dataAvailableSince" name="dataAvailableSince"
+                                    appendTo="body" [disabled]="!canEditBasicDetails" [showIcon]="true"></p-datepicker>
+                                <label>Live Data Available From</label>
                             </p-floatlabel>
-                            <p-floatlabel variant="on">
-                              <input pInputText type="number" [(ngModel)]="asset.historicalSparePartsCost"
-                                name="historicalSparePartsCost" [disabled]="!canEditBasicDetails" min="0" />
-                              <label>Historical Spare Parts Cost (₹)</label>
+
+                            <p-floatlabel variant="on" class="full-field">
+                                <textarea pTextarea [(ngModel)]="asset.historicalCostNote" name="historicalCostNote"
+                                    rows="2" [disabled]="!canEditBasicDetails"></textarea>
+                                <label>Source / Notes</label>
                             </p-floatlabel>
-                          </div>
+                            <small class="field-hint" style="display:block; margin:-10px 0 14px;">
+                                e.g. Based on service register and vendor invoices from 2022–2024
+                            </small>
 
-                          <div class="two-fields">
-                            <p-floatlabel variant="on">
-                              <input pInputText type="number" [(ngModel)]="asset.historicalOtherCost"
-                                name="historicalOtherCost" [disabled]="!canEditBasicDetails" min="0" />
-                              <label>Other Historical Costs (₹)</label>
-                            </p-floatlabel>
-                            <p-floatlabel variant="on">
-                              <p-datepicker [(ngModel)]="asset.historicalCostAsOf" name="historicalCostAsOf"
-                                appendTo="body" [disabled]="!canEditBasicDetails"></p-datepicker>
-                              <label>Costs As Of Date</label>
-                            </p-floatlabel>
-                          </div>
-
-                          <p-floatlabel variant="on" class="full-field">
-                            <p-datepicker [(ngModel)]="asset.dataAvailableSince" name="dataAvailableSince"
-                              appendTo="body" [disabled]="!canEditBasicDetails"></p-datepicker>
-                            <label>Live Data Available From</label>
-                          </p-floatlabel>
-
-                          <p-floatlabel variant="on" class="full-field">
-                            <textarea pTextarea [(ngModel)]="asset.historicalCostNote" name="historicalCostNote"
-                              rows="2" [disabled]="!canEditBasicDetails"></textarea>
-                            <label>Source / Notes</label>
-                          </p-floatlabel>
-                          <small class="field-hint" style="display:block; margin:-10px 0 14px;">
-                            e.g. Based on service register and vendor invoices from 2022–2024
-                          </small>
-
-                          <div class="legacy-total-row" *ngIf="(asset.historicalMaintenanceCost || asset.historicalSparePartsCost || asset.historicalOtherCost)">
-                            <span class="legacy-total-label">Total Historical Cost:</span>
-                            <span class="legacy-total-value">
-                              ₹{{ ((+asset.historicalMaintenanceCost || 0) + (+asset.historicalSparePartsCost || 0) + (+asset.historicalOtherCost || 0)) | number:'1.0-0' }}
-                            </span>
-                          </div>
+                            <div class="legacy-total-row"
+                                *ngIf="(asset.historicalMaintenanceCost || asset.historicalSparePartsCost || asset.historicalOtherCost)">
+                                <span class="legacy-total-label">Total Historical Cost:</span>
+                                <span class="legacy-total-value">
+                                    ₹{{ ((+asset.historicalMaintenanceCost || 0) + (+asset.historicalSparePartsCost ||
+                                    0) + (+asset.historicalOtherCost || 0)) | number:'1.0-0' }}
+                                </span>
+                            </div>
                         </div>
 
                         <!-- ============= GRN ============== -->
@@ -599,7 +615,7 @@
 
                             <p-floatlabel variant="on">
                                 <p-datepicker [(ngModel)]="asset.grnDate" name="grnDate"
-                                    [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                                    [disabled]="!canEditBasicDetails" appendTo="body" [showIcon]="true"></p-datepicker>
                                 <label>GRN Date</label>
                             </p-floatlabel>
                         </div>
@@ -610,12 +626,13 @@
                             <label>GRN Value</label>
                         </p-floatlabel>
 
-                        <p-floatlabel variant="on" class="full-field">
+                        <!-- grn will done once asset is accepted, then why accepted/rejected -->
+                        <!-- <p-floatlabel variant="on" class="full-field">
                             <p-select [options]="inspectionStatuses" optionLabel="label" optionValue="value"
                                 [(ngModel)]="asset.inspectionStatus" name="inspectionStatus" appendTo="body"
                                 [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
                             <label>Inspection Status</label>
-                        </p-floatlabel>
+                        </p-floatlabel> -->
 
                         <!-- ====================== -->
                         <!-- CREATION CHECKLIST -->
@@ -703,13 +720,14 @@
 
 
                     <div class="button" *ngIf="canEditBasicDetails">
-                        <button pButton label="Save" class="save-btn" (click)="saveBasicDetails(basicForm)"></button>
+                        <button pButton label="Save" class="save-btn" (click)="saveBasicDetails(basicForm)"
+                            [loading]="saving"></button>
 
-                        <button pButton label="Save &amp; Duplicate" icon="pi pi-copy"
-                            class="save-btn" severity="secondary"
+                        <button pButton label="Save &amp; Duplicate" icon="pi pi-copy" class="save-btn"
+                            severity="secondary"
                             pTooltip="Save this asset and start another with the same PO / GRN / vendor / category"
-                            tooltipPosition="top"
-                            (click)="saveAndDuplicate(basicForm)"></button>
+                            tooltipPosition="top" (click)="saveAndDuplicate(basicForm)"
+                            [loading]="savingDuplicate"></button>
 
                         <button label="Clear" class="clear-btn" (click)="clearForm()">Clear</button>
                     </div>
@@ -751,8 +769,8 @@
 
                 <div class="two-fields">
                     <p-floatlabel variant="on">
-                        <p-datepicker name="installedAt" [(ngModel)]="asset.installedAt"
-                            appendTo="body"></p-datepicker>
+                        <p-datepicker name="installedAt" [(ngModel)]="asset.installedAt" appendTo="body"
+                            [showIcon]="true"></p-datepicker>
                         <label>Installation / Commissioning Date</label>
                     </p-floatlabel>
                     <p-floatlabel variant="on">
@@ -762,19 +780,7 @@
                         <label>Service Coverage Type</label>
                     </p-floatlabel>
                 </div>
-                <hr style="margin: 15px 0;">
-
-                <h3 class="section-title">Condition at Handover *</h3>
-                <textarea pInputTextarea rows="2" [(ngModel)]="handoverCondition" name="handoverCondition"
-                    placeholder="Describe condition (Working / Accessories / Scratches / Missing parts etc.)"></textarea>
-
-                <div style="margin-top:10px; font-size: 13px;">
-                    <b>Source HOD:</b> {{ flowState.sourceHodStatus }} |
-                    <b>Supervisor:</b> {{ flowState.supervisorStatus }} |
-                    <b>Target HOD:</b> {{ flowState.targetHodStatus }} |
-                    <b>End User:</b> {{ flowState.endUserStatus }}
-                </div>
-
+                
                 <hr style="margin: 15px 0;">
 
                 <h3 class="section-title">Source Department & Supervisor</h3>
@@ -830,10 +836,21 @@
                     </p-floatlabel>
                 </div>
 
+                <hr style="margin: 15px 0;">
 
+                <h3 class="section-title">Condition at Handover *</h3>
+                <textarea pInputTextarea rows="2" [(ngModel)]="handoverCondition" name="handoverCondition"
+                    placeholder="Describe condition (Working / Accessories / Scratches / Missing parts etc.)"></textarea>
 
-                <button pButton style="margin-top: 15px" [label]="assignmentButtonLabel"
-                    (click)="saveAssignment()"></button>
+                <div style="margin-top:10px; font-size: 13px;">
+                    <b>Source HOD:</b> {{ flowState.sourceHodStatus }} |
+                    <b>Supervisor:</b> {{ flowState.supervisorStatus }} |
+                    <b>Target HOD:</b> {{ flowState.targetHodStatus }} |
+                    <b>End User:</b> {{ flowState.endUserStatus }}
+                </div>
+
+                <button pButton style="margin-top: 15px" [label]="assignmentButtonLabel" (click)="saveAssignment()"
+                    [loading]="sendingAssignment"></button>
                 <button *ngIf="canResend" pButton label="Resend Request" class="p-button-secondary"
                     (click)="resendCurrentStage()"></button>
             </div>
@@ -858,12 +875,7 @@
 
                         <div class="two-fields">
                             <!-- <p-floatlabel variant="on">
-                                <p-select [options]="specGroupOptions" optionLabel="label" optionValue="value"
-                                    name="specificationGroup" [(ngModel)]="specFormModel.specificationGroup"
-                                    appendTo="body" [filter]="true">
-                                </p-select>
-                                <label>Group</label>
-                            </p-floatlabel> -->
+                                <p-select [options]="specGroupOptions" optionLabel="label" optionValue="value"-->
                             <p-floatlabel variant="on">
                                 <!-- <p-select [options]="specGroupOptions" optionLabel="label" optionValue="value"
                                     name="specificationGroup" [(ngModel)]="specFormModel.specificationGroup"
@@ -932,7 +944,8 @@
 
                         <div class="btn-row" style="margin-top: 12px;">
                             <button pButton type="submit"
-                                [label]="specFormModel.id ? 'Update Specification' : 'Add Specification'">
+                                [label]="specFormModel.id ? 'Update Specification' : 'Add Specification'"
+                                [loading]="specFormModel.id ? updatingSpec : addingSpec">
                             </button>
 
                             <button *ngIf="specFormModel.id" pButton type="button" class="p-button-secondary"
@@ -961,11 +974,12 @@
                                 <tr>
                                     <td>{{ s.key }}</td>
                                     <td>{{ s.value }}</td>
+                                    <td>{{ (s.specificationGroup || s.group || '-') | uppercase }}</td>
                                     <td>{{ s.unit || '-' }}</td>
-                                    <td>{{ s.specificationGroup || '-' }}</td>
                                     <td>{{ s.isMandatory ? 'Yes' : 'No' }}</td>
                                     <td>
-                                        <button pButton type="button" label="Edit" (click)="editSpecification(s)">
+                                        <button pButton class="edit-button" icon="pi pi-pencil" type="button"
+                                            (click)="editSpecification(s)">
                                         </button>
                                     </td>
                                 </tr>
@@ -1351,7 +1365,7 @@
                     </p-floatlabel>
                 </div>
 
-                <button pButton label="Save SLA" (click)="saveSLA()" style="margin-top: 20px;">
+                <button pButton label="Save SLA" (click)="saveSLA()" style="margin-top: 20px;" [loading]="savingSLA">
                 </button>
 
             </div>
@@ -1427,16 +1441,15 @@
                 <div class="two-fields" *ngIf="currentLocationProfile !== 'ROOM'">
                     <p-floatlabel variant="on">
                         <p-select [options]="placementTypeOptions" optionLabel="label" optionValue="value"
-                            name="placementType" [(ngModel)]="asset.placementType" appendTo="body"
-                            [filter]="true" [showClear]="true"></p-select>
+                            name="placementType" [(ngModel)]="asset.placementType" appendTo="body" [filter]="true"
+                            [showClear]="true"></p-select>
                         <label>Placement Type</label>
                     </p-floatlabel>
 
                     <!-- Mount type: cameras, network gear, generic mounted, outdoor -->
                     <p-floatlabel variant="on" *ngIf="currentLocationProfile !== 'ROOM'">
-                        <p-select [options]="mountTypeOptions" optionLabel="label" optionValue="value"
-                            name="mountType" [(ngModel)]="asset.mountType" appendTo="body"
-                            [filter]="true" [showClear]="true"></p-select>
+                        <p-select [options]="mountTypeOptions" optionLabel="label" optionValue="value" name="mountType"
+                            [(ngModel)]="asset.mountType" appendTo="body" [filter]="true" [showClear]="true"></p-select>
                         <label>Mount Type</label>
                     </p-floatlabel>
                 </div>
@@ -1471,7 +1484,8 @@
                 </p-floatlabel>
 
                 <!-- GPS: outdoor assets and cameras -->
-                <div class="two-fields" *ngIf="currentLocationProfile === 'OUTDOOR' || currentLocationProfile === 'CAMERA'">
+                <div class="two-fields"
+                    *ngIf="currentLocationProfile === 'OUTDOOR' || currentLocationProfile === 'CAMERA'">
                     <p-floatlabel variant="on">
                         <input pInputText type="number" name="latitude" [(ngModel)]="asset.latitude" />
                         <label>Latitude</label>
@@ -1482,14 +1496,13 @@
                     </p-floatlabel>
                 </div>
 
-                <a *ngIf="asset.latitude && asset.longitude"
-                   class="map-link"
-                   [href]="'https://www.google.com/maps?q=' + asset.latitude + ',' + asset.longitude"
-                   target="_blank" rel="noopener">
+                <a *ngIf="asset.latitude && asset.longitude" class="map-link"
+                    [href]="'https://www.google.com/maps?q=' + asset.latitude + ',' + asset.longitude" target="_blank"
+                    rel="noopener">
                     <i class="pi pi-external-link"></i> View on Google Maps
                 </a>
 
-                <button pButton label="Update Location" (click)="saveLocation()"></button>
+                <button pButton label="Update Location" (click)="saveLocation()" [loading]="updatingLocation"></button>
 
                 <!-- LOCATION HISTORY -->
                 <h3 style="margin-top: 10px;">Location History</h3>
@@ -1520,10 +1533,11 @@
                                 <td>{{ row.placementProfile || 'ROOM' }}</td>
                                 <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">
                                     {{ row.placementLabel
-                                        || row.coverageArea
-                                        || (row.rackCode ? ('Rack ' + row.rackCode + (row.rackUnit ? ' / ' + row.rackUnit : '')) : '')
-                                        || ((row.latitude && row.longitude) ? (row.latitude + ', ' + row.longitude) : '')
-                                        || '-' }}
+                                    || row.coverageArea
+                                    || (row.rackCode ? ('Rack ' + row.rackCode + (row.rackUnit ? ' / ' + row.rackUnit :
+                                    '')) : '')
+                                    || ((row.latitude && row.longitude) ? (row.latitude + ', ' + row.longitude) : '')
+                                    || '-' }}
                                 </td>
                                 <td>{{ row.mountType || '-' }}</td>
                                 <td>{{ row.employeeResponsible?.name || '-' }}</td>
@@ -1656,25 +1670,25 @@
                             <div class="two-fields">
                                 <p-floatlabel variant="on">
                                     <p-datepicker [(ngModel)]="asset.insuranceStartDate" name="insuranceStartDate"
-                                        appendTo="body"></p-datepicker>
+                                        appendTo="body" [showIcon]="true"></p-datepicker>
                                     <label>Insurance Start Date</label>
                                 </p-floatlabel>
 
                                 <p-floatlabel variant="on">
                                     <p-datepicker [(ngModel)]="asset.insuranceEndDate" name="insuranceEndDate"
-                                        appendTo="body"></p-datepicker>
+                                        appendTo="body" [showIcon]="true"></p-datepicker>
                                     <label>Insurance End Date</label>
                                 </p-floatlabel>
                             </div>
 
                             <div class="two-fields">
-                                <p-floatlabel>
+                                <p-floatlabel variant="on">
                                     <p-select [options]="policyTypes" optionLabel="label" optionValue="value"
                                         [(ngModel)]="asset.policyType" appendTo="body" [filter]="true"></p-select>
                                     <label>Policy Type</label>
                                 </p-floatlabel>
 
-                                <p-floatlabel>
+                                <p-floatlabel variant="on">
                                     <input type="number" pInputText [(ngModel)]="asset.renewalReminderDays" />
                                     <label>Reminder Days</label>
                                 </p-floatlabel>
@@ -1686,7 +1700,8 @@
                             </p-floatlabel>
 
                             <div class="btn-row insurance-actions">
-                                <button pButton label="Save Insurance" (click)="saveInsurance()"></button>
+                                <button pButton label="Save Insurance" (click)="saveInsurance()"
+                                    [loading]="savingInsurance"></button>
 
                                 <button pButton *ngIf="asset.insurance?.id" label="Renew Policy"
                                     class="p-button-secondary" (click)="openRenewDialog()">
@@ -1704,28 +1719,28 @@
 
                         <div class="policy-summary">
                             <div class="summary-item">
-                                <span class="muted">Policy</span>
+                                <span class="muted">Policy:</span>
                                 <b>{{ asset.policyNumber }}</b>
                             </div>
 
                             <div class="summary-item">
-                                <span class="muted">Provider</span>
+                                <span class="muted">Provider:</span>
                                 <b>{{ asset.insuranceProvider }}</b>
                             </div>
 
                             <div class="summary-item">
-                                <span class="muted">Coverage</span>
+                                <span class="muted">Coverage:</span>
                                 <b>{{ asset.coverageAmount }}</b>
                             </div>
 
                             <div class="summary-item">
-                                <span class="muted">Period</span>
+                                <span class="muted">Period:</span>
                                 <b>{{ asset.insuranceStartDate | date:'dd-MMM-yyyy' }} → {{ asset.insuranceEndDate |
                                     date:'dd-MMM-yyyy' }}</b>
                             </div>
 
                             <div class="summary-item">
-                                <span class="muted">Status</span>
+                                <span class="muted">Status:</span>
                                 <span class="status-pill" [ngClass]="getInsuranceStatusClass(asset.insurance)">
                                     {{ getInsuranceStatus(asset.insurance) }}
                                 </span>
@@ -1855,15 +1870,13 @@
 
                 <div class="two-fields" *ngIf="asset.modeOfProcurement !== 'RENTAL'">
                     <p-floatlabel variant="on">
-                        <input pInputText name="purchaseVoucherNo"
-                            [(ngModel)]="asset.purchaseVoucherNo"
+                        <input pInputText name="purchaseVoucherNo" [(ngModel)]="asset.purchaseVoucherNo"
                             [disabled]="!canEditBasicDetails" />
                         <label>Purchase Voucher No</label>
                     </p-floatlabel>
                     <p-floatlabel variant="on">
-                        <p-datepicker name="purchaseVoucherDate"
-                            [(ngModel)]="asset.purchaseVoucherDate"
-                            [disabled]="!canEditBasicDetails" appendTo="body"></p-datepicker>
+                        <p-datepicker name="purchaseVoucherDate" [(ngModel)]="asset.purchaseVoucherDate"
+                            [disabled]="!canEditBasicDetails" appendTo="body" [showIcon]="true"></p-datepicker>
                         <label>Purchase Voucher Date</label>
                     </p-floatlabel>
                 </div>
@@ -1873,7 +1886,8 @@
                     <span class="dep-blocked-icon">&#8505;</span>
                     <div>
                         <strong>Depreciation not applicable for Rental assets.</strong><br>
-                        Rental assets are not owned. Rental payments are treated as operating expenses. No depreciation is recorded.
+                        Rental assets are not owned. Rental payments are treated as operating expenses. No depreciation
+                        is recorded.
                     </div>
                 </div>
 
@@ -1889,13 +1903,17 @@
                         </span>
                         <span *ngIf="asset.modeOfProcurement === 'DONATION'">
                             Estimated / Fair Market Value
-                            <strong *ngIf="asset.estimatedValue"> — ₹{{ asset.estimatedValue | number:'1.0-2' }}</strong>
-                            <em *ngIf="!asset.estimatedValue" class="dep-basis-warn"> (Estimated value not entered in Donation Details)</em>
+                            <strong *ngIf="asset.estimatedValue"> — ₹{{ asset.estimatedValue | number:'1.0-2'
+                                }}</strong>
+                            <em *ngIf="!asset.estimatedValue" class="dep-basis-warn"> (Estimated value not entered in
+                                Donation Details)</em>
                         </span>
                         <span *ngIf="asset.modeOfProcurement === 'LEASE'">
                             Asset Value / ROU Value
-                            <strong *ngIf="asset.estimatedValue"> — ₹{{ asset.estimatedValue | number:'1.0-2' }}</strong>
-                            <em *ngIf="!asset.estimatedValue" class="dep-basis-warn"> (Asset/ROU value not entered in Lease Details)</em>
+                            <strong *ngIf="asset.estimatedValue"> — ₹{{ asset.estimatedValue | number:'1.0-2'
+                                }}</strong>
+                            <em *ngIf="!asset.estimatedValue" class="dep-basis-warn"> (Asset/ROU value not entered in
+                                Lease Details)</em>
                         </span>
                     </div>
                 </div>
@@ -1903,20 +1921,20 @@
                 <div *ngIf="asset.modeOfProcurement === 'RENTAL'"><!-- depreciation form hidden for RENTAL --></div>
                 <ng-container *ngIf="asset.modeOfProcurement !== 'RENTAL'">
 
-                <h3 class="section-title">Depreciation Setup</h3>
+                    <h3 class="section-title">Depreciation Setup</h3>
 
                 <div class="two-fields">
                     <p-floatlabel variant="on">
                         <p-select [options]="depreciationMethods" optionLabel="label" optionValue="value"
                             name="depreciationMethods" [(ngModel)]="depreciationForm.depreciationMethod" appendTo="body"
-                            [filter]="true" [disabled]="!canEditDepreciation" (ngModelChange)="onDepreciationMethodChange()"></p-select>
+                            [filter]="true" (ngModelChange)="onDepreciationMethodChange()"></p-select>
                         <label>Method *</label>
                     </p-floatlabel>
 
                     <p-floatlabel variant="on" *ngIf="depreciationForm.depreciationMethod === 'DB'">
                         <input type="number" name="depreciationRate" pInputText
-                            [(ngModel)]="depreciationForm.depreciationRate" [disabled]="true" />
-                        <label>Rate (%) — from category</label>
+                            [(ngModel)]="depreciationForm.depreciationRate" />
+                        <label>Rate (%) *</label>
                     </p-floatlabel>
                 </div>
 
@@ -1924,7 +1942,7 @@
                     @if (depreciationForm.depreciationMethod !== 'DB') {
                       <p-floatlabel variant="on">
                           <input type="number" pInputText name="expectedLifeYears"
-                              [(ngModel)]="depreciationForm.expectedLifeYears" [disabled]="!canEditDepreciation" />
+                              [(ngModel)]="depreciationForm.expectedLifeYears" />
                           <label>Expected Life (Years) *</label>
                       </p-floatlabel>
                     }
@@ -1932,7 +1950,7 @@
                     <p-floatlabel variant="on">
                         <p-select [options]="depreciationFrequencies" optionLabel="label" optionValue="value"
                             name="depreciationFrequency" [(ngModel)]="depreciationForm.depreciationFrequency"
-                            [disabled]="!canEditDepreciation" appendTo="body"></p-select>
+                            appendTo="body"></p-select>
                         <label>Frequency *</label>
                     </p-floatlabel>
                 </div>
@@ -1940,13 +1958,13 @@
                 <div class="two-fields">
                     <p-floatlabel variant="on">
                         <p-datepicker [(ngModel)]="depreciationForm.depreciationStart" name="depreciationStartDate"
-                            [disabled]="!canEditDepreciation" appendTo="body"></p-datepicker>
+                            appendTo="body"></p-datepicker>
                         <label>Depreciation Start Date</label>
                     </p-floatlabel>
 
                     <div class="field-with-hint">
                         <p-floatlabel variant="on">
-                            <input type="number" pInputText [(ngModel)]="depreciationForm.salvageValue" name="salvageValue" [disabled]="!canEditDepreciation" />
+                            <input type="number" pInputText [(ngModel)]="depreciationForm.salvageValue" name="salvageValue" />
                             <label>Residual Value</label>
                         </p-floatlabel>
                         <small class="field-hint" *ngIf="depreciationCostBasis > 0">
@@ -1961,7 +1979,7 @@
                     <i class="pi pi-history"></i>
                     <p-floatlabel variant="on" style="flex:1">
                       <input type="number" pInputText name="openingAccumulatedDepreciation"
-                        [(ngModel)]="depreciationForm.openingAccumulatedDepreciation" min="0" [disabled]="!canEditDepreciation" />
+                        [(ngModel)]="depreciationForm.openingAccumulatedDepreciation" min="0" />
                       <label>Opening Accumulated Depreciation</label>
                     </p-floatlabel>
                     <span class="legacy-dep-hint">
@@ -1978,7 +1996,7 @@
                 <div class="roundoff-row">
                     <div class="roundoff-toggle">
                         <p-checkbox [(ngModel)]="depreciationForm.roundOff" [binary]="true"
-                            name="roundOff" inputId="roundOffChk" [disabled]="!canEditDepreciation"></p-checkbox>
+                            name="roundOff" inputId="roundOffChk"></p-checkbox>
                         <label for="roundOffChk">
                             Round off depreciation amounts
                             <span class="roundoff-hint">Applies to batch runs and WDV schedule</span>
@@ -1991,44 +2009,45 @@
                                 [disabled]="!canEditDepreciation" appendTo="body"></p-select>
                             <label>Rounding Precision</label>
                         </p-floatlabel>
-                    }
-                </div>
+                        }
+                    </div>
 
-                <button pButton [label]="depreciationButtonLabel" style="margin-top: 10px;" *ngIf="canEditDepreciation"
+                <button pButton [label]="depreciationButtonLabel" style="margin-top: 10px;"
                     [disabled]="!depreciationForm.depreciationMethod || (depreciationForm.depreciationMethod === 'SL' && !depreciationForm.expectedLifeYears) || (depreciationForm.depreciationMethod === 'DB' && !depreciationForm.depreciationRate)"
                     (click)="saveDepreciation()">
                 </button>
 
-                <div class="depreciation-summary-card" *ngIf="depreciationResult">
-                    <div class="summary-header">
-                        <h3>Depreciation Summary</h3>
-                        <span class="summary-badge" [ngClass]="getDepStatusClass(depreciationResult)">
-                            {{ getDepStatus(depreciationResult) }}
-                        </span>
+                    <div class="depreciation-summary-card" *ngIf="depreciationResult">
+                        <div class="summary-header">
+                            <h3>Depreciation Summary</h3>
+                            <span class="summary-badge" [ngClass]="getDepStatusClass(depreciationResult)">
+                                {{ getDepStatus(depreciationResult) }}
+                            </span>
+                        </div>
+
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <span class="summary-label">Purchase Cost:</span>
+                                <p class="summary-value">{{ depreciationResult.purchaseCost | number:'1.2-2' }}</p>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Book Value:</span>
+                                <p class="summary-value">{{ depreciationResult.bookValue | number:'1.2-2' }}</p>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Depreciation Till Date:</span>
+                                <p class="summary-value">{{ depreciationResult.depreciationTillDate | number:'1.2-2' }}
+                                </p>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Years Used:</span>
+                                <p class="summary-value">{{ depreciationResult.yearsUsed | number:'1.2-2' }}</p>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="summary-grid">
-                        <div class="summary-item">
-                            <span class="summary-label">Purchase Cost</span>
-                            <p class="summary-value">{{ depreciationResult.purchaseCost | number:'1.2-2' }}</p>
-                        </div>
-
-                        <div class="summary-item">
-                            <span class="summary-label">Book Value</span>
-                            <p class="summary-value">{{ depreciationResult.bookValue | number:'1.2-2' }}</p>
-                        </div>
-
-                        <div class="summary-item">
-                            <span class="summary-label">Depreciation Till Date</span>
-                            <p class="summary-value">{{ depreciationResult.depreciationTillDate | number:'1.2-2' }}</p>
-                        </div>
-
-                        <div class="summary-item">
-                            <span class="summary-label">Years Used</span>
-                            <p class="summary-value">{{ depreciationResult.yearsUsed | number:'1.2-2' }}</p>
-                        </div>
-                    </div>
-                </div>
 
                 </ng-container><!-- /ng-container for non-RENTAL depreciation form -->
 
@@ -2070,45 +2089,42 @@
                 </span>
             </div> -->
             <!-- Transfer Type Toggle -->
-<div class="transfer-mode-card" *ngIf="transfer.transferType && transfer.externalType !== 'DEAD'">
-  <div class="transfer-mode-left">
-    <div class="icon-wrap">
-      <i class="pi pi-sync"></i>
-    </div>
+            <div class="transfer-mode-card" *ngIf="transfer.transferType && transfer.externalType !== 'DEAD'">
+                <div class="transfer-mode-left">
+                    <div class="icon-wrap">
+                        <i class="pi pi-sync"></i>
+                    </div>
 
-    <div class="transfer-mode-text">
-      <div class="transfer-mode-title">Transfer Type</div>
-      <div class="transfer-mode-subtitle">
-        Choose whether this transfer is temporary or permanent
-      </div>
-    </div>
-  </div>
+                    <div class="transfer-mode-text">
+                        <div class="transfer-mode-title">Transfer Type</div>
+                        <div class="transfer-mode-subtitle">
+                            Choose whether this transfer is temporary or permanent
+                        </div>
+                    </div>
+                </div>
 
-  <div class="transfer-mode-right">
-    <div class="transfer-toggle">
-      <p-checkbox
-        binary="true"
-        inputId="temp"
-        [(ngModel)]="transfer.temporary">
-      </p-checkbox>
-      <label class="p-checkbox-label toggle-label" for="temp">
-        Temporary Transfer
-      </label>
-    </div>
+                <div class="transfer-mode-right">
+                    <div class="transfer-toggle">
+                        <p-checkbox binary="true" inputId="temp" [(ngModel)]="transfer.temporary">
+                        </p-checkbox>
+                        <label class="p-checkbox-label toggle-label" for="temp">
+                            Temporary Transfer
+                        </label>
+                    </div>
 
-    <span class="transfer-badge permanent" *ngIf="!transfer.temporary">
-      Permanent
-    </span>
+                    <span class="transfer-badge permanent" *ngIf="!transfer.temporary">
+                        Permanent
+                    </span>
 
-    <span class="transfer-badge temporary" *ngIf="transfer.temporary">
-      Temporary
-    </span>
-  </div>
-</div>
+                    <span class="transfer-badge temporary" *ngIf="transfer.temporary">
+                        Temporary
+                    </span>
+                </div>
+            </div>
 
             <div class="expires-container" *ngIf="transfer.temporary">
                 <p-floatlabel variant="on" class="full-field">
-                    <p-datepicker name="expiresAt" [(ngModel)]="transfer.expiresAt" appendTo="body">
+                    <p-datepicker name="expiresAt" [(ngModel)]="transfer.expiresAt" appendTo="body" [showIcon]="true">
                     </p-datepicker>
                     <label>Expected Return Date</label>
                 </p-floatlabel>
@@ -2210,7 +2226,8 @@
             </p-floatlabel>
 
             <div class="btn-row">
-                <button pButton label="Submit Request" class="green-btn success" (click)="submitTransfer()">
+                <button pButton label="Submit Request" class="green-btn success" (click)="submitTransfer()"
+                    [loading]="submittingTransfer">
                 </button>
 
                 <button pButton label="Cancel" class="red-btn danger" (click)="showTransferModal = false">
@@ -2248,12 +2265,12 @@
 
             <div class="two-fields">
                 <p-floatlabel variant="on">
-                    <p-datepicker [(ngModel)]="renewForm.startDate" appendTo="body"></p-datepicker>
+                    <p-datepicker [(ngModel)]="renewForm.startDate" appendTo="body" [showIcon]="true"></p-datepicker>
                     <label>Start Date *</label>
                 </p-floatlabel>
 
                 <p-floatlabel variant="on">
-                    <p-datepicker [(ngModel)]="renewForm.endDate" appendTo="body"></p-datepicker>
+                    <p-datepicker [(ngModel)]="renewForm.endDate" appendTo="body" [showIcon]="true"></p-datepicker>
                     <label>End Date *</label>
                 </p-floatlabel>
             </div>
@@ -2280,22 +2297,22 @@
 
             <div class="asset-info-card" *ngIf="selectedReturnTransfer">
                 <div class="info-row">
-                    <span class="info-label">Transfer ID</span>
+                    <span class="info-label">Transfer ID: </span>
                     <span class="info-value">{{ selectedReturnTransfer.id || '-' }}</span>
                 </div>
 
                 <div class="info-row">
-                    <span class="info-label">Status</span>
+                    <span class="info-label">Status: </span>
                     <span class="info-value">{{ selectedReturnTransfer.status || '-' }}</span>
                 </div>
 
                 <div class="info-row">
-                    <span class="info-label">Transfer Type</span>
+                    <span class="info-label">Transfer Type: </span>
                     <span class="info-value">{{ selectedReturnTransfer.transferType || '-' }}</span>
                 </div>
 
                 <div class="info-row">
-                    <span class="info-label">Reason</span>
+                    <span class="info-label">Reason: </span>
                     <span class="info-value">
                         {{ selectedReturnTransfer.returnReason || selectedReturnTransfer.reason || '-' }}
                     </span>
@@ -2378,7 +2395,7 @@
                 <button pButton type="button" label="Cancel" class="btn-cancel"
                     (click)="closeReturnChecklistDialog()"></button>
                 <button pButton type="button" label="Submit Return" class="btn-submit"
-                    (click)="completeReturnWithChecklist()"></button>
+                    (click)="completeReturnWithChecklist()" [loading]="submitting"></button>
             </div>
         </ng-template>
     </p-dialog>
@@ -2433,7 +2450,8 @@
 
             <div class="two-fields">
                 <p-floatlabel variant="on">
-                    <p-datepicker [(ngModel)]="claimForm.claimDate" name="claimDate" appendTo="body"></p-datepicker>
+                    <p-datepicker [(ngModel)]="claimForm.claimDate" name="claimDate" appendTo="body"
+                        [showIcon]="true"></p-datepicker>
                     <label>Claim Date *</label>
                 </p-floatlabel>
 
@@ -2449,7 +2467,8 @@
             </p-floatlabel>
 
             <div class="btn-row" style="margin-top: 12px;">
-                <button pButton label="Submit" class="green-btn success" (click)="submitClaim()"></button>
+                <button pButton label="Submit" class="green-btn success" (click)="submitClaim()"
+                    [loading]="renewalSubmitting"></button>
                 <button pButton label="Cancel" class="red-btn danger" (click)="showClaimDialog=false"></button>
             </div>
 
@@ -2594,7 +2613,8 @@
                         </p-floatlabel>
 
                         <p-floatlabel variant="on">
-                            <p-datepicker [(ngModel)]="subAssetForm.purchaseDate" appendTo="body"></p-datepicker>
+                            <p-datepicker [(ngModel)]="subAssetForm.purchaseDate" appendTo="body"
+                                [showIcon]="true"></p-datepicker>
                             <label>Purchase Date *</label>
                         </p-floatlabel>
                     </div>
@@ -2606,7 +2626,8 @@
                         </p-floatlabel>
 
                         <p-floatlabel variant="on">
-                            <p-datepicker [(ngModel)]="subAssetForm.purchaseOrderDate" appendTo="body"></p-datepicker>
+                            <p-datepicker [(ngModel)]="subAssetForm.purchaseOrderDate" appendTo="body"
+                                [showIcon]="true"></p-datepicker>
                             <label>PO Date</label>
                         </p-floatlabel>
                     </div>
@@ -2628,7 +2649,8 @@
                         </p-floatlabel>
 
                         <p-floatlabel variant="on">
-                            <p-datepicker [(ngModel)]="subAssetForm.donationDate" appendTo="body"></p-datepicker>
+                            <p-datepicker [(ngModel)]="subAssetForm.donationDate" appendTo="body"
+                                [showIcon]="true"></p-datepicker>
                             <label>Donation Date *</label>
                         </p-floatlabel>
                     </div>
@@ -2654,12 +2676,14 @@
 
                     <div class="two-fields">
                         <p-floatlabel variant="on">
-                            <p-datepicker [(ngModel)]="subAssetForm.leaseStartDate" appendTo="body"></p-datepicker>
+                            <p-datepicker [(ngModel)]="subAssetForm.leaseStartDate" appendTo="body"
+                                [showIcon]="true"></p-datepicker>
                             <label>Lease Start Date *</label>
                         </p-floatlabel>
 
                         <p-floatlabel variant="on">
-                            <p-datepicker [(ngModel)]="subAssetForm.leaseEndDate" appendTo="body"></p-datepicker>
+                            <p-datepicker [(ngModel)]="subAssetForm.leaseEndDate" appendTo="body"
+                                [showIcon]="true"></p-datepicker>
                             <label>Lease End Date *</label>
                         </p-floatlabel>
                     </div>
@@ -2676,12 +2700,14 @@
 
                     <div class="two-fields">
                         <p-floatlabel variant="on">
-                            <p-datepicker [(ngModel)]="subAssetForm.rentalStartDate" appendTo="body"></p-datepicker>
+                            <p-datepicker [(ngModel)]="subAssetForm.rentalStartDate" appendTo="body"
+                                [showIcon]="true"></p-datepicker>
                             <label>Rental Start Date *</label>
                         </p-floatlabel>
 
                         <p-floatlabel variant="on">
-                            <p-datepicker [(ngModel)]="subAssetForm.rentalEndDate" appendTo="body"></p-datepicker>
+                            <p-datepicker [(ngModel)]="subAssetForm.rentalEndDate" appendTo="body"
+                                [showIcon]="true"></p-datepicker>
                             <label>Rental End Date *</label>
                         </p-floatlabel>
                     </div>
@@ -2734,7 +2760,8 @@
             </ng-container>
 
             <div class="btn-row" style="margin-top: 12px;">
-                <button pButton label="Save" class="green-btn success" (click)="createSubAsset()"></button>
+                <button pButton label="Save" class="green-btn success" (click)="createSubAsset()"
+                    [loading]="savingSubAsset"></button>
                 <button pButton label="Cancel" class="red-btn danger" (click)="showSubAssetDialog=false"></button>
             </div>
 
@@ -2815,7 +2842,8 @@
                 </div>
                 <div class="form-row">
                     <label>Purchase Date</label>
-                    <p-datepicker [(ngModel)]="replaceForm.purchaseDate" appendTo="body" dateFormat="dd-mm-yy" />
+                    <p-datepicker [(ngModel)]="replaceForm.purchaseDate" appendTo="body" dateFormat="dd-mm-yy"
+                        [showIcon]="true" />
                 </div>
             </div>
             }

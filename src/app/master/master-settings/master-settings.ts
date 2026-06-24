@@ -48,12 +48,14 @@ export class MasterSettings implements OnInit {
   deptForm = { name: '' };
   editingDeptId: number | null = null;
   showDeptForm = false;
+  savingDept = false;
 
   // ── Branches ─────────────────────────────────────────────────────────────
   branches: any[] = [];
   branchForm = { name: '' };
   editingBranchId: number | null = null;
   showBranchForm = false;
+  savingBranch = false;
 
   // ── Asset Categories ─────────────────────────────────────────────────────
   categories: any[] = [];
@@ -81,6 +83,7 @@ export class MasterSettings implements OnInit {
   ];
   editingCategoryId: number | null = null;
   showCategoryForm = false;
+  savingAsset = false;
 
   // ── Vendors ──────────────────────────────────────────────────────────────
   vendors: any[] = [];
@@ -101,6 +104,7 @@ export class MasterSettings implements OnInit {
   ];
 
   loading = false;
+  savingVendor = false;
 
   constructor(
     private assetsService: Assets,
@@ -140,6 +144,7 @@ export class MasterSettings implements OnInit {
   }
 
   saveDept() {
+    this.savingDept = true;
     if (!this.deptForm.name.trim()) { this.toast('warn', 'Department name is required'); return; }
     const call = this.editingDeptId
       ? this.assetsService.updateDepartment(this.editingDeptId, this.deptForm.name.trim())
@@ -151,10 +156,12 @@ export class MasterSettings implements OnInit {
           this.toast('success', this.editingDeptId ? 'Department updated' : 'Department created');
           this.showDeptForm = false;
           this.loadDepartments();
+          this.savingDept = false;
           this.cdr.detectChanges();
         });
       },
-      error: err => this.toast('error', err?.error?.message || 'Failed to save department')
+      error: err => { setTimeout(() => { this.savingDept = false; this.cdr.detectChanges(); });
+        this.toast('error', err?.error?.message || 'Failed to save department')}
     });
   }
 
@@ -186,6 +193,7 @@ export class MasterSettings implements OnInit {
   }
 
   saveBranch() {
+    this.savingBranch = true;
     if (!this.branchForm.name.trim()) { this.toast('warn', 'Branch name is required'); return; }
     const call = this.editingBranchId
       ? this.branchesService.updateBranch(this.editingBranchId, this.branchForm.name.trim())
@@ -197,10 +205,12 @@ export class MasterSettings implements OnInit {
           this.toast('success', this.editingBranchId ? 'Branch updated' : 'Branch created');
           this.showBranchForm = false;
           this.loadBranches();
+          this.savingBranch = false;
           this.cdr.detectChanges();
         });
       },
-      error: err => this.toast('error', err?.error?.message || 'Failed to save branch')
+      error: err => {setTimeout(() => { this.savingBranch = false; this.cdr.detectChanges(); });
+        this.toast('error', err?.error?.message || 'Failed to save branch')}
     });
   }
 
@@ -248,6 +258,7 @@ export class MasterSettings implements OnInit {
   }
 
   saveCategory() {
+    this.savingAsset = true;
     if (!this.categoryForm.name.trim()) { this.toast('warn', 'Category name is required'); return; }
     const payload: any = {
       name: this.categoryForm.name.trim(),
@@ -268,10 +279,12 @@ export class MasterSettings implements OnInit {
           this.toast('success', this.editingCategoryId ? 'Category updated' : 'Category created');
           this.showCategoryForm = false;
           this.loadCategories();
+          this.savingAsset = false;
           this.cdr.detectChanges();
         });
       },
-      error: err => this.toast('error', err?.error?.message || 'Failed to save category')
+      error: err => {setTimeout(() => { this.savingAsset = false; this.cdr.detectChanges(); });
+        this.toast('error', err?.error?.message || 'Failed to save category')}
     });
   }
 
@@ -326,6 +339,7 @@ export class MasterSettings implements OnInit {
   }
 
   saveVendor() {
+    this.savingVendor = true;
     if (!this.vendorForm.name.trim()) { this.toast('warn', 'Vendor name is required'); return; }
     const call = this.editingVendorId
       ? this.assetsService.updateVendor(this.editingVendorId, this.vendorForm)
@@ -337,10 +351,12 @@ export class MasterSettings implements OnInit {
           this.toast('success', this.editingVendorId ? 'Vendor updated' : 'Vendor created');
           this.showVendorForm = false;
           this.loadVendors();
+          this.savingVendor = false;
           this.cdr.detectChanges();
         });
       },
-      error: err => this.toast('error', err?.error?.message || 'Failed to save vendor')
+      error: err => {setTimeout(() => { this.savingVendor = false; this.cdr.detectChanges(); });
+        this.toast('error', err?.error?.message || 'Failed to save vendor')}
     });
   }
 

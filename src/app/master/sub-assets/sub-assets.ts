@@ -121,6 +121,7 @@ export class SubAssets implements OnInit {
         const list = Array.isArray(data) ? data : (data?.data ?? []);
         // Only parent assets (no parentAssetId) or assets that may have sub-assets
         this.allAssets = list;
+        console.log('Loaded assets:', this.allAssets);
         this.applyFilter();
         this.loading = false;
         this.cdr.detectChanges();

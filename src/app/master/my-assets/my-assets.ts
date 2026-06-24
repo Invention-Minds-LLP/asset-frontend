@@ -34,6 +34,7 @@ export class MyAssets implements OnInit {
   assets: any[] = [];
   employeeName = '';
   employeeID = '';
+  refreshing = false;
 
   private employeeDbId!: number;
 
@@ -84,6 +85,7 @@ export class MyAssets implements OnInit {
   }
 
   load() {
+    this.refreshing=true;
     this.loading = true;
     this.assetService.getEmployeeAssets(this.employeeDbId).subscribe({
       next: (res: any) => {
@@ -91,12 +93,13 @@ export class MyAssets implements OnInit {
           this.assets = res.assets || [];
           this.employeeName = res.employee?.name || this.employeeName;
           this.loading = false;
+          this.refreshing=false;
           this.cdr.detectChanges();
         });
       },
       error: (e: any) => {
         setTimeout(() => {
-          this.loading = false;
+          this.loading = false; this.refreshing=false;
           this.messageService.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed to load' });
           this.cdr.detectChanges();
         });

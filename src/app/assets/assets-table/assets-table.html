@@ -1,182 +1,185 @@
-<div class="table-wrapper">
-  <div class="header">
-    <div class="header-part">
-      <div>
-        <h2>Assets Master Table</h2>
-        <p>The analysis list here shows all users</p>
+<div class="container">
+  <div class="table-wrapper">
+    <div class="header">
+      <div class="header-part">
+        <div>
+          <h2>Assets Master Table</h2>
+          <p>The analysis list here shows all users</p>
+        </div>
+
+        <div class="notification-part">
+          <div class="active-box">
+            <div class=""></div>
+            <span>{{activeAssets}} Active Assets</span>
+          </div>
+          <!-- <div class="notification">
+            <i class="pi pi-bell"></i>
+          </div> -->
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="actions">
+          <div class="filter" (click)="toggleFilterDropdown($event)">
+            <i class="pi pi-filter"></i>
+            <ul class="filter-menu" *ngIf="dropdownVisible">
+              <li class="menu" *ngFor="let option of filterOptions" (click)="selectFilter(option.value, $event)"
+                [class.active]="selectedFilter === option.value">
+                {{ option.label }}
+              </li>
+            </ul>
+          </div>
+          <p-iconfield>
+            <p-inputicon styleClass="pi pi-search"></p-inputicon>
+            <input type="text" pInputText placeholder="Search" [(ngModel)]="searchTerm" (input)="applyFilter()" />
+          </p-iconfield>
+          <div class="filter-clear" *ngIf="isFilterActive" (click)="clearFilter()">
+            <i class="pi pi-filter-slash"></i>
+          </div>
+        </div>
+
+
+        <div class="custom-paginator-bar">
+          <div class="separator"></div>
+
+          <button class="icon-button" (click)="refresh()">
+            <span class="pi pi-refresh"></span>
+          </button>
+
+          <!-- <button class="icon-button" *ngIf="dt" (click)="exportCSV()" title="Export to CSV">
+            <span class="pi pi-download"></span>
+          </button> -->
+
+          <span class="page-info">{{ currentPage }} of {{ totalPages }}</span>
+
+          <button class="icon-button" (click)="previousPage()" [disabled]="currentPage <= 1">
+            <span class="pi pi-chevron-left"></span>
+          </button>
+
+          <button class="icon-button" (click)="nextPage()" [disabled]="currentPage >= totalPages">
+            <span class="pi pi-chevron-right"></span>
+          </button>
+        </div>
       </div>
 
-      <div class="notification-part">
-        <div class="active-box">
-          <div class=""></div>
-          <span>{{activeAssets}} Active Assets</span>
-        </div>
-        <!-- <div class="notification">
-          <i class="pi pi-bell"></i>
-        </div> -->
-      </div>
     </div>
-    <div class="header-actions">
-      <div class="actions">
-        <div class="filter" (click)="toggleFilterDropdown($event)">
-          <i class="pi pi-filter"></i>
-          <ul class="filter-menu" *ngIf="dropdownVisible">
-            <li class="menu" *ngFor="let option of filterOptions" (click)="selectFilter(option.value, $event)"
-              [class.active]="selectedFilter === option.value">
-              {{ option.label }}
-            </li>
-          </ul>
-        </div>
-        <p-iconfield>
-          <p-inputicon styleClass="pi pi-search"></p-inputicon>
-          <input type="text" pInputText placeholder="Search" [(ngModel)]="searchTerm" (input)="applyFilter()" />
-        </p-iconfield>
-        <div class="filter-clear" *ngIf="isFilterActive" (click)="clearFilter()">
-          <i class="pi pi-filter-slash"></i>
-        </div>
-      </div>
 
-
-      <div class="custom-paginator-bar">
-        <div class="separator"></div>
-
-        <button class="icon-button" (click)="refresh()">
-          <span class="pi pi-refresh"></span>
-        </button>
-
-        <button class="icon-button" *ngIf="dt" (click)="dt.exportCSV()" title="Export to CSV">
-          <span class="pi pi-download"></span>
-        </button>
-
-        <span class="page-info">{{ currentPage }} of {{ totalPages }}</span>
-
-        <button class="icon-button" (click)="previousPage()" [disabled]="currentPage <= 1">
-          <span class="pi pi-chevron-left"></span>
-        </button>
-
-        <button class="icon-button" (click)="nextPage()" [disabled]="currentPage >= totalPages">
-          <span class="pi pi-chevron-right"></span>
-        </button>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="table-container">
-    <p-table *ngIf="!isLoading" [value]="paginatedAssets" #dt [rows]="10">
-      <ng-template pTemplate="header">
-        <tr>
-          <th></th>
-          <th>No</th>
-          <th>Asset ID</th>
-          <th>Stores Ref</th>
-          <th>Reference Code</th>
-          <th>Asset Name</th>
-          <th>Asset Type</th>
-          <th>Department</th>
-          <th>Asset Category</th>
-          <th>Allotted To</th>
-          <th>Asset Photo</th>
-          <th>Action</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-asset let-i="rowIndex">
-        <tr>
-          <td>
-            <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(asset.status) }"
-              [pTooltip]="getStatusLabel(asset.status)" tooltipPosition="top">
-            </span>
-          </td>
-          <td>
-            {{ (currentPage - 1) * rowsPerPage + i + 1 }}
-          </td>
-          <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetId }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip style="font-family:monospace;color:var(--menu-color);">{{ asset.storeAssetId || '-' }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip>{{ asset.referenceCode || '-' }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ asset.assetName }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetType }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip>{{ asset.department?.name || '-' }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetCategory?.name || '-' }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip>{{ asset.allottedTo?.name ? asset.allottedTo.name : 'Not Allotted' }}</td>
-          <td style="text-align: center;">
-            <!-- <img [src]="asset.assetPhoto" class="asset-photo" /> -->
-            <img *ngIf="asset.assetPhoto; else noPhoto" [src]="asset.assetPhoto" class="asset-photo" />
-            <ng-template #noPhoto>-</ng-template>
-          </td>
-          <td class="action-cell">
-            <button *ngIf="canViewAsset" pButton type="button" label="View" class="view-btn" (click)="viewAsset(asset.assetId)"></button>
-            @if (asset.hodApprovalStatus === 'PENDING') {
+    <div class="table-container">
+      <p-table *ngIf="!isLoading" [value]="paginatedAssets" #dt [rows]="10">
+        <ng-template pTemplate="header">
+          <tr>
+            <th></th>
+            <th>No</th>
+            <th>Asset ID</th>
+            <th>Stores Ref</th>
+            <th>Reference Code</th>
+            <th>Asset Name</th>
+            <th>Asset Type</th>
+            <th>Department</th>
+            <th>Asset Category</th>
+            <th>Allotted To</th>
+            <th>Asset Photo</th>
+            <th>Action</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-asset let-i="rowIndex">
+          <tr>
+            <td>
+              <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(asset.status) }"
+                [pTooltip]="getStatusLabel(asset.status)" tooltipPosition="top">
+              </span>
+            </td>
+            <td>
+              {{ (currentPage - 1) * rowsPerPage + i + 1 }}
+            </td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetId }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="font-family:monospace;color:var(--menu-color);">{{
+              asset.storeAssetId || '-' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.referenceCode || '-' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ asset.assetName }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetType }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.department?.name || '-' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetCategory?.name || '-' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.allottedTo?.name ? asset.allottedTo.name : 'Not Allotted' }}</td>
+            <td style="text-align: center;">
+              <!-- <img [src]="asset.assetPhoto" class="asset-photo" /> -->
+              <img *ngIf="asset.assetPhoto; else noPhoto" [src]="asset.assetPhoto" class="asset-photo" />
+              <ng-template #noPhoto>-</ng-template>
+            </td>
+            <td class="action-cell">
+              <button *ngIf="canViewAsset" pButton type="button" label="View" class="view-btn"
+                (click)="viewAsset(asset.assetId)"></button>
+              @if (asset.hodApprovalStatus === 'PENDING') {
               <button pButton type="button" label="HOD Approve" class="view-btn"
-                style="background:#f59e0b;border-color:#f59e0b"
-                (click)="openHodApproval(asset)" pTooltip="HOD approval required"></button>
-            }
-            <!-- <button *ngIf="canEditAsset" pButton type="button" label="Edit" class="edit-btn" (click)="viewAsset(asset.assetId)"></button> -->
-            <!-- <button *ngIf="canDeleteAsset" pButton type="button" icon="pi pi-trash" severity="danger" [text]="true" size="small" (click)="deleteAsset(asset.assetId)" pTooltip="Delete Asset"></button> -->
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
+                style="background:#f59e0b;border-color:#f59e0b" (click)="openHodApproval(asset)"
+                pTooltip="HOD approval required"></button>
+              }
+              <!-- <button *ngIf="canEditAsset" pButton type="button" label="Edit" class="edit-btn" (click)="viewAsset(asset.assetId)"></button> -->
+              <!-- <button *ngIf="canDeleteAsset" pButton type="button" icon="pi pi-trash" severity="danger" [text]="true" size="small" (click)="deleteAsset(asset.assetId)" pTooltip="Delete Asset"></button> -->
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
 
-    <div *ngIf="!isLoading && paginatedAssets.length === 0" class="no-data">
-      <i class="pi pi-inbox"></i>
-      <p>No assets found</p>
-    </div>
-
-    <!-- Table Skeleton Loader -->
-    <div *ngIf="isLoading" class="custom-table-skeleton">
-      <div class="skeleton-row header">
-        <p-skeleton shape="circle" size="20px"></p-skeleton>
-        <p-skeleton width="30px" height="20px"></p-skeleton>
-        <p-skeleton width="80px" height="20px"></p-skeleton>
-        <p-skeleton width="150px" height="20px"></p-skeleton>
-        <p-skeleton width="100px" height="20px"></p-skeleton>
-        <p-skeleton width="120px" height="20px"></p-skeleton>
-        <p-skeleton width="180px" height="20px"></p-skeleton>
-        <p-skeleton width="180px" height="20px"></p-skeleton>
-        <p-skeleton shape="circle" size="40px"></p-skeleton>
-        <p-skeleton width="60px" height="30px" borderRadius="6px"></p-skeleton>
+      <div *ngIf="!isLoading && paginatedAssets.length === 0" class="no-data">
+        <i class="pi pi-inbox"></i>
+        <p>No assets found</p>
       </div>
 
-      <!-- Repeat rows -->
-      <div *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11]" class="skeleton-row">
-        <p-skeleton shape="circle" size="20px"></p-skeleton>
-        <p-skeleton width="30px" height="16px"></p-skeleton>
-        <p-skeleton width="80px" height="16px"></p-skeleton>
-        <p-skeleton width="150px" height="16px"></p-skeleton>
-        <p-skeleton width="100px" height="16px"></p-skeleton>
-        <p-skeleton width="120px" height="16px"></p-skeleton>
-        <p-skeleton width="180px" height="16px"></p-skeleton>
-        <p-skeleton width="180px" height="16px"></p-skeleton>
-        <p-skeleton shape="circle" size="40px"></p-skeleton>
-        <p-skeleton width="60px" height="30px" borderRadius="6px"></p-skeleton>
+      <!-- Table Skeleton Loader -->
+      <div *ngIf="isLoading" class="custom-table-skeleton">
+        <div class="skeleton-row header">
+          <p-skeleton shape="circle" size="20px"></p-skeleton>
+          <p-skeleton width="30px" height="20px"></p-skeleton>
+          <p-skeleton width="80px" height="20px"></p-skeleton>
+          <p-skeleton width="150px" height="20px"></p-skeleton>
+          <p-skeleton width="100px" height="20px"></p-skeleton>
+          <p-skeleton width="120px" height="20px"></p-skeleton>
+          <p-skeleton width="180px" height="20px"></p-skeleton>
+          <p-skeleton width="180px" height="20px"></p-skeleton>
+          <p-skeleton shape="circle" size="40px"></p-skeleton>
+          <p-skeleton width="60px" height="30px" borderRadius="6px"></p-skeleton>
+        </div>
+
+        <!-- Repeat rows -->
+        <div *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11]" class="skeleton-row">
+          <p-skeleton shape="circle" size="20px"></p-skeleton>
+          <p-skeleton width="30px" height="16px"></p-skeleton>
+          <p-skeleton width="80px" height="16px"></p-skeleton>
+          <p-skeleton width="150px" height="16px"></p-skeleton>
+          <p-skeleton width="100px" height="16px"></p-skeleton>
+          <p-skeleton width="120px" height="16px"></p-skeleton>
+          <p-skeleton width="180px" height="16px"></p-skeleton>
+          <p-skeleton width="180px" height="16px"></p-skeleton>
+          <p-skeleton shape="circle" size="40px"></p-skeleton>
+          <p-skeleton width="60px" height="30px" borderRadius="6px"></p-skeleton>
+        </div>
       </div>
+
+
+
     </div>
-
-
-
   </div>
 </div>
 
 <p-toast />
 
 <!-- HOD Approval Dialog -->
-<p-dialog header="HOD Approval — Asset" [(visible)]="showHodApprovalDialog"
-  [modal]="true" [style]="{width:'440px'}">
+<p-dialog header="HOD Approval — Asset" [(visible)]="showHodApprovalDialog" [modal]="true" [style]="{width:'440px'}">
   @if (selectedHodAsset) {
-    <div style="margin-bottom:1rem">
-      <strong>{{ selectedHodAsset.assetName }}</strong>
-      <span style="color:#6b7280;margin-left:.5rem">({{ selectedHodAsset.assetId || 'No Asset ID yet' }})</span>
-    </div>
-    <div style="margin-bottom:1rem">
-      <label style="display:block;margin-bottom:.4rem">Decision</label>
-      <p-select [options]="hodDecisionOptions" optionLabel="label" optionValue="value"
-        [(ngModel)]="hodDecision" appendTo="body" styleClass="w-full" />
-    </div>
-    <div>
-      <label style="display:block;margin-bottom:.4rem">Remarks</label>
-      <textarea pInputTextarea [(ngModel)]="hodRemarks" rows="3"
-        style="width:100%" placeholder="Optional remarks"></textarea>
-    </div>
+  <div style="margin-bottom:1rem">
+    <strong>{{ selectedHodAsset.assetName }}</strong>
+    <span style="color:#6b7280;margin-left:.5rem">({{ selectedHodAsset.assetId || 'No Asset ID yet' }})</span>
+  </div>
+  <div style="margin-bottom:1rem">
+    <label style="display:block;margin-bottom:.4rem">Decision</label>
+    <p-select [options]="hodDecisionOptions" optionLabel="label" optionValue="value" [(ngModel)]="hodDecision"
+      appendTo="body" styleClass="w-full" />
+  </div>
+  <div>
+    <label style="display:block;margin-bottom:.4rem">Remarks</label>
+    <textarea pInputTextarea [(ngModel)]="hodRemarks" rows="3" style="width:100%"
+      placeholder="Optional remarks"></textarea>
+  </div>
   }
   <ng-template pTemplate="footer">
     <p-button label="Cancel" severity="secondary" (onClick)="showHodApprovalDialog=false" />
