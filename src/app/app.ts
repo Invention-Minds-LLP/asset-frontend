@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angula
 import { RouterOutlet } from '@angular/router';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Sidebar } from "./sidebar/sidebar";
 import { Login } from "./login/login";
 import { Router } from '@angular/router';
@@ -31,7 +31,12 @@ export class App implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
     private confirmationService: ConfirmationService,
+    private location: Location,
   ) {}
+
+  goBack() {
+    this.location.back();
+  }
 
   dark = false;
   isSidebarCollapsed = false;

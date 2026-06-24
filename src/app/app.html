@@ -3,6 +3,12 @@
   <div class="content-area">
     <!-- Global notification bell — top right corner -->
     <div class="top-bar">
+      <div class="top-bar-left">
+        <button class="back-btn" (click)="goBack()" title="Go back" aria-label="Go back">
+          <i class="pi pi-arrow-left"></i>
+          <span>Back</span>
+        </button>
+      </div>
       <div class="top-bar-right">
         <div class="notif-bell" (click)="showNotifPanel = !showNotifPanel; loadRecentNotifications()">
           <i class="pi pi-bell"></i>

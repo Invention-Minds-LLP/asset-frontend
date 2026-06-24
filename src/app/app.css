@@ -64,7 +64,7 @@ app-sidebar {
 /* ── Notification Bell (top-right) ── */
 .top-bar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   padding: 0 0.5rem;
   margin: -1.5rem -2rem 1rem -2rem;
@@ -74,6 +74,33 @@ app-sidebar {
   z-index: 100;
   background: var(--surface-ground);
   border-bottom: 1px solid var(--surface-border);
+}
+
+.top-bar-left {
+  display: flex;
+  align-items: center;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--surface-border, #e5e7eb);
+  background: var(--surface-card, #ffffff);
+  color: var(--text-color-secondary, #6b7280);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.back-btn:hover {
+  border-color: var(--primary-color, #2563eb);
+  color: var(--primary-color, #2563eb);
+}
+.back-btn i {
+  font-size: 1rem;
 }
 
 .top-bar-right {
