@@ -1,5 +1,5 @@
 /* ── Page Layout ──────────────────────────────────────── */
-.page-container { padding: 20px; max-width: 1500px; }
+.page-container { padding: 1rem; max-width: 1500px; }
 
 .page-header { margin-bottom: 12px; }
 .page-header h2 {

@@ -279,6 +279,11 @@ export class PreventiveMaintenance implements OnInit {
     }
   }
 
+  getReason(reason: string): string {
+    if (!reason) return '';
+    if (reason.length <= 30) return reason;
+    return reason.substring(0, 30) + '...';
+  }
   // ── History ──
 
   loadHistory() {

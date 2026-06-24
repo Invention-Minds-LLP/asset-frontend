@@ -14,7 +14,7 @@
   <div class="toolbar">
     <input pInputText placeholder="Search users..." [(ngModel)]="search" (keyup.enter)="loadRecords()" />
     <p-select [options]="successOptions" [(ngModel)]="success" (onChange)="loadRecords()" placeholder="Result"></p-select>
-    <p-button label="Search" icon="pi pi-search" (onClick)="loadRecords()"></p-button>
+    <p-button label="Search" icon="pi pi-search" (onClick)="loadRecords()" [loading]="searching"></p-button>
     <p-button label="Export CSV" icon="pi pi-file" severity="secondary" size="small" (onClick)="exportCsv()"></p-button>
   </div>
 
@@ -33,7 +33,7 @@
     </ng-template>
     <ng-template pTemplate="body" let-r>
       <tr>
-        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ r.user?.name || r.userName || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ r.user?.name || r.userName || r.userId || '—' }}</td>
         <td class="ellipsis-cell" appOverflowTooltip>{{ r.user?.employeeID || '—' }}</td>
         <td class="ellipsis-cell" appOverflowTooltip>{{ r.ipAddress || '—' }}</td>
         <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ r.userAgent }}</td>

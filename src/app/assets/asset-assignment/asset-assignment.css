@@ -1,5 +1,5 @@
 .table-wrapper {
-  /* padding: 2rem; */
+  padding: 1rem;
   font-family: "Biryani";
   max-height: 100vh;
 }
@@ -316,14 +316,15 @@ line-height: normal;
 
 .info-row {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  gap: 20px;
   min-width: 0;
+  align-items: center;
 }
 
 .info-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 750;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: .02em;

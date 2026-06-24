@@ -67,12 +67,12 @@
 </div>
 
 <!-- Request Dialog -->
-<p-dialog header="New Disposal Request" [(visible)]="showRequestDialog" [style]="{ width: '500px' }" [modal]="true">
+<p-dialog header="New Disposal Request" [(visible)]="showRequestDialog" [style]="{ width: '545px' }" [modal]="true">
   <div class="form-grid">
     <div class="form-field">
       <label>Asset *</label>
       <p-select [options]="assetOptions" [(ngModel)]="requestForm.assetId" placeholder="Select Asset"
-        [filter]="true" [style]="{'width':'100%'}"></p-select>
+        [filter]="true" [style]="{'width':'100%'}" appendTo="body"></p-select>
     </div>
     <div class="form-field">
       <label>Disposal Type *</label>

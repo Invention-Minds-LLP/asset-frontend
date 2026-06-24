@@ -112,7 +112,7 @@
     </div>
 
     <div class="sla-actions">
-      <button pButton [label]="editingId ? 'Update' : 'Create'" (click)="save()"></button>
+      <button pButton [label]="editingId ? 'Update' : 'Create'" (click)="save()" [loading]="editingId ? updating : saving"></button>
       <button pButton label="Reset" severity="secondary" (click)="resetForm()"></button>
     </div>
   </div>

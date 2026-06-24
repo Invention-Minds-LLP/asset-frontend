@@ -108,14 +108,14 @@
         <label>Invoice No *</label>
       </p-floatlabel>
       <p-floatlabel variant="on">
-        <p-datepicker [(ngModel)]="form.invoiceDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <p-datepicker [(ngModel)]="form.invoiceDate" appendTo="body" dateFormat="dd/mm/yy" [showIcon]="true"/>
         <label>Invoice Date *</label>
       </p-floatlabel>
     </div>
 
     <div class="two-fields">
       <p-floatlabel variant="on">
-        <p-datepicker [(ngModel)]="form.dueDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <p-datepicker [(ngModel)]="form.dueDate" appendTo="body" dateFormat="dd/mm/yy" [showIcon]="true"/>
         <label>Due Date</label>
       </p-floatlabel>
       <p-floatlabel variant="on">

@@ -23,13 +23,13 @@ import { MessageService } from 'primeng/api';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 
-type FilterField = 'assetName' | 'assetId' | 'assetType' | 'category' | 'allotted';
+type FilterField = 'assetName' | 'assetId' | 'assetType' | 'categoryName';
 
 @Component({
   selector: 'app-assets-table',
   imports: [TableModule, ButtonModule, InputTextModule, DropdownModule,
-     FormsModule, CommonModule, IconFieldModule, InputIconModule, Skeleton, TooltipModule,
-     DialogModule, SelectModule, TextareaModule, TagModule, ToastModule, OverflowTooltipDirective],
+    FormsModule, CommonModule, IconFieldModule, InputIconModule, Skeleton, TooltipModule,
+    DialogModule, SelectModule, TextareaModule, TagModule, ToastModule, OverflowTooltipDirective],
   templateUrl: './assets-table.html',
   styleUrl: './assets-table.css',
   providers: [MessageService]
@@ -46,11 +46,12 @@ export class AssetsTable implements OnInit {
   rowsPerPage = 10;
   selectedFilter: FilterField = 'assetName';
   searchTerm: string = '';
-  filteredActive:boolean = false;
-  assets:any[] = [];
-  assetsLoaded = false; 
+  filteredActive: boolean = false;
+  assets: any[] = [];
+  assetsLoaded = false;
   activeAssets: number = 0;
   isLoading: boolean = true; // Flag to track loading state
+  refreshing = false;
 
   // HOD Approval
   showHodApprovalDialog = false;
@@ -108,7 +109,7 @@ export class AssetsTable implements OnInit {
       });
     });
   }
-  
+
   private loadAccessPermissions() {
     this.moduleAccessService.getMyAccess().subscribe({
       next: (result) => {
@@ -129,8 +130,8 @@ export class AssetsTable implements OnInit {
                 this.canEditAsset = true;
                 this.canDeleteAsset = true;
               } else {
-                this.canViewAsset   = items.has('view');
-                this.canEditAsset   = items.has('edit');
+                this.canViewAsset = items.has('view');
+                this.canEditAsset = items.has('edit');
                 this.canDeleteAsset = items.has('delete');
               }
             }
@@ -168,13 +169,26 @@ export class AssetsTable implements OnInit {
 
     console.log(`Filtering assets by term: "${term}" on field: "${this.selectedFilter}"`);
 
+    if(this.selectedFilter === 'categoryName'){
+      return this.assets.filter(asset => {
+        console.log(asset.assetCategory?.name.toString().toLowerCase(), term)
+        const filtered = asset.assetCategory?.name.toString().toLowerCase();
+        return filtered.includes(term)
+      });
+    }
+
     return this.assets.filter(asset => {
       const fieldValue = asset[this.selectedFilter]?.toString().toLowerCase() || '';
+      console.log(fieldValue)
       return fieldValue.includes(term);
     });
   }
   refresh() {
+    this.refreshing = true;
     console.log("Refreshing data...");
+    this.filteredActive;
+    this.filteredAssets;
+    this.currentPage;
   }
 
   previousPage() {
@@ -191,8 +205,9 @@ export class AssetsTable implements OnInit {
   filterOptions = [
     { label: 'Asset Name', value: 'assetName' },
     { label: 'Asset ID', value: 'assetId' },
-    { label: 'Asset Type', value: 'assetType' }
-  ];
+    { label: 'Asset Type', value: 'assetType' },
+    { label: 'Asset Category', value: 'assetCategory?.name'}
+  ]
 
 
   dropdownVisible = false;
@@ -223,7 +238,7 @@ export class AssetsTable implements OnInit {
     this.filteredActive = false;
     console.log('Filter cleared.');
   }
-    
+
   viewAsset(asset: any) {
     console.log('Navigating to edit asset:', asset);
     this.router.navigate(['/assets/edit', asset]);
@@ -238,7 +253,7 @@ export class AssetsTable implements OnInit {
       'no Warranty': 0,
       'unknown': 0
     };
-  
+
     this.assets.forEach(asset => {
       // Status values are stored uppercase (e.g. 'ACTIVE', 'UNDER_REPAIR'),
       // but the summary buckets are lowercase — normalise before matching.
@@ -255,78 +270,93 @@ export class AssetsTable implements OnInit {
     const statusOfAsset = status.toLowerCase()
     switch (statusOfAsset) {
       case 'active': return 'green';
-      case 'under repair': return 'orange';
+      // case 'under repair': return 'orange';
+      case 'under_observation': return 'orange';
       case 'warranty expiring Soon': return 'gold';
       case 'warranty expired': return 'red';
-      case 'retired': return 'gray';
+      // case 'retired': return 'gray';
+      case 'disposed': return 'gray';
       case 'no Warranty': return 'lightgray';
       case 'pending_completion': return 'yellow';
+      case 'in_store' : return 'lightblue';
+      case 'rejected': return 'lightpink';
       default: return 'transparent';
     }
   }
   getStatusLabel(status: string): string {
-  if (!status) return 'Unknown';
+    if (!status) return 'Unknown';
 
-  switch (status.toLowerCase()) {
-    case 'active': return 'Active';
-    case 'under repair': return 'Under Repair';
-    case 'warranty expiring soon': return 'Warranty Expiring Soon';
-    case 'warranty expired': return 'Warranty Expired';
-    case 'retired': return 'Retired';
-    case 'no warranty': return 'No Warranty';
-    case 'pending_completion': return 'Pending Completion';
-    default: return status;
-  }
-}
-cols = [
-  { field: 'assetId', header: 'Asset ID' },
-  { field: 'referenceCode', header: 'Reference Code' },
-  { field: 'assetName', header: 'Asset Name' },
-  { field: 'assetType', header: 'Asset Type' },
-  { field: 'departmentName', header: 'Department' },
-  { field: 'assetCategoryName', header: 'Asset Category' },
-  { field: 'allottedToName', header: 'Allotted To' }
-];
-
-get exportAssets() {
-  return this.filteredAssets.map(asset => ({
-    assetId: asset.assetId,
-    referenceCode: asset.referenceCode || '-',
-    assetName: asset.assetName || '-',
-    assetType: asset.assetType || '-',
-    departmentName: asset.department?.name || '-',
-    assetCategoryName: asset.assetCategory?.name || '-',
-    allottedToName: asset.allottedTo?.name || 'Not Allotted'
-  }));
-}
-
-openHodApproval(asset: any) {
-  this.selectedHodAsset = asset;
-  this.hodDecision = 'APPROVED';
-  this.hodRemarks = '';
-  this.showHodApprovalDialog = true;
-}
-
-submitHodApproval() {
-  if (!this.selectedHodAsset) return;
-  this.assetService.hodApproveAsset(this.selectedHodAsset.id, {
-    decision: this.hodDecision,
-    remarks: this.hodRemarks || undefined
-  }).subscribe({
-    next: () => {
-      setTimeout(() => {
-        this.messageService.add({ severity: 'success', summary: 'Done', detail: `Asset ${this.hodDecision.toLowerCase()} by HOD` });
-        this.showHodApprovalDialog = false;
-        this.selectedHodAsset = null;
-        this.assetService.getAllAssets().subscribe((data: any[]) => {
-          setTimeout(() => { this.assets = data; this.cdr.detectChanges(); });
-        });
-        this.cdr.detectChanges();
-      });
-    },
-    error: (e: any) => {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed' });
+    switch (status.toLowerCase()) {
+      case 'active': return 'Active';
+      // case 'under repair': return 'Under Repair';
+      case 'under_observation': return 'UNDER_OBSERVATION';
+      case 'warranty expiring soon': return 'Warranty Expiring Soon';
+      case 'warranty expired': return 'Warranty Expired';
+      // case 'retired': return 'Retired';
+      case 'disposed': return 'Disposed';
+      case 'no warranty': return 'No Warranty';
+      case 'pending_completion': return 'Pending Completion';
+      case 'in_store': return 'IN_STORE';
+      case 'rejected': return 'Rejected';
+      default: return status;
     }
-  });
-}
+  }
+  cols = [
+    { field: 'assetId', header: 'Asset ID' },
+    { field: 'referenceCode', header: 'Reference Code' },
+    { field: 'assetName', header: 'Asset Name' },
+    { field: 'assetType', header: 'Asset Type' },
+    { field: 'departmentName', header: 'Department' },
+    { field: 'assetCategoryName', header: 'Asset Category' },
+    { field: 'allottedToName', header: 'Allotted To' }
+  ];
+
+  get exportAssets() {
+    return this.filteredAssets.map(asset => ({
+      assetId: asset.assetId,
+      referenceCode: asset.referenceCode || '-',
+      assetName: asset.assetName || '-',
+      assetType: asset.assetType || '-',
+      departmentName: asset.department?.name || '-',
+      assetCategoryName: asset.assetCategory?.name || '-',
+      allottedToName: asset.allottedTo?.name || 'Not Allotted'
+    }));
+  }
+
+  openHodApproval(asset: any) {
+    this.selectedHodAsset = asset;
+    this.hodDecision = 'APPROVED';
+    this.hodRemarks = '';
+    this.showHodApprovalDialog = true;
+  }
+
+  submitHodApproval() {
+    if (!this.selectedHodAsset) return;
+    this.assetService.hodApproveAsset(this.selectedHodAsset.id, {
+      decision: this.hodDecision,
+      remarks: this.hodRemarks || undefined
+    }).subscribe({
+      next: () => {
+        setTimeout(() => {
+          this.messageService.add({ severity: 'success', summary: 'Done', detail: `Asset ${this.hodDecision.toLowerCase()} by HOD` });
+          this.showHodApprovalDialog = false;
+          this.selectedHodAsset = null;
+          this.assetService.getAllAssets().subscribe((data: any[]) => {
+            setTimeout(() => { this.assets = data; this.cdr.detectChanges(); });
+          });
+          this.cdr.detectChanges();
+        });
+      },
+      error: (e: any) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed' });
+      }
+    });
+  }
+  exportCSV() {
+    console.log("clicked");
+    this.assetService.exportCsv().subscribe({
+      next: (blob) => { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'assets.csv'; a.click(); URL.revokeObjectURL(url); },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Export failed' })
+    });
+  }
 }

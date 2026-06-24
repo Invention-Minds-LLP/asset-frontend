@@ -1,3 +1,9 @@
+.page-container {
+  padding: 20px;
+  /* display: flex; */
+  /* flex-direction: column; */
+}
+
 /* ── Summary Bar ─────────────────────────────── */
 .pool-summary-bar {
   display: flex;

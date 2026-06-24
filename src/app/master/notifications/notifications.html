@@ -47,7 +47,7 @@
     </div>
     <div class="form-actions">
       <p-button label="Cancel" severity="secondary" (onClick)="showCreateForm = false" />
-      <p-button label="Create" icon="pi pi-send" (onClick)="create()" />
+      <p-button label="Create" icon="pi pi-send" (onClick)="create()" [loading]="creating" />
     </div>
   </div>
 

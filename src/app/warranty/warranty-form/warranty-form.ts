@@ -36,6 +36,8 @@ export class WarrantyForm {
    @Input() assetId!: string; // ✅ alphanumeric Asset.assetId from parent
 
    isLoading = false;
+   savingWarranty = false;
+   submitRenewal = false;
 
    yesNoOptions = [
       { label: 'Yes', value: true },
@@ -302,6 +304,7 @@ export class WarrantyForm {
       return 'Active';
    }
    saveWarranty(form: any) {
+      this.savingWarranty = true;
       if (!form.valid) return;
 
       const payload = {
@@ -333,10 +336,12 @@ export class WarrantyForm {
             this.msg.add({ severity: 'success', summary: 'Saved', detail: 'Warranty saved' });
             this.loadWarranty();
             this.isLoading = false;
+            this.savingWarranty = false;
          },
          error: (err) => {
             this.msg.add({ severity: 'error', summary: 'Failed', detail: err?.error?.message || 'Warranty save failed' });
             this.isLoading = false;
+            this.savingWarranty = false;
          },
          complete: () => (this.isLoading = false),
       });
@@ -401,6 +406,7 @@ export class WarrantyForm {
    //    });
    // }
    saveContract(form: any) {
+      this.savingWarranty = true;
       if (!form.valid) return;
 
       const payload = {
@@ -419,6 +425,10 @@ export class WarrantyForm {
          status: this.contractForm.status || null,
          reason: this.contractForm.reason || null,
          createdBy: this.contractForm.createdBy || null,
+         regularVisitsPerYear: this.contractForm.regularVisitsPerYear ? Number(this.contractForm.regularVisitsPerYear) : null,
+         emergencyVisitsPerYear: this.contractForm.emergencyVisitsPerYear ? Number(this.contractForm.emergencyVisitsPerYear) : null,
+         vendorResponseValue: this.contractForm.vendorResponseValue ? Number(this.contractForm.vendorResponseValue) : null,
+         vendorResolutionValue: this.contractForm.vendorResolutionValue ? Number(this.contractForm.vendorResolutionValue) : null,
       };
 
       this.isLoading = true;
@@ -442,6 +452,7 @@ export class WarrantyForm {
                      this.loadContracts();
                      this.resetContractForm(form);
                      this.isLoading = false;
+                     this.savingWarranty = false;
                   },
                   error: (err) => {
                      this.msg.add({
@@ -450,6 +461,7 @@ export class WarrantyForm {
                         detail: err?.error?.message || 'Document upload failed'
                      });
                      this.isLoading = false;
+                     this.savingWarranty = false;
                   }
                });
             } else {
@@ -612,6 +624,7 @@ export class WarrantyForm {
       this.contractFile = null;
    }
    renewWarranty(form: any) {
+      this.submitRenewal = true;
       if (!form.valid) return;
 
       const payload = {
@@ -643,6 +656,7 @@ export class WarrantyForm {
             this.loadWarranty();
             this.loadWarrantyHistory();
             this.isLoading = false;
+            this.submitRenewal = false;
          },
          error: (err) => {
             this.msg.add({
@@ -651,6 +665,7 @@ export class WarrantyForm {
                detail: err?.error?.message || 'Warranty renewal failed'
             });
             this.isLoading = false;
+            this.submitRenewal = false;
          }
       });
    }

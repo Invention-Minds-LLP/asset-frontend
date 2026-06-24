@@ -28,6 +28,7 @@ export class UserActivity implements OnInit {
   search = '';
   success = '';
   page = 1;
+  searching = false;
 
   successOptions = [
     { label: 'All', value: '' },
@@ -51,6 +52,7 @@ export class UserActivity implements OnInit {
 
   loadRecords() {
     this.loading = true;
+    this.searching = true;
     const params: any = { page: this.page, limit: 15 };
     if (this.search) params.search = this.search;
     if (this.success) params.success = this.success;
@@ -61,11 +63,12 @@ export class UserActivity implements OnInit {
           this.records = res.data || res;
           this.totalRecords = res.total || this.records.length;
           this.loading = false;
+          this.searching = false;
           this.cdr.detectChanges();
         });
       },
       error: () => {
-        setTimeout(() => { this.loading = false; this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load login history' }); this.cdr.detectChanges(); });
+        setTimeout(() => { this.loading = false; this.searching= false; this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load login history' }); this.cdr.detectChanges(); });
       }
     });
   }

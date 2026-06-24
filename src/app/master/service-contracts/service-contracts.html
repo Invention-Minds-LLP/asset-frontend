@@ -45,8 +45,8 @@
       </div>
 
       <div class="field">
-        <p-floatlabel variant="on">
-          <input pInputText type="date" [(ngModel)]="form.startDate" name="scStart" />
+        <p-floatlabel variant="on"> 
+          <input pInputText type="date" [(ngModel)]="form.startDate" name="scStart" placeholder=" "/>
           <label>Start Date *</label>
         </p-floatlabel>
       </div>
@@ -89,7 +89,7 @@
 
     <!-- Vendor SLA Section -->
     <div class="section-divider">
-      <span>Vendor SLA Commitments <small>(contractual response &amp; resolution times — stored separately from internal SLA policy)</small></span>
+      <span>Vendor SLA Commitments <small>(contractual response & amp; resolution times — stored separately from internal SLA policy)</small></span>
     </div>
     <div class="form-grid">
       <div class="field">
@@ -122,7 +122,7 @@
 
     <div class="form-actions">
       <p-button label="Cancel" severity="secondary" (onClick)="resetForm()"></p-button>
-      <p-button [label]="editingId ? 'Update Contract' : 'Create Contract'" icon="pi pi-save" (onClick)="saveContract()" [loading]="savingContract"></p-button>
+      <p-button [label]="editingId ? 'Update Contract' : 'Create Contract'" icon="pi pi-save" (onClick)="saveContract()" [loading]="editingId ? updatingContract : savingContract"></p-button>
     </div>
   </div>
   }
@@ -184,7 +184,7 @@
         </td>
         <td>
           <div style="display:flex;gap:0.4rem">
-            <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="editContract(c)" pTooltip="Edit" tooltipPosition="top"></p-button>
+            <p-button icon="pi pi-pencil" size="small" severity="secondary" (onClick)="editContract(c)" pTooltip="Edit" tooltipPosition="top" [scrollTop]="pageTop"></p-button>
             <p-button icon="pi pi-wrench" size="small" severity="info" (onClick)="openVisits(c)" pTooltip="Service Visits" tooltipPosition="top"></p-button>
           </div>
         </td>
@@ -207,7 +207,7 @@
         <label>Visit Type</label>
       </p-floatlabel>
       <p-floatlabel variant="on">
-        <p-datepicker [(ngModel)]="visitForm.visitDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <p-datepicker [(ngModel)]="visitForm.visitDate" appendTo="body" dateFormat="dd/mm/yy" [showIcon]="true"/>
         <label>Visit Date *</label>
       </p-floatlabel>
       <p-floatlabel variant="on" class="visit-full">

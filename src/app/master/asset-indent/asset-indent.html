@@ -69,14 +69,14 @@
 <p-dialog header="New Asset Indent" [(visible)]="showCreateDialog" [modal]="true" [style]="{width:'560px'}">
   <div class="form-grid">
     <p-floatlabel variant="on" class="full-field">
-      <input pInputText [(ngModel)]="form.assetName" name="assetName" />
+      <input pInputText [(ngModel)]="form.assetName" name="assetName" class="text-area"/>
       <label>Asset Name *</label>
     </p-floatlabel>
 
     <div class="two-fields">
       <p-floatlabel variant="on">
         <p-select [options]="urgencyOptions" optionLabel="label" optionValue="value"
-          [(ngModel)]="form.urgency" appendTo="body" />
+          [(ngModel)]="form.urgency" appendTo="body" class="select-area" />
         <label>Urgency</label>
       </p-floatlabel>
       <p-floatlabel variant="on">
@@ -86,7 +86,7 @@
     </div>
 
     <p-floatlabel variant="on" class="full-field">
-      <textarea pInputTextarea rows="3" [(ngModel)]="form.justification" name="justification"></textarea>
+      <textarea pInputTextarea rows="3" [(ngModel)]="form.justification" name="justification" class="text-area" ></textarea>
       <label>Justification *</label>
     </p-floatlabel>
 
@@ -96,13 +96,13 @@
         <label>Estimated Budget</label>
       </p-floatlabel>
       <p-floatlabel variant="on">
-        <p-datepicker [(ngModel)]="form.requiredByDate" name="requiredByDate" appendTo="body" dateFormat="dd/mm/yy" />
+        <p-datepicker [(ngModel)]="form.requiredByDate" name="requiredByDate" appendTo="body" dateFormat="dd/mm/yy" [showIcon]="true"/>
         <label>Required By</label>
       </p-floatlabel>
     </div>
 
     <p-floatlabel variant="on" class="full-field">
-      <textarea pInputTextarea rows="2" [(ngModel)]="form.specifications" name="specifications"></textarea>
+      <textarea pInputTextarea rows="2" [(ngModel)]="form.specifications" name="specifications" class="text-area"></textarea>
       <label>Specifications</label>
     </p-floatlabel>
   </div>
@@ -117,13 +117,13 @@
 <p-dialog [header]="approvalType === 'hod' ? 'HOD Approval' : 'Management Approval'"
   [(visible)]="showApprovalDialog" [modal]="true" [style]="{width:'420px'}">
   <div class="form-grid">
-    <p-floatlabel variant="on" class="full-field">
+    <p-floatlabel variant="on" >
       <p-select [options]="approvalDecisionOptions" optionLabel="label" optionValue="value"
-        [(ngModel)]="approvalDecision" appendTo="body" />
+        [(ngModel)]="approvalDecision" appendTo="body" class="full-field"/>
       <label>Decision</label>
     </p-floatlabel>
-    <p-floatlabel variant="on" class="full-field">
-      <textarea pInputTextarea rows="3" [(ngModel)]="approvalRemarks"></textarea>
+    <p-floatlabel variant="on" >
+      <textarea pInputTextarea rows="3" [(ngModel)]="approvalRemarks" class="full-field"></textarea>
       <label>Remarks</label>
     </p-floatlabel>
   </div>

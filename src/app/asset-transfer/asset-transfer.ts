@@ -43,6 +43,7 @@ type FilterField = 'assetName' | 'assetId' | 'requestedBy' | 'transferType' | 's
 export class AssetTransfer {
   transfers: any[] = [];
   isLoading = true;
+  role: any;
 
   currentPage = 1;
   rowsPerPage = 10;
@@ -60,6 +61,7 @@ export class AssetTransfer {
 
   approvalReason = '';
   rejectReason = '';
+  actionLoading = false;
 
   // Management approval
   mgmtTransfers: any[] = [];
@@ -96,8 +98,10 @@ export class AssetTransfer {
   }
 
   ngOnInit() {
-    this.refreshList();
-    this.loadMgmtPending();
+    if(this.role === "HOD"){
+    this.refreshList();}
+    else {
+    this.loadMgmtPending();}
   }
 
   refreshList() {
@@ -237,6 +241,7 @@ export class AssetTransfer {
   }
 
   confirmApprove() {
+    this.actionLoading = true;
     if (!this.selectedTransferId) return;
 
     const request$ = this.selectedTransfer?.transferType === 'RETURN'
@@ -253,6 +258,7 @@ export class AssetTransfer {
           this.showApproveDialog = false;
           this.selectedTransfer = null;
           this.refreshList();
+          this.actionLoading  = false;
           this.cdr.detectChanges();
         });
       }

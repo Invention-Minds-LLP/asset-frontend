@@ -7,7 +7,7 @@
       <p>Configure auto-escalation rules. Set <strong>SLA Type</strong> to target internal breaches, vendor contract breaches, or both. Set <strong>Applies To</strong> to scope rules to tickets, preventive maintenance, or both.</p>
     </div>
     <div class="header-actions">
-      <p-button label="Run Auto-Escalation" icon="pi pi-bolt" severity="warn" (onClick)="runAutoEscalation()" />
+      <p-button label="Run Auto-Escalation" icon="pi pi-bolt" severity="warn" (onClick)="runAutoEscalation()" [loading]="running" />
       <p-button [label]="showForm ? 'Cancel' : 'Add Rule'" [icon]="showForm ? 'pi pi-times' : 'pi pi-plus'"
         (onClick)="showForm ? reset() : (showForm = true)" />
     </div>
@@ -121,7 +121,7 @@
     </div>
     <div class="form-actions">
       <p-button label="Cancel" severity="secondary" (onClick)="reset()" />
-      <p-button [label]="editingId ? 'Update' : 'Save'" icon="pi pi-save" (onClick)="save()" />
+      <p-button [label]="editingId ? 'Update' : 'Save'" icon="pi pi-save" (onClick)="save()" [loading]="editingId ? updating : saving"/>
     </div>
   </div>
 

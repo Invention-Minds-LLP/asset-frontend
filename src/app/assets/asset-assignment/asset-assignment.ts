@@ -16,13 +16,14 @@ import { Skeleton } from 'primeng/skeleton';
 import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
+import { Tooltip } from "primeng/tooltip";
 
 type FilterField = 'assetName' | 'assetId' | 'assignedTo' | 'assignedBy';
 
 @Component({
   selector: 'app-asset-assignment',
   imports: [TableModule, ButtonModule, InputTextModule, DropdownModule, FormsModule,
-    CommonModule, IconFieldModule, InputIconModule, Skeleton, DialogModule, TextareaModule, SelectModule],
+    CommonModule, IconFieldModule, InputIconModule, Skeleton, DialogModule, TextareaModule, SelectModule, Tooltip],
   templateUrl: './asset-assignment.html',
   styleUrl: './asset-assignment.css'
 })
@@ -56,6 +57,9 @@ export class AssetAssignment {
   showAckDialog = false;
   ackNote = '';
   selectedFile!: File | null;
+  isAccepting = false;
+  submittingAck = false;
+  rejecting = false;
 
   // Sub-store the HOD parks the asset into when acknowledging (filtered to the asset's department)
   ackStores: any[] = [];
@@ -98,6 +102,7 @@ export class AssetAssignment {
       setTimeout(() => {
         this.assignments = res;
         this.isLoading = false;
+        this
         this.cdr.detectChanges();
       });
     });
@@ -168,6 +173,16 @@ export class AssetAssignment {
       default: return 'gray';
     }
   }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'PENDING': return 'Pending';
+      case 'ACKNOWLEDGED': return 'Acknowledged';
+      case 'REJECTED': return 'Rejected';
+      default: return status;
+    }
+  }
+
   get filteredAssignments() {
     if (!this.searchTerm) return this.assignments;
 
@@ -268,11 +283,13 @@ getChecklistError(): string {
   return '';
 }
   confirmReject() {
+    this.rejecting = true;
     this.assetService.rejectAssignment(this.selectedAssignmentId, {
       rejectionReason: this.rejectReason
     }).subscribe(() => {
       this.showRejectDialog = false;
       this.refreshList();
+      this.rejecting = false;
     });
   }
   // confirmAcknowledge() {
@@ -293,6 +310,7 @@ getChecklistError(): string {
   //     });
   // }
   confirmAcknowledge() {
+    this.submittingAck = true;
   this.ackError = '';
 
   if (!this.isChecklistValid()) {
@@ -320,8 +338,12 @@ getChecklistError(): string {
       next: () => {
         this.showAckDialog = false;
         this.refreshList();
+        this.assetService.getMyPendingAcknowledgements(),
+        this.submittingAck = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
+        setTimeout(() => this.submittingAck=false);
         this.ackError =
           err?.error?.message ||
           'Failed to acknowledge assignment';

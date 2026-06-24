@@ -41,6 +41,9 @@ export class Escalation implements OnInit {
   loading = false;
   editingId: number | null = null;
   showForm = false;
+  saving = false;
+  updating = false;
+  running = false;
 
   form = this.getEmptyForm();
 
@@ -77,7 +80,7 @@ export class Escalation implements OnInit {
     private assetsService: Assets,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadRules();
@@ -115,25 +118,26 @@ export class Escalation implements OnInit {
   loadDepartments() {
     this.assetsService.getDepartments().subscribe({
       next: (res: any[]) => { setTimeout(() => { this.departmentOptions = res.map(d => ({ label: d.name, value: d.id })); this.cdr.detectChanges(); }); },
-      error: () => {}
+      error: () => { }
     });
   }
 
   loadCategories() {
     this.assetsService.getCategories().subscribe({
       next: (res: any[]) => { setTimeout(() => { this.categoryOptions = res.map(c => ({ label: c.name, value: c.id })); this.cdr.detectChanges(); }); },
-      error: () => {}
+      error: () => { }
     });
   }
 
   loadEmployees() {
     this.assetsService.getEmployees().subscribe({
       next: (res: any[]) => { setTimeout(() => { this.employeeOptions = res.map(e => ({ label: `${e.name} (${e.employeeID})`, value: e.id })); this.cdr.detectChanges(); }); },
-      error: () => {}
+      error: () => { }
     });
   }
 
   save() {
+    this.saving = true;
     if (!this.form.priority || !this.form.escalateAfterValue || !this.form.escalateAfterUnit) {
       this.toast('warn', 'Priority, escalation value and unit are required');
       return;
@@ -142,14 +146,21 @@ export class Escalation implements OnInit {
     const payload = { ...this.form };
 
     if (this.editingId) {
+      this.updating = true;
       this.escalationService.updateRule(this.editingId, payload).subscribe({
-        next: () => { setTimeout(() => { this.toast('success', 'Rule updated'); this.reset(); this.loadRules(); this.cdr.detectChanges(); }); },
-        error: (err) => this.toast('error', err?.error?.message || 'Failed')
+        next: () => { setTimeout(() => { this.toast('success', 'Rule updated'); this.reset(); this.loadRules(); this.updating= false; this.cdr.detectChanges(); }); },
+        error: (err) => {
+          setTimeout(() => { this.updating = false; this.cdr.detectChanges(); });
+          this.toast('error', err?.error?.message || 'Failed')
+        }
       });
     } else {
       this.escalationService.createRule(payload).subscribe({
-        next: () => { setTimeout(() => { this.toast('success', 'Rule created'); this.reset(); this.loadRules(); this.cdr.detectChanges(); }); },
-        error: (err) => this.toast('error', err?.error?.message || 'Failed')
+        next: () => { setTimeout(() => { this.toast('success', 'Rule created'); this.reset(); this.loadRules(); this.saving= false; this.cdr.detectChanges(); }); },
+        error: (err) => {
+          setTimeout(() => { this.saving = false; this.cdr.detectChanges(); });
+          this.toast('error', err?.error?.message || 'Failed')
+        }
       });
     }
   }
@@ -183,9 +194,13 @@ export class Escalation implements OnInit {
   }
 
   runAutoEscalation() {
+    this.running = true;
     this.escalationService.checkAndEscalate().subscribe({
-      next: (res) => { setTimeout(() => { this.toast('success', `Auto-escalated ${res.escalated} ticket(s)`); this.cdr.detectChanges(); }); },
-      error: () => this.toast('error', 'Failed to run auto-escalation')
+      next: (res) => { setTimeout(() => { this.toast('success', `Auto-escalated ${res.escalated} ticket(s)`); this.running = false; this.cdr.detectChanges(); }); },
+      error: () => {
+        setTimeout(() => { this.running = false; this.cdr.detectChanges(); });
+        this.toast('error', 'Failed to run auto-escalation');
+      }
     });
   }
 

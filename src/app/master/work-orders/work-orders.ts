@@ -328,12 +328,13 @@ export class WorkOrders implements OnInit {
   }
 
   saveWO() {
+    this.savingWO = true;
+  
     if (!this.woForm.description) {
       this.messageService.add({ severity: 'warn', summary: 'Missing', detail: 'Description is required' });
       return;
     }
 
-    this.savingWO = true;
     const payload: any = {
       woType: this.woForm.woType,
       assetId: this.woForm.assetId,
@@ -354,17 +355,17 @@ export class WorkOrders implements OnInit {
     this.woService.create(payload).subscribe({
       next: () => {
         setTimeout(() => {
-          this.savingWO = false;
           this.activeView = 'list';
           this.loadWorkOrders();
           this.messageService.add({ severity: 'success', summary: 'Created', detail: 'Work order created successfully' });
+          this.savingWO = false;
           this.cdr.detectChanges();
         });
       },
       error: () => {
         setTimeout(() => {
-          this.savingWO = false;
           this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to create work order' });
+          this.savingWO = false;
           this.cdr.detectChanges();
         });
       }

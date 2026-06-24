@@ -42,6 +42,7 @@ export class Notifications implements OnInit {
   allNotifications: any[] = [];
   unreadCount = 0;
   loading = false;
+  creating = false;
 
   showCreateForm = false;
   createForm = this.getEmptyCreateForm();
@@ -124,6 +125,7 @@ export class Notifications implements OnInit {
   }
 
   create() {
+    this.creating = true;
     if (!this.createForm.message || !this.createForm.type) {
       this.toast('warn', 'Type and message are required');
       return;
@@ -135,10 +137,13 @@ export class Notifications implements OnInit {
           this.showCreateForm = false;
           this.createForm = this.getEmptyCreateForm();
           this.loadAllNotifications();
+          this.creating = false;
           this.cdr.detectChanges();
         });
       },
-      error: (err) => this.toast('error', err?.error?.message || 'Failed to create')
+      error: (err) => {
+        setTimeout(() => {this.creating = false; this.cdr.detectChanges(); });
+        this.toast('error', err?.error?.message || 'Failed to create')}
     });
   }
 

@@ -146,7 +146,7 @@
             <div class="">
                 <div class="profile">
                     <div class="btns">
-                        <button pButton label="Save" type="submit" class="save-btn" (click)="onSubmit(ticketForm)"></button>
+                        <button pButton label="Save" type="submit" class="save-btn" (click)="onSubmit(ticketForm)" [loading]="submitting"></button>
                         <button pButton label="Clear" class="clear-btn" severity="danger" outlined
                             (click)="onClear()"></button>
                     </div>
@@ -185,7 +185,7 @@
 
     <ng-template pTemplate="footer">
         <button pButton label="Cancel" class="p-button-text" (click)="showAssignDialog=false"></button>
-        <button pButton label="Assign" [disabled]="assignForm.invalid" (click)="submitAssign()"></button>
+        <button pButton label="Assign" [disabled]="assignForm.invalid" (click)="submitAssign()" [loading]="assigning"></button>
     </ng-template>
 </p-dialog>
 
@@ -216,7 +216,7 @@
 
     <ng-template pTemplate="footer">
         <button pButton label="Cancel" class="p-button-text" (click)="showReassignDialog=false"></button>
-        <button pButton label="Reassign" [disabled]="reassignForm.invalid" (click)="submitReassign()"></button>
+        <button pButton label="Reassign" [disabled]="reassignForm.invalid" (click)="submitReassign()" [loading]="reassigning"></button>
     </ng-template>
 </p-dialog>
 

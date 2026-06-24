@@ -38,7 +38,7 @@
       </div>
       <div class="field">
         <p-floatlabel variant="on">
-          <p-datepicker [(ngModel)]="scheduleForm.nextDueAt" name="nextDue" appendTo="body" dateFormat="dd-mm-yy" />
+          <p-datepicker [(ngModel)]="scheduleForm.nextDueAt" name="nextDue" appendTo="body" dateFormat="dd-mm-yy" [showIcon]="true"/>
           <label>Next Due Date *</label>
         </p-floatlabel>
       </div>
@@ -71,7 +71,7 @@
     </div>
     <div class="form-actions">
       <p-button label="Cancel" severity="secondary" (onClick)="resetScheduleForm()" />
-      <p-button [label]="editingScheduleId ? 'Update' : 'Create'" icon="pi pi-save" (onClick)="saveSchedule()" />
+      <p-button [label]="editingScheduleId ? 'Update' : 'Create'" icon="pi pi-save" (onClick)="saveSchedule()" [loading]="editingScheduleId ? updating : saving"/>
     </div>
   </div>
 
@@ -88,7 +88,7 @@
       </div>
       <div class="field">
         <p-floatlabel variant="on">
-          <p-datepicker [(ngModel)]="historyForm.calibratedAt" name="calibratedAt" appendTo="body" dateFormat="dd-mm-yy" />
+          <p-datepicker [(ngModel)]="historyForm.calibratedAt" name="calibratedAt" appendTo="body" dateFormat="dd-mm-yy" [showIcon]="true"/>
           <label>Calibrated At</label>
         </p-floatlabel>
       </div>
@@ -128,7 +128,7 @@
     </div>
     <div class="form-actions">
       <p-button label="Cancel" severity="secondary" (onClick)="showHistoryForm = false" />
-      <p-button label="Log" icon="pi pi-save" (onClick)="logHistory()" />
+      <p-button label="Log" icon="pi pi-save" (onClick)="logHistory()" [loading]="logging" />
     </div>
   </div>
 
@@ -223,7 +223,7 @@
         </div>
         <div class="form-actions">
           <p-button label="Cancel" severity="secondary" (onClick)="resetTemplateForm()" />
-          <p-button [label]="editingTemplateId ? 'Update' : 'Create'" icon="pi pi-save" (onClick)="saveTemplate()" />
+          <p-button [label]="editingTemplateId ? 'Update' : 'Create'" icon="pi pi-save" (onClick)="saveTemplate()" [loading]="editingTemplateId ? updatingTemplate : savingTemplate" />
         </div>
       </div>
 

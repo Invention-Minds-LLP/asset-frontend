@@ -35,6 +35,17 @@
 .event-dot { cursor: pointer; }
 h4 { margin: 1.5rem 0 0.75rem 0; font-size: 1.1rem; }
 .text-center { text-align: center; padding: 2rem; color: var(--text-color-secondary); }
+.section-header{    display: flex;
+  /* justify-content: center; */
+  align-items: center;
+  padding: 10px;
+}
+.form-grid{
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
 ::ng-deep .custom-tabs .p-tabview-nav {
   display: flex !important;
   justify-content: center;

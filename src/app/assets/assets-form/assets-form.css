@@ -81,6 +81,7 @@
 .full-field {
   width: 100%;
   margin-bottom: 18px;
+  margin-top: 7px;
 }
 
 /* TWO COLUMN ROWS */
@@ -89,6 +90,11 @@
   grid-template-columns: 1fr 1fr;
   gap: 18px;
   margin-bottom: 18px;
+  margin-top: 8px;
+}
+
+.muted{
+  width: 10%;
 }
 
 /* ================= INPUT BOX FIXES ================= */
@@ -686,12 +692,40 @@ input[pInputText],
 }
 
 .summary-item {
+  display: flex;
+  /* gap: 15px; */
   background: var(--surface-section);
   border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 16px 18px;
   transition: 0.2s ease;
+  width: 70%;
+  gap: 20px;
 }
+
+.info-row{
+  display: flex;
+}
+
+.info-label{
+  width: 17%;
+  font-weight: 600;
+  color: gray;
+}
+
+.info-value{
+  font-weight: 300;
+}
+
+.footer-action{
+  display: flex;
+  
+}
+
+/* .edit-button{
+  background-color: white;
+  border: none;
+} */
 
 .summary-item:hover {
   transform: translateY(-1px);

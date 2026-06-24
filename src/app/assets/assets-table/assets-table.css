@@ -1,8 +1,12 @@
 .table-wrapper {
-  /* padding: 2rem; */
+  padding: 1rem;
   font-family: "Biryani";
   max-height: 100vh;
 }
+
+/* .container{
+  padding: 1rem;
+} */
 
 .header h2 {
   margin: 0;
