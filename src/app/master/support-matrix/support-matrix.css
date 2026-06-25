@@ -44,3 +44,19 @@ input[pInputText],
   font-size: 14px !important;
   border-radius: 8px !important;
 }
+
+:host ::ng-deep .close-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+:host ::ng-deep .close-btn .p-button-icon {
+  color: #000000 !important;
+}
+
+:host ::ng-deep .close-btn:hover {
+  background: #f3f4f6 !important;
+  color: #000000 !important;
+  border-color: #9ca3af !important;
+}

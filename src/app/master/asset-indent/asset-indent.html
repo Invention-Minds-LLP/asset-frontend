@@ -49,11 +49,14 @@
             @if (isRole('HOD', 'ADMIN') && indent.hodApprovalStatus === 'PENDING') {
               <p-button icon="pi pi-check" severity="success" size="small" (onClick)="openApproval(indent, 'hod')" pTooltip="HOD Approve" tooltipPosition="top" />
             }
-            @if (isRole('ADMIN') && indent.managementApprovalStatus === 'PENDING') {
+            @if (isRole('ADMIN', 'CEO_COO') && indent.managementApprovalStatus === 'PENDING') {
               <p-button icon="pi pi-verified" severity="warn" size="small" (onClick)="openApproval(indent, 'management')" pTooltip="Mgmt Approve" tooltipPosition="top" />
             }
             @if (isRole('HOD', 'ADMIN') && indent.status === 'SUBMITTED') {
-              <p-button icon="pi pi-times" severity="danger" size="small" (onClick)="cancel(indent)" [loading]="cancellingIndent" pTooltip="Cancel" tooltipPosition="top" position="top" />
+              <p-button icon="pi pi-times" severity="danger" size="small" (onClick)="cancel(indent)" [loading]="cancellingIndentId === indent.id" pTooltip="Cancel" tooltipPosition="top" position="top" />
+            }
+            @if (isRole('ADMIN', 'HOD', 'OPERATIONS', 'SECURITY') && indent.status === 'MANAGEMENT_APPROVED') {
+              <p-button icon="pi pi-shopping-cart" severity="success" size="small" (onClick)="markAsPurchased(indent)" [loading]="fulfillingIndentId === indent.id" pTooltip="Mark as Purchased" tooltipPosition="top" />
             }
           </div>
         </td>

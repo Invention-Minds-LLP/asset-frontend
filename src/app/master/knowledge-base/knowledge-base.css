@@ -21,3 +21,4 @@
 .article-section p { margin: 0; font-size: 0.9rem; line-height: 1.5; }
 .article-expand { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-color-secondary); pointer-events: none; }
 .text-center { text-align: center; padding: 2rem; color: var(--text-color-secondary); }
+.pi{ font-size: 20px;}

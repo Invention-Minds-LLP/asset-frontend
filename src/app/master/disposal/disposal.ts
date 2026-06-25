@@ -13,6 +13,8 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { MessageService } from 'primeng/api';
 import { DisposalService } from '../../services/disposal/disposal';
 import { Assets } from '../../services/assets/assets';
+import { Employees } from '../../services/employees/employees';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
@@ -22,7 +24,7 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
     CommonModule, FormsModule, ButtonModule, TableModule,
     TagModule, ToastModule, DialogModule, InputTextModule,
     TextareaModule, SelectModule, InputNumberModule,
-    OverflowTooltipDirective
+    MultiSelectModule, OverflowTooltipDirective
   ],
   templateUrl: './disposal.html',
   styleUrl: './disposal.css',
@@ -70,6 +72,8 @@ export class Disposal implements OnInit {
   reviewForm: any = { committeeMembers: '', committeeRemarks: '' };
   reviewLoading = false;
   selectedDisposalId: number | null = null;
+  committeeMemberOptions: { label: string; value: string }[] = [];
+  selectedCommitteeMembers: string[] = [];
 
   approvingDisposal = false;
   rejectingDisposal = false;
@@ -93,6 +97,7 @@ export class Disposal implements OnInit {
   constructor(
     private disposalService: DisposalService,
     private assetService: Assets,
+    private employeeService: Employees,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -100,10 +105,30 @@ export class Disposal implements OnInit {
   ngOnInit() {
     this.loadDisposals();
     this.loadAssets();
+    this.loadCommitteeMembers();
     this.assetService.getAllAssetsForDropdown().subscribe({
       next: (list: any[]) => {
         this.relinkAssetOptions = list.map(a => ({ label: `${a.assetId} — ${a.assetName}`, value: a.id }));
       }
+    });
+  }
+
+  loadCommitteeMembers() {
+    this.employeeService.getEmployees().subscribe({
+      next: (employees: any[]) => {
+        setTimeout(() => {
+          const filtered = employees.filter(e => {
+            const role = (e.role || '').toUpperCase();
+            return role !== 'SUPERVISOR' && role !== 'EXECUTIVE';
+          });
+          this.committeeMemberOptions = filtered.map(e => ({
+            label: `${e.name} (${e.role})`,
+            value: e.name
+          }));
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
     });
   }
 
@@ -190,11 +215,13 @@ export class Disposal implements OnInit {
   openReviewDialog(disposal: any) {
     this.selectedDisposalId = disposal.id;
     this.reviewForm = { committeeMembers: '', committeeRemarks: '' };
+    this.selectedCommitteeMembers = [];
     this.showReviewDialog = true;
   }
 
   submitReview() {
     if (!this.selectedDisposalId) return;
+    this.reviewForm.committeeMembers = this.selectedCommitteeMembers.join(', ');
     this.reviewLoading = true;
     this.disposalService.review(this.selectedDisposalId, this.reviewForm).subscribe({
       next: () => {

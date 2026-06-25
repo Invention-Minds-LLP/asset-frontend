@@ -2,7 +2,7 @@
 
 <div class="disposal-container">
   <div class="page-header">
-    <h2><i class="pi pi-trash"></i> Asset Disposal</h2>
+    <h2><div><i class="pi pi-trash"></i></div><div> Asset Disposal</div></h2>
     <p-button label="New Request" icon="pi pi-plus" (onClick)="openRequestDialog()"></p-button>
   </div>
 
@@ -100,7 +100,13 @@
   <div class="form-grid">
     <div class="form-field">
       <label>Committee Members</label>
-      <input pInputText [(ngModel)]="reviewForm.committeeMembers" placeholder="Names (comma separated)" style="width:100%" />
+      <p-multiSelect 
+        [options]="committeeMemberOptions" 
+        [(ngModel)]="selectedCommitteeMembers" 
+        placeholder="Select Committee Members" 
+        [style]="{'width':'100%'}" 
+        display="chip">
+      </p-multiSelect>
     </div>
     <div class="form-field">
       <label>Committee Remarks</label>

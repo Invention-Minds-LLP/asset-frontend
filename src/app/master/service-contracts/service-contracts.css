@@ -1,13 +1,31 @@
 .page-container { padding: 1.5rem; }
 .page-header { margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
 .page-header h2 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
-
+.pi{ font-size: 20px;}
 /* Form card */
 .form-card { background: var(--surface-card); border: 1px solid var(--surface-border); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
 .form-card h3 { margin: 0 0 1.25rem 0; font-size: 1.1rem; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem 1.5rem; margin-bottom: 1rem; }
 .field { display: flex; flex-direction: column; }
-.checkbox-row { flex-direction: row; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.checkbox-row {
+  grid-column: span 2;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 1.5rem !important;
+  height: 42px;
+}
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+.checkbox-item label {
+  cursor: pointer;
+  user-select: none;
+  font-size: 14px;
+}
 .section-divider { border-top: 1px solid var(--surface-border); margin: 1rem 0; padding-top: 0.75rem; font-size: 0.9rem; font-weight: 600; color: var(--text-color-secondary); }
 .section-divider small { font-weight: 400; margin-left: 0.5rem; }
 .form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
@@ -20,7 +38,7 @@
 .toolbar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
 .kpi-card { background: var(--surface-ground); border: 1px solid var(--surface-border); border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
-.kpi-card.kpi-danger { border-left: 4px solid var(--red-500); }
+/* .kpi-card.kpi-danger { border-left: 4px solid var(--red-500); } */
 .kpi-label { font-size: 0.85rem; color: var(--text-color-secondary); font-weight: 500; }
 .kpi-value { font-size: 1.75rem; font-weight: 700; color: var(--text-color); }
 .text-center { text-align: center; padding: 2rem; color: var(--text-color-secondary); }
@@ -50,7 +68,21 @@ input[pInputText],
 .p-inputtext,
 .p-select,
 .p-dropdown,
-.p-datepicker {
+p-datepicker {
+  width: 100% !important;
+}
+
+input[pInputText],
+.p-inputtext,
+.p-select,
+.p-dropdown {
+  height: 42px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+}
+
+::ng-deep p-datepicker .p-inputtext,
+::ng-deep p-datepicker input {
   width: 100% !important;
   height: 42px !important;
   font-size: 14px !important;
@@ -62,4 +94,20 @@ input[pInputText],
   min-height: 42px !important;
   font-size: 14px !important;
   border-radius: 8px !important;
+}
+
+:host ::ng-deep .close-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+:host ::ng-deep .close-btn .p-button-icon {
+  color: #000000 !important;
+}
+
+:host ::ng-deep .close-btn:hover {
+  background: #f3f4f6 !important;
+  color: #000000 !important;
+  border-color: #9ca3af !important;
 }

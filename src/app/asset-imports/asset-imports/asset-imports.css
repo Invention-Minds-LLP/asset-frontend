@@ -4,6 +4,9 @@
   background: var(--surface-ground, #f8fafc);
   min-height: 100%;
 }
+.pi{
+  font-size:20px;
+}
 
 /* ── Header ── */
 .import-header { margin-bottom: 1.5rem; }

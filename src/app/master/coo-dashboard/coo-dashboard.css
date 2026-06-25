@@ -9,6 +9,9 @@
 .filter-field { display: flex; flex-direction: column; gap: 0.25rem; }
 .filter-field label { font-size: 0.8rem; font-weight: 500; color: var(--text-color-secondary); }
 
+.pi{
+  font-size: 20px;
+}
 /* KPI Grid */
 .kpi-grid { display: grid; gap: 1rem; margin-bottom: 1.25rem; }
 .kpi-6 { grid-template-columns: repeat(6, 1fr); }

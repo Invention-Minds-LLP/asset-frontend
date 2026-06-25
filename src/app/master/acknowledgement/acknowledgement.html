@@ -6,8 +6,8 @@
       <h2>Acknowledgement Templates</h2>
       <p>Manage handover checklists for assignments, transfers and maintenance.</p>
     </div>
-    <p-button [label]="showTemplateForm ? 'Cancel' : 'New Template'" [icon]="showTemplateForm ? 'pi pi-times' : 'pi pi-plus'"
-      (onClick)="showTemplateForm ? resetTemplateForm() : (showTemplateForm = true)" />
+    <p-button *ngIf="!showTemplateForm" label="New Template" icon="pi pi-plus"
+      (onClick)="showTemplateForm = true" />
   </div>
 
   <!-- Template Form -->

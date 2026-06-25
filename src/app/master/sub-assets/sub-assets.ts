@@ -11,6 +11,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TooltipModule } from 'primeng/tooltip';
 import { TextareaModule } from 'primeng/textarea';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { MessageService } from 'primeng/api';
 import { Assets } from '../../services/assets/assets';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
@@ -22,7 +24,7 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, SelectModule, DialogModule, InputTextModule,
     InputNumberModule, TooltipModule, TextareaModule,
-    OverflowTooltipDirective,
+    OverflowTooltipDirective, IconFieldModule, InputIconModule,
   ],
   templateUrl: './sub-assets.html',
   styleUrl: './sub-assets.css',
@@ -297,6 +299,7 @@ export class SubAssets implements OnInit {
               }
             });
           }
+          this.loadAssets();
           this.cdr.detectChanges();
         });
       },
@@ -392,6 +395,7 @@ export class SubAssets implements OnInit {
               this.cdr.detectChanges();
             }
           });
+          this.loadAssets();
           this.cdr.detectChanges();
         });
       },
@@ -462,6 +466,7 @@ export class SubAssets implements OnInit {
             }
           });
         }
+        this.loadAssets();
         this.cdr.detectChanges();
       },
       error: (err) => {

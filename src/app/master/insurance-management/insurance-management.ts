@@ -51,6 +51,7 @@ export class InsuranceManagement implements OnInit {
 
   claimStatusOptions = [
     { label: 'All', value: '' },
+    { label: 'Submitted', value: 'SUBMITTED' },
     { label: 'Filed', value: 'FILED' },
     { label: 'Under Review', value: 'UNDER_REVIEW' },
     { label: 'Approved', value: 'APPROVED' },
@@ -158,7 +159,7 @@ export class InsuranceManagement implements OnInit {
       case 'EXPIRED': return 'danger';
       case 'APPROVED': case 'SETTLED': return 'success';
       case 'REJECTED': return 'danger';
-      case 'FILED': case 'UNDER_REVIEW': return 'warn';
+      case 'SUBMITTED': case 'FILED': case 'UNDER_REVIEW': return 'warn';
       default: return 'info';
     }
   }

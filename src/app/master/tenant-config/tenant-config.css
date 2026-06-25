@@ -2,7 +2,7 @@
 .page-header { margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; }
 .page-header h2 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
 .subtitle { margin: 0.25rem 0 0; color: var(--text-color-secondary); font-size: 0.9rem; }
-
+.pi{ font-size: 20px;}
 /* Config group */
 .config-group { margin-bottom: 1.5rem; }
 .group-header { display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; font-weight: 600; color: var(--text-color); padding: 0.6rem 1rem; background: var(--surface-100); border-radius: 8px 8px 0 0; border: 1px solid var(--surface-border); border-bottom: none; }

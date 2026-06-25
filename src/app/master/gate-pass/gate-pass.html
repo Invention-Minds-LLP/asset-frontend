@@ -6,8 +6,8 @@
       <h2>Gate Pass Management</h2>
       <p>Multi-asset passes with HOD approval and security gate-out / gate-in.</p>
     </div>
-    <p-button [label]="showForm ? 'Cancel' : 'New Gate Pass'" [icon]="showForm ? 'pi pi-times' : 'pi pi-plus'"
-      (onClick)="showForm ? reset() : (showForm = true)" />
+    <p-button *ngIf="!showForm" label="New Gate Pass" icon="pi pi-plus"
+      (onClick)="showForm = true" />
   </div>
 
   <!-- ════════════════════════ Form ════════════════════════ -->
@@ -39,7 +39,7 @@
 
       <div class="field" *ngIf="form.type === 'RETURNABLE'">
         <p-floatlabel variant="on">
-          <input pInputText type="date" [(ngModel)]="form.expectedReturnDate" name="expectedReturnDate" />
+           <p-datepicker [(ngModel)]="form.expectedReturnDate" name="expectedReturnDate" appendTo="body" />
           <label>Expected Return Date</label>
         </p-floatlabel>
       </div>

@@ -40,5 +40,7 @@
 :host ::ng-deep .qr-card canvas { width: 140px !important; height: 140px !important; }
 .qr-label { font-size: 0.78rem; font-weight: 700; font-family: monospace; color: var(--info-fg); word-break: break-all; }
 .qr-name { font-size: 0.72rem; color: var(--text-color-secondary); }
-
+.pi{
+   font-size: 20px;
+}
 @media print { .page-header, .op-card:not(:last-child) { display: none !important; } .qr-grid { display: flex !important; flex-wrap: wrap; } }
