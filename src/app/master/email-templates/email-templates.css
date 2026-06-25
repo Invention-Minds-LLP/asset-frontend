@@ -18,6 +18,9 @@
   white-space: nowrap;
 }
 
+.pi{
+  font-size: 20px;
+}
 /* Subject placeholder highlight */
 ::ng-deep .placeholder-tag {
   background: #FFF3CD;

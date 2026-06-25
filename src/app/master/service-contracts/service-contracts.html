@@ -2,8 +2,9 @@
 
 <div class="page-container">
   <div class="page-header">
-    <h2><i class="pi pi-file-edit"></i> Service Contracts</h2>
-    <p-button [label]="showForm ? 'Cancel' : 'Add Contract'" [icon]="showForm ? 'pi pi-times' : 'pi pi-plus'"
+    <h2><div><i class="pi pi-file-edit"></i></div><div> Service Contracts</div></h2>
+    <p-button [label]="showForm ? '' : 'Add Contract'" [icon]="showForm ? 'pi pi-times' : 'pi pi-plus'"
+      [styleClass]="showForm ? 'close-btn' : ''"
       (onClick)="showForm ? resetForm() : (showForm = true)"></p-button>
   </div>
 
@@ -53,7 +54,7 @@
 
       <div class="field">
         <p-floatlabel variant="on">
-          <input pInputText type="date" [(ngModel)]="form.endDate" name="scEnd" />
+          <p-datepicker [(ngModel)]="form.endDate" name="scEnd" appendTo="body" />
           <label>End Date *</label>
         </p-floatlabel>
       </div>
@@ -80,10 +81,14 @@
       </div>
 
       <div class="field checkbox-row">
-        <p-checkbox [(ngModel)]="form.includesParts" [binary]="true" name="scParts" inputId="scParts" />
-        <label for="scParts">Includes Parts</label>
-        <p-checkbox [(ngModel)]="form.includesLabor" [binary]="true" name="scLabor" inputId="scLabor" />
-        <label for="scLabor">Includes Labor</label>
+        <div class="checkbox-item">
+          <p-checkbox [(ngModel)]="form.includesParts" [binary]="true" name="scParts" inputId="scParts" />
+          <label for="scParts">Includes Parts</label>
+        </div>
+        <div class="checkbox-item">
+          <p-checkbox [(ngModel)]="form.includesLabor" [binary]="true" name="scLabor" inputId="scLabor" />
+          <label for="scLabor">Includes Labor</label>
+        </div>
       </div>
     </div>
 

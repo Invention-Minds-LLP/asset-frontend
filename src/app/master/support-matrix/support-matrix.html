@@ -6,7 +6,8 @@
       <h2>Support Matrix</h2>
       <p>Define L1/L2/L3 support escalation contacts per asset category or asset.</p>
     </div>
-    <p-button [label]="showForm ? 'Cancel' : 'Add Entry'" [icon]="showForm ? 'pi pi-times' : 'pi pi-plus'"
+    <p-button [label]="showForm ? '' : 'Add Entry'" [icon]="showForm ? 'pi pi-times' : 'pi pi-plus'"
+      [styleClass]="showForm ? 'close-btn' : ''"
       (onClick)="showForm ? reset() : (showForm = true)" />
   </div>
 

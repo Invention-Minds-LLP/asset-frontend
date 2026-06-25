@@ -1,6 +1,9 @@
 .dashboard-page {
   padding: 1.5rem;
 }
+.pi{
+  font-size: 20px;
+}
 
 .stats-grid {
   display: grid;

@@ -2,6 +2,10 @@
   padding: 1.5rem;
 }
 
+.pi{
+  font-size: 20px;
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -47,6 +51,7 @@
   display: flex;
   gap: 0.25rem;
   flex-wrap: wrap;
+  height: 110px;
 }
 
 .mr-1 {

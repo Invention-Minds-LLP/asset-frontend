@@ -1,5 +1,7 @@
 .fas-container { padding: 18px; max-width: 1500px; }
-
+.pi{
+  font-size: 18px;
+}
 .page-header {
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 10px; margin-bottom: 12px;

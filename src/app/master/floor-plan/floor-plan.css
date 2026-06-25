@@ -1,5 +1,7 @@
 .fp-page { padding: 1.5rem; background: var(--surface-ground); min-height: 100%; color: var(--text-color); }
-
+.pi{
+  font-size: 20px;
+}
 /* Header */
 .fp-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
 .fp-header h1 { margin: 0 0 0.35rem; font-size: 1.4rem; font-weight: 700; color: var(--heading-color); display: flex; align-items: center; gap: 0.5rem; }

@@ -71,8 +71,9 @@ export class AssetIndent implements OnInit {
   ];
 
   submittingApproval = false;
-  cancellingIndent = false;
+  cancellingIndentId: number | null = null;
   creatingIndent = false;
+  fulfillingIndentId: number | null = null;
 
   // Detail dialog
   showDetailDialog = false;
@@ -107,8 +108,33 @@ export class AssetIndent implements OnInit {
     if (!this.form.justification?.trim()) return this.toast('error', 'Justification is required');
     this.creatingIndent = true;
     this.service.create(this.form).subscribe({
-      next: () => { this.creatingIndent = false; this.showCreateDialog = false; this.toast('success', 'Indent submitted'); this.load(); },
-      error: err => { this.creatingIndent = false; this.toast('error', err?.error?.message || 'Failed to create indent'); }
+      next: (createdIndent) => {
+        if (this.isRole('HOD') && createdIndent && createdIndent.id) {
+          this.service.hodApprove(createdIndent.id, { decision:'APPROVED', remarks:'Raised by HOD, so auto approved' }).subscribe({
+            next: () => {
+              this.creatingIndent = false;
+              this.showCreateDialog = false;
+              this.toast('success', 'Indent submitted and auto-approved');
+              this.load();
+            },
+            error: err => {
+              this.creatingIndent = false;
+              this.showCreateDialog = false;
+              this.toast('warn', 'Indent submitted, but auto approval failed' + (err?.error?.message || ''));
+              this.load();
+            }
+          });
+        } else {
+          this.creatingIndent = false;
+          this.showCreateDialog = false;
+          this.toast('success', 'Indent submitted');
+          this.load();
+        }
+      },
+      error: err => {
+        this.creatingIndent = false;
+        this.toast('error', err?.error?.message || 'Failed to create indent');
+      }
     });
   }
 
@@ -135,10 +161,19 @@ export class AssetIndent implements OnInit {
 
   cancel(indent: any) {
     if (!confirm(`Cancel indent ${indent.indentNumber}?`)) return;
-    this.cancellingIndent = true;
+    this.cancellingIndentId = indent.id;
     this.service.cancel(indent.id).subscribe({
-      next: () => { this.cancellingIndent = false; this.toast('success', 'Indent cancelled'); this.load(); },
-      error: err => { this.cancellingIndent = false; this.toast('error', err?.error?.message || 'Failed to cancel'); }
+      next: () => { this.cancellingIndentId = null; this.toast('success', 'Indent cancelled'); this.load(); },
+      error: err => { this.cancellingIndentId = null; this.toast('error', err?.error?.message || 'Failed to cancel'); }
+    });
+  }
+
+  markAsPurchased(indent: any) {
+    if (!confirm(`Mark indent ${indent.indentNumber} as purchased (Fulfilled)?`)) return;
+    this.fulfillingIndentId = indent.id;
+    this.service.fulfill(indent.id, {}).subscribe({
+      next: () => { this.fulfillingIndentId = null; this.toast('success', 'Indent marked as purchased'); this.load(); },
+      error: err => { this.fulfillingIndentId = null; this.toast('error', err?.error?.message || 'Failed to mark as purchased'); }
     });
   }
 

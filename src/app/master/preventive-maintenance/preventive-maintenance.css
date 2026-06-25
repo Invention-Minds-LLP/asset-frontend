@@ -19,7 +19,7 @@
 .event-card-asset-id small { font-size: 0.75rem; color: var(--text-color-secondary); }
 .cal-day.selected-day { background: #eff6ff !important; border-color: #3b82f6 !important; outline: 2px solid #3b82f6; }
 .event-count { display: inline-flex; align-items: center; justify-content: center; background: #3b82f6; color: #fff; font-size: 0.7rem; font-weight: 700; border-radius: 10px; padding: 1px 6px; min-width: 20px; }
-
+.pi{ font-size: 20px;}
 .page-container { padding: 1.5rem; }
 .page-header { margin-bottom: 1.5rem; }
 .page-header h2 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }

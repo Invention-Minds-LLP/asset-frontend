@@ -3,10 +3,10 @@
 <div class="page-container">
   <div class="page-header">
     <div>
-      <h2><i class="pi pi-gauge"></i> COO Dashboard
+      <h2><div><i class="pi pi-gauge"></i></div><div> COO Dashboard
         <i class="pi pi-info-circle" style="font-size:0.8rem; color:#94a3b8; cursor:help; margin-left:8px; vertical-align:middle;"
            pTooltip="Operational snapshot of asset health — status mix, maintenance load and deployment across the organization." tooltipPosition="right"></i>
-      </h2>
+      </div></h2>
       <p class="subtitle">Operational Efficiency & Performance Intelligence</p>
     </div>
     <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadDashboard()"
@@ -36,7 +36,7 @@
         <label>To</label>
         <p-datepicker [(ngModel)]="dateTo" dateFormat="dd/mm/yy" [showIcon]="true" [minDate]="dateFrom" appendTo="body"></p-datepicker>
       </div>
-      <p-button label="Apply" icon="pi pi-check" (onClick)="applyDateFilter()" size="small" severity="primary"></p-button>
+      <p-button label="Apply" icon="pi pi-check" (onClick)="applyDateFilter()" size="small" severity="primary" [loading]="loading"></p-button>
     </div>
     <p-selectbutton [options]="viewOptions" [(ngModel)]="viewMode" optionLabel="label" optionValue="value"></p-selectbutton>
   </div>

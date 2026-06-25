@@ -9,6 +9,9 @@
 .kpi-label { font-size: 0.85rem; color: var(--text-color-secondary); font-weight: 500; }
 .kpi-value { font-size: 1.75rem; font-weight: 700; color: var(--text-color); }
 .text-center { text-align: center; padding: 2rem; color: var(--text-color-secondary); }
+.pi{
+  font-size: 20px;
+}
 ::ng-deep .custom-tabs .p-tabview-nav {
   display: flex !important;
   justify-content: center;

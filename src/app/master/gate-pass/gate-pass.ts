@@ -12,6 +12,7 @@ import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
+import { DatePickerModule } from 'primeng/datepicker';
 import { MessageService } from 'primeng/api';
 import { GatePassService } from '../../services/gate-pass/gate-pass';
 import { Assets } from '../../services/assets/assets';
@@ -31,7 +32,7 @@ interface ItemRow {
     CommonModule, FormsModule,
     ButtonModule, TableModule, TagModule, ToastModule, TabViewModule,
     InputTextModule, FloatLabelModule, SelectModule, TextareaModule, TooltipModule, DialogModule,
-    OverflowTooltipDirective,
+    OverflowTooltipDirective,DatePickerModule
   ],
   templateUrl: './gate-pass.html',
   styleUrl: './gate-pass.css',
@@ -81,7 +82,7 @@ export class GatePass implements OnInit {
       type: 'RETURNABLE',
       issuedTo: '',
       purpose: '',
-      expectedReturnDate: '',
+      expectedReturnDate: null as Date | null,
       courierDetails: '',
       vehicleNo: '',
       vehicleType: null as string | null,
@@ -165,7 +166,7 @@ export class GatePass implements OnInit {
       type: row.type || 'RETURNABLE',
       issuedTo: row.issuedTo || '',
       purpose: row.purpose || '',
-      expectedReturnDate: row.expectedReturnDate ? row.expectedReturnDate.slice(0, 10) : '',
+      expectedReturnDate: row.expectedReturnDate ? new Date(row.expectedReturnDate) : null,
       courierDetails: row.courierDetails || '',
       vehicleNo: row.vehicleNo || '',
       vehicleType: row.vehicleType || null,

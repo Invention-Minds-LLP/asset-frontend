@@ -9,6 +9,7 @@
 .dept-header i { color: #1565C0; }
 .badge-count { margin-left: auto; background: #ef5350; color: #fff; border-radius: 12px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; }
 .text-center { text-align: center; padding: 2rem; color: var(--text-muted); }
+.pi{ font-size: 20px;}
 
 .summary-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
 .summary-kpi-card { border: 1px solid var(--surface-border); border-radius: 10px; padding: 1rem 1.25rem; background: var(--surface-0); }
