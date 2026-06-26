@@ -23,6 +23,16 @@ export class Assets {
     return this.http.get<any[]>(`${this.assetsUrl}`);
   }
 
+  /** GET assets with server-side pagination + search (master table only) */
+  getAssetsPaginated(params: { page: number; limit: number; search?: string; filterField?: string }): Observable<any> {
+    let q = new URLSearchParams();
+    q.set('page', String(params.page));
+    q.set('limit', String(params.limit));
+    if (params.search) q.set('search', params.search);
+    if (params.filterField) q.set('filterField', params.filterField);
+    return this.http.get<any>(`${this.assetsUrl}/paginated?${q.toString()}`);
+  }
+
   /** GET all assets for dropdowns (no role filter — anyone can raise ticket for any asset) */
   getAllAssetsForDropdown(): Observable<any[]> {
     return this.http.get<any[]>(`${this.assetsUrl}/all-dropdown`);

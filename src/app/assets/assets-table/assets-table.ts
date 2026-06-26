@@ -21,9 +21,11 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 
-type FilterField = 'assetName' | 'assetId' | 'assetType' | 'categoryName';
+type FilterField = string;
 
 @Component({
   selector: 'app-assets-table',
@@ -47,11 +49,13 @@ export class AssetsTable implements OnInit {
   selectedFilter: FilterField = 'assetName';
   searchTerm: string = '';
   filteredActive: boolean = false;
-  assets: any[] = [];
+  assets: any[] = [];          // current page rows (server-paginated)
   assetsLoaded = false;
   activeAssets: number = 0;
+  totalRecords = 0;            // total matching rows reported by the server
   isLoading: boolean = true; // Flag to track loading state
   refreshing = false;
+  private searchInput$ = new Subject<string>();
 
   // HOD Approval
   showHodApprovalDialog = false;
@@ -85,27 +89,49 @@ export class AssetsTable implements OnInit {
       console.log("Clicked outside the filter dropdown, closing it.");
     }
   }
+  // Server already returns just this page; no client-side slicing.
   get paginatedAssets() {
-    const start = (this.currentPage - 1) * this.rowsPerPage;
-    const end = start + this.rowsPerPage;
-    return this.filteredAssets.slice(start, end);
+    return this.assets;
   }
 
   get totalPages() {
-    return Math.ceil(this.filteredAssets.length / this.rowsPerPage) || 1;
+    return Math.ceil(this.totalRecords / this.rowsPerPage) || 1;
   }
 
   ngOnInit() {
     this.loadAccessPermissions();
-    this.assetService.getAllAssets().subscribe((assets) => {
-      setTimeout(() => {  // ✅ defer update after Angular’s first check
-        this.assets = assets;
-        this.isLoading = false; //
-        const statusSummary = this.getAssetStatusSummary();
-        this.activeAssets = statusSummary.active || 0;
-        this.cdr.detectChanges();
-        this.assetsLoaded = true;
-      });
+    // Debounced search → reset to page 1 and reload from server.
+    this.searchInput$.pipe(debounceTime(350), distinctUntilChanged()).subscribe(() => {
+      this.currentPage = 1;
+      this.loadPage();
+    });
+    this.loadPage();
+  }
+
+  loadPage() {
+    this.isLoading = true;
+    this.assetService.getAssetsPaginated({
+      page: this.currentPage,
+      limit: this.rowsPerPage,
+      search: this.searchTerm || '',
+      filterField: this.selectedFilter,
+    }).subscribe({
+      next: (res) => {
+        setTimeout(() => {  // ✅ defer update after Angular's change detection
+          this.assets = res.data || [];
+          this.totalRecords = res.total || 0;
+          this.activeAssets = res.activeCount || 0;
+          this.isLoading = false;
+          this.assetsLoaded = true;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        setTimeout(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        });
+      },
     });
   }
 
@@ -152,60 +178,62 @@ export class AssetsTable implements OnInit {
     if (!confirm('Delete this asset? This action cannot be undone.')) return;
     this.assetService.deleteAsset(Number(assetId)).subscribe({
       next: () => {
-        this.assets = this.assets.filter(a => a.assetId !== assetId);
-        this.cdr.detectChanges();
+        this.loadPage(); // refill the current page from the server
       },
       error: () => alert('Failed to delete asset.')
     });
   }
 
+  // Search/pagination are now server-side; the current page IS the data set.
   get filteredAssets() {
-    if (!this.searchTerm) {
-      return this.assets;
-    }
-
-    const term = this.searchTerm.toLowerCase();
-
-    console.log(`Filtering assets by term: "${term}" on field: "${this.selectedFilter}"`);
-
-    if(this.selectedFilter === 'categoryName'){
-      return this.assets.filter(asset => {
-        console.log(asset.assetCategory?.name.toString().toLowerCase(), term)
-        const filtered = asset.assetCategory?.name.toString().toLowerCase();
-        return filtered.includes(term)
-      });
-    }
-
-    return this.assets.filter(asset => {
-      const fieldValue = asset[this.selectedFilter]?.toString().toLowerCase() || '';
-      console.log(fieldValue)
-      return fieldValue.includes(term);
-    });
+    return this.assets;
   }
   refresh() {
     this.refreshing = true;
-    console.log("Refreshing data...");
-    this.filteredActive;
-    this.filteredAssets;
-    this.currentPage;
+    this.loadPage();
+    this.refreshing = false;
   }
 
   previousPage() {
     if (this.currentPage > 1) {
       this.currentPage--;
+      this.loadPage();
     }
   }
 
   nextPage() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
+      this.loadPage();
     }
   }
   filterOptions = [
     { label: 'Asset Name', value: 'assetName' },
     { label: 'Asset ID', value: 'assetId' },
     { label: 'Asset Type', value: 'assetType' },
-    { label: 'Asset Category', value: 'assetCategory?.name'}
+    { label: 'Asset Category', value: 'categoryName' },
+    // Text fields
+    { label: 'Serial Number', value: 'serialNumber' },
+    { label: 'Reference Code', value: 'referenceCode' },
+    { label: 'Stores Ref ID', value: 'storeAssetId' },
+    { label: 'Manufacturer', value: 'manufacturer' },
+    { label: 'Invoice Number', value: 'invoiceNumber' },
+    { label: 'Purchase Order No', value: 'purchaseOrderNo' },
+    { label: 'Current Location', value: 'currentLocation' },
+    // Related entities
+    { label: 'Department', value: 'department' },
+    { label: 'Vendor', value: 'vendor' },
+    { label: 'Allotted To', value: 'allottedTo' },
+    { label: 'Supervisor', value: 'supervisor' },
+    { label: 'Current Store', value: 'currentStore' },
+    // Fixed-value fields (type the value, e.g. "ACTIVE", "PURCHASE", "TANGIBLE")
+    { label: 'Status', value: 'status' },
+    { label: 'Mode of Procurement', value: 'modeOfProcurement' },
+    { label: 'Asset Nature', value: 'assetNature' },
+    { label: 'Physical Condition', value: 'physicalCondition' },
+    { label: 'Working Condition', value: 'workingCondition' },
+    { label: 'Warranty Status', value: 'warrantyStatus' },
+    { label: 'Disposal Method', value: 'disposalMethod' },
   ]
 
 
@@ -217,7 +245,8 @@ export class AssetsTable implements OnInit {
   }
 
   applyFilter() {
-    this.currentPage = 1;
+    // Debounced server fetch (handler resets to page 1).
+    this.searchInput$.next(this.searchTerm);
   }
 
   selectFilter(value: any, event: MouseEvent) {
@@ -225,7 +254,11 @@ export class AssetsTable implements OnInit {
     this.selectedFilter = value;
     this.dropdownVisible = false;
     this.filteredActive = true;
-    console.log(this.dropdownVisible);
+    // Re-query immediately if a search term is active for the new field.
+    if (this.searchTerm) {
+      this.currentPage = 1;
+      this.loadPage();
+    }
   }
   get isFilterActive(): boolean {
     return this.filteredActive;
@@ -235,7 +268,7 @@ export class AssetsTable implements OnInit {
     this.currentPage = 1;
     this.selectedFilter = 'assetName';
     this.filteredActive = false;
-    console.log('Filter cleared.');
+    this.loadPage();
   }
 
   viewAsset(asset: any) {
@@ -340,9 +373,7 @@ export class AssetsTable implements OnInit {
           this.messageService.add({ severity: 'success', summary: 'Done', detail: `Asset ${this.hodDecision.toLowerCase()} by HOD` });
           this.showHodApprovalDialog = false;
           this.selectedHodAsset = null;
-          this.assetService.getAllAssets().subscribe((data: any[]) => {
-            setTimeout(() => { this.assets = data; this.cdr.detectChanges(); });
-          });
+          this.loadPage();
           this.cdr.detectChanges();
         });
       },
