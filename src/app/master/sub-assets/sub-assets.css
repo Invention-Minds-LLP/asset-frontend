@@ -69,8 +69,18 @@
 /* ─── Row actions ──────────────────────────────────────── */
 .row-actions {
   display: flex;
-  gap: 0.25rem;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.row-actions button {
+  flex-shrink: 0;
+}
+
+/* Keep column headers on a single line (e.g. "Sub-Assets" was wrapping). */
+::ng-deep .p-datatable thead th {
+  white-space: nowrap;
 }
 
 /* ─── Sub-asset count badge ────────────────────────────── */

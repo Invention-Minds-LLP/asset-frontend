@@ -16,3 +16,37 @@
 .detail-row span:first-child { color: var(--text-color-secondary); font-size: 0.875rem; min-width: 120px; }
 .text-area{ width:100%}
 .select-area{width: 231px; }
+
+/* Approval indicators — lightweight dot + text (no pill) so the row isn't a wall
+   of badges alongside the Urgency/Status pills. */
+.approval-ind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.approval-ind::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.approval-approved { color: #1b8a4b; }
+.approval-rejected { color: #d23b3b; }
+.approval-pending  { color: #c4781d; }
+.approval-na       { color: #8b95a5; }
+
+/* Keep column headers on one line ("HOD Approval" / "Mgmt Approval" were wrapping). */
+::ng-deep .p-datatable thead th {
+  white-space: nowrap;
+}
+/* Tighter horizontal padding so the single-line columns still fit. */
+::ng-deep .p-datatable .p-datatable-tbody > tr > td,
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+}

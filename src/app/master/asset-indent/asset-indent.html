@@ -39,10 +39,16 @@
             [severity]="indent.urgency === 'CRITICAL' ? 'danger' : indent.urgency === 'URGENT' ? 'warn' : 'info'" />
         </td>
         <td><p-tag [value]="indent.status" [severity]="statusSeverity(indent.status)" /></td>
-        <td><p-tag [value]="indent.hodApprovalStatus || 'N/A'"
-          [severity]="indent.hodApprovalStatus === 'APPROVED' ? 'success' : indent.hodApprovalStatus === 'REJECTED' ? 'danger' : 'secondary'" /></td>
-        <td><p-tag [value]="indent.managementApprovalStatus || 'N/A'"
-          [severity]="indent.managementApprovalStatus === 'APPROVED' ? 'success' : indent.managementApprovalStatus === 'REJECTED' ? 'danger' : 'secondary'" /></td>
+        <td>
+          <span class="approval-ind approval-{{ (indent.hodApprovalStatus || 'NA').toLowerCase() }}">
+            {{ indent.hodApprovalStatus || 'N/A' }}
+          </span>
+        </td>
+        <td>
+          <span class="approval-ind approval-{{ (indent.managementApprovalStatus || 'NA').toLowerCase() }}">
+            {{ indent.managementApprovalStatus || 'N/A' }}
+          </span>
+        </td>
         <td>
           <div class="action-btns">
             <p-button icon="pi pi-eye" severity="secondary" size="small" (onClick)="viewDetail(indent)" pTooltip="View" tooltipPosition="top"  position="top"/>

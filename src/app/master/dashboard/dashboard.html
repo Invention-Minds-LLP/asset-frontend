@@ -192,7 +192,7 @@
   <div class="tab-controls">
     <span class="tab-controls-label">Show recent</span>
     <p-select [options]="recentLimitOptions" [(ngModel)]="recentLimit" (onChange)="onRecentLimitChange()"
-      [style]="{'width':'120px'}" appendTo="body"></p-select>
+      [style]="{'width':'150px'}" appendTo="body"></p-select>
   </div>
 
   <p-tabView class="dashboard-tabs custom-tabs">
@@ -293,7 +293,7 @@
       <div class="tab-header-actions">
         <div class="expiry-filter">
           <label>Alerts within</label>
-          <input pInputText type="number" [(ngModel)]="expiryDays" style="width:70px" />
+          <input pInputText pSize="small" type="number" [(ngModel)]="expiryDays" style="width:70px" />
           <label>days</label>
           <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadExpiryAlerts()" size="small" severity="secondary" />
         </div>

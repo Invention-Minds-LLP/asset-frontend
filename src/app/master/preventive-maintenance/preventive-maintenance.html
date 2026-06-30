@@ -113,6 +113,8 @@
               <th>Next Due</th>
               <th>Reminder</th>
               <th>Status</th>
+              <th>PM Done?</th>
+              <th>Last Done</th>
               <th>Reason</th>
               <!-- <th>Action</th> -->
             </tr>
@@ -127,6 +129,10 @@
               <td>
                 <p-tag [value]="getScheduleStatus(s)" [severity]="getScheduleStatusSeverity(getScheduleStatus(s))"></p-tag>
               </td>
+              <td>
+                <p-tag [value]="getPmDoneStatus(s)" [severity]="getPmDoneSeverity(getPmDoneStatus(s))"></p-tag>
+              </td>
+              <td>{{ s.lastDoneAt ? (s.lastDoneAt | date:'mediumDate') : '—' }}</td>
               <td class="ellipsis-cell" [pTooltip]="getReason(s.reason)" tooltipPosition="top" style="--ellipsis-max-width: 240px;">{{ s.reason || '—' }}</td>
             </tr>
           </ng-template>

@@ -279,6 +279,28 @@ export class PreventiveMaintenance implements OnInit {
     }
   }
 
+  // ── "PM Done?" — derived from history (lastDoneAt) vs the due date ──
+  // DONE     = a service was logged on/after the current due date (cycle covered, even if late),
+  //            or it isn't due yet and the asset has prior service.
+  // PENDING  = due date passed and nothing has been serviced since.
+  // NOT DONE = never serviced.
+  getPmDoneStatus(s: any): 'DONE' | 'PENDING' | 'NOT DONE' {
+    const now = new Date();
+    const due = new Date(s.nextDueAt);
+    const last = s.lastDoneAt ? new Date(s.lastDoneAt) : null;
+    if (last && last >= due) return 'DONE';
+    if (due < now) return 'PENDING';
+    return last ? 'DONE' : 'NOT DONE';
+  }
+
+  getPmDoneSeverity(status: string): 'success' | 'danger' | 'secondary' {
+    switch (status) {
+      case 'DONE': return 'success';
+      case 'PENDING': return 'danger';
+      default: return 'secondary';
+    }
+  }
+
   getReason(reason: string): string {
     if (!reason) return '';
     if (reason.length <= 30) return reason;

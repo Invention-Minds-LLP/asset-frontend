@@ -49,9 +49,30 @@
 
 .action-cell {
   display: flex;
-  gap: 0.25rem;
-  flex-wrap: wrap;
-  height: 110px;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.action-cell .p-button {
+  flex-shrink: 0;
+}
+
+/* Keep column headers and the date column on a single line. */
+::ng-deep .p-datatable thead th {
+  white-space: nowrap;
+}
+.date-cell {
+  white-space: nowrap;
+}
+
+/* Compact, dense table — PrimeNG 19 ignores the legacy p-datatable-sm class.
+   Tight padding + smaller font shrinks the 10 one-line columns enough to fit
+   the viewport without horizontal scroll. */
+::ng-deep .p-datatable .p-datatable-tbody > tr > td,
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  padding: 0.45rem 0.5rem !important;
+  font-size: 0.8rem !important;
 }
 
 .mr-1 {

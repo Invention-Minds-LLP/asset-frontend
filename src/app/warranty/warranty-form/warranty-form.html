@@ -111,8 +111,8 @@
                 </div>
 
                 <div class="btn-row">
-                    <button *ngIf="!isRenewMode" pButton type="submit" >
-                        {{savingWarranty ? 'Saving...' : 'Save'}}
+                    <button *ngIf="!isRenewMode" pButton type="submit" label="Save"
+                        [loading]="savingWarranty" [disabled]="isLoading">
                     </button>
 
                     <button *ngIf="isRenewMode" pButton type="button" [disabled]="isLoading" label="Submit Renewal"
@@ -292,7 +292,7 @@
                 </div>
 
                 <div class="btn-row">
-                    <button pButton type="submit" [disabled]="isLoading"
+                    <button pButton type="submit" [disabled]="isLoading" [loading]="savingContract"
                         [label]="contractForm.id ? 'Update Contract' : 'Create Contract'">
                     </button>
                     <button *ngIf="contractForm.id" pButton type="button" severity="secondary" label="Cancel"

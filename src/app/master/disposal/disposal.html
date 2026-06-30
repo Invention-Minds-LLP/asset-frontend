@@ -36,9 +36,9 @@
 
     <ng-template pTemplate="body" let-d>
       <tr>
-        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ d.asset?.assetName || d.asset?.assetId || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 150px;">{{ d.asset?.assetName || d.asset?.assetId || '—' }}</td>
         <td class="ellipsis-cell" appOverflowTooltip>{{ d.disposalType }}</td>
-        <td class="reason-cell ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ d.reason }}</td>
+        <td class="reason-cell ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 150px;">{{ d.reason }}</td>
         <td><p-tag [value]="d.status" [severity]="getStatusSeverity(d.status)"></p-tag></td>
         <td>{{ formatCurrency(d.bookValueAtDisposal) }}</td>
         <td>{{ formatCurrency(d.estimatedScrapValue) }}</td>
@@ -46,16 +46,16 @@
         <td [ngStyle]="{'color': d.netGainLoss != null ? (d.netGainLoss >= 0 ? '#16a34a' : '#dc2626') : ''}">
           {{ d.netGainLoss != null ? formatCurrency(d.netGainLoss) : '—' }}
         </td>
-        <td>{{ d.createdAt | date:'mediumDate' }}</td>
+        <td class="date-cell">{{ d.createdAt | date:'mediumDate' }}</td>
         <td class="action-cell">
-          <p-button *ngIf="d.status === 'REQUESTED' && isRole('HOD', 'ADMIN')" icon="pi pi-send" label="To Committee" size="small"
-            severity="info" (onClick)="openReviewDialog(d)"></p-button>
-          <p-button *ngIf="d.status === 'COMMITTEE_REVIEW' && isRole('ADMIN')" icon="pi pi-check" label="Approve" size="small"
-            severity="success" (onClick)="approveDisposal(d)" [loading]="approvingDisposal" class="mr-1"></p-button>
-          <p-button *ngIf="d.status === 'COMMITTEE_REVIEW' && isRole('ADMIN')" icon="pi pi-times" label="Reject" size="small"
-            severity="danger" (onClick)="rejectDisposal(d)" [loading]="rejectingDisposal"></p-button>
-          <p-button *ngIf="d.status === 'APPROVED' && isRole('HOD', 'ADMIN')" icon="pi pi-check-circle" label="Complete" size="small"
-            severity="success" (onClick)="openCompleteDialog(d)"></p-button>
+          <p-button *ngIf="d.status === 'REQUESTED' && isRole('HOD', 'ADMIN')" icon="pi pi-send" size="small" [rounded]="true"
+            severity="info" (onClick)="openReviewDialog(d)" pTooltip="Send to Committee" tooltipPosition="top"></p-button>
+          <p-button *ngIf="d.status === 'COMMITTEE_REVIEW' && isRole('ADMIN')" icon="pi pi-check" size="small" [rounded]="true"
+            severity="success" (onClick)="approveDisposal(d)" [loading]="approvingDisposal" pTooltip="Approve" tooltipPosition="top"></p-button>
+          <p-button *ngIf="d.status === 'COMMITTEE_REVIEW' && isRole('ADMIN')" icon="pi pi-times" size="small" [rounded]="true"
+            severity="danger" (onClick)="rejectDisposal(d)" [loading]="rejectingDisposal" pTooltip="Reject" tooltipPosition="top"></p-button>
+          <p-button *ngIf="d.status === 'APPROVED' && isRole('HOD', 'ADMIN')" icon="pi pi-check-circle" size="small" [rounded]="true"
+            severity="success" (onClick)="openCompleteDialog(d)" pTooltip="Complete" tooltipPosition="top"></p-button>
         </td>
       </tr>
     </ng-template>

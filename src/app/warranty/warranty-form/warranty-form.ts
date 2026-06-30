@@ -37,6 +37,7 @@ export class WarrantyForm {
 
    isLoading = false;
    savingWarranty = false;
+   savingContract = false;
    submitRenewal = false;
 
    yesNoOptions = [
@@ -304,8 +305,8 @@ export class WarrantyForm {
       return 'Active';
    }
    saveWarranty(form: any) {
+      if (!form.valid) return;   // bail before flagging, else the button sticks on "Saving…"
       this.savingWarranty = true;
-      if (!form.valid) return;
 
       const payload = {
          assetId: this.assetId,
@@ -406,8 +407,8 @@ export class WarrantyForm {
    //    });
    // }
    saveContract(form: any) {
-      this.savingWarranty = true;
       if (!form.valid) return;
+      this.savingContract = true;
 
       const payload = {
          assetId: this.assetId,
@@ -452,7 +453,7 @@ export class WarrantyForm {
                      this.loadContracts();
                      this.resetContractForm(form);
                      this.isLoading = false;
-                     this.savingWarranty = false;
+                     this.savingContract = false;
                   },
                   error: (err) => {
                      this.msg.add({
@@ -461,7 +462,7 @@ export class WarrantyForm {
                         detail: err?.error?.message || 'Document upload failed'
                      });
                      this.isLoading = false;
-                     this.savingWarranty = false;
+                     this.savingContract = false;
                   }
                });
             } else {
@@ -473,6 +474,7 @@ export class WarrantyForm {
                this.loadContracts();
                this.resetContractForm(form);
                this.isLoading = false;
+               this.savingContract = false;
             }
          },
          error: (err) => {
@@ -482,6 +484,7 @@ export class WarrantyForm {
                detail: err?.error?.message || 'Contract save failed'
             });
             this.isLoading = false;
+            this.savingContract = false;
          }
       });
    }

@@ -26,7 +26,7 @@
 .signoff-arrow { font-size: 0.85rem; color: #d1d5db; margin-bottom: 10px; }
 
 /* Status chips */
-.status-chip { font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 10px; }
+.status-chip { display: inline-block; white-space: nowrap; font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 10px; }
 .status-pending_hod        { background: #fef9c3; color: #854d0e; }
 .status-pending_operations { background: #fff7ed; color: #9a3412; }
 .status-pending_security   { background: #fce7f3; color: #9d174d; }
@@ -164,3 +164,15 @@
   margin-top: 4px; text-align: center; }
 .cert-footer { text-align: center; font-size: 0.75rem; color: var(--text-muted);
   border-top: 1px solid var(--border-color); padding-top: 12px; }
+
+/* Keep column headers on a single line (e.g. "Sign-off Progress" was wrapping). */
+::ng-deep .p-datatable thead th {
+  white-space: nowrap;
+}
+
+/* Tighter horizontal padding so the single-line columns fit without sideways scroll. */
+::ng-deep .p-datatable .p-datatable-tbody > tr > td,
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+}

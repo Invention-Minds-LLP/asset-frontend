@@ -94,7 +94,7 @@
           <ng-template #body let-row let-i="rowIndex">
             <tr>
               <td>{{ i + 1 }}</td>
-              <td><span style="background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 1px 6px; font-weight: 600; font-size: 0.82rem;">{{ row.assetId }}</span></td>
+              <td><span class="asset-id-pill">{{ row.assetId }}</span></td>
               <td>{{ row.assetName }}</td>
               <td>{{ row.category }}</td>
               <td>{{ row.department }}</td>
@@ -129,7 +129,7 @@
           <ng-template #body let-row let-i="rowIndex">
             <tr>
               <td>{{ i + 1 }}</td>
-              <td><span style="background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 1px 6px; font-weight: 600; font-size: 0.82rem;">{{ row.assetId }}</span></td>
+              <td><span class="asset-id-pill">{{ row.assetId }}</span></td>
               <td>{{ row.assetName }}</td>
               <td>{{ row.category }}</td>
               <td><span class="score-pill" [class]="getUtilizationClass(row.utilizationPct)">{{ formatPct(row.utilizationPct) }}</span></td>
@@ -161,7 +161,7 @@
           </ng-template>
           <ng-template #body let-row>
             <tr>
-              <td><span style="background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 1px 6px; font-weight: 600; font-size: 0.82rem;">{{ row.assetId }}</span></td>
+              <td><span class="asset-id-pill">{{ row.assetId }}</span></td>
               <td>{{ row.assetName }}</td>
               <td>{{ row.department }}</td>
               <td>{{ row.lastLogDate ? (row.lastLogDate | date: 'dd MMM yyyy') : 'Never' }}</td>
@@ -635,7 +635,7 @@
         <ng-template #body let-row let-i="rowIndex">
           <tr>
             <td style="font-weight: 700; color: var(--text-color-secondary);">{{ i + 1 }}</td>
-            <td><span style="background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 1px 6px; font-weight: 600; font-size: 0.82rem;">{{ row.assetId }}</span></td>
+            <td><span class="asset-id-pill">{{ row.assetId }}</span></td>
             <td>{{ row.assetName }}</td>
             <td>{{ row.category }}</td>
             <td>{{ row.department }}</td>

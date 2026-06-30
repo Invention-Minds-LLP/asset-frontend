@@ -276,3 +276,50 @@ html {
   border-color: var(--table-row-border);
   color: var(--text-color);
 }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   App-wide soft status pills — restyles every PrimeNG <p-tag> into a light,
+   low-contrast badge instead of the default solid block. One source of truth;
+   no per-template changes needed.
+   ────────────────────────────────────────────────────────────────────────── */
+.p-tag {
+  border-radius: 999px !important;
+  padding: 3px 10px !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  line-height: 1.4 !important;
+  border: 1px solid transparent !important;
+  /* neutral default (primary / no severity) */
+  background: #eef1f4 !important;
+  color: #5d6b7a !important;
+  border-color: #dde3e9 !important;
+}
+.p-tag-success   { background: #e7f6ec !important; color: #1b8a4b !important; border-color: #bce7cd !important; }
+.p-tag-danger    { background: #fdecec !important; color: #d23b3b !important; border-color: #f6c9c9 !important; }
+.p-tag-warn      { background: #fff3e0 !important; color: #c4781d !important; border-color: #f7dcb0 !important; }
+.p-tag-info      { background: #e8f1fd !important; color: #2f6fd1 !important; border-color: #c6dcf7 !important; }
+.p-tag-secondary { background: #eef1f4 !important; color: #5d6b7a !important; border-color: #dde3e9 !important; }
+.p-tag-contrast  { background: #e9eaf2 !important; color: #3b3f52 !important; border-color: #d3d5e2 !important; }
+
+/* Small status dot for text-only tags (skips tags that already carry an icon). */
+.p-tag:not(:has(.p-tag-icon))::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Dark mode — the pale light pills wash out and look alike on a dark surface,
+   so use muted dark backgrounds with brighter foregrounds (reusing theme tokens). */
+.app-dark .p-tag           { background: #2c2c2c !important; color: #cbd5e1 !important; border-color: #3f3f46 !important; }
+.app-dark .p-tag-success   { background: var(--success-bg) !important; color: var(--success-fg) !important; border-color: #1f5133 !important; }
+.app-dark .p-tag-danger    { background: var(--danger-bg) !important; color: var(--danger-fg) !important; border-color: #5b2a2a !important; }
+.app-dark .p-tag-warn      { background: var(--warn-bg) !important; color: var(--warn-fg) !important; border-color: #5a4a1e !important; }
+.app-dark .p-tag-info      { background: var(--info-bg) !important; color: var(--info-fg) !important; border-color: #26405f !important; }
+.app-dark .p-tag-secondary { background: #323232 !important; color: #a8b3c4 !important; border-color: #3f3f46 !important; }
+.app-dark .p-tag-contrast  { background: #1b1b1b !important; color: #e8e8e8 !important; border-color: #3f3f46 !important; }
