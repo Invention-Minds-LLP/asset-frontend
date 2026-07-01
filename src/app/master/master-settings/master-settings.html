@@ -3,7 +3,7 @@
 <div class="page-container">
   <div class="page-header">
     <h2><div><i class="pi pi-cog"></i></div><div> Master Settings</div></h2>
-    <p class="subtitle">Manage departments, branches, asset categories, and vendors</p>
+    <p class="subtitle">Manage departments, asset categories, and vendors</p>
   </div>
   
   <p-tabView class="custom-tabs">
@@ -49,52 +49,6 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr><td colspan="3" class="empty-msg">No departments found.</td></tr>
-        </ng-template>
-      </p-table>
-    </p-tabPanel>
-  
-    <!-- ── Branches ────────────────────────────────────────────────────────── -->
-    <p-tabPanel header="Branches">
-      <div class="tab-toolbar">
-        <p-button label="Add Branch" icon="pi pi-plus" (onClick)="openBranchForm()" />
-      </div>
-  
-      @if (showBranchForm) {
-        <div class="inline-form card">
-          <h4>{{ editingBranchId ? 'Edit Branch' : 'New Branch' }}</h4>
-          <div class="form-row">
-            <p-floatlabel>
-              <input pInputText id="branchName" [(ngModel)]="branchForm.name" />
-              <label for="branchName">Branch Name</label>
-            </p-floatlabel>
-          </div>
-          <div class="form-actions">
-            <p-button label="Save" icon="pi pi-check" (onClick)="saveBranch()"  [loading]="savingBranch"/>
-            <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showBranchForm = false" />
-          </div>
-        </div>
-      }
-  
-      <p-table [value]="branches" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th style="width:120px">Actions</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-branch let-i="rowIndex">
-          <tr>
-            <td>{{ i + 1 }}</td>
-            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 320px;">{{ branch.name }}</td>
-            <td>
-              <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openBranchForm(branch)" />
-              <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteBranch(branch)" />
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr><td colspan="3" class="empty-msg">No branches found.</td></tr>
         </ng-template>
       </p-table>
     </p-tabPanel>

@@ -22,12 +22,18 @@
 
 /* Form grid */
 .form-grid { display: flex; flex-direction: column; gap: 0.75rem; }
-.form-field { display: flex; flex-direction: column; gap: 0.3rem; }
+/* min-width:0 lets flex children shrink instead of forcing horizontal scroll */
+.form-field { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
 .form-field label { font-size: 0.85rem; font-weight: 500; color: var(--text-color-secondary); }
 
 /* Transfer items */
 .transfer-items-section { border: 1px solid var(--surface-border); border-radius: 8px; padding: 0.75rem; margin-top: 0.25rem; }
 .transfer-item-row { display: flex; gap: 0.75rem; align-items: flex-end; margin-bottom: 0.5rem; }
+/* Make every control fill its flex cell so the row never overflows the dialog */
+.transfer-item-row ::ng-deep .p-select,
+.transfer-item-row ::ng-deep .p-inputnumber,
+.transfer-item-row ::ng-deep .p-inputnumber input { width: 100%; }
+.transfer-item-row ::ng-deep .p-inputnumber { display: flex; }
 
 /* Hierarchy tree */
 .hierarchy-section { margin-top: 1rem; }
@@ -60,3 +66,21 @@
 ::ng-deep .p-datatable .p-datatable-thead > tr > th { background: transparent !important; box-shadow: none !important; }
 ::ng-deep .p-datatable .p-datatable-wrapper { border: 1px solid var(--table-border-color) !important; border-radius: 12px; overflow: hidden; }
 ::ng-deep .p-datatable-table { font-size: 14px; }
+
+.dept-tag { margin-left: 6px; font-size: 0.62rem; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: #e8f1fd; color: #2f6fd1; }
+.app-dark .dept-tag { background: var(--info-bg); color: var(--info-fg); }
+
+/* Transfer # clickable + detail dialog */
+.code-link { cursor: pointer; }
+.code-link:hover { text-decoration: underline; }
+.detail-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem 1rem; font-size: 0.9rem; }
+.detail-meta .info-label { color: var(--text-color-secondary); font-weight: 600; margin-right: 0.4rem; }
+
+/* Receive dialog rows */
+.receive-head, .receive-row { display: grid; grid-template-columns: 1fr 60px 150px; gap: 0.75rem; align-items: center; }
+.receive-head { font-size: 0.78rem; font-weight: 600; color: var(--text-color-secondary); padding: 0 0.25rem 0.4rem; border-bottom: 1px solid var(--surface-border); }
+.receive-row { padding: 0.5rem 0.25rem; border-bottom: 1px solid var(--surface-border); }
+.receive-type { font-size: 0.72rem; color: var(--text-color-secondary); }
+.receive-sent { text-align: center; font-weight: 600; }
+.receive-qty ::ng-deep .p-inputnumber { width: 100%; }
+.receive-qty ::ng-deep .p-inputnumber input { width: 100%; }

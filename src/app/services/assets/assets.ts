@@ -375,6 +375,41 @@ export class Assets {
     return this.http.delete(`${this.inventoryUrl}/consumables/${id}`);
   }
 
+  // ── Inventory: stock history, adjust, per-store, batches ──
+  getSparePartTransactions(id: number) {
+    return this.http.get<any[]>(`${this.inventoryUrl}/spare-parts/${id}/transactions`);
+  }
+  getConsumableTransactions(id: number) {
+    return this.http.get<any[]>(`${this.inventoryUrl}/consumables/${id}/transactions`);
+  }
+  adjustSparePartStock(id: number, payload: { mode: string; quantity: number; storeId?: number; reason?: string }) {
+    return this.http.post(`${this.inventoryUrl}/spare-parts/${id}/adjust`, payload);
+  }
+  adjustConsumableStock(id: number, payload: { mode: string; quantity: number; storeId?: number; reason?: string }) {
+    return this.http.post(`${this.inventoryUrl}/consumables/${id}/adjust`, payload);
+  }
+  getSparePartStores(id: number) {
+    return this.http.get<any[]>(`${this.inventoryUrl}/spare-parts/${id}/stores`);
+  }
+  getConsumableStores(id: number) {
+    return this.http.get<any[]>(`${this.inventoryUrl}/consumables/${id}/stores`);
+  }
+  getConsumableBatches(id: number) {
+    return this.http.get<any[]>(`${this.inventoryUrl}/consumables/${id}/batches`);
+  }
+  addConsumableBatch(id: number, payload: { batchNumber?: string; expiryDate?: string; quantity: number }) {
+    return this.http.post(`${this.inventoryUrl}/consumables/${id}/batches`, payload);
+  }
+  getExpiringBatches(days = 30) {
+    return this.http.get<any[]>(`${this.inventoryUrl}/consumables/batches/expiring?days=${days}`);
+  }
+  requestSparePartReorder(id: number, payload: { quantity?: number } = {}) {
+    return this.http.post(`${this.inventoryUrl}/spare-parts/${id}/reorder`, payload);
+  }
+  requestConsumableReorder(id: number, payload: { quantity?: number } = {}) {
+    return this.http.post(`${this.inventoryUrl}/consumables/${id}/reorder`, payload);
+  }
+
   hodApproveAsset(id: number, payload: { decision: string; remarks?: string }): Observable<any> {
     return this.http.post(`${this.assetsUrl}/${id}/hod-approval`, payload);
   }

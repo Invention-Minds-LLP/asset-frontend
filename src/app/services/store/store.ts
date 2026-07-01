@@ -13,6 +13,16 @@ export class StoreService {
     return this.http.get<any[]>(this.base, { params: this.buildParams(filters) });
   }
 
+  /** All active stores (unscoped) — for transfer destination dropdowns. */
+  getOptions(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/options`);
+  }
+
+  /** Stores the current user may transfer FROM (role/department aware). */
+  getTransferSources(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/transfer-sources`);
+  }
+
   getById(id: number): Observable<any> {
     return this.http.get<any>(`${this.base}/${id}`);
   }

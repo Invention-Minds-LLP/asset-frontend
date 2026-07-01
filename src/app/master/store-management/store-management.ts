@@ -33,14 +33,64 @@ import { StoreTransferService } from '../../services/store-transfer/store-transf
 })
 export class StoreManagement implements OnInit {
   userRole = localStorage.getItem('role') || '';
+  // Store-keepers are identified by their department name (contains "STORE"),
+  // not a role — same convention the backend uses.
+  isStoreDept = ((): boolean => {
+    try {
+      const u = JSON.parse(localStorage.getItem('user') || '{}');
+      return String(u?.departmentName || '').toUpperCase().includes('STORE');
+    } catch { return false; }
+  })();
 
   isRole(...roles: string[]): boolean { return roles.includes(this.userRole); }
+
+  // Store setup (create store / add location) — admins + store-dept keepers.
+  get canManageStores(): boolean { return this.isRole('ADMIN') || this.isStoreDept; }
+  // Stock adjust + raising transfers — admins, store keepers, and department HODs.
+  get canAdjustStock(): boolean { return this.isRole('ADMIN', 'HOD') || this.isStoreDept; }
+
+  private leadership = ['ADMIN', 'CEO_COO', 'OPERATIONS'];
+  private storeDeptOf(storeId: number | null | undefined): number | null {
+    if (storeId == null) return null;
+    const s = this.allStoresRaw.find((x: any) => x.id === storeId);
+    return s ? (s.departmentId ?? null) : null;
+  }
+
+  // Approve shows only to the SOURCE store's custodian (HOD), on a REQUESTED row.
+  canApproveRow(row: any): boolean {
+    if (row?.status !== 'REQUESTED') return false;
+    if (this.leadership.includes(this.userRole)) return true;
+    if (this.userRole !== 'HOD') return false;
+    const srcDept = this.storeDeptOf(row.fromStoreId);
+    if (srcDept != null) return srcDept === this.myDeptId;
+    return this.isStoreDept; // main store source → store-dept HOD
+  }
+
+  // Receive shows only to the DESTINATION's custodian (HOD/Supervisor), on an APPROVED/IN_TRANSIT row.
+  canReceiveRow(row: any): boolean {
+    if (row?.status !== 'APPROVED' && row?.status !== 'IN_TRANSIT') return false;
+    if (this.leadership.includes(this.userRole)) return true;
+    const deptCustodian = this.userRole === 'HOD' || this.userRole === 'SUPERVISOR';
+    if (row.transferType === 'STORE_TO_DEPARTMENT') {
+      return deptCustodian && row.toDepartmentId === this.myDeptId;
+    }
+    const destDept = this.storeDeptOf(row.toStoreId);
+    if (destDept != null) return deptCustodian && destDept === this.myDeptId;
+    return this.isStoreDept; // main store destination → store-dept
+  }
 
   activeTab: 'stores' | 'stock' | 'transfers' | 'alerts' = 'stores';
 
   // Stores
   stores: any[] = [];
   storeOptions: any[] = [];
+  allStoreOptions: any[] = [];
+  allStoresRaw: any[] = [];
+  myDeptId: number | null = Number(localStorage.getItem('departmentId')) || null;
+
+  // From-store list — computed on the backend (role/department aware): store-dept
+  // gets main + unassigned + own stores; a HOD gets only their own dept stores.
+  fromStoreOptions: any[] = [];
   storeHierarchy: any = null;
   showCreateStoreDialog = false;
   storeForm: any = this.emptyStoreForm();
@@ -48,6 +98,24 @@ export class StoreManagement implements OnInit {
   loadingStores = false;
   approvingTransfer = false;
   receivingTransfer = false;
+  receivingId: number | null = null;
+  approvingId: number | null = null;
+
+  // Transfer detail dialog
+  showTransferDetail = false;
+  transferDetail: any = null;
+  transferDetailLoading = false;
+
+  // Cancel
+  cancellingId: number | null = null;
+
+  // Receive dialog (enter received quantities)
+  showReceiveDialog = false;
+  receiveTransferId: number | null = null;
+  receiveTransferNo = '';
+  receiveItems: any[] = [];
+  receiveLoading = false;
+  receiveSaving = false;
   adjustingStock = false;
   addingLocation = false;
 
@@ -140,6 +208,23 @@ export class StoreManagement implements OnInit {
         this.loadingStores = false;
         setTimeout(() => this.cdr.detectChanges());
       }
+    });
+    // All stores (unscoped) for the transfer dropdowns, so you can send to any store.
+    this.storeService.getOptions().subscribe({
+      next: (data: any[]) => {
+        this.allStoresRaw = data || [];
+        this.allStoreOptions = this.allStoresRaw.map((s: any) => ({ label: `${s.code} — ${s.name}`, value: s.id }));
+        setTimeout(() => this.cdr.detectChanges());
+      },
+      error: () => {}
+    });
+    // Backend-computed source stores for the transfer From dropdown.
+    this.storeService.getTransferSources().subscribe({
+      next: (data: any[]) => {
+        this.fromStoreOptions = (data || []).map((s: any) => ({ label: `${s.code} — ${s.name}`, value: s.id }));
+        setTimeout(() => this.cdr.detectChanges());
+      },
+      error: () => {}
     });
     this.storeService.getHierarchy().subscribe({
       next: (data: any) => {
@@ -306,7 +391,28 @@ export class StoreManagement implements OnInit {
   openAdjustStock() {
     this.adjustForm = this.emptyAdjustForm();
     this.showAdjustDialog = true;
-    this.loadItemDropdowns();
+    this.loadMasterItemDropdowns();
+  }
+
+  // Full master list of spares/consumables — used by the per-store Adjust dialog,
+  // where you can add any catalogue item into a store.
+  private loadMasterItemDropdowns() {
+    this.http.get<any>(`${this.apiUrl}/inventory/spare-parts`).subscribe({
+      next: (data: any) => {
+        const list = Array.isArray(data) ? data : (data?.data ?? []);
+        this.sparePartOptions = list.map((s: any) => ({ label: `${s.name}${s.partNumber ? ' (' + s.partNumber + ')' : ''}`, value: s.id }));
+        setTimeout(() => this.cdr.detectChanges());
+      },
+      error: () => {}
+    });
+    this.http.get<any>(`${this.apiUrl}/inventory/consumables`).subscribe({
+      next: (data: any) => {
+        const list = Array.isArray(data) ? data : (data?.data ?? []);
+        this.consumableOptions = list.map((c: any) => ({ label: c.name, value: c.id }));
+        setTimeout(() => this.cdr.detectChanges());
+      },
+      error: () => {}
+    });
   }
 
   adjustStock() {
@@ -374,9 +480,15 @@ export class StoreManagement implements OnInit {
   }
 
   onTransferFromStoreChange() {
+    // Source changed → clear options and any picked items (they may not exist in the new store).
     this.assetOptions = [];
+    this.sparePartOptions = [];
+    this.consumableOptions = [];
+    this.transferForm.items.forEach((it: any) => { it.sparePartId = null; it.consumableId = null; it.assetId = null; });
+
     const fromId = this.transferForm.fromStoreId;
     if (!fromId) return;
+
     // Assets currently parked (IN_STORE) in the source store are transfer-eligible
     this.http.get<any>(`${this.apiUrl}/assets`, { params: { currentStoreId: String(fromId), status: 'IN_STORE' } }).subscribe({
       next: (data: any) => {
@@ -386,35 +498,30 @@ export class StoreManagement implements OnInit {
       },
       error: () => {}
     });
+
+    // Only spares/consumables actually stocked (available) in the source store.
+    this.http.get<any>(`${this.apiUrl}/store-stock/${fromId}`).subscribe({
+      next: (data: any) => {
+        const list = Array.isArray(data) ? data : (data?.data ?? []);
+        this.sparePartOptions = list
+          .filter((s: any) => s.itemType === 'SPARE_PART' && s.sparePartId && Number(s.availableQty) > 0)
+          .map((s: any) => ({ label: `${s.itemName} — ${s.availableQty} avail`, value: s.sparePartId }));
+        this.consumableOptions = list
+          .filter((s: any) => s.itemType === 'CONSUMABLE' && s.consumableId && Number(s.availableQty) > 0)
+          .map((s: any) => ({ label: `${s.itemName} — ${s.availableQty} avail`, value: s.consumableId }));
+        setTimeout(() => this.cdr.detectChanges());
+      },
+      error: () => {}
+    });
   }
 
   openCreateTransfer() {
     this.transferForm = this.emptyTransferForm();
     this.showCreateTransferDialog = true;
-    this.loadItemDropdowns();
-  }
-
-  private loadItemDropdowns() {
-    if (this.sparePartOptions.length === 0) {
-      this.http.get<any>(`${this.apiUrl}/inventory/spare-parts`).subscribe({
-        next: (data: any) => {
-          const list = Array.isArray(data) ? data : (data?.data ?? []);
-          this.sparePartOptions = list.map((s: any) => ({ label: `${s.name}${s.partNumber ? ' (' + s.partNumber + ')' : ''}`, value: s.id }));
-          setTimeout(() => this.cdr.detectChanges());
-        },
-        error: () => {}
-      });
-    }
-    if (this.consumableOptions.length === 0) {
-      this.http.get<any>(`${this.apiUrl}/inventory/consumables`).subscribe({
-        next: (data: any) => {
-          const list = Array.isArray(data) ? data : (data?.data ?? []);
-          this.consumableOptions = list.map((c: any) => ({ label: c.name, value: c.id }));
-          setTimeout(() => this.cdr.detectChanges());
-        },
-        error: () => {}
-      });
-    }
+    // Item options are loaded from the source store's stock once "From Store" is picked.
+    this.sparePartOptions = [];
+    this.consumableOptions = [];
+    this.assetOptions = [];
   }
 
   addTransferItem() {
@@ -443,31 +550,94 @@ export class StoreManagement implements OnInit {
   }
 
   approveTransfer(id: number) {
-    this.approvingTransfer = true;
+    this.approvingId = id;
     this.transferService.approve(id, {}).subscribe({
       next: () => {
-        this.approvingTransfer = false;
+        this.approvingId = null;
         this.messageService.add({ severity: 'success', summary: 'Approved', detail: 'Transfer has been approved.' });
         this.loadTransfers();
       },
       error: (err: any) => {
-        this.approvingTransfer = false;
+        this.approvingId = null;
         this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || 'Failed to approve transfer.' });
       }
     });
   }
 
-  receiveTransfer(id: number) {
-    this.receivingTransfer = true;
-    this.transferService.receive(id, {}).subscribe({
+  openTransferDetail(row: any) {
+    this.showTransferDetail = true;
+    this.transferDetail = null;
+    this.transferDetailLoading = true;
+    this.transferService.getById(row.id).subscribe({
+      next: (data: any) => setTimeout(() => { this.transferDetail = data; this.transferDetailLoading = false; this.cdr.detectChanges(); }),
+      error: () => setTimeout(() => { this.transferDetailLoading = false; this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load transfer details' }); this.cdr.detectChanges(); })
+    });
+  }
+
+  // Open the receive dialog — load the transfer's items so the receiver can
+  // confirm/adjust the quantity actually received per line.
+  openReceiveDialog(row: any) {
+    this.showReceiveDialog = true;
+    this.receiveTransferId = row.id;
+    this.receiveTransferNo = row.transferNumber || row.id;
+    this.receiveItems = [];
+    this.receiveLoading = true;
+    this.transferService.getById(row.id).subscribe({
+      next: (data: any) => setTimeout(() => {
+        this.receiveItems = (data?.items || []).map((it: any) => ({
+          itemId: it.id,
+          itemName: it.itemName || '—',
+          itemType: it.itemType,
+          sent: Number(it.quantity),
+          receivedQty: Number(it.quantity), // default: received in full
+        }));
+        this.receiveLoading = false;
+        this.cdr.detectChanges();
+      }),
+      error: () => setTimeout(() => { this.receiveLoading = false; this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to load items' }); this.cdr.detectChanges(); })
+    });
+  }
+
+  submitReceive() {
+    if (!this.receiveTransferId) return;
+    for (const it of this.receiveItems) {
+      const rq = Number(it.receivedQty);
+      if (isNaN(rq) || rq < 0 || rq > it.sent) {
+        this.messageService.add({ severity: 'warn', summary: 'Check quantities', detail: `"${it.itemName}" received must be between 0 and ${it.sent}.` });
+        return;
+      }
+    }
+    const payload = { receivedItems: this.receiveItems.map((it: any) => ({ itemId: it.itemId, receivedQty: Number(it.receivedQty) })) };
+    this.receiveSaving = true;
+    this.receivingId = this.receiveTransferId;
+    this.transferService.receive(this.receiveTransferId, payload).subscribe({
       next: () => {
-        this.receivingTransfer = false;
-        this.messageService.add({ severity: 'success', summary: 'Received', detail: 'Transfer has been received.' });
+        this.receiveSaving = false;
+        this.receivingId = null;
+        this.showReceiveDialog = false;
+        this.messageService.add({ severity: 'success', summary: 'Received', detail: 'Transfer received.' });
         this.loadTransfers();
       },
       error: (err: any) => {
-        this.receivingTransfer = false;
+        this.receiveSaving = false;
+        this.receivingId = null;
         this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || 'Failed to receive transfer.' });
+      }
+    });
+  }
+
+  cancelTransferRow(row: any) {
+    if (!confirm(`Cancel transfer ${row.transferNumber || row.id}? The reserved stock will be released.`)) return;
+    this.cancellingId = row.id;
+    this.transferService.cancel(row.id).subscribe({
+      next: () => {
+        this.cancellingId = null;
+        this.messageService.add({ severity: 'success', summary: 'Cancelled', detail: 'Transfer cancelled.' });
+        this.loadTransfers();
+      },
+      error: (err: any) => {
+        this.cancellingId = null;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || 'Failed to cancel transfer.' });
       }
     });
   }

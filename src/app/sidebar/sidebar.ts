@@ -70,7 +70,11 @@ export class Sidebar implements OnInit {
     // ── Store & Inventory ─────────────────────────────────
     {
       icon: 'pi pi-warehouse', label: 'Store & Inventory',
-      path: '/store-management', route: '/store-management', hasDropdown: false
+      path: '/store-management', hasDropdown: true,
+      dropdownItems: [
+        { label: 'Store Management', route: '/store-management', icon: 'pi pi-warehouse' },
+        { label: 'Inventory Master', route: '/master', icon: 'pi pi-box' },
+      ]
     },
 
     // ── Maintenance & Service ─────────────────────────────
@@ -173,7 +177,6 @@ export class Sidebar implements OnInit {
         { label: 'Notifications', route: '/notifications', icon: 'pi pi-bell' },
         { label: 'Notification Preferences', route: '/notification-preferences', icon: 'pi pi-sliders-h' },
         { label: 'Email Templates', route: '/email-templates', icon: 'pi pi-envelope' },
-        { label: 'Inventory Master', route: '/master', icon: 'pi pi-box' },
       ]
     },
   ];

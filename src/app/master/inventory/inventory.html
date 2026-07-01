@@ -84,35 +84,49 @@
       </div>
 
       <div class="inventory-card table-card">
-        <p-table [value]="spareRows" responsiveLayout="scroll" [tableStyle]="{ 'min-width': '100%' }">
+        <div class="table-toolbar">
+          <input pInputText pSize="small" placeholder="Search name / part no / category / vendor"
+            [(ngModel)]="spareSearch" name="spareSearch" class="inv-search" />
+          <span class="valuation">Total value: ₹{{ spareValuation | number:'1.0-0' }}</span>
+          <button pButton type="button" size="small"
+            [label]="showLowSpareOnly ? 'Show all' : ('Low stock (' + lowSpareCount + ')')"
+            [severity]="showLowSpareOnly ? 'secondary' : 'danger'" [outlined]="!showLowSpareOnly"
+            icon="pi pi-exclamation-triangle" (click)="showLowSpareOnly = !showLowSpareOnly"></button>
+        </div>
+        <p-table [value]="filteredSpareRows" responsiveLayout="scroll" [tableStyle]="{ 'min-width': '100%' }"
+          [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,25,50]">
           <ng-template pTemplate="header">
             <tr>
               <th>Name</th>
               <th>Part Number</th>
-              <th>Model</th>
               <th>Category</th>
               <th>Vendor</th>
               <th>Stock</th>
               <th>Reorder</th>
               <th>Cost</th>
-              <th>Actions</th>
+              <th style="width:200px">Actions</th>
             </tr>
           </ng-template>
 
           <ng-template pTemplate="body" let-row>
-            <tr>
+            <tr [class.low-stock-row]="isLowStock(row)">
               <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ row.name }}</td>
               <td class="ellipsis-cell" appOverflowTooltip>{{ row.partNumber || '-' }}</td>
-              <td class="ellipsis-cell" appOverflowTooltip>{{ row.model || '-' }}</td>
               <td class="ellipsis-cell" appOverflowTooltip>{{ row.category || '-' }}</td>
               <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ row.vendor?.name || '-' }}</td>
-              <td>{{ row.stockQuantity }}</td>
+              <td>
+                {{ row.stockQuantity }}
+                <span *ngIf="isLowStock(row)" class="low-badge">LOW</span>
+              </td>
               <td>{{ row.reorderLevel ?? '-' }}</td>
               <td>{{ row.cost ?? '-' }}</td>
               <td>
                 <div class="table-actions">
-                  <button pButton icon="pi pi-pencil" class="p-button-text" (click)="editSparePart(row)"></button>
-                  <button pButton icon="pi pi-trash" class="p-button-text p-button-danger" (click)="deleteSparePart(row)"></button>
+                  <button pButton icon="pi pi-history" class="p-button-text" pTooltip="Stock history" tooltipPosition="top" (click)="openSpareHistory(row)"></button>
+                  <button pButton icon="pi pi-sliders-h" class="p-button-text" pTooltip="Adjust stock" tooltipPosition="top" (click)="openAdjust('spare', row)"></button>
+                  <button pButton icon="pi pi-warehouse" class="p-button-text" pTooltip="Store breakdown" tooltipPosition="top" (click)="openSpareStores(row)"></button>
+                  <button *ngIf="isLowStock(row)" pButton icon="pi pi-shopping-cart" class="p-button-text" severity="warn" pTooltip="Request reorder" tooltipPosition="top" (click)="reorderSpare(row)"></button>
+                  <button pButton icon="pi pi-pencil" class="p-button-text" pTooltip="Edit" tooltipPosition="top" (click)="editSparePart(row)"></button>
                 </div>
               </td>
             </tr>
@@ -159,6 +173,13 @@
               <label>Reorder Level</label>
             </p-floatlabel>
           </div>
+
+          <div class="field">
+            <p-floatlabel variant="on">
+              <input pInputText type="number" [(ngModel)]="consumableForm.cost" name="consumableCost" />
+              <label>Cost (per unit)</label>
+            </p-floatlabel>
+          </div>
         </div>
 
         <div class="inventory-actions">
@@ -168,27 +189,46 @@
       </div>
 
       <div class="inventory-card table-card">
-        <p-table [value]="consumableRows" responsiveLayout="scroll" [tableStyle]="{ 'min-width': '100%' }">
+        <div class="table-toolbar">
+          <input pInputText pSize="small" placeholder="Search name / unit"
+            [(ngModel)]="consumableSearch" name="consumableSearch" class="inv-search" />
+          <span class="valuation">Total value: ₹{{ consumableValuation | number:'1.0-0' }}</span>
+          <button pButton type="button" size="small"
+            [label]="showLowConsumableOnly ? 'Show all' : ('Low stock (' + lowConsumableCount + ')')"
+            [severity]="showLowConsumableOnly ? 'secondary' : 'danger'" [outlined]="!showLowConsumableOnly"
+            icon="pi pi-exclamation-triangle" (click)="showLowConsumableOnly = !showLowConsumableOnly"></button>
+        </div>
+        <p-table [value]="filteredConsumableRows" responsiveLayout="scroll" [tableStyle]="{ 'min-width': '100%' }"
+          [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10,25,50]">
           <ng-template pTemplate="header">
             <tr>
               <th>Name</th>
               <th>Unit</th>
-              <th>Stock Quantity</th>
-              <th>Reorder Level</th>
-              <th>Actions</th>
+              <th>Stock</th>
+              <th>Reorder</th>
+              <th>Cost</th>
+              <th style="width:230px">Actions</th>
             </tr>
           </ng-template>
 
           <ng-template pTemplate="body" let-row>
-            <tr>
+            <tr [class.low-stock-row]="isLowStock(row)">
               <td>{{ row.name }}</td>
               <td>{{ row.unit || '-' }}</td>
-              <td>{{ row.stockQuantity }}</td>
+              <td>
+                {{ row.stockQuantity }}
+                <span *ngIf="isLowStock(row)" class="low-badge">LOW</span>
+              </td>
               <td>{{ row.reorderLevel ?? '-' }}</td>
+              <td>{{ row.cost ?? '-' }}</td>
               <td>
                 <div class="table-actions">
-                  <button pButton icon="pi pi-pencil" class="p-button-text" (click)="editConsumable(row)"></button>
-                  <button pButton icon="pi pi-trash" class="p-button-text p-button-danger" (click)="deleteConsumable(row)"></button>
+                  <button pButton icon="pi pi-box" class="p-button-text" pTooltip="Batches / expiry" tooltipPosition="top" (click)="openBatches(row)"></button>
+                  <button pButton icon="pi pi-history" class="p-button-text" pTooltip="Stock history" tooltipPosition="top" (click)="openConsumableHistory(row)"></button>
+                  <button pButton icon="pi pi-sliders-h" class="p-button-text" pTooltip="Adjust stock" tooltipPosition="top" (click)="openAdjust('consumable', row)"></button>
+                  <button pButton icon="pi pi-warehouse" class="p-button-text" pTooltip="Store breakdown" tooltipPosition="top" (click)="openConsumableStores(row)"></button>
+                  <button *ngIf="isLowStock(row)" pButton icon="pi pi-shopping-cart" class="p-button-text" severity="warn" pTooltip="Request reorder" tooltipPosition="top" (click)="reorderConsumable(row)"></button>
+                  <button pButton icon="pi pi-pencil" class="p-button-text" pTooltip="Edit" tooltipPosition="top" (click)="editConsumable(row)"></button>
                 </div>
               </td>
             </tr>
@@ -199,5 +239,134 @@
 
   </p-tabView>
 </div>
+
+<!-- ── Stock History dialog ── -->
+<p-dialog [header]="historyTitle" [(visible)]="showHistoryDialog" [modal]="true" [style]="{width:'720px'}">
+  <div *ngIf="historyLoading" class="dialog-msg">Loading…</div>
+  <div *ngIf="!historyLoading && historyRows.length === 0" class="dialog-msg">No stock movements recorded.</div>
+  <p-table *ngIf="!historyLoading && historyRows.length > 0" [value]="historyRows" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr><th>Date</th><th>Type</th><th>Qty</th><th>Reference</th><th>By</th><th>Notes</th></tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-t>
+      <tr>
+        <td>{{ t.createdAt | date:'dd MMM yyyy, HH:mm' }}</td>
+        <td><p-tag [value]="t.type" [severity]="t.type === 'IN' ? 'success' : t.type === 'OUT' ? 'danger' : 'warn'"></p-tag></td>
+        <td>{{ t.quantity }}</td>
+        <td>{{ t.referenceType || '-' }}{{ t.referenceId ? (' #' + t.referenceId) : '' }}</td>
+        <td>{{ t.performedBy?.name || '-' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ t.notes || '-' }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-dialog>
+
+<!-- ── Adjust stock dialog ── -->
+<p-dialog header="Adjust / Issue Stock" [(visible)]="showAdjustDialog" [modal]="true" [style]="{width:'440px'}">
+  <div *ngIf="adjustItem" class="adjust-body">
+    <p class="dialog-sub"><strong>{{ adjustItem.name }}</strong> — master stock {{ adjustItem.stockQuantity }}</p>
+    <div class="field">
+      <p-floatlabel variant="on">
+        <p-select [options]="adjustModeOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="adjustMode" name="adjustMode" appendTo="body" (onChange)="onAdjustModeChange()">
+        </p-select>
+        <label>Action</label>
+      </p-floatlabel>
+    </div>
+    <div class="field">
+      <p-floatlabel variant="on">
+        <input pInputText type="number" [(ngModel)]="adjustQty" name="adjustQty" />
+        <label>{{ adjustQtyLabel }}</label>
+      </p-floatlabel>
+    </div>
+    <div class="field">
+      <p-floatlabel variant="on">
+        <p-select [options]="storeOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="adjustStoreId" name="adjustStoreId" appendTo="body" [filter]="true" [showClear]="true">
+        </p-select>
+        <label>{{ adjustMode === 'issue' ? 'Destination store' : 'Store (optional)' }}</label>
+      </p-floatlabel>
+    </div>
+    <div class="field">
+      <p-floatlabel variant="on">
+        <input pInputText [(ngModel)]="adjustReason" name="adjustReason" />
+        <label>Reason / note</label>
+      </p-floatlabel>
+    </div>
+    <p class="dialog-hint" *ngIf="adjustMode === 'set'">Corrects the master total. Pick a store to also correct that store's count.</p>
+    <p class="dialog-hint" *ngIf="adjustMode === 'receive'">Adds new stock to the master. Pick a store to place it into that store.</p>
+    <p class="dialog-hint" *ngIf="adjustMode === 'issue'">Moves stock out of the master into the chosen store (master goes down, store goes up).</p>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancel" severity="secondary" (click)="showAdjustDialog = false"></button>
+    <button pButton label="Save" [loading]="adjustSaving" (click)="saveAdjust()"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- ── Per-store breakdown dialog ── -->
+<p-dialog [header]="storesTitle" [(visible)]="showStoresDialog" [modal]="true" [style]="{width:'560px'}">
+  <div *ngIf="storesLoading" class="dialog-msg">Loading…</div>
+  <div *ngIf="!storesLoading && storeRows.length === 0" class="dialog-msg">This item is not stocked in any store yet.</div>
+  <p-table *ngIf="!storesLoading && storeRows.length > 0" [value]="storeRows" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr><th>Store</th><th>Current Qty</th><th>Available</th><th>Reorder</th></tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-s>
+      <tr>
+        <td>{{ s.store?.name || '-' }}</td>
+        <td>{{ s.currentQty }}</td>
+        <td>{{ s.availableQty ?? '-' }}</td>
+        <td>{{ s.reorderLevel ?? '-' }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-dialog>
+
+<!-- ── Batches / expiry dialog ── -->
+<p-dialog [header]="'Batches — ' + (batchConsumable?.name || '')" [(visible)]="showBatchDialog" [modal]="true" [style]="{width:'640px'}">
+  <div class="batch-form">
+    <div class="field">
+      <p-floatlabel variant="on">
+        <input pInputText [(ngModel)]="batchForm.batchNumber" name="batchNumber" />
+        <label>Batch No.</label>
+      </p-floatlabel>
+    </div>
+    <div class="field">
+      <p-floatlabel variant="on">
+        <input pInputText type="date" [(ngModel)]="batchForm.expiryDate" name="batchExpiry" />
+        <label>Expiry</label>
+      </p-floatlabel>
+    </div>
+    <div class="field">
+      <p-floatlabel variant="on">
+        <input pInputText type="number" [(ngModel)]="batchForm.quantity" name="batchQty" />
+        <label>Quantity</label>
+      </p-floatlabel>
+    </div>
+    <button pButton label="Add Batch" icon="pi pi-plus" [loading]="batchSaving" (click)="addBatch()"></button>
+  </div>
+
+  <div *ngIf="batchLoading" class="dialog-msg">Loading…</div>
+  <div *ngIf="!batchLoading && batchRows.length === 0" class="dialog-msg">No batches recorded.</div>
+  <p-table *ngIf="!batchLoading && batchRows.length > 0" [value]="batchRows" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr><th>Batch No.</th><th>Expiry</th><th>Quantity</th><th>Remaining</th><th>Status</th></tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-b>
+      <tr>
+        <td>{{ b.batchNumber || '-' }}</td>
+        <td>{{ b.expiryDate ? (b.expiryDate | date:'dd MMM yyyy') : '-' }}</td>
+        <td>{{ b.quantity }}</td>
+        <td>{{ b.remainingQuantity }}</td>
+        <td>
+          <p-tag *ngIf="isExpired(b.expiryDate)" value="EXPIRED" severity="danger"></p-tag>
+          <p-tag *ngIf="!isExpired(b.expiryDate) && isExpiringSoon(b.expiryDate)" value="EXPIRING" severity="warn"></p-tag>
+          <p-tag *ngIf="!isExpired(b.expiryDate) && !isExpiringSoon(b.expiryDate) && b.expiryDate" value="OK" severity="success"></p-tag>
+          <span *ngIf="!b.expiryDate">-</span>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-dialog>
 
 <p-toast></p-toast>

@@ -30,7 +30,7 @@
     <div class="section-header">
       <span class="section-title"><i class="pi pi-building"></i> Store List</span>
       <span style="flex:1"></span>
-      <p-button label="Create Store" icon="pi pi-plus" (onClick)="openCreateStore()" size="small"></p-button>
+      <p-button *ngIf="canManageStores" label="Create Store" icon="pi pi-plus" (onClick)="openCreateStore()" size="small"></p-button>
     </div>
 
     <p-table [value]="stores" [loading]="loadingStores" [paginator]="true" [rows]="10"
@@ -151,7 +151,7 @@
         <div class="section-header" style="margin-top: 1.25rem;">
           <span class="section-title"><i class="pi pi-map-marker"></i> Locations (Rack / Shelf / Bin)</span>
           <span style="flex:1"></span>
-          <p-button label="Add Location" icon="pi pi-plus" size="small" (onClick)="openAddLocation()"></p-button>
+          <p-button *ngIf="canManageStores" label="Add Location" icon="pi pi-plus" size="small" (onClick)="openAddLocation()"></p-button>
         </div>
 
         @if (storeLocations.length) {
@@ -255,7 +255,7 @@
       <p-select [options]="storeOptions" [(ngModel)]="selectedStoreId"
         placeholder="Select a store to view stock..." [filter]="true"
         [style]="{'width': '380px'}" (onChange)="onStoreSelect()" appendTo="body"></p-select>
-      @if (selectedStoreId) {
+      @if (selectedStoreId && canAdjustStock) {
         <p-button label="Add / Adjust Stock" icon="pi pi-plus-circle" (onClick)="openAdjustStock()" size="small"></p-button>
       }
     </div>
@@ -369,7 +369,7 @@
     <div class="section-header">
       <span class="section-title"><i class="pi pi-arrows-h"></i> Transfer Requests</span>
       <span style="flex:1"></span>
-      <p-button label="New Transfer" icon="pi pi-plus" (onClick)="openCreateTransfer()" size="small"></p-button>
+      <p-button *ngIf="canAdjustStock" label="New Transfer" icon="pi pi-plus" (onClick)="openCreateTransfer()" size="small"></p-button>
     </div>
 
     <p-table [value]="transfers" [loading]="loadingTransfers" [paginator]="true" [rows]="10"
@@ -387,18 +387,25 @@
       </ng-template>
       <ng-template #body let-row>
         <tr>
-          <td><span class="code-badge">{{ row.transferNumber || row.id }}</span></td>
+          <td><span class="code-badge code-link" (click)="openTransferDetail(row)">{{ row.transferNumber || row.id }}</span></td>
           <td>{{ row.fromStore?.name || row.fromStoreName || '—' }}</td>
-          <td>{{ row.toStore?.name || row.toStoreName || '—' }}</td>
+          <td>
+            {{ row.toStore?.name || row.toDepartment?.name || '—' }}
+            <span *ngIf="row.transferType === 'STORE_TO_DEPARTMENT' && row.toDepartment?.name" class="dept-tag">Dept</span>
+          </td>
           <td>{{ row.transferType || '—' }}</td>
           <td><p-tag [value]="row.status" [severity]="getTransferStatusSeverity(row.status)"></p-tag></td>
           <td>{{ row.createdAt | date:'mediumDate' }}</td>
           <td>
-            @if (row.status === 'REQUESTED' && isRole('HOD', 'ADMIN')) {
-              <p-button icon="pi pi-check" [rounded]="true" [text]="true" size="small" pTooltip="Approve" tooltipPosition="top" severity="success" (onClick)="approveTransfer(row.id)" [loading]="approvingTransfer"></p-button>
+            <p-button icon="pi pi-eye" [rounded]="true" [text]="true" size="small" pTooltip="View items" tooltipPosition="top" severity="secondary" (onClick)="openTransferDetail(row)"></p-button>
+            @if (row.canApprove) {
+              <p-button icon="pi pi-check" [rounded]="true" [text]="true" size="small" pTooltip="Approve" tooltipPosition="top" severity="success" (onClick)="approveTransfer(row.id)" [loading]="approvingId === row.id" [disabled]="approvingId !== null"></p-button>
             }
-            @if ((row.status === 'APPROVED' || row.status === 'IN_TRANSIT') && isRole('HOD', 'SUPERVISOR', 'ADMIN')) {
-              <p-button icon="pi pi-inbox" [rounded]="true" [text]="true" size="small" pTooltip="Receive" tooltipPosition="top" severity="info" (onClick)="receiveTransfer(row.id)" [loading]="receivingTransfer"></p-button>
+            @if (row.canReceive) {
+              <p-button icon="pi pi-inbox" [rounded]="true" [text]="true" size="small" pTooltip="Receive" tooltipPosition="top" severity="info" (onClick)="openReceiveDialog(row)" [loading]="receivingId === row.id" [disabled]="receivingId !== null"></p-button>
+            }
+            @if (row.canCancel) {
+              <p-button icon="pi pi-times" [rounded]="true" [text]="true" size="small" pTooltip="Cancel" tooltipPosition="top" severity="danger" (onClick)="cancelTransferRow(row)" [loading]="cancellingId === row.id" [disabled]="cancellingId !== null"></p-button>
             }
           </td>
         </tr>
@@ -418,7 +425,7 @@
         <div style="display:flex; gap:1rem;">
           <div class="form-field" style="flex:1">
             <label>From Store *</label>
-            <p-select [options]="storeOptions" [(ngModel)]="transferForm.fromStoreId" placeholder="Select source store" (onChange)="onTransferFromStoreChange()" appendTo="body"></p-select>
+            <p-select [options]="fromStoreOptions" [(ngModel)]="transferForm.fromStoreId" placeholder="Select source store" [filter]="true" (onChange)="onTransferFromStoreChange()" appendTo="body"></p-select>
           </div>
           <div class="form-field" style="flex:1">
             @if (transferForm.transferType === 'STORE_TO_DEPARTMENT') {
@@ -426,7 +433,7 @@
               <p-select [options]="departments" optionLabel="name" optionValue="id" [(ngModel)]="transferForm.toDepartmentId" placeholder="Select department" [filter]="true" appendTo="body"></p-select>
             } @else {
               <label>To Store *</label>
-              <p-select [options]="storeOptions" [(ngModel)]="transferForm.toStoreId" placeholder="Select destination store" appendTo="body"></p-select>
+              <p-select [options]="allStoreOptions" [(ngModel)]="transferForm.toStoreId" placeholder="Select destination store" [filter]="true" appendTo="body"></p-select>
             }
           </div>
         </div>
@@ -450,9 +457,11 @@
               <div class="form-field" style="flex:2">
                 <label>Item</label>
                 @if (item.itemType === 'SPARE_PART') {
-                  <p-select [options]="sparePartOptions" [(ngModel)]="item.sparePartId" placeholder="Select spare part" [filter]="true" appendTo="body"></p-select>
+                  <p-select [options]="sparePartOptions" [(ngModel)]="item.sparePartId" placeholder="Select spare part" [filter]="true" appendTo="body"
+                    [emptyMessage]="transferForm.fromStoreId ? 'No spare parts stocked in source store' : 'Select a source store first'"></p-select>
                 } @else if (item.itemType === 'CONSUMABLE') {
-                  <p-select [options]="consumableOptions" [(ngModel)]="item.consumableId" placeholder="Select consumable" [filter]="true" appendTo="body"></p-select>
+                  <p-select [options]="consumableOptions" [(ngModel)]="item.consumableId" placeholder="Select consumable" [filter]="true" appendTo="body"
+                    [emptyMessage]="transferForm.fromStoreId ? 'No consumables stocked in source store' : 'Select a source store first'"></p-select>
                 } @else if (item.itemType === 'ASSET') {
                   <p-select [options]="assetOptions" [(ngModel)]="item.assetId" placeholder="Select parked asset" [filter]="true" appendTo="body"
                     [emptyMessage]="transferForm.fromStoreId ? 'No parked assets in source store' : 'Select a source store first'"></p-select>
@@ -478,6 +487,68 @@
       </ng-template>
     </p-dialog>
   }
+
+  <!-- Transfer Detail Dialog -->
+  <p-dialog [header]="'Transfer ' + (transferDetail?.transferNumber || '')" [(visible)]="showTransferDetail" [modal]="true" [style]="{'width': '640px'}">
+    @if (transferDetailLoading) {
+      <div class="text-center" style="padding:1rem;">Loading…</div>
+    } @else if (transferDetail) {
+      <div class="detail-meta">
+        <div><span class="info-label">From</span> {{ transferDetail.fromStore?.name || '—' }}</div>
+        <div><span class="info-label">To</span> {{ transferDetail.toStore?.name || transferDetail.toDepartment?.name || '—' }}</div>
+        <div><span class="info-label">Type</span> {{ transferDetail.transferType }}</div>
+        <div><span class="info-label">Status</span> <p-tag [value]="transferDetail.status" [severity]="getTransferStatusSeverity(transferDetail.status)"></p-tag></div>
+        <div *ngIf="transferDetail.remarks"><span class="info-label">Notes</span> {{ transferDetail.remarks }}</div>
+      </div>
+      <p-table [value]="transferDetail.items || []" styleClass="p-datatable-sm" [tableStyle]="{'margin-top':'0.75rem'}">
+        <ng-template pTemplate="header">
+          <tr><th>Item</th><th>Type</th><th style="text-align:right">Qty</th><th style="text-align:right">Received</th></tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-it>
+          <tr>
+            <td>{{ it.itemName || '—' }}</td>
+            <td>{{ it.itemType }}</td>
+            <td style="text-align:right">{{ it.quantity }}</td>
+            <td style="text-align:right">{{ it.receivedQty ?? '—' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="4" class="text-center">No items.</td></tr>
+        </ng-template>
+      </p-table>
+    }
+    <ng-template #footer>
+      <p-button label="Close" [text]="true" (onClick)="showTransferDetail = false"></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Receive Dialog (enter received quantities) -->
+  <p-dialog [header]="'Receive ' + receiveTransferNo" [(visible)]="showReceiveDialog" [modal]="true" [style]="{'width': '600px'}">
+    @if (receiveLoading) {
+      <div class="text-center" style="padding:1rem;">Loading…</div>
+    } @else {
+      <p class="dialog-sub" style="margin:0 0 0.75rem; color:var(--text-color-secondary);">Confirm how much was actually received. Any shortfall returns to the source store and raises a discrepancy alert.</p>
+      <div class="receive-head">
+        <span>Item</span><span>Sent</span><span>Received</span>
+      </div>
+      @for (it of receiveItems; track it.itemId) {
+        <div class="receive-row">
+          <div class="receive-item">
+            <div>{{ it.itemName }}</div>
+            <div class="receive-type">{{ it.itemType }}</div>
+          </div>
+          <div class="receive-sent">{{ it.sent }}</div>
+          <div class="receive-qty">
+            <input pInputText type="number" [(ngModel)]="it.receivedQty" [min]="0" [max]="it.sent" style="width:100%" />
+          </div>
+        </div>
+      }
+    }
+    <ng-template #footer>
+      <p-button label="Cancel" [text]="true" (onClick)="showReceiveDialog = false"></p-button>
+      <p-button label="Confirm Receipt" icon="pi pi-check" (onClick)="submitReceive()" [loading]="receiveSaving" [disabled]="receiveLoading"></p-button>
+    </ng-template>
+  </p-dialog>
 
   <!-- ═══════════════════════ ALERTS TAB ═══════════════════════ -->
   @if (activeTab === 'alerts') {
