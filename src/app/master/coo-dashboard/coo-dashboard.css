@@ -127,3 +127,19 @@
 .ewaste-overdue-link { margin-left: auto; font-weight: 600; color: #dc2626; text-decoration: none; }
 .ewaste-overdue-link:hover { text-decoration: underline; }
 .alert-warn { border-color: #fed7aa !important; background: #fff7ed !important; }
+
+/* ── Fleet Health by Branch ────────────────────────────────── */
+.fleet-branches { display: flex; flex-direction: column; gap: .8rem; padding: .3rem 0; }
+.fb-row { display: grid; grid-template-columns: 210px 1fr auto; gap: .8rem; align-items: center; }
+.fb-name { font-weight: 700; font-size: .9rem; display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+.fb-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.fb-count { color: var(--text-color-secondary, #64748b); font-weight: 400; font-size: .76rem; }
+.fb-strip { display: flex; gap: 2px; height: 14px; border-radius: 7px; overflow: hidden; }
+.fb-seg { min-width: 3px; }
+.fb-chips { display: flex; gap: .45rem; flex-wrap: wrap; }
+.fb-chip { font-size: .74rem; border: 1px solid var(--surface-border, #e2e8f0); border-radius: 999px;
+  padding: .12rem .55rem; color: var(--text-color-secondary, #64748b); display: flex; align-items: center; gap: .3rem; }
+.fb-bad { color: #e34948; border-color: #e34948; font-weight: 700; }
+.fb-legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: .75rem; color: var(--text-color-secondary, #64748b); padding-top: .2rem; }
+.fb-lg-dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; }
+@media (max-width: 860px) { .fb-row { grid-template-columns: 1fr; } }

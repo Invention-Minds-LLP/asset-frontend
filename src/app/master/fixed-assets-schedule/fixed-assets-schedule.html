@@ -9,6 +9,9 @@
       }
     </div>
     <div class="header-actions">
+      <p-select [options]="branchOptions" optionLabel="name" optionValue="id" [(ngModel)]="branchId"
+        placeholder="All Branches" [showClear]="true" [filter]="true" filterBy="name"
+        (onChange)="load()" appendTo="body" [style]="{'min-width':'170px'}"></p-select>
       <p-select [options]="yearOptions" [(ngModel)]="selectedYear"
         optionLabel="label" optionValue="value" styleClass="fy-select"></p-select>
       <p-button label="Load" icon="pi pi-search" severity="secondary" size="small" (onClick)="load()" [loading]="loading"></p-button>

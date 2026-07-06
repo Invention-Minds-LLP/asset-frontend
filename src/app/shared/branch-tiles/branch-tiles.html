@@ -1,0 +1,24 @@
+<div class="bt-row" *ngIf="visible">
+  <button class="bt-tile bt-all" [class.bt-active]="selectedBranchId === null" (click)="select(null)">
+    <span class="bt-name"><i class="pi pi-th-large"></i> All Branches</span>
+    <span class="bt-stats" *ngIf="totals">
+      <b>{{ totals.assets | number }}</b> assets · <b>{{ money(totals.grossValue) }}</b>
+    </span>
+  </button>
+
+  <button class="bt-tile" *ngFor="let b of branches"
+          [class.bt-active]="selectedBranchId === b.id"
+          [style.--bt-accent]="color(b)"
+          (click)="select(b.id)">
+    <span class="bt-name"><span class="bt-dot"></span>{{ b.name }}</span>
+    <span class="bt-stats">
+      <b>{{ b.assetCount | number }}</b> assets · <b>{{ money(b.grossValue) }}</b>
+    </span>
+    <span class="bt-meta">
+      <span class="bt-grade" [style.background]="gradeColor(b.grade)">{{ b.grade }}</span>
+      <span class="bt-tickets" [class.bt-warn]="b.openTickets > 0">
+        <i class="pi pi-ticket"></i> {{ b.openTickets }}
+      </span>
+    </span>
+  </button>
+</div>

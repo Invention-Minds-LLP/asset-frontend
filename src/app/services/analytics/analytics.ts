@@ -37,8 +37,8 @@ export class AnalyticsService {
     return this.http.get<any>(`${environment.apiUrl}/hierarchy-config/sla-breach-alerts`);
   }
 
-  getInStoreAging(): Observable<any> {
-    return this.http.get<any>(`${this.base}/in-store-aging`);
+  getInStoreAging(filters: any = {}): Observable<any> {
+    return this.http.get<any>(`${this.base}/in-store-aging`, { params: this.buildParams(filters) });
   }
 
   getUncoveredAssets(filters: any = {}): Observable<any> {
@@ -49,8 +49,12 @@ export class AnalyticsService {
     return this.http.get<any>(`${this.base}/maintenance-by-category`, { params: this.buildParams(filters) });
   }
 
-  getAssetValueBuckets(): Observable<any> {
-    return this.http.get<any>(`${this.base}/asset-value-buckets`);
+  getAssetValueBuckets(filters: any = {}): Observable<any> {
+    return this.http.get<any>(`${this.base}/asset-value-buckets`, { params: this.buildParams(filters) });
+  }
+
+  getBranchDashboard(): Observable<any> {
+    return this.http.get<any>(`${this.base}/branch-dashboard`);
   }
 
   private buildParams(obj: any): HttpParams {

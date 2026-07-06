@@ -24,12 +24,13 @@ export class Assets {
   }
 
   /** GET assets with server-side pagination + search (master table only) */
-  getAssetsPaginated(params: { page: number; limit: number; search?: string; filterField?: string }): Observable<any> {
+  getAssetsPaginated(params: { page: number; limit: number; search?: string; filterField?: string; branchId?: number | null }): Observable<any> {
     let q = new URLSearchParams();
     q.set('page', String(params.page));
     q.set('limit', String(params.limit));
     if (params.search) q.set('search', params.search);
     if (params.filterField) q.set('filterField', params.filterField);
+    if (params.branchId) q.set('branchId', String(params.branchId));
     return this.http.get<any>(`${this.assetsUrl}/paginated?${q.toString()}`);
   }
 
@@ -55,6 +56,10 @@ export class Assets {
   /** PUT update asset by ID */
   updateAsset(id: number, assetData: any): Observable<any> {
     return this.http.put<any>(`${this.assetsUrl}/${id}`, assetData);
+  }
+
+  updateAssetMakeModel(id: number, payload: { manufacturer: string | null; modelNumber: string | null }): Observable<any> {
+    return this.http.patch<any>(`${this.assetsUrl}/${id}/make-model`, payload);
   }
 
   /** DELETE asset by ID */
@@ -313,6 +318,13 @@ export class Assets {
   searchSpareParts(query: string) {
     return this.http.get<{ label: string; value: number }[]>(
       `${environment.apiUrl}/sub-assets/options?q=${encodeURIComponent(query)}`
+    );
+  }
+
+  /** Spares + consumables stocked in a parent asset's department store. */
+  getSubAssetInventory(parentAssetId: string) {
+    return this.http.get<{ spares: any[]; consumables: any[] }>(
+      `${this.subAssetsUrl}/${parentAssetId}/available-inventory`
     );
   }
 

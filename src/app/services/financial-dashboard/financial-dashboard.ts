@@ -33,6 +33,10 @@ export class FinancialDashboardService {
     return this.http.get(`${this.baseUrl}/cost-trend`, { params: this.buildParams(filters) });
   }
 
+  getBranchBreakdown(filters: any = {}): Observable<any> {
+    return this.http.get(`${this.baseUrl}/branch-breakdown`, { params: this.buildParams(filters) });
+  }
+
   private buildParams(obj: any): HttpParams {
     let params = new HttpParams();
     for (const key of Object.keys(obj)) {

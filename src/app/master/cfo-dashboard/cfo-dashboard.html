@@ -9,9 +9,17 @@
       </div></h2>
       <p class="subtitle">Enterprise Financial Analytics & Asset Intelligence</p>
     </div>
-    <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadDashboard(); loadTCO(); loadTurnover(); loadIdleCapital(); loadInStoreAging()"
-      [loading]="loadingDashboard" size="small" severity="secondary"></p-button>
+    <div style="display:flex; gap:.5rem; align-items:center;">
+      <p-select [options]="branchOptions" optionLabel="name" optionValue="id" [(ngModel)]="branchId"
+        placeholder="All Branches" [showClear]="true" [filter]="true" filterBy="name"
+        (onChange)="onBranchChange()" appendTo="body" [style]="{'min-width':'180px'}"></p-select>
+      <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadDashboard(); loadTCO(); loadTurnover(); loadIdleCapital(); loadInStoreAging()"
+        [loading]="loadingDashboard" size="small" severity="secondary"></p-button>
+    </div>
   </div>
+
+  <!-- Branch tiles — one-click branch scoping (stays in sync with the dropdown above) -->
+  <app-branch-tiles [selectedBranchId]="branchId" (branchChange)="onBranchTile($event)"></app-branch-tiles>
 
   @if (dashboard?.legacyAssetCount > 0) {
     <div class="legacy-data-banner">
@@ -148,6 +156,42 @@
     }
   } @else if (loadingDashboard) {
     <div class="text-center"><i class="pi pi-spin pi-spinner" style="font-size:2rem"></i></div>
+  }
+
+  <!-- ── Branch Comparison — value, book value & maintenance spend ── -->
+  @if (branchStats.length > 1) {
+    <div class="dashboard-section">
+      <div class="section-header">
+        <span class="section-title"><i class="pi pi-building-columns"></i> Branch Comparison
+          <i class="pi pi-info-circle section-info" pTooltip="Gross asset value, current book value and lifetime maintenance spend of each branch — independent of the branch filter above." tooltipPosition="top"></i>
+        </span>
+        <span class="section-sub">Gross value · book value · maintenance spend</span>
+      </div>
+      <div class="branch-compare">
+        @for (b of branchStats; track b.id) {
+          <div class="bc-row">
+            <div class="bc-name"><span class="bc-dot" [style.background]="branchColor(b)"></span>{{ b.name }}</div>
+            <div class="bc-bars">
+              <div class="bc-bar">
+                <span class="bc-lbl">Value</span>
+                <div class="bc-track"><div class="bc-fill" [style.width.%]="branchBarW(b, 'grossValue')" [style.background]="branchColor(b)"></div></div>
+                <span class="bc-val">{{ formatCurrency(b.grossValue) }}</span>
+              </div>
+              <div class="bc-bar">
+                <span class="bc-lbl">Book</span>
+                <div class="bc-track"><div class="bc-fill bc-fill-soft" [style.width.%]="branchBarW(b, 'netBlock')" [style.background]="branchColor(b)"></div></div>
+                <span class="bc-val">{{ formatCurrency(b.netBlock) }}</span>
+              </div>
+              <div class="bc-bar">
+                <span class="bc-lbl">Maint.</span>
+                <div class="bc-track"><div class="bc-fill" [style.width.%]="branchBarW(b, 'maintenanceSpend')" style="background:#eb6834"></div></div>
+                <span class="bc-val">{{ formatCurrency(b.maintenanceSpend) }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
   }
 
   <!-- ── Asset Value Distribution (Buckets) ── -->

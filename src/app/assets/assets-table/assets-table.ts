@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { Assets } from '../../services/assets/assets';
+import { Branches } from '../../services/branches/branches';
 import { ChangeDetectorRef, OnInit } from '@angular/core';
 import { AssetEditService } from '../../services/assets/assets-edit';
 import { Router } from '@angular/router';
@@ -57,6 +58,10 @@ export class AssetsTable implements OnInit {
   refreshing = false;
   private searchInput$ = new Subject<string>();
 
+  // Branch filter — scopes the table to assets currently located in a branch
+  branchOptions: { id: number; name: string }[] = [];
+  selectedBranchId: number | null = null;
+
   // HOD Approval
   showHodApprovalDialog = false;
   selectedHodAsset: any = null;
@@ -69,6 +74,7 @@ export class AssetsTable implements OnInit {
 
   constructor(
     private assetService: Assets,
+    private branchService: Branches,
     private cdr: ChangeDetectorRef,
     private assetEditService: AssetEditService,
     private router: Router,
@@ -100,11 +106,25 @@ export class AssetsTable implements OnInit {
 
   ngOnInit() {
     this.loadAccessPermissions();
+    this.branchService.getBranches().subscribe({
+      next: (branches) => {
+        setTimeout(() => {
+          this.branchOptions = (branches || []).filter((b: any) => b.isActive !== false);
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => { /* branch filter simply stays empty */ }
+    });
     // Debounced search → reset to page 1 and reload from server.
     this.searchInput$.pipe(debounceTime(350), distinctUntilChanged()).subscribe(() => {
       this.currentPage = 1;
       this.loadPage();
     });
+    this.loadPage();
+  }
+
+  onBranchChange() {
+    this.currentPage = 1;
     this.loadPage();
   }
 
@@ -115,6 +135,7 @@ export class AssetsTable implements OnInit {
       limit: this.rowsPerPage,
       search: this.searchTerm || '',
       filterField: this.selectedFilter,
+      branchId: this.selectedBranchId,
     }).subscribe({
       next: (res) => {
         setTimeout(() => {  // ✅ defer update after Angular's change detection

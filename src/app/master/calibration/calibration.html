@@ -151,7 +151,12 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr>
-            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ row.asset?.assetName }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">
+              {{ row.asset?.assetName }}
+              <div *ngIf="row.asset?.manufacturer || row.asset?.modelNumber" style="font-size: 0.75rem; opacity: 0.7;">
+                {{ row.asset?.manufacturer }}{{ row.asset?.manufacturer && row.asset?.modelNumber ? ' · ' : '' }}{{ row.asset?.modelNumber }}
+              </div>
+            </td>
             <td>{{ row.frequencyValue }} {{ row.frequencyUnit }}</td>
             <td [class.text-danger]="row.nextDueAt < today">{{ row.nextDueAt | date:'dd MMM yyyy' }}</td>
             <td>{{ row.lastCalibratedAt ? (row.lastCalibratedAt | date:'dd MMM yyyy') : '—' }}</td>
@@ -179,7 +184,12 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr class="due-row">
-            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ row.asset?.assetName }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">
+              {{ row.asset?.assetName }}
+              <div *ngIf="row.asset?.manufacturer || row.asset?.modelNumber" style="font-size: 0.75rem; opacity: 0.7;">
+                {{ row.asset?.manufacturer }}{{ row.asset?.manufacturer && row.asset?.modelNumber ? ' · ' : '' }}{{ row.asset?.modelNumber }}
+              </div>
+            </td>
             <td class="text-danger">{{ row.nextDueAt | date:'dd MMM yyyy' }}</td>
             <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ row.vendor?.name || '—' }}</td>
             <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">{{ row.standardProcedure || '—' }}</td>

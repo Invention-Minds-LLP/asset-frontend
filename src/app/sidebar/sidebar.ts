@@ -111,6 +111,7 @@ export class Sidebar implements OnInit {
       icon: 'pi pi-indian-rupee', label: 'Finance & Analytics',
       path: '/finance', hasDropdown: true,
       dropdownItems: [
+        // { label: 'Branch Command Center', route: '/branch-dashboard', icon: 'pi pi-building-columns' },
         { label: 'Financial Dashboard', route: '/financial-dashboard', icon: 'pi pi-indian-rupee' },
         { label: 'CFO Dashboard', route: '/cfo-dashboard', icon: 'pi pi-chart-pie' },
         { label: 'COO Dashboard', route: '/coo-dashboard', icon: 'pi pi-gauge' },

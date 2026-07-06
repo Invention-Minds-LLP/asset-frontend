@@ -121,7 +121,14 @@
           </ng-template>
           <ng-template pTemplate="body" let-s>
             <tr>
-              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;"><strong>{{ s.asset?.assetName || s.asset?.assetId || '—' }}</strong></td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">
+                <strong>{{ s.asset?.assetName || s.asset?.assetId || '—' }}</strong>
+                @if (s.asset?.manufacturer || s.asset?.modelNumber) {
+                  <div style="font-size: 0.75rem; opacity: 0.7;">
+                    {{ s.asset?.manufacturer }}{{ s.asset?.manufacturer && s.asset?.modelNumber ? ' · ' : '' }}{{ s.asset?.modelNumber }}
+                  </div>
+                }
+              </td>
               <td>Every {{ s.frequencyValue }} {{ s.frequencyUnit }}</td>
               <td>{{ s.startDate ? (s.startDate | date:'mediumDate') : '—' }}</td>
               <td>{{ s.nextDueAt | date:'mediumDate' }}</td>

@@ -175,3 +175,17 @@
 .bucket-pct-label { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
 .bucket-dialog-summary { display: flex; gap: 1.5rem; font-size: 0.88rem; color: var(--text-color-secondary); margin-bottom: 1rem; flex-wrap: wrap; }
 .rank-badge { background: var(--surface-hover); color: #374151; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; }
+
+/* ── Branch Comparison ─────────────────────────────────────── */
+.branch-compare { display: flex; flex-direction: column; gap: .9rem; padding: .4rem 0; }
+.bc-row { display: grid; grid-template-columns: 170px 1fr; gap: .8rem; align-items: center; }
+.bc-name { font-weight: 700; font-size: .9rem; display: flex; align-items: center; gap: .45rem; }
+.bc-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.bc-bars { display: flex; flex-direction: column; gap: .3rem; }
+.bc-bar { display: grid; grid-template-columns: 52px 1fr 110px; align-items: center; gap: .55rem; }
+.bc-lbl { font-size: .72rem; color: var(--text-color-secondary, #64748b); text-transform: uppercase; letter-spacing: .04em; }
+.bc-track { background: var(--surface-200, #eceae5); border-radius: 4px; height: 11px; }
+.bc-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
+.bc-fill-soft { opacity: .55; }
+.bc-val { font-size: .8rem; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) { .bc-row { grid-template-columns: 1fr; } }

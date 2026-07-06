@@ -17,6 +17,9 @@
     </div>
   </div>
 
+  <!-- Branch tiles (management only — hides itself otherwise). Click scopes the dashboard. -->
+  <app-branch-tiles [selectedBranchId]="branchId" (branchChange)="onBranchTile($event)"></app-branch-tiles>
+
   <!-- Legacy asset data banner -->
   @if (stats.legacyAssetCount > 0) {
     <div class="legacy-data-banner">

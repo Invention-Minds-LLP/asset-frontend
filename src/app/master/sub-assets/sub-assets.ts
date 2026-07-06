@@ -69,13 +69,43 @@ export class SubAssets implements OnInit {
   replaceForm: any = {};
 
   // ─── Dropdown options ─────────────────────────────────────────────────────
-  sparePartOptions: { label: string; value: number }[] = [];
+  sparePartOptions: any[] = [];
+  consumableOptions: any[] = [];
   spareSearchQuery = '';
+
+  // Auto-fill cost from the selected inventory item (unit cost).
+  onAddInventorySelect() {
+    const opts = this.addForm.sourceType === 'INVENTORY_CONSUMABLE' ? this.consumableOptions : this.sparePartOptions;
+    const id = this.addForm.sourceType === 'INVENTORY_CONSUMABLE' ? this.addForm.consumableId : this.addForm.sparePartId;
+    const opt = opts.find((o: any) => o.value === id);
+    this.addForm.cost = opt?.cost ?? null;
+  }
+  onReplaceInventorySelect() {
+    const opts = this.replaceForm.sourceType === 'INVENTORY_CONSUMABLE' ? this.consumableOptions : this.sparePartOptions;
+    const id = this.replaceForm.sourceType === 'INVENTORY_CONSUMABLE' ? this.replaceForm.consumableId : this.replaceForm.sparePartId;
+    const opt = opts.find((o: any) => o.value === id);
+    this.replaceForm.cost = opt?.cost ?? null;
+  }
 
   readonly sourceTypeOptions = [
     { label: 'New Component', value: 'NEW' },
     { label: 'From Inventory (Spare Part)', value: 'INVENTORY_SPARE' },
+    { label: 'From Inventory (Consumable)', value: 'INVENTORY_CONSUMABLE' },
   ];
+
+  // Load spares + consumables stocked in the parent's department store.
+  loadDeptInventory(parentAssetId: string) {
+    this.sparePartOptions = [];
+    this.consumableOptions = [];
+    this.assetsAPI.getSubAssetInventory(parentAssetId).subscribe({
+      next: (res) => setTimeout(() => {
+        this.sparePartOptions = res?.spares || [];
+        this.consumableOptions = res?.consumables || [];
+        this.cdr.detectChanges();
+      }),
+      error: () => {}
+    });
+  }
 
   // Asset Type = how the asset is classified physically (matches the main form).
   readonly assetTypeOptions = [
@@ -210,6 +240,7 @@ export class SubAssets implements OnInit {
     this.addForm = {
       sourceType: 'NEW',
       sparePartId: null,
+      consumableId: null,
       assetName: '',
       serialNumber: '',
       assetType: null,
@@ -221,11 +252,13 @@ export class SubAssets implements OnInit {
       condition: 'NEW',
       notes: ''
     };
+    this.loadDeptInventory(asset.assetId);
     this.showAddDialog = true;
   }
 
   onAddSourceChange() {
     this.addForm.sparePartId = null;
+    this.addForm.consumableId = null;
     this.addForm.assetName = '';
     this.addForm.serialNumber = '';
   }
@@ -253,6 +286,10 @@ export class SubAssets implements OnInit {
       this.toast('warn', 'Please select a spare part');
       return;
     }
+    if (this.addForm.sourceType === 'INVENTORY_CONSUMABLE' && !this.addForm.consumableId) {
+      this.toast('warn', 'Please select a consumable');
+      return;
+    }
 
     this.addSaving = true;
     // Field names must match the backend contract. Category & status are
@@ -266,6 +303,11 @@ export class SubAssets implements OnInit {
     if (this.addForm.sourceType === 'INVENTORY_SPARE') {
       payload.sparePartId = Number(this.addForm.sparePartId);
       payload.serialNumber = this.addForm.serialNumber || null;
+      payload.purchaseCost = this.addForm.cost != null && this.addForm.cost !== '' ? Number(this.addForm.cost) : null;
+    } else if (this.addForm.sourceType === 'INVENTORY_CONSUMABLE') {
+      payload.consumableId = Number(this.addForm.consumableId);
+      payload.serialNumber = this.addForm.serialNumber || null;
+      payload.purchaseCost = this.addForm.cost != null && this.addForm.cost !== '' ? Number(this.addForm.cost) : null;
     } else {
       payload.assetName = this.addForm.assetName.trim();
       payload.serialNumber = this.addForm.serialNumber || null;
@@ -324,6 +366,7 @@ export class SubAssets implements OnInit {
     this.replaceForm = {
       sourceType: 'NEW',
       sparePartId: null,
+      consumableId: null,
       spareSerial: '',
       assetName: '',
       serialNumber: '',
@@ -337,12 +380,13 @@ export class SubAssets implements OnInit {
       conditionAtReplacement: 'FAIR',
       reason: '',
     };
-    this.sparePartOptions = [];
+    this.loadDeptInventory(parentAssetId);
     this.showReplaceDialog = true;
   }
 
   onReplaceSourceChange() {
     this.replaceForm.sparePartId = null;
+    this.replaceForm.consumableId = null;
     this.replaceForm.spareSerial = '';
     this.replaceForm.assetName = '';
     this.replaceForm.serialNumber = '';
@@ -359,6 +403,10 @@ export class SubAssets implements OnInit {
       this.toast('warn', 'Please select a spare part');
       return;
     }
+    if (this.replaceForm.sourceType === 'INVENTORY_CONSUMABLE' && !this.replaceForm.consumableId) {
+      this.toast('warn', 'Please select a consumable');
+      return;
+    }
 
     this.replaceSaving = true;
     const payload: any = {
@@ -371,6 +419,11 @@ export class SubAssets implements OnInit {
     if (this.replaceForm.sourceType === 'INVENTORY_SPARE') {
       payload.sparePartId = Number(this.replaceForm.sparePartId);
       payload.serialNumber = this.replaceForm.spareSerial || null;
+      payload.cost = this.replaceForm.cost != null && this.replaceForm.cost !== '' ? Number(this.replaceForm.cost) : null;
+    } else if (this.replaceForm.sourceType === 'INVENTORY_CONSUMABLE') {
+      payload.consumableId = Number(this.replaceForm.consumableId);
+      payload.serialNumber = this.replaceForm.spareSerial || null;
+      payload.cost = this.replaceForm.cost != null && this.replaceForm.cost !== '' ? Number(this.replaceForm.cost) : null;
     } else {
       payload.assetName = this.replaceForm.assetName.trim();
       payload.serialNumber = this.replaceForm.serialNumber || null;

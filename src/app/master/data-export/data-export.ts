@@ -16,6 +16,7 @@ interface ExportItem {
   needsFY?:        boolean;
   needsCategory?:  boolean;
   needsDepartment?: boolean;
+  needsBranch?:    boolean;
   needsVendor?:    boolean;
   multiSheet?:     boolean;
 }
@@ -45,6 +46,7 @@ export class DataExport implements OnInit {
   financialYear   = '';
   assetCategoryId: number | '' = '';
   departmentId:    number | '' = '';
+  branchId:        number | '' = '';
   vendorId:        number | '' = '';
   assetType = '';
 
@@ -54,6 +56,7 @@ export class DataExport implements OnInit {
   // Reference lists for dropdowns
   categories: { id: number; name: string }[] = [];
   departments: { id: number; name: string }[] = [];
+  branches: { id: number; name: string }[] = [];
 
   months = [
     { value: 0,  label: 'All months' },
@@ -84,7 +87,7 @@ export class DataExport implements OnInit {
       title: 'A. Statutory & Audit Pack',
       icon:  'gavel',
       items: [
-        { label: 'Schedule II FA Register (Companies Act)', report: 'schedule-ii-fa-register',    filename: 'Schedule_II_FA_Register',    needsFY: true, needsCategory: true, needsDepartment: true },
+        { label: 'Schedule II FA Register (Companies Act)', report: 'schedule-ii-fa-register',    filename: 'Schedule_II_FA_Register',    needsFY: true, needsCategory: true, needsDepartment: true, needsBranch: true },
         { label: 'IT Act FA Register',                       report: 'it-act-fa-register',         filename: 'IT_Act_FA_Register',         needsCategory: true, needsDepartment: true },
         { label: 'CFO FA Register — Full (Year-End / Schedule II)',  report: 'cfo-fixed-asset-register',          filename: 'CFO_Fixed_Asset_Register_Full',     needsFY: true, needsDate: true, needsMonth: true, needsCategory: true },
         { label: 'CFO FA Register — Activity Only (movements)',      report: 'cfo-fixed-asset-register-activity', filename: 'CFO_Fixed_Asset_Register_Activity', needsFY: true, needsDate: true, needsMonth: true, needsCategory: true },
@@ -99,7 +102,7 @@ export class DataExport implements OnInit {
       icon:  'trending_down',
       items: [
         { label: 'Depreciation Log',                report: 'depreciation-log',           filename: 'Depreciation_Log',           needsDate: true, needsFY: true },
-        { label: 'Asset Additions Register',        report: 'asset-additions',            filename: 'Asset_Additions',            needsDate: true, needsFY: true, needsCategory: true, needsDepartment: true, needsVendor: true },
+        { label: 'Asset Additions Register',        report: 'asset-additions',            filename: 'Asset_Additions',            needsDate: true, needsFY: true, needsCategory: true, needsDepartment: true, needsBranch: true, needsVendor: true },
         { label: 'Asset Retirements & Disposals',   report: 'asset-retirements',          filename: 'Asset_Retirements',          needsDate: true, needsFY: true },
         { label: 'Net Block Movement by Category',  report: 'net-block-movement',         filename: 'Net_Block_Movement' },
         { label: 'Fully Depreciated, Still-In-Use', report: 'fully-depreciated-in-use',   filename: 'Fully_Depreciated_In_Use' },
@@ -197,7 +200,7 @@ export class DataExport implements OnInit {
       title: 'J. Asset Master & Lifecycle',
       icon:  'category',
       items: [
-        { label: 'Asset Master (multi-sheet)', report: 'asset-master',         filename: 'Asset_Master',        needsCategory: true, needsDepartment: true, multiSheet: true },
+        { label: 'Asset Master (multi-sheet)', report: 'asset-master',         filename: 'Asset_Master',        needsCategory: true, needsDepartment: true, needsBranch: true, multiSheet: true },
         { label: 'Asset Movement Log',         report: 'asset-movement-log',   filename: 'Asset_Movement_Log',  multiSheet: true },
         { label: 'Physical Audit Records',     report: 'physical-audit',       filename: 'Physical_Audit' },
         { label: 'Asset Utilisation',          report: 'asset-utilisation',    filename: 'Asset_Utilisation' },
@@ -252,6 +255,10 @@ export class DataExport implements OnInit {
       next: (rows) => { this.departments = (rows || []).map(r => ({ id: r.id, name: r.name })); },
       error: () => {},
     });
+    this.http.get<any[]>(`${environment.apiUrl}/branches`).subscribe({
+      next: (rows) => { this.branches = (rows || []).filter(r => r.isActive !== false).map(r => ({ id: r.id, name: r.name })); },
+      error: () => {},
+    });
   }
 
   // Warn if a date range exceeds 12 months — exports get heavy beyond that
@@ -277,6 +284,7 @@ export class DataExport implements OnInit {
     if (item.needsFY  && this.financialYear)      p.financialYear   = this.financialYear;
     if (item.needsCategory   && this.assetCategoryId !== '') p.assetCategoryId = Number(this.assetCategoryId);
     if (item.needsDepartment && this.departmentId    !== '') p.departmentId    = Number(this.departmentId);
+    if (item.needsBranch     && this.branchId        !== '') p.branchId        = Number(this.branchId);
     if (item.needsVendor     && this.vendorId        !== '') p.vendorId        = Number(this.vendorId);
     if (this.assetType) p.assetType = this.assetType;
     return p;
@@ -314,6 +322,7 @@ export class DataExport implements OnInit {
     this.financialYear   = '';
     this.assetCategoryId = '';
     this.departmentId    = '';
+    this.branchId        = '';
     this.vendorId        = '';
     this.assetType       = '';
   }

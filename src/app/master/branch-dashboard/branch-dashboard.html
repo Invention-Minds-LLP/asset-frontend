@@ -1,0 +1,226 @@
+<div class="bcc-root">
+
+  <!-- Unauthorized -->
+  <div *ngIf="!authorized" class="bcc-locked">
+    <i class="pi pi-lock"></i>
+    <h2>Management access only</h2>
+    <p>The Branch Command Center is restricted to management roles.</p>
+  </div>
+
+  <ng-container *ngIf="authorized">
+
+    <!-- Header -->
+    <div class="bcc-header">
+      <div>
+        <h1><i class="pi pi-building-columns"></i> Branch Command Center</h1>
+        <p class="bcc-sub">Every branch, one screen — health, value, risk and movement</p>
+      </div>
+      <div class="bcc-live" *ngIf="generatedAt">
+        <span class="pulse"></span> LIVE
+        <span class="bcc-updated">updated {{ generatedAt | date:'shortTime' }}</span>
+        <button class="bcc-refresh" (click)="load()" title="Refresh now"><i class="pi pi-refresh"></i></button>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="bcc-loading"><i class="pi pi-spin pi-spinner"></i> Loading branch intelligence…</div>
+    <div *ngIf="error" class="bcc-error"><i class="pi pi-times-circle"></i> {{ error }}</div>
+
+    <ng-container *ngIf="!loading && !error && totals">
+
+      <!-- KPI hero strip -->
+      <div class="bcc-kpis">
+        <div class="kpi">
+          <span class="kpi-label">Branches</span>
+          <span class="kpi-value">{{ kpi.branches }}</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Total Assets</span>
+          <span class="kpi-value">{{ kpi.assets | number }}</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Gross Asset Value</span>
+          <span class="kpi-value">{{ formatMoney(kpi.grossValue) }}</span>
+        </div>
+        <div class="kpi" [class.kpi-bad]="totals.openTickets > 0">
+          <span class="kpi-label">Open Tickets</span>
+          <span class="kpi-value">{{ kpi.openTickets }}</span>
+          <span class="kpi-note" *ngIf="totals.slaBreached > 0">
+            <i class="pi pi-exclamation-triangle"></i> {{ totals.slaBreached }} past SLA
+          </span>
+        </div>
+      </div>
+
+      <!-- Attention strip -->
+      <div class="bcc-attention" *ngIf="attention.length">
+        <div class="att-title"><i class="pi pi-bell"></i> Needs attention</div>
+        <div class="att-items">
+          <div class="att-item" *ngFor="let a of attention" [class]="'sev-' + a.severity">
+            <i class="pi" [class]="'pi ' + a.icon"></i>
+            <b>{{ a.branch }}</b> — {{ a.text }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Branch scorecards -->
+      <div class="bcc-cards">
+        <div class="bcard" *ngFor="let b of branches; trackBy: trackBranch"
+             [class.bcard-selected]="selected?.id === b.id"
+             [style.--accent]="branchColor(b)"
+             (click)="select(b)">
+          <div class="bcard-top">
+            <div>
+              <div class="bcard-name"><span class="dot"></span>{{ b.name }}</div>
+              <div class="bcard-code" *ngIf="b.code">{{ b.code }}</div>
+            </div>
+            <!-- Health ring -->
+            <div class="ring" [attr.title]="'Health score ' + b.healthScore + '/100'">
+              <svg viewBox="0 0 64 64" width="64" height="64" role="img"
+                   [attr.aria-label]="b.name + ' health ' + b.healthScore + ' out of 100, grade ' + b.grade">
+                <circle cx="32" cy="32" r="26" fill="none" stroke="var(--ring-track)" stroke-width="6"/>
+                <circle cx="32" cy="32" r="26" fill="none"
+                        [attr.stroke]="gradeColor(b.grade)" stroke-width="6" stroke-linecap="round"
+                        [attr.stroke-dasharray]="ringDash(b.healthScore)"
+                        transform="rotate(-90 32 32)" class="ring-arc"/>
+                <text x="32" y="30" text-anchor="middle" class="ring-num">{{ b.healthScore }}</text>
+                <text x="32" y="43" text-anchor="middle" class="ring-grade"
+                      [attr.fill]="gradeColor(b.grade)">{{ b.grade }}</text>
+              </svg>
+            </div>
+          </div>
+
+          <div class="bcard-stats">
+            <div><span class="s-num">{{ b.assetCount | number }}</span><span class="s-lbl">Assets</span></div>
+            <div><span class="s-num">{{ formatMoney(b.grossValue) }}</span><span class="s-lbl">Value</span></div>
+            <div><span class="s-num" [class.warn]="b.openTickets > 0">{{ b.openTickets }}</span><span class="s-lbl">Open tickets</span></div>
+            <div><span class="s-num" [class.warn]="b.uncovered > 0">{{ b.uncovered }}</span><span class="s-lbl">Uncovered</span></div>
+          </div>
+
+          <!-- 12-month acquisition sparkline -->
+          <div class="bcard-spark">
+            <svg viewBox="0 0 120 36" width="120" height="36" preserveAspectRatio="none" role="img"
+                 [attr.aria-label]="'12-month acquisitions trend for ' + b.name">
+              <polyline [attr.points]="sparkPoints(b)" fill="none"
+                        [attr.stroke]="branchColor(b)" stroke-width="2"
+                        stroke-linejoin="round" stroke-linecap="round"/>
+            </svg>
+            <span class="spark-lbl">12-mo additions</span>
+          </div>
+
+          <!-- Status mix stacked strip -->
+          <div class="bcard-strip">
+            <div class="strip">
+              <div class="seg" *ngFor="let s of statusSegments(b)"
+                   [style.width.%]="s.pct" [style.background]="s.color"
+                   [attr.title]="s.status + ': ' + s.count"></div>
+            </div>
+            <div class="strip-legend">
+              <span *ngFor="let s of statusSegments(b)">
+                <span class="lg-dot" [style.background]="s.color"></span>{{ s.status }} {{ s.count }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drill-down panel -->
+      <div class="bcc-detail" *ngIf="selected as sel">
+        <div class="detail-head">
+          <h3><span class="dot" [style.background]="branchColor(sel)"></span>{{ sel.name }} — detail</h3>
+          <div class="detail-links">
+            <a [routerLink]="['/assets/view']" [queryParams]="{ branchId: sel.id }" *ngIf="sel.id != null">
+              <i class="pi pi-database"></i> View assets
+            </a>
+            <a [routerLink]="['/reports']" [queryParams]="{ branchId: sel.id }" *ngIf="sel.id != null">
+              <i class="pi pi-file"></i> Reports
+            </a>
+            <button class="bcc-refresh" (click)="selected = null"><i class="pi pi-times"></i></button>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-card">
+            <h4>Category mix <span class="muted">(top 5 + other)</span></h4>
+            <div class="hbar" *ngFor="let c of sel.topCategories">
+              <span class="hbar-lbl">{{ c.name }}</span>
+              <div class="hbar-track">
+                <div class="hbar-fill" [style.width.%]="categoryBarWidth(sel, c)"
+                     [style.background]="branchColor(sel)"></div>
+              </div>
+              <span class="hbar-val">{{ c.count }}</span>
+            </div>
+          </div>
+          <div class="detail-card">
+            <h4>Financials & risk</h4>
+            <div class="fact"><span>Gross value</span><b>{{ formatMoney(sel.grossValue) }}</b></div>
+            <div class="fact"><span>Net block (book value)</span><b>{{ formatMoney(sel.netBlock) }}</b></div>
+            <div class="fact"><span>Maintenance spend (lifetime)</span><b>{{ formatMoney(sel.maintenanceSpend) }}</b></div>
+            <div class="fact"><span>SLA-breached open tickets</span><b [class.warn]="sel.slaBreached > 0">{{ sel.slaBreached }}</b></div>
+            <div class="fact"><span>Assets without warranty/AMC</span><b [class.warn]="sel.uncovered > 0">{{ sel.uncovered }}</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison row: value bars + podium -->
+      <div class="bcc-row">
+        <div class="panel">
+          <h3>Asset value by branch</h3>
+          <div class="hbar hbar-lg" *ngFor="let b of realBranches">
+            <span class="hbar-lbl">{{ b.name }}</span>
+            <div class="hbar-track">
+              <div class="hbar-fill" [style.width.%]="valueBarWidth(b)" [style.background]="branchColor(b)"></div>
+            </div>
+            <span class="hbar-val">{{ formatMoney(b.grossValue) }}</span>
+          </div>
+          <p class="muted" *ngIf="unassigned">+ {{ formatMoney(unassigned.grossValue) }} unassigned to any branch</p>
+        </div>
+
+        <div class="panel podium-panel">
+          <h3>Branch ranking <span class="muted">by health score</span></h3>
+          <div class="podium">
+            <div class="step step-2" *ngIf="podium[1] as p">
+              <div class="medal silver">2</div>
+              <div class="p-name">{{ p.name }}</div>
+              <div class="p-score" [style.color]="gradeColor(p.grade)">{{ p.healthScore }}</div>
+            </div>
+            <div class="step step-1" *ngIf="podium[0] as p">
+              <div class="medal gold"><i class="pi pi-crown"></i></div>
+              <div class="p-name">{{ p.name }}</div>
+              <div class="p-score" [style.color]="gradeColor(p.grade)">{{ p.healthScore }}</div>
+            </div>
+            <div class="step step-3" *ngIf="podium[2] as p">
+              <div class="medal bronze">3</div>
+              <div class="p-name">{{ p.name }}</div>
+              <div class="p-score" [style.color]="gradeColor(p.grade)">{{ p.healthScore }}</div>
+            </div>
+          </div>
+          <p class="muted center">Health = working condition · SLA · coverage · ticket load</p>
+        </div>
+      </div>
+
+      <!-- Acquisition trend -->
+      <div class="panel">
+        <h3>Asset additions — last 12 months</h3>
+        <div class="line-legend">
+          <span *ngFor="let b of realBranches">
+            <span class="lg-dot" [style.background]="branchColor(b)"></span>{{ b.name }}
+          </span>
+        </div>
+        <svg viewBox="0 0 640 200" class="linechart" preserveAspectRatio="none" role="img"
+             aria-label="Monthly asset additions per branch, last 12 months">
+          <g *ngFor="let b of realBranches">
+            <polyline [attr.points]="linePoints(b)" fill="none"
+                      [attr.stroke]="branchColor(b)" stroke-width="2"
+                      stroke-linejoin="round" stroke-linecap="round"/>
+            <circle *ngFor="let d of lineDots(b)" [attr.cx]="d.x" [attr.cy]="d.y" r="4"
+                    [attr.fill]="branchColor(b)" class="line-dot">
+              <title>{{ b.name }} · {{ monthLabel(d.m.ym) }}: {{ d.m.count }} assets</title>
+            </circle>
+          </g>
+        </svg>
+        <div class="line-months">
+          <span *ngFor="let m of months">{{ monthLabel(m) }}</span>
+        </div>
+      </div>
+
+    </ng-container>
+  </ng-container>
+</div>

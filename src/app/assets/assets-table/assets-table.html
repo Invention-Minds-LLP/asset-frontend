@@ -19,6 +19,9 @@
       </div>
       <div class="header-actions">
         <div class="actions">
+          <p-select [options]="branchOptions" optionLabel="name" optionValue="id" [(ngModel)]="selectedBranchId"
+            placeholder="All Branches" [showClear]="true" (onChange)="onBranchChange()" appendTo="body"
+            styleClass="branch-filter" [filter]="true" filterBy="name" />
           <div class="filter" (click)="toggleFilterDropdown($event)">
             <i class="pi pi-filter"></i>
             <ul class="filter-menu" *ngIf="dropdownVisible">
@@ -75,6 +78,7 @@
             <th>Asset Name</th>
             <th>Asset Type</th>
             <th>Department</th>
+            <th>Branch</th>
             <th>Asset Category</th>
             <th>Allotted To</th>
             <th>Asset Photo</th>
@@ -98,6 +102,7 @@
             <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ asset.assetName }}</td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetType }}</td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ asset.department?.name || '-' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.currentBranch?.name || '-' }}</td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetCategory?.name || '-' }}</td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ asset.allottedTo?.name ? asset.allottedTo.name : 'Not Allotted' }}</td>
             <td style="text-align: center;">

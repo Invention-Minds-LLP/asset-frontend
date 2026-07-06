@@ -17,6 +17,11 @@
   <p-panel header="Filters" [toggleable]="true" [collapsed]="false" styleClass="filter-panel">
     <div class="filter-grid" *ngIf="!filtersLoading">
       <div class="filter-item">
+        <label>Branch</label>
+        <p-dropdown [options]="branches" [(ngModel)]="filters.branchId" placeholder="All Branches"
+          [showClear]="true" [style]="{'width':'100%'}" [filter]="true"></p-dropdown>
+      </div>
+      <div class="filter-item">
         <label>Financial Year (From)</label>
         <p-dropdown [options]="financialYears" [(ngModel)]="filters.fyStart" placeholder="All FYs"
           [showClear]="true" [style]="{'width':'100%'}"></p-dropdown>
@@ -34,11 +39,6 @@
       <div class="filter-item">
         <label>Category</label>
         <p-dropdown [options]="categories" [(ngModel)]="filters.categoryId" placeholder="All Categories"
-          [showClear]="true" [style]="{'width':'100%'}" [filter]="true"></p-dropdown>
-      </div>
-      <div class="filter-item">
-        <label>Branch</label>
-        <p-dropdown [options]="branches" [(ngModel)]="filters.branchId" placeholder="All Branches"
           [showClear]="true" [style]="{'width':'100%'}" [filter]="true"></p-dropdown>
       </div>
       <div class="filter-item">
@@ -274,6 +274,40 @@
       </div>
       <div *ngIf="!summary.costByCategory?.length" class="empty-section">
         <i class="pi pi-info-circle"></i> No category breakdown available.
+      </div>
+    </p-tabPanel>
+
+    <!-- ───── TAB: Branch Breakdown ───── -->
+    <p-tabPanel header="By Branch">
+      <div *ngIf="branchBreakdownLoading" class="section-loading">
+        <p-progressSpinner [style]="{width: '40px', height: '40px'}" strokeWidth="4"></p-progressSpinner>
+      </div>
+      <div class="breakdown-section" *ngIf="!branchBreakdownLoading && branchBreakdown.length > 0">
+        <p-table [value]="branchBreakdown" styleClass="p-datatable-sm p-datatable-gridlines">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Branch</th>
+              <th style="text-align:right">Assets</th>
+              <th style="text-align:right">Purchase Value</th>
+              <th style="text-align:right">Maintenance</th>
+              <th style="text-align:right">Insurance</th>
+              <th style="text-align:right">AMC/CMC</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-row>
+            <tr>
+              <td>{{ row.branchName }}</td>
+              <td style="text-align:right">{{ row.assetCount }}</td>
+              <td style="text-align:right; font-weight:600">{{ formatCurrency(row.purchaseValue) }}</td>
+              <td style="text-align:right">{{ formatCurrency(row.maintenanceCost) }}</td>
+              <td style="text-align:right">{{ formatCurrency(row.insurancePremium) }}</td>
+              <td style="text-align:right">{{ formatCurrency(row.amcCmcCost) }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+      <div *ngIf="!branchBreakdownLoading && !branchBreakdown.length" class="empty-section">
+        <i class="pi pi-info-circle"></i> No branch breakdown available.
       </div>
     </p-tabPanel>
 

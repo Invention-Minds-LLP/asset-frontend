@@ -860,6 +860,22 @@
             <ng-container *ngIf="asset.id; else saveAssetFirstForSpec">
                 <div class="tab-section">
 
+                    <!-- Make & Model (asset-level) -->
+                    <h4>Make &amp; Model</h4>
+                    <div class="two-fields">
+                        <p-floatlabel variant="on">
+                            <input pInputText name="manufacturer" [(ngModel)]="asset.manufacturer" />
+                            <label>Manufacturer</label>
+                        </p-floatlabel>
+                        <p-floatlabel variant="on">
+                            <input pInputText name="modelNumber" [(ngModel)]="asset.modelNumber" />
+                            <label>Model Number</label>
+                        </p-floatlabel>
+                    </div>
+                    <div style="margin: 0.5rem 0 1.25rem;">
+                        <button pButton label="Save Make & Model" icon="pi pi-check" (click)="saveMakeModel()" [loading]="savingMakeModel"></button>
+                    </div>
+
                     <form #specForm="ngForm" (ngSubmit)="saveSpecification(specForm)">
                         <div class="two-fields">
                             <p-floatlabel variant="on">

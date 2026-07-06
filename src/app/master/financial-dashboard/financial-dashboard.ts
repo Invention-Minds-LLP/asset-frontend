@@ -73,6 +73,10 @@ export class FinancialDashboard implements OnInit {
   treeLoading = false;
   categoryTreeLoading = false;
 
+  // Branch breakdown table (per-branch cost totals)
+  branchBreakdown: any[] = [];
+  branchBreakdownLoading = false;
+
   // Asset detail when month is expanded
   expandedMonthAssets: Map<string, any[]> = new Map();
   expandedMonthPagination: Map<string, any> = new Map();
@@ -212,6 +216,20 @@ export class FinancialDashboard implements OnInit {
         this.toast('error', 'Failed to load category breakdown');
       },
     });
+
+    this.branchBreakdownLoading = true;
+    this.financialService.getBranchBreakdown(this.filters).subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          this.branchBreakdown = res.branches || [];
+          this.branchBreakdownLoading = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        setTimeout(() => { this.branchBreakdownLoading = false; this.cdr.detectChanges(); });
+      },
+    });
   }
 
   onViewChange() {
@@ -235,36 +253,71 @@ export class FinancialDashboard implements OnInit {
   // ── Tree Node Transform ──────────────────────────────────────────────────
 
   private transformToTreeNodes(financialYears: any[], categoryId: number | null = null): TreeNode[] {
-    return financialYears.map((fy) => ({
-      data: {
-        label: `FY ${fy.fy}`,
-        total: fy.total,
-        assetCount: fy.assetCount,
-        level: 'fy',
-        fyStartYear: fy.fyStartYear,
-        categoryId,
-      },
-      children: fy.quarters.map((q: any) => ({
+    return financialYears.map((fy) => {
+      let children: TreeNode[];
+
+      if (Array.isArray(fy.branches)) {
+        // FY > Branch > Quarter > Month. The branch level is hidden only when
+        // the user has already filtered to one branch — otherwise it always
+        // shows, even if a FY happens to have data in a single branch.
+        if (this.filters.branchId != null && fy.branches.length === 1) {
+          const only = fy.branches[0];
+          children = this.buildQuarterNodes(only.quarters || [], categoryId, only.branchId ?? null);
+        } else {
+          children = fy.branches.map((br: any) => ({
+            data: {
+              label: br.branchName,
+              total: br.total,
+              assetCount: br.assetCount,
+              level: 'branch',
+              branchId: br.branchId ?? null,
+              categoryId,
+            },
+            children: this.buildQuarterNodes(br.quarters || [], categoryId, br.branchId ?? null),
+          }));
+        }
+      } else {
+        // Legacy shape (category tree): FY > Quarter > Month
+        children = this.buildQuarterNodes(fy.quarters || [], categoryId, null);
+      }
+
+      return {
         data: {
-          label: `${q.quarter} (${q.label})`,
-          total: q.total,
-          assetCount: q.assetCount,
-          level: 'quarter',
+          label: `FY ${fy.fy}`,
+          total: fy.total,
+          assetCount: fy.assetCount,
+          level: 'fy',
+          fyStartYear: fy.fyStartYear,
           categoryId,
         },
-        children: q.months.map((m: any) => ({
-          data: {
-            label: m.label,
-            total: m.total,
-            assetCount: m.assetCount,
-            level: 'month',
-            month: m.month,
-            year: m.year,
-            categoryId,
-          },
-          children: [], // lazy loaded
-          leaf: false,
-        })),
+        children,
+      };
+    });
+  }
+
+  private buildQuarterNodes(quarters: any[], categoryId: number | null, branchId: number | null): TreeNode[] {
+    return quarters.map((q: any) => ({
+      data: {
+        label: `${q.quarter} (${q.label})`,
+        total: q.total,
+        assetCount: q.assetCount,
+        level: 'quarter',
+        categoryId,
+        branchId,
+      },
+      children: q.months.map((m: any) => ({
+        data: {
+          label: m.label,
+          total: m.total,
+          assetCount: m.assetCount,
+          level: 'month',
+          month: m.month,
+          year: m.year,
+          categoryId,
+          branchId,
+        },
+        children: [], // lazy loaded
+        leaf: false,
       })),
     }));
   }
@@ -287,8 +340,8 @@ export class FinancialDashboard implements OnInit {
   onNodeExpand(event: any) {
     const node = event.node;
     if (node.data.level === 'month' && node.data.assetCount > 0) {
-      // Scope the cache key by category so FY-tree and category-tree months don't collide.
-      const key = `${node.data.categoryId ?? 'all'}-${node.data.year}-${node.data.month}`;
+      // Scope the cache key by category AND branch so tree months don't collide.
+      const key = `${node.data.categoryId ?? 'all'}-${node.data.branchId ?? 'all'}-${node.data.year}-${node.data.month}`;
       if (this.expandedMonthAssets.has(key)) {
         // Already loaded
         node.children = this.buildAssetChildNodes(this.expandedMonthAssets.get(key)!);
@@ -304,6 +357,8 @@ export class FinancialDashboard implements OnInit {
       ...this.filters,
       // For category-tree months, scope to that category (overrides any filter).
       ...(node.data.categoryId != null ? { categoryId: node.data.categoryId } : {}),
+      // For branch-level months, scope to that branch (overrides any filter).
+      ...(node.data.branchId != null ? { branchId: node.data.branchId } : {}),
       year: node.data.year,
       month: node.data.month,
       page,
@@ -423,6 +478,7 @@ export class FinancialDashboard implements OnInit {
     switch (node.data?.level) {
       case 'category': return 'row-category';
       case 'fy': return 'row-fy';
+      case 'branch': return 'row-branch';
       case 'quarter': return 'row-quarter';
       case 'month': return 'row-month';
       case 'asset': return 'row-asset';

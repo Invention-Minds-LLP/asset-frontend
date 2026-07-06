@@ -14,6 +14,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
 import { MasterService } from '../../services/master/master';
 import { AnalyticsService } from '../../services/analytics/analytics';
+import { BranchTiles } from '../../shared/branch-tiles/branch-tiles';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,7 +22,7 @@ import { AnalyticsService } from '../../services/analytics/analytics';
   imports: [
     CommonModule, FormsModule, RouterModule, ButtonModule, TagModule,
     TableModule, ToastModule, TabViewModule, DialogModule, SelectModule,
-    TooltipModule, InputTextModule,
+    TooltipModule, InputTextModule, BranchTiles,
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
@@ -30,6 +31,7 @@ import { AnalyticsService } from '../../services/analytics/analytics';
 export class Dashboard implements OnInit {
   loading = false;
   stats: any = {};
+  branchId: number | null = null;
   inStoreAging: any[] = [];
   loadingAging = false;
   ticketStatusBreakdown: any[] = [];
@@ -87,9 +89,14 @@ export class Dashboard implements OnInit {
     return '';
   }
 
+  onBranchTile(branchId: number | null) {
+    this.branchId = branchId;
+    this.loadDashboard();
+  }
+
   loadDashboard() {
     this.loading = true;
-    this.masterService.getDashboardStats(this.recentLimit).subscribe({
+    this.masterService.getDashboardStats(this.recentLimit, this.branchId).subscribe({
       next: (res) => {
         setTimeout(() => {
           this.stats = res.summary || {};

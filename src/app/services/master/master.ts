@@ -11,8 +11,9 @@ export class MasterService {
 
   constructor(private http: HttpClient) {}
 
-  getDashboardStats(recentLimit: number = 5): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/dashboard?recentLimit=${recentLimit}`);
+  getDashboardStats(recentLimit: number = 5, branchId?: number | null): Observable<any> {
+    const branchParam = branchId ? `&branchId=${branchId}` : '';
+    return this.http.get<any>(`${this.baseUrl}/dashboard?recentLimit=${recentLimit}${branchParam}`);
   }
 
   getLookupData(): Observable<any> {

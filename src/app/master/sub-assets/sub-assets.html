@@ -136,8 +136,8 @@
                           [severity]="getStatusSeverity(sub.status)"
                         />
                       </td>
-                      <td>{{ sub.workingCondition || '—' }}</td>
-                      <td>{{ sub.cost != null ? ('₹' + sub.cost) : '—' }}</td>
+                      <td>{{ sub.assetCondition || sub.workingCondition || '—' }}</td>
+                      <td>{{ sub.purchaseCost != null ? ('₹' + sub.purchaseCost) : '—' }}</td>
                       <td>
                         @if (sub.status !== 'CONDEMNED' && sub.status !== 'DISPOSED') {
                           <p-button
@@ -251,15 +251,45 @@
           [(ngModel)]="addForm.sparePartId"
           optionLabel="label"
           optionValue="value"
-          placeholder="Search spare parts..."
+          placeholder="Spare parts in your department store"
           [filter]="true"
-          (onFilter)="searchSpareParts($event.filter)"
+          emptyMessage="No spare parts stocked in your department store"
+          (onChange)="onAddInventorySelect()"
           styleClass="w-full"
         />
       </div>
       <div class="field">
         <label>Serial Number</label>
         <input pInputText [(ngModel)]="addForm.serialNumber" placeholder="Serial number" class="w-full" />
+      </div>
+      <div class="field">
+        <label>Cost (₹)</label>
+        <p-inputnumber [(ngModel)]="addForm.cost" [min]="0" [useGrouping]="false" placeholder="Auto-filled from item" styleClass="w-full" />
+      </div>
+    }
+
+    @if (addForm.sourceType === 'INVENTORY_CONSUMABLE') {
+      <div class="field full-width">
+        <label>Consumable <span class="req">*</span></label>
+        <p-select
+          [options]="consumableOptions"
+          [(ngModel)]="addForm.consumableId"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Consumables in your department store"
+          [filter]="true"
+          emptyMessage="No consumables stocked in your department store"
+          (onChange)="onAddInventorySelect()"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="field">
+        <label>Serial Number</label>
+        <input pInputText [(ngModel)]="addForm.serialNumber" placeholder="Serial number (optional)" class="w-full" />
+      </div>
+      <div class="field">
+        <label>Cost (₹)</label>
+        <p-inputnumber [(ngModel)]="addForm.cost" [min]="0" [useGrouping]="false" placeholder="Auto-filled from item" styleClass="w-full" />
       </div>
     }
 
@@ -388,15 +418,45 @@
           [(ngModel)]="replaceForm.sparePartId"
           optionLabel="label"
           optionValue="value"
-          placeholder="Search spare parts..."
+          placeholder="Spare parts in your department store"
           [filter]="true"
-          (onFilter)="searchSpareParts($event.filter)"
+          emptyMessage="No spare parts stocked in your department store"
+          (onChange)="onReplaceInventorySelect()"
           styleClass="w-full"
         />
       </div>
       <div class="field">
         <label>Serial Number</label>
         <input pInputText [(ngModel)]="replaceForm.spareSerial" placeholder="Serial number" class="w-full" />
+      </div>
+      <div class="field">
+        <label>Cost (₹)</label>
+        <p-inputnumber [(ngModel)]="replaceForm.cost" [min]="0" [useGrouping]="false" placeholder="Auto-filled from item" styleClass="w-full" />
+      </div>
+    }
+
+    @if (replaceForm.sourceType === 'INVENTORY_CONSUMABLE') {
+      <div class="field full-width">
+        <label>Consumable <span class="req">*</span></label>
+        <p-select
+          [options]="consumableOptions"
+          [(ngModel)]="replaceForm.consumableId"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Consumables in your department store"
+          [filter]="true"
+          emptyMessage="No consumables stocked in your department store"
+          (onChange)="onReplaceInventorySelect()"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="field">
+        <label>Serial Number</label>
+        <input pInputText [(ngModel)]="replaceForm.spareSerial" placeholder="Serial number (optional)" class="w-full" />
+      </div>
+      <div class="field">
+        <label>Cost (₹)</label>
+        <p-inputnumber [(ngModel)]="replaceForm.cost" [min]="0" [useGrouping]="false" placeholder="Auto-filled from item" styleClass="w-full" />
       </div>
     }
 

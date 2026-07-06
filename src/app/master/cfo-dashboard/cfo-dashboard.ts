@@ -13,6 +13,8 @@ import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics/analytics';
 import { Assets } from '../../services/assets/assets';
+import { Branches } from '../../services/branches/branches';
+import { BranchTiles } from '../../shared/branch-tiles/branch-tiles';
 
 @Component({
   selector: 'app-cfo-dashboard',
@@ -20,6 +22,7 @@ import { Assets } from '../../services/assets/assets';
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, SelectModule, TooltipModule, DialogModule, ProgressBarModule,
+    BranchTiles,
   ],
   templateUrl: './cfo-dashboard.html',
   styleUrl: './cfo-dashboard.css',
@@ -56,6 +59,15 @@ export class CfoDashboard implements OnInit {
 
   departmentId: number | null = null;
 
+  // Branch filter — scopes every widget to assets currently in the branch
+  branchId: number | null = null;
+  branchOptions: { id: number; name: string }[] = [];
+
+  // Branch comparison panel (management-only endpoint; hides on error)
+  branchStats: any[] = [];
+  loadingBranchStats = false;
+  private static readonly BRANCH_SERIES = ['#2a78d6', '#1baf7a', '#eda100', '#008300', '#4a3aa7', '#e34948', '#e87ba4', '#eb6834'];
+
   // TCO drill-down: category → asset list
   expandedCategoryId: number | null = null;
   categoryAssets: any[] = [];
@@ -69,6 +81,7 @@ export class CfoDashboard implements OnInit {
   constructor(
     private analytics: AnalyticsService,
     private assetsService: Assets,
+    private branchService: Branches,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {}
@@ -76,6 +89,56 @@ export class CfoDashboard implements OnInit {
   navigateTo(path: string) { this.router.navigate([path]); }
 
   ngOnInit() {
+    this.branchService.getBranches().subscribe({
+      next: (branches) => {
+        this.branchOptions = (branches || []).filter((b: any) => b.isActive !== false);
+        this.cdr.detectChanges();
+      },
+      error: () => { /* branch filter simply stays empty */ }
+    });
+    this.reloadAll();
+    this.loadBranchStats(); // branch comparison panel — not affected by the branch filter
+  }
+
+  // Merge the branch filter into a widget's filter object
+  private withBranch(filters: any = {}): any {
+    if (this.branchId) filters.branchId = this.branchId;
+    return filters;
+  }
+
+  onBranchChange() {
+    this.reloadAll();
+  }
+
+  onBranchTile(branchId: number | null) {
+    this.branchId = branchId;
+    this.reloadAll();
+  }
+
+  loadBranchStats() {
+    this.loadingBranchStats = true;
+    this.analytics.getBranchDashboard().subscribe({
+      next: (data) => {
+        this.branchStats = (data.branches || []).filter((b: any) => b.id != null);
+        this.loadingBranchStats = false;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.loadingBranchStats = false; this.branchStats = []; },
+    });
+  }
+
+  branchColor(b: any): string {
+    const sorted = [...this.branchStats].sort((a, z) => a.id - z.id);
+    return CfoDashboard.BRANCH_SERIES[sorted.findIndex(x => x.id === b.id) % CfoDashboard.BRANCH_SERIES.length];
+  }
+
+  /** Bar width % of the max across branches for the given metric. */
+  branchBarW(b: any, field: 'grossValue' | 'netBlock' | 'maintenanceSpend'): number {
+    const max = Math.max(...this.branchStats.map(x => x[field] || 0), 1);
+    return Math.max(1.5, ((b[field] || 0) / max) * 100);
+  }
+
+  private reloadAll() {
     this.loadDashboard();
     this.loadTCO();
     this.loadTurnover();
@@ -88,7 +151,7 @@ export class CfoDashboard implements OnInit {
 
   loadDashboard() {
     this.loadingDashboard = true;
-    const filters: any = {};
+    const filters: any = this.withBranch();
     if (this.departmentId) filters.departmentId = this.departmentId;
     this.analytics.getCfoDashboard(filters).subscribe({
       next: (data: any) => {
@@ -105,7 +168,7 @@ export class CfoDashboard implements OnInit {
 
   loadTCO() {
     this.loadingTCO = true;
-    this.analytics.getTCO({ level: 'category' }).subscribe({
+    this.analytics.getTCO(this.withBranch({ level: 'category' })).subscribe({
       next: (data: any) => {
         this.tcoData = Array.isArray(data) ? data : (data?.data ?? []);
         this.loadingTCO = false;
@@ -120,7 +183,7 @@ export class CfoDashboard implements OnInit {
 
   loadTurnover() {
     this.loadingTurnover = true;
-    this.analytics.getAssetTurnover().subscribe({
+    this.analytics.getAssetTurnover(this.withBranch()).subscribe({
       next: (data: any) => {
         this.turnoverData = data;
         this.loadingTurnover = false;
@@ -135,7 +198,7 @@ export class CfoDashboard implements OnInit {
 
   loadIdleCapital() {
     this.loadingIdle = true;
-    this.analytics.getIdleCapital().subscribe({
+    this.analytics.getIdleCapital(this.withBranch()).subscribe({
       next: (data: any) => {
         this.idleAssets = data?.idleAssets ?? [];
         this.loadingIdle = false;
@@ -150,7 +213,7 @@ export class CfoDashboard implements OnInit {
 
   loadInStoreAging() {
     this.loadingAging = true;
-    this.analytics.getInStoreAging().subscribe({
+    this.analytics.getInStoreAging(this.withBranch()).subscribe({
       next: (data: any) => {
         this.inStoreAging = Array.isArray(data) ? data : (data?.data ?? []);
         this.loadingAging = false;
@@ -165,7 +228,7 @@ export class CfoDashboard implements OnInit {
 
   loadUncoveredAssets() {
     this.loadingUncovered = true;
-    this.analytics.getUncoveredAssets().subscribe({
+    this.analytics.getUncoveredAssets(this.withBranch()).subscribe({
       next: (data: any) => {
         this.uncoveredAssets = data?.uncoveredAssets ?? [];
         this.uncoveredTotal = data?.total ?? 0;
@@ -182,7 +245,7 @@ export class CfoDashboard implements OnInit {
 
   loadValueBuckets() {
     this.loadingBuckets = true;
-    this.analytics.getAssetValueBuckets().subscribe({
+    this.analytics.getAssetValueBuckets(this.withBranch()).subscribe({
       next: (data: any) => {
         this.valueBuckets = data?.buckets ?? [];
         this.valueBucketsTotal = data?.totalAssets ?? 0;
@@ -201,7 +264,7 @@ export class CfoDashboard implements OnInit {
 
   loadMaintenanceByCategory() {
     this.loadingMaintenance = true;
-    this.analytics.getMaintenanceByCategory().subscribe({
+    this.analytics.getMaintenanceByCategory(this.withBranch()).subscribe({
       next: (data: any) => {
         this.maintenanceByCategory = Array.isArray(data) ? data : [];
         this.loadingMaintenance = false;

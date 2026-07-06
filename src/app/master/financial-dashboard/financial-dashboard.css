@@ -435,3 +435,10 @@
   .bar-value { width: 90px; }
   .view-switcher { flex-direction: column; align-items: flex-start; }
 }
+
+/* Branch level in the FY tree (between FY and Quarter) */
+:host ::ng-deep .fy-tree-table .p-treetable-tbody > tr.row-branch > td {
+  background: var(--surface-section);
+  font-weight: 700;
+  color: var(--primary-color, #2a78d6);
+}

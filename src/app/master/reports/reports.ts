@@ -11,6 +11,7 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { MessageService } from 'primeng/api';
 import { ReportsService } from '../../services/reports/reports';
+import { Branches } from '../../services/branches/branches';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
@@ -70,6 +71,8 @@ export class Reports implements OnInit {
   filterCategory = '';
   filterDepartment = '';
   filterStatus = '';
+  filterBranch: number | null = null;
+  branchOptions: { id: number; name: string }[] = [];
   expiryDays = 90;
 
   // Date range filter
@@ -96,11 +99,21 @@ export class Reports implements OnInit {
 
   constructor(
     private reportsService: ReportsService,
+    private branchService: Branches,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
+    this.branchService.getBranches().subscribe({
+      next: (branches) => {
+        setTimeout(() => {
+          this.branchOptions = (branches || []).filter((b: any) => b.isActive !== false);
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => { /* branch filter simply stays empty */ }
+    });
     this.loadAssetRegister();
   }
 
@@ -123,6 +136,7 @@ export class Reports implements OnInit {
     if (this.filterCategory)   f.categoryId   = this.filterCategory;
     if (this.filterDepartment) f.departmentId  = this.filterDepartment;
     if (this.filterStatus)     f.status        = this.filterStatus;
+    if (this.filterBranch)     f.branchId      = this.filterBranch;
     if (this.filterDateFrom)   f.dateFrom      = this.filterDateFrom.toISOString().split('T')[0];
     if (this.filterDateTo)     f.dateTo        = this.filterDateTo.toISOString().split('T')[0];
     if (this.filterDateFrom || this.filterDateTo) f.dateField = this.filterDateField;
@@ -134,6 +148,8 @@ export class Reports implements OnInit {
     switch (this.activeTab) {
       case 0: this.loadAssetRegister(); break;
       case 1: this.loadMaintenanceCost(); break;
+      case 2: this.loadTicketAnalytics(); break;
+      case 3: this.loadExpiryReport(); break;
       case 4: this.loadDepreciation(); break;
       case 6: this.loadConsolidated(); break;
       default: this.loadAssetRegister(); break;
@@ -144,6 +160,7 @@ export class Reports implements OnInit {
     this.filterCategory = '';
     this.filterDepartment = '';
     this.filterStatus = '';
+    this.filterBranch = null;
     this.filterDateFrom = null;
     this.filterDateTo = null;
     this.filterDateField = 'purchaseDate';
@@ -175,7 +192,7 @@ export class Reports implements OnInit {
 
   loadMaintenanceCost() {
     this.maintenanceCostLoading = true;
-    this.reportsService.getMaintenanceCost({}).subscribe({
+    this.reportsService.getMaintenanceCost(this.buildFilters()).subscribe({
       next: (res) => {
         setTimeout(() => {
           this.maintenanceCostData = res.data || res;
@@ -195,7 +212,7 @@ export class Reports implements OnInit {
 
   loadTicketAnalytics() {
     this.ticketAnalyticsLoading = true;
-    this.reportsService.getTicketAnalytics({}).subscribe({
+    this.reportsService.getTicketAnalytics(this.buildFilters()).subscribe({
       next: (res) => {
         setTimeout(() => {
           this.ticketAnalytics = res;
@@ -217,7 +234,7 @@ export class Reports implements OnInit {
 
   loadExpiryReport() {
     this.expiryLoading = true;
-    this.reportsService.getExpiryReport({ days: this.expiryDays }).subscribe({
+    this.reportsService.getExpiryReport(this.buildFilters({ days: this.expiryDays })).subscribe({
       next: (res) => {
         setTimeout(() => {
           this.expiryWarranties = res.warranties || [];

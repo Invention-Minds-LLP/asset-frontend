@@ -55,6 +55,7 @@ import { WorkOrders } from './master/work-orders/work-orders';
 import { StoreManagement } from './master/store-management/store-management';
 import { CfoDashboard } from './master/cfo-dashboard/cfo-dashboard';
 import { CooDashboard } from './master/coo-dashboard/coo-dashboard';
+import { BranchDashboard } from './master/branch-dashboard/branch-dashboard';
 import { TenantConfig } from './master/tenant-config/tenant-config';
 import { RevenueLog } from './master/revenue-log/revenue-log';
 import { EmailTemplates } from './master/email-templates/email-templates';
@@ -138,6 +139,7 @@ export const routes: Routes = [
   { path: 'work-orders', component: WorkOrders, canActivate: [authGuard] },
   { path: 'store-management', component: StoreManagement, canActivate: [authGuard] },
   { path: 'cfo-dashboard', component: CfoDashboard, canActivate: [authGuard] },
+  { path: 'branch-dashboard', component: BranchDashboard, canActivate: [authGuard] },
   { path: 'coo-dashboard', component: CooDashboard, canActivate: [authGuard] },
   { path: 'tenant-config', component: TenantConfig, canActivate: [authGuard] },
   { path: 'revenue-log', component: RevenueLog, canActivate: [authGuard] },

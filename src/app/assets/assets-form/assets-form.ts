@@ -2332,6 +2332,19 @@ export class AssetsForm implements OnInit {
     });
   }
 
+  savingMakeModel = false;
+  saveMakeModel() {
+    if (!this.asset?.id) { this.toast('error', 'Save asset first'); return; }
+    this.savingMakeModel = true;
+    this.assetAPI.updateAssetMakeModel(this.asset.id, {
+      manufacturer: this.asset.manufacturer?.trim() || null,
+      modelNumber: this.asset.modelNumber?.trim() || null,
+    }).subscribe({
+      next: () => { this.savingMakeModel = false; this.toast('success', 'Make & model saved'); },
+      error: (err: any) => { this.savingMakeModel = false; this.toast('error', err?.error?.message || 'Failed to save make/model'); }
+    });
+  }
+
   saveSpecification(form: any) {
     if (!this.asset?.id) {
       this.toast('error', 'Save asset first');

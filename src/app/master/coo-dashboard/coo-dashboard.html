@@ -13,6 +13,9 @@
       [loading]="loading" size="small" severity="secondary"></p-button>
   </div>
 
+  <!-- Branch tiles — one-click branch scoping (stays in sync with the branch dropdown) -->
+  <app-branch-tiles [selectedBranchId]="branchId" (branchChange)="onBranchTile($event)"></app-branch-tiles>
+
   @if (data?.legacyAssetCount > 0) {
     <div class="legacy-data-banner">
       <i class="pi pi-history"></i>
@@ -35,6 +38,12 @@
       <div class="filter-field">
         <label>To</label>
         <p-datepicker [(ngModel)]="dateTo" dateFormat="dd/mm/yy" [showIcon]="true" [minDate]="dateFrom" appendTo="body"></p-datepicker>
+      </div>
+      <div class="filter-field">
+        <label>Branch</label>
+        <p-select [options]="branchOptions" optionLabel="name" optionValue="id" [(ngModel)]="branchId"
+          placeholder="All Branches" [showClear]="true" [filter]="true" filterBy="name"
+          (onChange)="onBranchChange()" appendTo="body" [style]="{'min-width':'180px'}"></p-select>
       </div>
       <p-button label="Apply" icon="pi pi-check" (onClick)="applyDateFilter()" size="small" severity="primary" [loading]="loading"></p-button>
     </div>
@@ -103,6 +112,42 @@
           </div>
         </div>
       </div>
+
+      <!-- Section: Fleet Health by Branch -->
+      @if (branchStats.length > 1) {
+        <div class="dashboard-section">
+          <div class="section-header">
+            <span class="section-title"><i class="pi pi-building-columns"></i> Fleet Health by Branch
+              <i class="pi pi-info-circle section-info" pTooltip="Status mix, open tickets and SLA breaches of every branch side by side — independent of the branch filter above." tooltipPosition="top"></i>
+            </span>
+          </div>
+          <div class="fleet-branches">
+            @for (b of branchStats; track b.id) {
+              <div class="fb-row">
+                <div class="fb-name"><span class="fb-dot" [style.background]="branchColor(b)"></span>{{ b.name }}
+                  <span class="fb-count">{{ b.assetCount }} assets</span>
+                </div>
+                <div class="fb-strip">
+                  @for (s of branchStatusSegments(b); track s.status) {
+                    <div class="fb-seg" [style.width.%]="s.pct" [style.background]="s.color"
+                         [pTooltip]="s.status + ': ' + s.count" tooltipPosition="top"></div>
+                  }
+                </div>
+                <div class="fb-chips">
+                  <span class="fb-chip" [class.fb-bad]="b.openTickets > 0"><i class="pi pi-ticket"></i> {{ b.openTickets }} open</span>
+                  <span class="fb-chip" [class.fb-bad]="b.slaBreached > 0"><i class="pi pi-exclamation-triangle"></i> {{ b.slaBreached }} SLA</span>
+                  <span class="fb-chip" [class.fb-bad]="(b.workingMix?.NOT_WORKING ?? 0) > 0"><i class="pi pi-power-off"></i> {{ b.workingMix?.NOT_WORKING ?? 0 }} down</span>
+                </div>
+              </div>
+            }
+            <div class="fb-legend">
+              @for (s of branchStatusSegments(branchStats[0]); track s.status) {
+                <span><span class="fb-lg-dot" [style.background]="s.color"></span>{{ s.status }}</span>
+              }
+            </div>
+          </div>
+        </div>
+      }
 
       <!-- Section: Ticket Operations -->
       <div class="dashboard-section">

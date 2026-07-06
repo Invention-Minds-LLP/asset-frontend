@@ -8,6 +8,7 @@ import { SelectModule } from 'primeng/select';
 import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 import { ReportsService } from '../../services/reports/reports';
+import { Branches } from '../../services/branches/branches';
 
 @Component({
   selector: 'app-fixed-assets-schedule',
@@ -26,6 +27,10 @@ export class FixedAssetsSchedule implements OnInit {
   selectedYear: number = new Date().getMonth() >= 3 ? new Date().getFullYear() : new Date().getFullYear() - 1;
   yearOptions: { label: string; value: number }[] = [];
 
+  // Branch filter — scopes the schedule to assets currently in the branch
+  branchId: number | null = null;
+  branchOptions: { id: number; name: string }[] = [];
+
   // Drill-down dialog state
   showDetailDialog = false;
   detailLoading = false;
@@ -36,9 +41,16 @@ export class FixedAssetsSchedule implements OnInit {
 
   constructor(
     private reportsService: ReportsService,
+    private branchService: Branches,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  // Merge the branch filter into a request's filter object
+  private withBranch(filters: any): any {
+    if (this.branchId) filters.branchId = this.branchId;
+    return filters;
+  }
 
   openCategoryDetail(row: any) {
     this.detailCategory = row.category;
@@ -47,10 +59,10 @@ export class FixedAssetsSchedule implements OnInit {
     this.showDetailDialog = true;
     this.detailRows = [];
     this.detailTotals = null;
-    this.reportsService.getCategoryAssetDetail({
+    this.reportsService.getCategoryAssetDetail(this.withBranch({
       fiscalYear: this.selectedYear,
       category: row.category,
-    }).subscribe({
+    })).subscribe({
       next: (res: any) => {
         this.detailRows = res.rows || [];
         this.detailTotals = res.totals || null;
@@ -70,12 +82,19 @@ export class FixedAssetsSchedule implements OnInit {
     for (let y = curFY; y >= curFY - 5; y--) {
       this.yearOptions.push({ label: `FY ${y}-${String(y + 1).slice(2)}`, value: y });
     }
+    this.branchService.getBranches().subscribe({
+      next: (branches) => {
+        this.branchOptions = (branches || []).filter((b: any) => b.isActive !== false);
+        this.cdr.detectChanges();
+      },
+      error: () => { /* branch filter simply stays empty */ }
+    });
     this.load();
   }
 
   load() {
     this.loading = true;
-    this.reportsService.getFixedAssetsSchedule({ fiscalYear: this.selectedYear }).subscribe({
+    this.reportsService.getFixedAssetsSchedule(this.withBranch({ fiscalYear: this.selectedYear })).subscribe({
       next: (res: any) => {
         setTimeout(() => {
           this.rows = res.rows || [];
@@ -96,7 +115,7 @@ export class FixedAssetsSchedule implements OnInit {
   }
 
   exportExcel() {
-    this.reportsService.exportReport('fixed-assets-schedule', 'excel', { fiscalYear: this.selectedYear }).subscribe({
+    this.reportsService.exportReport('fixed-assets-schedule', 'excel', this.withBranch({ fiscalYear: this.selectedYear })).subscribe({
       next: (blob: Blob) => {
         const file = new Blob([blob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const url = URL.createObjectURL(file);
@@ -119,7 +138,7 @@ export class FixedAssetsSchedule implements OnInit {
    * The summary "Export Excel" button stays available for the rolled-up view.
    */
   exportCombinedExcel() {
-    this.reportsService.exportReport('fixed-assets-schedule', 'combined', { fiscalYear: this.selectedYear }).subscribe({
+    this.reportsService.exportReport('fixed-assets-schedule', 'combined', this.withBranch({ fiscalYear: this.selectedYear })).subscribe({
       next: (blob: Blob) => {
         const file = new Blob([blob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const url = URL.createObjectURL(file);
