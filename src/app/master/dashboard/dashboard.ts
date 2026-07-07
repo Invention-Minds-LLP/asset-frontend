@@ -15,6 +15,7 @@ import { MessageService } from 'primeng/api';
 import { MasterService } from '../../services/master/master';
 import { AnalyticsService } from '../../services/analytics/analytics';
 import { BranchTiles } from '../../shared/branch-tiles/branch-tiles';
+import { BranchFeatures } from '../../services/branch-features/branch-features';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,6 +37,7 @@ export class Dashboard implements OnInit {
   loadingAging = false;
   ticketStatusBreakdown: any[] = [];
   assetsByCategory: any[] = [];
+  assetsByBranch: any[] = [];
   recentTickets: any[] = [];
   recentAssets: any[] = [];
   expiryAlerts: any = {};
@@ -57,15 +59,19 @@ export class Dashboard implements OnInit {
   drillColumns: { field: string; header: string }[] = [];
   drillLoading = false;
 
+  branchFeatures = true; // tenant switch — hides Assets by Branch tab when false
+
   constructor(
     private masterService: MasterService,
     private analytics: AnalyticsService,
+    private branchFeaturesSvc: BranchFeatures,
     private messageService: MessageService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    this.branchFeaturesSvc.isEnabled().then((v) => { this.branchFeatures = v; this.cdr.detectChanges(); });
     this.loadDashboard();
     this.loadExpiryAlerts();
     this.loadInStoreAging();
@@ -102,6 +108,7 @@ export class Dashboard implements OnInit {
           this.stats = res.summary || {};
           this.ticketStatusBreakdown = res.ticketStatusBreakdown || [];
           this.assetsByCategory = res.assetsByCategory || [];
+          this.assetsByBranch = res.assetsByBranch || [];
           this.recentTickets = res.recentTickets || [];
           this.recentAssets = res.recentAssets || [];
           this.loading = false;

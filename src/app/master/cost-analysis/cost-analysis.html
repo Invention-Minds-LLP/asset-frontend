@@ -147,6 +147,12 @@
             <div class="maint-sub-row">
               <span>PM: <strong>{{ fc(analysis.summary.pmCost) }}</strong></span>
               <span>+ Repair: <strong>{{ fc(analysis.summary.repairCost) }}</strong></span>
+              <span>+ Components: <strong>{{ fc(analysis.summary.componentCost ?? (analysis.summary.subAssetPurchaseCost + analysis.summary.subAssetReplacementCost)) }}</strong></span>
+            </div>
+            <div class="maint-count" *ngIf="(analysis.summary.componentCost ?? 0) > 0"
+                 pTooltip="Sub-asset purchases + component replacements — shown separately so it isn't confused with repair/PM spend"
+                 tooltipPosition="bottom">
+              Component purchases/replacements: {{ fc(analysis.summary.componentCost) }}
             </div>
           </div>
         </div>

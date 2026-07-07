@@ -10,7 +10,7 @@
       <p class="subtitle">Enterprise Financial Analytics & Asset Intelligence</p>
     </div>
     <div style="display:flex; gap:.5rem; align-items:center;">
-      <p-select [options]="branchOptions" optionLabel="name" optionValue="id" [(ngModel)]="branchId"
+      <p-select *ngIf="branchFeatures" [options]="branchOptions" optionLabel="name" optionValue="id" [(ngModel)]="branchId"
         placeholder="All Branches" [showClear]="true" [filter]="true" filterBy="name"
         (onChange)="onBranchChange()" appendTo="body" [style]="{'min-width':'180px'}"></p-select>
       <p-button label="Refresh" icon="pi pi-refresh" (onClick)="loadDashboard(); loadTCO(); loadTurnover(); loadIdleCapital(); loadInStoreAging()"
@@ -50,10 +50,16 @@
         <div class="kpi-sub">Current depreciated value</div>
       </div>
       <div class="kpi-card">
-        <i class="pi pi-info-circle kpi-info" pTooltip="All-time repairs plus preventive maintenance spend." tooltipPosition="top"></i>
+        <i class="pi pi-info-circle kpi-info" pTooltip="All-time repairs plus preventive maintenance spend. Component purchases/replacements are shown separately." tooltipPosition="top"></i>
         <div class="kpi-label">Total Maintenance Cost</div>
         <div class="kpi-value warn">{{ formatCurrency(dashboard.totalMaintenanceCost) }}</div>
         <div class="kpi-sub">Repairs + PM (all time)</div>
+      </div>
+      <div class="kpi-card">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Sub-asset purchases and component replacements — capitalized parts (e.g. a new compressor), tracked separately from repair/PM spend." tooltipPosition="top"></i>
+        <div class="kpi-label">Components Purchases / Replacements</div>
+        <div class="kpi-value">{{ formatCurrency(dashboard.componentCost ?? 0) }}</div>
+        <div class="kpi-sub">Sub-assets + replacements</div>
       </div>
       <div class="kpi-card">
         <i class="pi pi-info-circle kpi-info" pTooltip="Maintenance cost as a percentage of total asset value — higher means costlier upkeep." tooltipPosition="top"></i>
@@ -186,6 +192,11 @@
                 <span class="bc-lbl">Maint.</span>
                 <div class="bc-track"><div class="bc-fill" [style.width.%]="branchBarW(b, 'maintenanceSpend')" style="background:#eb6834"></div></div>
                 <span class="bc-val">{{ formatCurrency(b.maintenanceSpend) }}</span>
+              </div>
+              <div class="bc-bar">
+                <span class="bc-lbl">Comp.</span>
+                <div class="bc-track"><div class="bc-fill" [style.width.%]="branchBarW(b, 'componentCost')" style="background:#4a3aa7"></div></div>
+                <span class="bc-val">{{ formatCurrency(b.componentCost || 0) }}</span>
               </div>
             </div>
           </div>

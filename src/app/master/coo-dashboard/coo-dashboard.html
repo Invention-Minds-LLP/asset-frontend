@@ -39,7 +39,7 @@
         <label>To</label>
         <p-datepicker [(ngModel)]="dateTo" dateFormat="dd/mm/yy" [showIcon]="true" [minDate]="dateFrom" appendTo="body"></p-datepicker>
       </div>
-      <div class="filter-field">
+      <div class="filter-field" *ngIf="branchFeatures">
         <label>Branch</label>
         <p-select [options]="branchOptions" optionLabel="name" optionValue="id" [(ngModel)]="branchId"
           placeholder="All Branches" [showClear]="true" [filter]="true" filterBy="name"
@@ -153,6 +153,15 @@
       <div class="dashboard-section">
         <div class="section-header">
           <span class="section-title"><i class="pi pi-wrench"></i> Ticket Operations</span>
+        </div>
+        <!-- Open tickets per branch at a glance -->
+        <div class="tb-branch-row" *ngIf="branchStats.length > 1">
+          @for (b of branchStats; track b.id) {
+            <span class="fb-chip" [class.fb-bad]="b.openTickets > 0">
+              <span class="fb-dot-sm" [style.background]="branchColor(b)"></span>
+              {{ b.name }}: {{ b.openTickets }} open@if (b.slaBreached > 0) { · {{ b.slaBreached }} SLA }
+            </span>
+          }
         </div>
         <div class="kpi-grid kpi-4 compact">
           <div class="kpi-card mini" pTooltip="Low priority open tickets" tooltipPosition="top">

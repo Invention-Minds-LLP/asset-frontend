@@ -15,6 +15,7 @@ import { AnalyticsService } from '../../services/analytics/analytics';
 import { Assets } from '../../services/assets/assets';
 import { Branches } from '../../services/branches/branches';
 import { BranchTiles } from '../../shared/branch-tiles/branch-tiles';
+import { BranchFeatures } from '../../services/branch-features/branch-features';
 
 @Component({
   selector: 'app-cfo-dashboard',
@@ -78,26 +79,33 @@ export class CfoDashboard implements OnInit {
   tcoDetail: any = null;
   loadingTcoDetail = false;
 
+  branchFeatures = true; // tenant switch — hides all branch UI when false
+
   constructor(
     private analytics: AnalyticsService,
     private assetsService: Assets,
     private branchService: Branches,
+    private branchFeaturesSvc: BranchFeatures,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {}
 
   navigateTo(path: string) { this.router.navigate([path]); }
 
-  ngOnInit() {
-    this.branchService.getBranches().subscribe({
-      next: (branches) => {
-        this.branchOptions = (branches || []).filter((b: any) => b.isActive !== false);
-        this.cdr.detectChanges();
-      },
-      error: () => { /* branch filter simply stays empty */ }
-    });
+  async ngOnInit() {
+    this.branchFeatures = await this.branchFeaturesSvc.isEnabled();
+    if (this.branchFeatures) {
+      this.branchService.getBranches().subscribe({
+        next: (branches) => {
+          this.branchOptions = (branches || []).filter((b: any) => b.isActive !== false);
+          this.cdr.detectChanges();
+        },
+        error: () => { /* branch filter simply stays empty */ }
+      });
+      this.loadBranchStats(); // branch comparison panel — not affected by the branch filter
+    }
     this.reloadAll();
-    this.loadBranchStats(); // branch comparison panel — not affected by the branch filter
+    this.cdr.detectChanges();
   }
 
   // Merge the branch filter into a widget's filter object
@@ -133,7 +141,7 @@ export class CfoDashboard implements OnInit {
   }
 
   /** Bar width % of the max across branches for the given metric. */
-  branchBarW(b: any, field: 'grossValue' | 'netBlock' | 'maintenanceSpend'): number {
+  branchBarW(b: any, field: 'grossValue' | 'netBlock' | 'maintenanceSpend' | 'componentCost'): number {
     const max = Math.max(...this.branchStats.map(x => x[field] || 0), 1);
     return Math.max(1.5, ((b[field] || 0) / max) * 100);
   }

@@ -16,17 +16,17 @@
   max-width: 1400px;
   margin: 0 auto;
 }
-@media (prefers-color-scheme: dark) {
-  .bcc-root {
-    --surface-1: #1a1a19;
-    --surface-2: #232322;
-    --text-primary: #ffffff;
-    --text-secondary: #c3c2b7;
-    --text-muted: #8a897f;
-    --border: #34332f;
-    --ring-track: #34332f;
-    --critical: #e66767;
-  }
+/* Dark palette only when the APP's theme toggle sets .app-dark on <html> —
+   never from the OS preference; default is light. */
+:host-context(.app-dark) .bcc-root {
+  --surface-1: #1a1a19;
+  --surface-2: #232322;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #8a897f;
+  --border: #34332f;
+  --ring-track: #34332f;
+  --critical: #e66767;
 }
 
 /* ── Header ── */

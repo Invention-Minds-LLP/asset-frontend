@@ -15,6 +15,7 @@ import { Branches } from '../../services/branches/branches';
 import { SelectModule } from 'primeng/select';
 import { forkJoin } from 'rxjs';
 import { BranchTiles } from '../../shared/branch-tiles/branch-tiles';
+import { BranchFeatures } from '../../services/branch-features/branch-features';
 
 @Component({
   selector: 'app-coo-dashboard',
@@ -60,24 +61,31 @@ export class CooDashboard implements OnInit {
   private static readonly BRANCH_SERIES = ['#2a78d6', '#1baf7a', '#eda100', '#008300', '#4a3aa7', '#e34948', '#e87ba4', '#eb6834'];
   private static readonly STATUS_ORDER = ['ACTIVE', 'IN_STORE', 'IN_MAINTENANCE', 'RETIRED'];
 
+  branchFeatures = true; // tenant switch — hides all branch UI when false
+
   constructor(
     private analytics: AnalyticsService,
     private branchService: Branches,
+    private branchFeaturesSvc: BranchFeatures,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  ngOnInit() {
-    this.branchService.getBranches().subscribe({
-      next: (branches) => {
-        this.branchOptions = (branches || []).filter((b: any) => b.isActive !== false);
-        this.cdr.detectChanges();
-      },
-      error: () => { /* branch filter simply stays empty */ }
-    });
+  async ngOnInit() {
+    this.branchFeatures = await this.branchFeaturesSvc.isEnabled();
+    if (this.branchFeatures) {
+      this.branchService.getBranches().subscribe({
+        next: (branches) => {
+          this.branchOptions = (branches || []).filter((b: any) => b.isActive !== false);
+          this.cdr.detectChanges();
+        },
+        error: () => { /* branch filter simply stays empty */ }
+      });
+      this.loadBranchStats(); // fleet-health-by-branch panel — independent of the branch filter
+    }
     this.loadDashboard();
     this.loadInStoreAging();
-    this.loadBranchStats(); // fleet-health-by-branch panel — independent of the branch filter
+    this.cdr.detectChanges();
   }
 
   onBranchChange() {

@@ -143,3 +143,6 @@
 .fb-legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: .75rem; color: var(--text-color-secondary, #64748b); padding-top: .2rem; }
 .fb-lg-dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; }
 @media (max-width: 860px) { .fb-row { grid-template-columns: 1fr; } }
+
+.tb-branch-row { display: flex; flex-wrap: wrap; gap: .45rem; margin: -.2rem 0 .7rem; }
+.fb-dot-sm { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }

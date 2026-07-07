@@ -387,6 +387,34 @@
       </p-table>
     </p-tabPanel>
 
+    <!-- Assets by Branch -->
+    <p-tabPanel header="Assets by Branch" *ngIf="branchFeatures">
+      <div class="tab-header-actions">
+        <p-button icon="pi pi-download" label="Export CSV" severity="secondary" size="small"
+          (onClick)="exportTableToCsv(assetsByBranch, [{field:'branch',header:'Branch'},{field:'count',header:'Count'}], 'assets_by_branch')"
+          pTooltip="Download as CSV" tooltipPosition="top"></p-button>
+      </div>
+      <p-table [value]="assetsByBranch" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr><th>Branch</th><th style="text-align:right">Count</th><th style="width:200px">Distribution</th></tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td><strong>{{ row.branch }}</strong></td>
+            <td style="text-align:right; font-weight:600;">{{ row.count }}</td>
+            <td>
+              <div class="bar-container">
+                <div class="bar-fill" [style.width.%]="stats.totalAssets > 0 ? (row.count / stats.totalAssets * 100) : 0"></div>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="3" class="text-center">No data</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
     <!-- Ticket Status Breakdown -->
     <p-tabPanel header="Ticket Breakdown">
       <div class="tab-header-actions">

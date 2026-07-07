@@ -208,3 +208,9 @@ h4 {
 .rfilter-group { display: flex; flex-direction: column; gap: 4px; }
 .rfilter-label { font-size: 0.75rem; font-weight: 600; color: var(--text-color-secondary); text-transform: uppercase; letter-spacing: 0.03em; }
 .rfilter-actions { display: flex; gap: 8px; align-items: flex-end; margin-left: auto; }
+
+/* Branch-wise summary strip above register/consolidated tables */
+.branch-summary-strip { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem .7rem; padding: .2rem 0; }
+.bss-label { font-size: .8rem; font-weight: 700; color: var(--text-color-secondary, #64748b); display: flex; align-items: center; gap: .35rem; }
+.bss-chip { font-size: .8rem; border: 1px solid var(--surface-border, #e2e8f0); border-radius: 999px; padding: .18rem .65rem; color: var(--text-color-secondary, #475569); }
+.bss-chip b { color: var(--text-color, #0f172a); }

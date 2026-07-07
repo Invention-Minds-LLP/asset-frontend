@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 import { ExportService, ExportParams } from '../../services/export/export.service';
 import { environment } from '../../../environment/environment.prod';
+import { BranchFeatures } from '../../services/branch-features/branch-features';
 
 interface ExportItem {
   label:           string;
@@ -239,13 +240,17 @@ export class DataExport implements OnInit {
     },
   ];
 
+  branchFeatures = true; // tenant switch — hides branch filter/badges when false
+
   constructor(
     private exportService: ExportService,
     private http: HttpClient,
+    private branchFeaturesSvc: BranchFeatures,
     private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
+    this.branchFeaturesSvc.isEnabled().then((v) => { this.branchFeatures = v; this.cdr.detectChanges(); });
     // Load reference lists for the Category / Department dropdowns
     this.http.get<any[]>(`${environment.apiUrl}/categories`).subscribe({
       next: (rows) => { this.categories = (rows || []).map(r => ({ id: r.id, name: r.name })); },

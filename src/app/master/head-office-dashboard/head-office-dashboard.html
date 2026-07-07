@@ -1,0 +1,166 @@
+<div class="ho-root">
+
+  <div *ngIf="!authorized" class="ho-locked">
+    <i class="pi pi-lock"></i>
+    <h2>Management access only</h2>
+    <p>The Head Office dashboard is restricted to management roles.</p>
+  </div>
+
+  <ng-container *ngIf="authorized">
+
+    <!-- Header -->
+    <div class="ho-header">
+      <div>
+        <h1><i class="pi pi-globe"></i> Head Office</h1>
+        <p class="ho-sub">All branches — asset health, risk and everything expiring soon</p>
+      </div>
+      <div class="ho-live" *ngIf="generatedAt">
+        <span class="pulse"></span> LIVE
+        <span class="ho-updated">updated {{ generatedAt | date:'shortTime' }}</span>
+        <button class="ho-refresh" (click)="load()" title="Refresh now"><i class="pi pi-refresh"></i></button>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="ho-loading"><i class="pi pi-spin pi-spinner"></i> Loading head office view…</div>
+    <div *ngIf="error" class="ho-error"><i class="pi pi-times-circle"></i> {{ error }}</div>
+
+    <ng-container *ngIf="!loading && !error && health">
+
+      <!-- KPI strip -->
+      <div class="ho-kpis">
+        <div class="kpi"><span class="kpi-label">Branches</span><span class="kpi-value">{{ totals.branches }}</span></div>
+        <div class="kpi"><span class="kpi-label">Total Assets</span><span class="kpi-value">{{ totals.assets | number }}</span></div>
+        <div class="kpi"><span class="kpi-label">Gross Value</span><span class="kpi-value">{{ money(totals.grossValue) }}</span></div>
+        <div class="kpi" [class.kpi-bad]="overdueTotal > 0">
+          <span class="kpi-label">Already Lapsed</span><span class="kpi-value">{{ overdueTotal }}</span>
+          <span class="kpi-note">warranty / AMC / calibration…</span>
+        </div>
+        <div class="kpi" [class.kpi-warn]="next30Total > 0">
+          <span class="kpi-label">Expiring ≤ 30 days</span><span class="kpi-value">{{ next30Total }}</span>
+        </div>
+        <div class="kpi" [class.kpi-bad]="totals.openTickets > 0">
+          <span class="kpi-label">Open Tickets</span><span class="kpi-value">{{ totals.openTickets }}</span>
+          <span class="kpi-note" *ngIf="totals.slaBreached > 0"><i class="pi pi-exclamation-triangle"></i> {{ totals.slaBreached }} past SLA</span>
+        </div>
+      </div>
+
+      <!-- Attention feed -->
+      <div class="ho-attention" *ngIf="attention.length">
+        <div class="att-title"><i class="pi pi-bell"></i> Needs attention</div>
+        <div class="att-items">
+          <div class="att-item" *ngFor="let a of attention" [class]="'sev-' + a.severity">
+            <i class="pi" [class]="'pi ' + a.icon"></i>
+            <b>{{ a.branch }}</b> — {{ a.text }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Branch health row -->
+      <h2 class="ho-section-title"><i class="pi pi-heart"></i> Asset health by branch</h2>
+      <div class="ho-health">
+        <div class="hb-card" *ngFor="let b of branches; trackBy: trackBranch" [style.--accent]="branchColor(b)">
+          <div class="hb-top">
+            <div class="hb-name"><span class="dot"></span>{{ b.name }}</div>
+            <svg viewBox="0 0 64 64" width="58" height="58" role="img"
+                 [attr.aria-label]="b.name + ' health ' + b.healthScore + ' of 100'">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="var(--ring-track)" stroke-width="6"/>
+              <circle cx="32" cy="32" r="26" fill="none" [attr.stroke]="gradeColor(b.grade)"
+                      stroke-width="6" stroke-linecap="round"
+                      [attr.stroke-dasharray]="ringDash(b.healthScore)" transform="rotate(-90 32 32)"/>
+              <text x="32" y="30" text-anchor="middle" class="ring-num">{{ b.healthScore }}</text>
+              <text x="32" y="43" text-anchor="middle" class="ring-grade" [attr.fill]="gradeColor(b.grade)">{{ b.grade }}</text>
+            </svg>
+          </div>
+          <div class="hb-facts">
+            <div><b>{{ b.assetCount | number }}</b><span>Assets</span></div>
+            <div><b>{{ money(b.grossValue) }}</b><span>Value</span></div>
+            <div [class.bad]="down(b) > 0"><b>{{ down(b) }}</b><span>Down</span></div>
+            <div [class.bad]="b.openTickets > 0"><b>{{ b.openTickets }}</b><span>Tickets</span></div>
+            <div [class.bad]="b.slaBreached > 0"><b>{{ b.slaBreached }}</b><span>SLA</span></div>
+            <div [class.warn]="b.uncovered > 0"><b>{{ b.uncovered }}</b><span>Uncovered</span></div>
+            <div><b>{{ money(b.maintenanceSpend || 0) }}</b><span>Maintenance</span></div>
+            <div><b>{{ money(b.componentCost || 0) }}</b><span>Components</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expiry radar -->
+      <h2 class="ho-section-title"><i class="pi pi-clock"></i> Expiry radar
+        <span class="ho-muted">next 90 days + lapsed — click a number for the asset list</span>
+      </h2>
+
+      <div class="radar-branch-chips" *ngIf="branches.length > 1">
+        <button class="rb-chip" [class.rb-active]="radarBranchId === null" (click)="setRadarBranch(null)">All Branches</button>
+        <button class="rb-chip" *ngFor="let b of branches" [class.rb-active]="radarBranchId === b.id"
+                [style.--accent]="branchColor(b)" (click)="setRadarBranch(b.id)">
+          <span class="dot"></span>{{ b.name }}
+        </button>
+        <button class="rb-chip" *ngIf="unassignedBranch" [class.rb-active]="radarBranchId === 'unassigned'"
+                (click)="setRadarBranch('unassigned')">Unassigned</button>
+      </div>
+
+      <div class="radar-wrap">
+        <table class="radar">
+          <thead>
+            <tr>
+              <th class="rt-type">Type</th>
+              <th *ngFor="let bk of buckets" [class.rt-overdue]="bk.key === 'overdue'">{{ bk.label }}</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of expiryTypes">
+              <td class="rt-type"><i class="pi" [class]="'pi ' + t.icon"></i> {{ t.label }}</td>
+              <td *ngFor="let bk of buckets"
+                  class="rt-cell"
+                  [class.rt-zero]="cellCount(t.key, bk.key) === 0"
+                  [class.rt-hot]="bk.key === 'overdue' && cellCount(t.key, bk.key) > 0"
+                  [class.rt-warm]="bk.key === 'd30' && cellCount(t.key, bk.key) > 0"
+                  (click)="openCell(t, bk)">
+                {{ cellCount(t.key, bk.key) || '—' }}
+              </td>
+              <td class="rt-total">{{ typeTotal(t.key) || '—' }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="rt-type">Total</td>
+              <td *ngFor="let bk of buckets" class="rt-total">{{ bucketTotal(bk.key) || '—' }}</td>
+              <td class="rt-total">{{ radarBranchId === null ? items.length : (bucketTotal('overdue') + bucketTotal('d30') + bucketTotal('d60') + bucketTotal('d90')) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+    </ng-container>
+  </ng-container>
+
+  <!-- Cell drill-down -->
+  <p-dialog [(visible)]="showCellDialog" [modal]="true" [style]="{width: '780px', maxWidth: '95vw'}"
+            [header]="cellTitle" [dismissableMask]="true">
+    <p-table [value]="cellItems" [paginator]="cellItems.length > 12" [rows]="12" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Asset</th>
+          <th>Branch</th>
+          <th>Due date</th>
+          <th>Days</th>
+          <th>Reference</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-i>
+        <tr>
+          <td>
+            <a [routerLink]="['/assets/edit', i.assetDbId]" class="ho-asset-link">{{ i.assetId || '#' + i.assetDbId }}</a>
+            <div class="ho-asset-name">{{ i.assetName }}</div>
+          </td>
+          <td>{{ i.branchName }}</td>
+          <td>{{ i.dueDate | date:'dd MMM yyyy' }}</td>
+          <td><p-tag [value]="daysUntil(i.dueDate) < 0 ? (-daysUntil(i.dueDate)) + 'd overdue' : daysUntil(i.dueDate) + 'd'"
+                     [severity]="dueSeverity(i.dueDate)"></p-tag></td>
+          <td>{{ i.reference || '—' }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-dialog>
+</div>

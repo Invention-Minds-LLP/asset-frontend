@@ -9,6 +9,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { Assets } from '../../services/assets/assets';
 import { Branches } from '../../services/branches/branches';
+import { BranchFeatures } from '../../services/branch-features/branch-features';
 import { ChangeDetectorRef, OnInit } from '@angular/core';
 import { AssetEditService } from '../../services/assets/assets-edit';
 import { Router } from '@angular/router';
@@ -72,9 +73,12 @@ export class AssetsTable implements OnInit {
     { label: 'Reject', value: 'REJECTED' }
   ];
 
+  branchFeatures = true; // tenant switch — hides branch filter/column when false
+
   constructor(
     private assetService: Assets,
     private branchService: Branches,
+    private branchFeaturesSvc: BranchFeatures,
     private cdr: ChangeDetectorRef,
     private assetEditService: AssetEditService,
     private router: Router,
@@ -106,14 +110,19 @@ export class AssetsTable implements OnInit {
 
   ngOnInit() {
     this.loadAccessPermissions();
-    this.branchService.getBranches().subscribe({
-      next: (branches) => {
-        setTimeout(() => {
-          this.branchOptions = (branches || []).filter((b: any) => b.isActive !== false);
-          this.cdr.detectChanges();
-        });
-      },
-      error: () => { /* branch filter simply stays empty */ }
+    this.branchFeaturesSvc.isEnabled().then((v) => {
+      this.branchFeatures = v;
+      this.cdr.detectChanges();
+      if (!v) return; // tenant switch off — no branch dropdown to populate
+      this.branchService.getBranches().subscribe({
+        next: (branches) => {
+          setTimeout(() => {
+            this.branchOptions = (branches || []).filter((b: any) => b.isActive !== false);
+            this.cdr.detectChanges();
+          });
+        },
+        error: () => { /* branch filter simply stays empty */ }
+      });
     });
     // Debounced search → reset to page 1 and reload from server.
     this.searchInput$.pipe(debounceTime(350), distinctUntilChanged()).subscribe(() => {

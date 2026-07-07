@@ -26,7 +26,7 @@ export class TenantConfig implements OnInit {
   loading = false;
   saving: { [key: string]: boolean } = {};
 
-  configGroups: string[] = ['PROCUREMENT', 'STORE', 'WORKORDER', 'RCA', 'ANALYTICS'];
+  configGroups: string[] = ['GENERAL', 'PROCUREMENT', 'STORE', 'WORKORDER', 'RCA', 'ANALYTICS'];
 
   constructor(
     private configService: TenantConfigService,
@@ -105,6 +105,7 @@ export class TenantConfig implements OnInit {
 
   getGroupIcon(group: string): string {
     const map: any = {
+      GENERAL: 'pi pi-sliders-h',
       PROCUREMENT: 'pi pi-shopping-cart',
       STORE: 'pi pi-warehouse',
       WORKORDER: 'pi pi-wrench',

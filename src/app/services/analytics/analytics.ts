@@ -57,6 +57,10 @@ export class AnalyticsService {
     return this.http.get<any>(`${this.base}/branch-dashboard`);
   }
 
+  getHeadOffice(): Observable<any> {
+    return this.http.get<any>(`${this.base}/head-office`);
+  }
+
   private buildParams(obj: any): HttpParams {
     let params = new HttpParams();
     for (const key of Object.keys(obj)) {

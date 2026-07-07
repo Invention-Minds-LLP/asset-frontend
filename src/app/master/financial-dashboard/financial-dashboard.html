@@ -16,7 +16,7 @@
   <!-- ═══════════════════════ FILTER PANEL ═══════════════════════ -->
   <p-panel header="Filters" [toggleable]="true" [collapsed]="false" styleClass="filter-panel">
     <div class="filter-grid" *ngIf="!filtersLoading">
-      <div class="filter-item">
+      <div class="filter-item" *ngIf="branchFeatures">
         <label>Branch</label>
         <p-dropdown [options]="branches" [(ngModel)]="filters.branchId" placeholder="All Branches"
           [showClear]="true" [style]="{'width':'100%'}" [filter]="true"></p-dropdown>
@@ -83,11 +83,19 @@
         </div>
       </div>
       <div class="kpi-card kpi-orange">
-        <i class="pi pi-info-circle kpi-info" pTooltip="Total spend on maintenance history and repair tickets." tooltipPosition="top"></i>
+        <i class="pi pi-info-circle kpi-info" pTooltip="Total spend on maintenance history and repair tickets. Component purchases/replacements are shown separately." tooltipPosition="top"></i>
         <div class="kpi-icon"><i class="pi pi-wrench"></i></div>
         <div class="kpi-content">
           <span class="kpi-value">{{ formatCurrency(summary.totalMaintenanceCost) }}</span>
           <span class="kpi-label">Maintenance Cost</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-orange">
+        <i class="pi pi-info-circle kpi-info" pTooltip="Sub-asset purchases and component replacements — capitalized parts (e.g. a new compressor), tracked separately from repair/PM spend." tooltipPosition="top"></i>
+        <div class="kpi-icon"><i class="pi pi-cog"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ formatCurrency(summary.totalComponentCost ?? 0) }}</span>
+          <span class="kpi-label">Components Purchases / Replacements</span>
         </div>
       </div>
       <div class="kpi-card kpi-purple">
@@ -278,7 +286,7 @@
     </p-tabPanel>
 
     <!-- ───── TAB: Branch Breakdown ───── -->
-    <p-tabPanel header="By Branch">
+    <p-tabPanel header="By Branch" *ngIf="branchFeatures">
       <div *ngIf="branchBreakdownLoading" class="section-loading">
         <p-progressSpinner [style]="{width: '40px', height: '40px'}" strokeWidth="4"></p-progressSpinner>
       </div>

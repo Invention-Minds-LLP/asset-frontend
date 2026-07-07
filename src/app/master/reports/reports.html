@@ -27,7 +27,7 @@
       <p-select [options]="statusOptions" [(ngModel)]="filterStatus" optionLabel="label" optionValue="value"
         [style]="{'min-width':'170px'}" appendTo="body"></p-select>
     </div>
-    <div class="rfilter-group">
+    <div class="rfilter-group" *ngIf="branchFeatures">
       <label class="rfilter-label">Branch</label>
       <p-select [options]="branchOptions" [(ngModel)]="filterBranch" optionLabel="name" optionValue="id"
         placeholder="All Branches" [showClear]="true" [filter]="true" filterBy="name"
@@ -50,13 +50,21 @@
         </div>
         <p-table [value]="assetRegisterData" [loading]="assetRegisterLoading" [paginator]="true" [rows]="15"
           [rowsPerPageOptions]="[10,15,25,50]" styleClass="p-datatable-sm p-datatable-striped">
+          <ng-template pTemplate="caption">
+            <div class="branch-summary-strip" *ngIf="branchFeatures && assetRegisterBranchSummary.length > 1">
+              <span class="bss-label"><i class="pi pi-building-columns"></i> Branch-wise:</span>
+              <span class="bss-chip" *ngFor="let b of assetRegisterBranchSummary">
+                <b>{{ b.branch }}</b> — {{ b.count }} assets · {{ formatCurrency(b.totalCost) }}
+              </span>
+            </div>
+          </ng-template>
           <ng-template pTemplate="header">
             <tr>
               <th>Asset ID</th>
               <th>Name</th>
               <th>Category</th>
               <th>Department</th>
-              <th>Branch</th>
+              <th *ngIf="branchFeatures">Branch</th>
               <th>Vendor</th>
               <th>Mode of Procurement</th>
               <th>Purchase Date</th>
@@ -70,7 +78,7 @@
               <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">{{ a.assetName }}</td>
               <td class="ellipsis-cell" appOverflowTooltip>{{ a.category || '—' }}</td>
               <td class="ellipsis-cell" appOverflowTooltip>{{ a.department || '—' }}</td>
-              <td class="ellipsis-cell" appOverflowTooltip>{{ a.branch || '—' }}</td>
+              <td *ngIf="branchFeatures" class="ellipsis-cell" appOverflowTooltip>{{ a.branch || '—' }}</td>
               <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ a.vendor || '—' }}</td>
               <td class="ellipsis-cell" appOverflowTooltip>{{ a.modeOfProcurement }}</td>
               <td>{{ a.purchaseDate | date:'mediumDate' }}</td>
@@ -328,13 +336,21 @@
         <p-table [value]="consolidatedData" [loading]="consolidatedLoading" [paginator]="true" [rows]="25"
           [rowsPerPageOptions]="[25, 50, 100]" [totalRecords]="consolidatedTotal"
           styleClass="p-datatable-sm p-datatable-striped" [scrollable]="true" scrollHeight="520px">
+          <ng-template pTemplate="caption">
+            <div class="branch-summary-strip" *ngIf="branchFeatures && consolidatedBranchSummary.length > 1">
+              <span class="bss-label"><i class="pi pi-building-columns"></i> Branch-wise:</span>
+              <span class="bss-chip" *ngFor="let b of consolidatedBranchSummary">
+                <b>{{ b.branch }}</b> — {{ b.count }} assets · {{ formatCurrency(b.totalCost) }}
+              </span>
+            </div>
+          </ng-template>
           <ng-template pTemplate="header">
             <tr>
               <th pFrozenColumn>Asset ID</th>
               <th pFrozenColumn>Asset Name</th>
               <th>Category</th>
               <th>Department</th>
-              <th>Branch</th>
+              <th *ngIf="branchFeatures">Branch</th>
               <th>Status</th>
               <th>Assigned To</th>
               <th>Purchase Date</th>
@@ -359,7 +375,7 @@
               <td pFrozenColumn>{{ a.assetName }}</td>
               <td>{{ a.category || '—' }}</td>
               <td>{{ a.department || '—' }}</td>
-              <td>{{ a.branch || '—' }}</td>
+              <td *ngIf="branchFeatures">{{ a.branch || '—' }}</td>
               <td><p-tag [value]="a.status"></p-tag></td>
               <td>{{ a.assignedTo || '—' }}</td>
               <td>{{ a.purchaseDate | date:'mediumDate' }}</td>

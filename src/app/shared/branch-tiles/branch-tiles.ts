@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AnalyticsService } from '../../services/analytics/analytics';
+import { BranchFeatures } from '../../services/branch-features/branch-features';
 
 /**
  * Branch tiles strip — shared across dashboards.
@@ -29,9 +30,15 @@ export class BranchTiles implements OnInit {
   private static readonly SERIES = ['#2a78d6', '#1baf7a', '#eda100', '#008300', '#4a3aa7', '#e34948', '#e87ba4', '#eb6834'];
   private static readonly GRADE: Record<string, string> = { A: '#008300', B: '#2a78d6', C: '#eda100', D: '#e34948' };
 
-  constructor(private analytics: AnalyticsService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private analytics: AnalyticsService,
+    private branchFeatures: BranchFeatures,
+    private cdr: ChangeDetectorRef,
+  ) {}
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    // Tenant switch — single-branch clients hide the strip entirely
+    if (!(await this.branchFeatures.isEnabled())) { this.visible = false; return; }
     this.analytics.getBranchDashboard().subscribe({
       next: (data) => {
         this.branches = (data.branches || []).filter((b: any) => b.id != null);

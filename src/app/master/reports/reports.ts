@@ -12,6 +12,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { MessageService } from 'primeng/api';
 import { ReportsService } from '../../services/reports/reports';
 import { Branches } from '../../services/branches/branches';
+import { BranchFeatures } from '../../services/branch-features/branch-features';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
@@ -35,6 +36,8 @@ export class Reports implements OnInit {
   assetRegisterData: any[] = [];
   assetRegisterLoading = false;
   assetRegisterTotal = 0;
+  assetRegisterBranchSummary: any[] = [];
+  consolidatedBranchSummary: any[] = [];
 
   // Maintenance Cost
   maintenanceCostData: any[] = [];
@@ -97,22 +100,30 @@ export class Reports implements OnInit {
     { label: 'Condemned',          value: 'CONDEMNED' },
   ];
 
+  branchFeatures = true; // tenant switch — hides branch filter/columns/strips when false
+
   constructor(
     private reportsService: ReportsService,
     private branchService: Branches,
+    private branchFeaturesSvc: BranchFeatures,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
-    this.branchService.getBranches().subscribe({
-      next: (branches) => {
-        setTimeout(() => {
-          this.branchOptions = (branches || []).filter((b: any) => b.isActive !== false);
-          this.cdr.detectChanges();
-        });
-      },
-      error: () => { /* branch filter simply stays empty */ }
+    this.branchFeaturesSvc.isEnabled().then((v) => {
+      this.branchFeatures = v;
+      this.cdr.detectChanges();
+      if (!v) return; // tenant switch off — no branch dropdown to populate
+      this.branchService.getBranches().subscribe({
+        next: (branches) => {
+          setTimeout(() => {
+            this.branchOptions = (branches || []).filter((b: any) => b.isActive !== false);
+            this.cdr.detectChanges();
+          });
+        },
+        error: () => { /* branch filter simply stays empty */ }
+      });
     });
     this.loadAssetRegister();
   }
@@ -176,6 +187,7 @@ export class Reports implements OnInit {
         setTimeout(() => {
           this.assetRegisterData = res.data || res;
           this.assetRegisterTotal = res.pagination?.total || this.assetRegisterData.length;
+          this.assetRegisterBranchSummary = res.branchSummary || [];
           this.assetRegisterLoading = false;
           this.cdr.detectChanges();
         });
@@ -303,6 +315,7 @@ export class Reports implements OnInit {
         setTimeout(() => {
           this.consolidatedData = res.data || res;
           this.consolidatedTotal = res.pagination?.total ?? this.consolidatedData.length;
+          this.consolidatedBranchSummary = res.branchSummary || [];
           this.consolidatedLoading = false;
           this.cdr.detectChanges();
         });

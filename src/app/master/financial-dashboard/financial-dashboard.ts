@@ -16,6 +16,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { MessageService, TreeNode } from 'primeng/api';
 import { FinancialDashboardService } from '../../services/financial-dashboard/financial-dashboard';
+import { BranchFeatures } from '../../services/branch-features/branch-features';
 import { DepreciationAuditService } from '../../services/depreciation-audit/depreciation-audit';
 
 @Component({
@@ -89,14 +90,18 @@ export class FinancialDashboard implements OnInit {
   // Depreciation audit status per FY start year: { [fyStartYear]: 'AUDITED' | 'PENDING' | 'REJECTED' }
   auditStatuses: Record<number, string> = {};
 
+  branchFeatures = true; // tenant switch — hides branch filter/tab/tree level when false
+
   constructor(
     private financialService: FinancialDashboardService,
     private depAuditService: DepreciationAuditService,
+    private branchFeaturesSvc: BranchFeatures,
     private messageService: MessageService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.branchFeatures = await this.branchFeaturesSvc.isEnabled();
     this.loadUserContext();
     this.loadFilterOptions();
     this.loadAuditStatuses();
@@ -217,6 +222,7 @@ export class FinancialDashboard implements OnInit {
       },
     });
 
+    if (!this.branchFeatures) { this.branchBreakdown = []; return; }
     this.branchBreakdownLoading = true;
     this.financialService.getBranchBreakdown(this.filters).subscribe({
       next: (res) => {

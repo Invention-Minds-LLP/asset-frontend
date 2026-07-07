@@ -68,7 +68,7 @@
           <option *ngFor="let d of departments" [ngValue]="d.id">{{ d.name }}</option>
         </select>
       </div>
-      <div class="filter-group">
+      <div class="filter-group" *ngIf="branchFeatures">
         <label>Branch</label>
         <select [(ngModel)]="branchId">
           <option [ngValue]="''">All Branches</option>
@@ -110,7 +110,7 @@
               <span class="badge fy"   *ngIf="item.needsFY"   title="Honors Financial Year">FY</span>
               <span class="badge cat"  *ngIf="item.needsCategory" title="Honors Asset Category">Category</span>
               <span class="badge dept" *ngIf="item.needsDepartment" title="Honors Department">Dept</span>
-              <span class="badge dept" *ngIf="item.needsBranch" title="Honors Branch">Branch</span>
+              <span class="badge dept" *ngIf="branchFeatures && item.needsBranch" title="Honors Branch">Branch</span>
               <span class="badge vendor" *ngIf="item.needsVendor"  title="Honors Vendor">Vendor</span>
             </div>
             <div class="item-error" *ngIf="errorMsg[item.report]">
