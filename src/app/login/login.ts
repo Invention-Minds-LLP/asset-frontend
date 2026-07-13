@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
@@ -18,7 +18,7 @@ import { MessageService } from 'primeng/api';
 })
 export class Login {
 
-  constructor(private authService: Auth, private router: Router, private route: ActivatedRoute, private messageService: MessageService) {
+  constructor(private authService: Auth, private router: Router, private route: ActivatedRoute, private messageService: MessageService, private cdr: ChangeDetectorRef) {
     // Initialize any required services or state
 
   }
@@ -83,7 +83,13 @@ export class Login {
       error: (error) => {
         console.error('Login failed:', error);
         this.loading = false;
-        this.messageService.add({ severity: 'error', summary: 'Login Failed', detail: 'Invalid Employee ID or Password' });
+        // Surface the server's reason (e.g. "Your account is inactive") instead
+        // of always blaming the credentials.
+        const detail = error?.error?.message || 'Invalid Employee ID or Password';
+        this.messageService.add({ severity: 'error', summary: 'Login Failed', detail });
+        // Zoneless app: without this the button stays stuck on "Authenticating…"
+        // because nothing schedules a re-render after loading flips back.
+        this.cdr.markForCheck();
       },
     });
   }
