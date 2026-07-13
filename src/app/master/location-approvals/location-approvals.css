@@ -1,0 +1,119 @@
+:host { display: block; }
+
+.la-page { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
+
+/* Header */
+.la-title { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 1.4rem; }
+.la-title-icon {
+  width: 46px; height: 46px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #0d9488, #0f766e); color: #fff; font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.la-title h1 { margin: 0; font-size: 1.4rem; color: var(--text-color); }
+.la-title p { margin: 0.15rem 0 0; color: var(--text-color-secondary); font-size: 0.86rem; }
+
+/* Tabs */
+.la-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.3rem; border-bottom: 1px solid var(--surface-border); }
+.la-tabs button {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: transparent; border: none; border-bottom: 2px solid transparent;
+  color: var(--text-color-secondary); padding: 0.65rem 0.4rem; margin-bottom: -1px;
+  font-size: 0.92rem; font-weight: 600; cursor: pointer;
+}
+.la-tabs button.active { color: #0d9488; border-bottom-color: #0d9488; }
+.la-count {
+  background: #ef4444; color: #fff; border-radius: 999px; font-size: 0.68rem; font-weight: 700;
+  min-width: 18px; height: 18px; line-height: 18px; text-align: center; padding: 0 5px;
+}
+.la-count.muted { background: var(--surface-300, #cbd5e1); color: var(--text-color-secondary); }
+
+/* States */
+.la-loading { padding: 2rem; text-align: center; color: var(--text-color-secondary); }
+.la-empty-state {
+  text-align: center; padding: 3rem 1rem; color: var(--text-color-secondary);
+}
+.la-empty-state i { font-size: 2.4rem; color: #0d9488; opacity: 0.8; }
+.la-empty-state h3 { margin: 0.6rem 0 0.2rem; color: var(--text-color); font-size: 1.05rem; }
+.la-empty-state p { margin: 0; font-size: 0.88rem; }
+
+/* Pending cards */
+.la-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+.la-card {
+  background: var(--surface-card); border: 1px solid var(--surface-border);
+  border-left: 4px solid #94a3b8; border-radius: 12px; padding: 1rem 1.1rem;
+  display: flex; flex-direction: column; gap: 0.8rem;
+  transition: box-shadow 0.15s;
+}
+.la-card:hover { box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08); }
+.la-card.tier-hod { border-left-color: #2563eb; }
+.la-card.tier-management { border-left-color: #7c3aed; }
+
+.la-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
+.la-asset { display: flex; flex-direction: column; line-height: 1.25; }
+.la-asset-name { font-weight: 700; color: var(--text-color); font-size: 0.98rem; }
+.la-asset-code { font-size: 0.72rem; color: var(--text-color-secondary); }
+
+.la-tier-badge {
+  flex-shrink: 0; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em;
+  padding: 0.25rem 0.6rem; border-radius: 999px; background: #ede9fe; color: #6d28d9;
+}
+.tier-hod .la-tier-badge { background: #dbeafe; color: #1d4ed8; }
+
+/* Location move */
+.la-move {
+  display: flex; align-items: flex-start; gap: 0.6rem;
+  background: var(--surface-ground, #f8fafc); border-radius: 9px; padding: 0.65rem 0.8rem;
+}
+.la-move > i { color: #0d9488; font-size: 1.1rem; margin-top: 2px; }
+.la-move-label { display: block; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-color-secondary); }
+.la-move strong { color: var(--text-color); font-size: 0.92rem; }
+.la-branch { display: inline-block; font-size: 0.76rem; color: var(--text-color-secondary); margin-top: 1px; }
+
+/* Meta */
+.la-meta { display: flex; flex-direction: column; gap: 0.35rem; }
+.la-meta-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--text-color-secondary); }
+.la-meta-item i { width: 14px; color: #94a3b8; }
+.la-meta-item em { font-style: normal; opacity: 0.75; }
+
+/* Card actions */
+.la-card-actions { display: flex; gap: 0.5rem; margin-top: 0.2rem; }
+.la-btn {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+  padding: 0.55rem; border: none; border-radius: 8px; font-size: 0.86rem; font-weight: 600; cursor: pointer;
+  transition: filter 0.15s;
+}
+.la-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.la-btn.approve { background: #16a34a; color: #fff; }
+.la-btn.approve:hover:not(:disabled) { filter: brightness(0.94); }
+.la-btn.reject { background: transparent; color: #dc2626; border: 1px solid #fecaca; }
+.la-btn.reject:hover:not(:disabled) { background: #fef2f2; }
+
+/* My requests list */
+.la-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.la-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  background: var(--surface-card); border: 1px solid var(--surface-border);
+  border-left: 4px solid #94a3b8; border-radius: 10px; padding: 0.8rem 1rem;
+}
+.la-row.st-approved { border-left-color: #16a34a; }
+.la-row.st-requested { border-left-color: #f59e0b; }
+.la-row.st-rejected { border-left-color: #dc2626; }
+.la-row-main { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
+.la-row-loc { font-size: 0.85rem; color: var(--text-color-secondary); display: inline-flex; align-items: center; gap: 0.35rem; }
+.la-row-side { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+.la-row-note { font-size: 0.78rem; color: #b91c1c; max-width: 260px; }
+.la-row-date { font-size: 0.76rem; color: var(--text-color-secondary); }
+
+.la-status {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+  padding: 0.22rem 0.6rem; border-radius: 999px;
+}
+.la-status.st-approved { background: #dcfce7; color: #15803d; }
+.la-status.st-requested { background: #fef3c7; color: #b45309; }
+.la-status.st-rejected { background: #fee2e2; color: #b91c1c; }
+
+/* Reject dialog */
+.la-reject { display: flex; flex-direction: column; gap: 0.4rem; }
+.la-reject label { font-size: 0.85rem; font-weight: 600; color: var(--text-color); }
+.la-reject textarea { width: 100%; font-family: inherit; }

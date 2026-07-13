@@ -2,6 +2,9 @@ import { Component, OnInit, Input, Output, EventEmitter, ChangeDetectorRef } fro
 import { CommonModule } from '@angular/common';
 import { AnalyticsService } from '../../services/analytics/analytics';
 import { BranchFeatures } from '../../services/branch-features/branch-features';
+import { Auth } from '../../services/auth/auth';
+
+const MANAGEMENT_ROLES = ['ADMIN', 'CEO_COO', 'CFO', 'FINANCE', 'OPERATIONS'];
 
 /**
  * Branch tiles strip — shared across dashboards.
@@ -33,10 +36,14 @@ export class BranchTiles implements OnInit {
   constructor(
     private analytics: AnalyticsService,
     private branchFeatures: BranchFeatures,
+    private auth: Auth,
     private cdr: ChangeDetectorRef,
   ) {}
 
   async ngOnInit(): Promise<void> {
+    // Management-only data — don't even call the endpoint for other roles
+    // (a 403 here would be pure noise for HOD/supervisor dashboards).
+    if (!MANAGEMENT_ROLES.includes(this.auth.getRole())) { this.visible = false; return; }
     // Tenant switch — single-branch clients hide the strip entirely
     if (!(await this.branchFeatures.isEnabled())) { this.visible = false; return; }
     this.analytics.getBranchDashboard().subscribe({

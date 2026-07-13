@@ -1,0 +1,162 @@
+:host {
+  display: block;
+}
+
+.aud-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f766e 100%);
+}
+
+.aud-login-card {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 36px 32px 28px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.aud-login-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.aud-brand-mark {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 14px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0d9488, #0f766e);
+  color: #fff;
+  font-size: 28px;
+}
+
+.aud-login-header h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.aud-login-header p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.aud-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.aud-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.aud-input-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  font-size: 15px;
+}
+
+.aud-input-group input {
+  width: 100%;
+  padding: 13px 14px 13px 42px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.aud-input-group input:focus {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+}
+
+.aud-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin-top: -6px;
+}
+
+.aud-submit-btn {
+  padding: 13px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0d9488, #0f766e);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.05s;
+}
+
+.aud-submit-btn:hover:not(:disabled) {
+  opacity: 0.94;
+}
+
+.aud-submit-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.aud-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.aud-otp-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.aud-link-btn {
+  background: none;
+  border: none;
+  color: #0d9488;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.aud-link-btn:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.aud-login-footer {
+  margin-top: 26px;
+  text-align: center;
+}
+
+.aud-staff-link {
+  display: inline-block;
+  color: #64748b;
+  font-size: 13px;
+  text-decoration: none;
+  margin-bottom: 10px;
+}
+
+.aud-staff-link:hover {
+  color: #0f172a;
+}
+
+.aud-copyright {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+}

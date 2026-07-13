@@ -25,4 +25,13 @@ export class BranchFeatures {
     }
     return this.cached;
   }
+
+  /**
+   * Drop the memoized value so the next isEnabled() re-fetches from the server.
+   * Call this right after ENABLE_BRANCH_FEATURES is changed so branch-gated
+   * screens reflect the new setting on their next load without a full reload.
+   */
+  refresh(): void {
+    this.cached = null;
+  }
 }

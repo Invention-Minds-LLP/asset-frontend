@@ -1,0 +1,220 @@
+<div class="aud-shell">
+  <!-- Portal header -->
+  <header class="aud-topbar">
+    <div class="aud-topbar-brand">
+      <button class="aud-back-btn" (click)="back()" title="Back to my audits">
+        <i class="pi pi-arrow-left"></i>
+      </button>
+      <i class="pi pi-verified"></i>
+      <span>Auditor Portal</span>
+    </div>
+    <button class="aud-logout-btn" (click)="logout()" title="Sign out">
+      <i class="pi pi-sign-out"></i> Logout
+    </button>
+  </header>
+
+  <main class="aud-main">
+    <!-- Loading / error -->
+    <div class="aud-state" *ngIf="loading"><i class="pi pi-spin pi-spinner"></i> Loading audit…</div>
+    <div class="aud-state error" *ngIf="!loading && error">
+      <i class="pi pi-exclamation-triangle"></i><span>{{ error }}</span>
+      <button class="aud-retry" (click)="load()">Retry</button>
+    </div>
+
+    <ng-container *ngIf="!loading && !error && audit">
+      <!-- Audit header -->
+      <div class="aud-detail-head">
+        <div>
+          <h1>{{ audit.auditName || ('Audit #' + audit.id) }}</h1>
+          <div class="aud-detail-sub">
+            <span class="aud-badge" [ngClass]="statusClass(audit.status)">{{ statusLabel(audit.status) }}</span>
+            <span *ngIf="audit.block || audit.floor || audit.location" class="aud-loc">
+              <i class="pi pi-map-marker"></i>
+              {{ audit.block }}<span *ngIf="audit.block && (audit.floor || audit.location)"> · </span>{{ audit.floor
+              }}<span *ngIf="audit.floor && audit.location"> · </span>{{ audit.location }}
+            </span>
+          </div>
+        </div>
+        <div class="aud-detail-actions">
+          <button class="btn-primary" *ngIf="(audit.status || '') === 'PLANNED'" [disabled]="busy"
+            (click)="startAudit()">
+            <i class="pi" [ngClass]="busy ? 'pi-spin pi-spinner' : 'pi-play'"></i> Start audit
+          </button>
+          <button class="btn-success" *ngIf="(audit.status || '') === 'IN_PROGRESS'" [disabled]="busy"
+            (click)="completeAudit()">
+            <i class="pi" [ngClass]="busy ? 'pi-spin pi-spinner' : 'pi-check'"></i> Complete audit
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress summary -->
+      <div class="aud-progress">
+        <span><strong>{{ items.length }}</strong> items</span>
+        <span class="dot ok"><strong>{{ audit.verifiedCount ?? 0 }}</strong> verified</span>
+        <span class="dot warn"><strong>{{ audit.missingCount ?? 0 }}</strong> missing</span>
+        <span class="dot bad"><strong>{{ audit.mismatchCount ?? 0 }}</strong> mismatch</span>
+        <span class="dot pend"><strong>{{ pendingCount() }}</strong> pending</span>
+      </div>
+
+      <!-- Tabs -->
+      <div class="aud-tabs">
+        <button [class.active]="tab === 'items'" (click)="setTab('items')"><i class="pi pi-list"></i> Items</button>
+        <button [class.active]="tab === 'map'" (click)="setTab('map')"><i class="pi pi-map"></i> Floor map</button>
+      </div>
+
+      <!-- ── Items tab ── -->
+      <div *ngIf="tab === 'items'">
+        <div class="aud-hint" *ngIf="!canVerify()">
+          <i class="pi pi-info-circle"></i>
+          {{ (audit.status || '') === 'PLANNED' ? 'Start the audit to begin verifying items.' : 'This audit is completed — items are read-only.' }}
+        </div>
+
+        <div class="aud-empty small" *ngIf="items.length === 0">No items in this audit.</div>
+
+        <div class="aud-item-list">
+          <div class="aud-item" *ngFor="let it of items">
+            <div class="aud-item-main">
+              <div class="aud-item-name">{{ itemName(it) }}</div>
+              <div class="aud-item-code">{{ itemCode(it) }}</div>
+              <div class="aud-item-remarks" *ngIf="it.remarks"><i class="pi pi-comment"></i> {{ it.remarks }}</div>
+            </div>
+            <div class="aud-item-right">
+              <span class="aud-badge" [ngClass]="statusClass(it.status || 'PENDING')">{{ statusLabel(it.status || 'PENDING') }}</span>
+              <button class="btn-verify" *ngIf="canVerify()" (click)="openVerify(it)">
+                <i class="pi pi-pencil"></i> {{ (it.status && it.status !== 'PENDING') ? 'Edit' : 'Verify' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Floor map tab ── -->
+      <div *ngIf="tab === 'map'">
+        <div class="aud-state" *ngIf="mapLoading"><i class="pi pi-spin pi-spinner"></i> Loading floor map…</div>
+        <div class="aud-state error" *ngIf="!mapLoading && mapError">
+          <i class="pi pi-exclamation-triangle"></i><span>{{ mapError }}</span>
+          <button class="aud-retry" (click)="loadMap()">Retry</button>
+        </div>
+
+        <ng-container *ngIf="!mapLoading && !mapError && map">
+          <div class="aud-empty small" *ngIf="!map.plan">
+            No floor plan is linked to this audit's assets yet.
+          </div>
+
+          <div class="aud-map-wrap" *ngIf="map.plan">
+            <!-- Next-asset guidance: which pin to inspect next, in walk order. -->
+            <div class="aud-next-banner" *ngIf="nextItem">
+              <div class="aud-next-info">
+                <span class="aud-next-tag"><i class="pi pi-compass"></i> Next</span>
+                <strong>{{ nextItem.assetName }}</strong>
+                <small>{{ nextItem.assetCode }}<span *ngIf="nextItem.room"> · {{ nextItem.room }}</span></small>
+              </div>
+              <button class="btn-verify" *ngIf="canVerify()" (click)="verifyFromPin(nextItem)">
+                <i class="pi pi-check-square"></i> Verify this
+              </button>
+            </div>
+            <div class="aud-next-banner done" *ngIf="!nextItem && map.placed?.length">
+              <i class="pi pi-check-circle"></i> All pinned assets have been inspected.
+            </div>
+
+            <div class="aud-map-canvas">
+              <img [src]="imageUrl()" [alt]="map.plan?.name" draggable="false" />
+
+              <!-- Route line from the last-verified pin to the recommended next pin -->
+              <svg *ngIf="currentPin && nextItem" class="aud-route-line" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <line [attr.x1]="currentPin.planX" [attr.y1]="currentPin.planY"
+                      [attr.x2]="nextItem.planX" [attr.y2]="nextItem.planY"></line>
+              </svg>
+
+              <div class="map-pin" *ngFor="let p of map.placed"
+                [ngClass]="statusClass(p.status || 'PENDING')" [class.pin-next]="isNext(p.itemId)"
+                [class.tappable]="canVerify()"
+                [style.left.%]="p.planX" [style.top.%]="p.planY"
+                (click)="verifyFromPin(p)"
+                [title]="(routeIndex(p.itemId) ? routeIndex(p.itemId) + '. ' : '') + p.assetName + ' (' + p.assetCode + ') — ' + statusLabel(p.status || 'PENDING')">
+                <i class="pi pi-map-marker"></i>
+                <span class="pin-seq" *ngIf="routeIndex(p.itemId)">{{ routeIndex(p.itemId) }}</span>
+                <span class="map-pin-label">{{ p.assetName }}</span>
+              </div>
+            </div>
+
+            <div class="aud-map-legend">
+              <span><i class="dot-legend st-pending"></i> Pending</span>
+              <span><i class="dot-legend st-verified"></i> Verified</span>
+              <span><i class="dot-legend st-missing"></i> Missing</span>
+              <span><i class="dot-legend st-mismatch"></i> Mismatch</span>
+              <span class="legend-hint"><i class="pi pi-info-circle"></i> Numbers show the suggested inspection order</span>
+            </div>
+          </div>
+
+          <div class="aud-unplaced" *ngIf="map.unplaced?.length">
+            <h4><i class="pi pi-exclamation-circle"></i> Not on the map ({{ map.unplaced.length }})</h4>
+            <p>These assigned items don't have pin coordinates on the floor plan.</p>
+            <div class="aud-unplaced-list">
+              <span class="chip" *ngFor="let u of map.unplaced">{{ u.assetName }} <small>{{ u.assetCode }}</small></span>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </ng-container>
+  </main>
+
+  <!-- Verify modal -->
+  <div class="aud-modal-overlay" *ngIf="editingItem" (click)="closeVerify()">
+    <div class="aud-modal" (click)="$event.stopPropagation()">
+      <div class="aud-modal-head">
+        <div>
+          <h3>Verify item</h3>
+          <p>{{ itemName(editingItem) }} <small>{{ itemCode(editingItem) }}</small></p>
+        </div>
+        <button class="aud-modal-close" (click)="closeVerify()"><i class="pi pi-times"></i></button>
+      </div>
+
+      <div class="aud-modal-body">
+        <label class="fld-label">Result</label>
+        <div class="seg">
+          <button type="button" [class.active]="form.status === 'VERIFIED'" class="seg-ok"
+            (click)="form.status = 'VERIFIED'">Verified</button>
+          <button type="button" [class.active]="form.status === 'MISMATCH'" class="seg-warn"
+            (click)="form.status = 'MISMATCH'">Mismatch</button>
+          <button type="button" [class.active]="form.status === 'MISSING'" class="seg-bad"
+            (click)="form.status = 'MISSING'">Missing</button>
+        </div>
+
+        <div class="fld-row" *ngIf="form.status !== 'MISSING'">
+          <label class="check">
+            <input type="checkbox" [(ngModel)]="form.locationMatch" /> Location matches records
+          </label>
+          <label class="check">
+            <input type="checkbox" [(ngModel)]="form.conditionMatch" /> Condition matches records
+          </label>
+        </div>
+
+        <div class="fld" *ngIf="form.status !== 'MISSING' && !form.locationMatch">
+          <label>Actual location</label>
+          <input type="text" [(ngModel)]="form.actualLocation" placeholder="Where the asset actually is" />
+        </div>
+
+        <div class="fld" *ngIf="form.status !== 'MISSING' && !form.conditionMatch">
+          <label>Actual condition</label>
+          <input type="text" [(ngModel)]="form.actualCondition" placeholder="e.g. Damaged screen" />
+        </div>
+
+        <div class="fld">
+          <label>Remarks</label>
+          <textarea rows="3" [(ngModel)]="form.remarks" placeholder="Notes for this item (optional)"></textarea>
+        </div>
+      </div>
+
+      <div class="aud-modal-foot">
+        <button class="btn-ghost" (click)="closeVerify()" [disabled]="saving">Cancel</button>
+        <button class="btn-primary" (click)="submitVerify()" [disabled]="saving">
+          <i class="pi" [ngClass]="saving ? 'pi-spin pi-spinner' : 'pi-check'"></i> Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="aud-toast" *ngIf="toast">{{ toast }}</div>
+</div>

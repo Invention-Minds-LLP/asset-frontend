@@ -10,6 +10,9 @@ export class Location {
 
   // private api = "http://localhost:3001/api/location";
   private api = `${environment.apiUrl}/location`
+  // Location changes now flow through the approval module: supervisor→HOD,
+  // HOD→management. Management/admin edits are auto-approved server-side.
+  private approvalApi = `${environment.apiUrl}/location-approval`
 
   constructor(private http: HttpClient) {}
   getHistory(assetId: number): Observable<any[]> {
@@ -24,14 +27,15 @@ export class Location {
     );
   }
 
+  // Submit a new location (routes through approval). Response includes
+  // { pending, message } — pending=true means it awaits sign-off.
   addLocation(payload: any): Observable<any> {
-    return this.http.post<any>(this.api, payload);
+    return this.http.post<any>(`${this.approvalApi}/request`, payload);
   }
 
-  updateLocation(locationId: number, payload: any): Observable<any> {
-    return this.http.put<any>(
-      `${this.api}/${locationId}`,
-      payload
-    );
+  // "Updating" a location is really requesting a new one; the locationId is no
+  // longer needed because approval creates a fresh active row on sign-off.
+  updateLocation(_locationId: number, payload: any): Observable<any> {
+    return this.http.post<any>(`${this.approvalApi}/request`, payload);
   }
 }

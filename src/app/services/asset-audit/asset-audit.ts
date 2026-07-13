@@ -54,6 +54,14 @@ export class AssetAuditService {
     return this.http.get(`${this.baseUrl}/scope/floors`, { params: this.buildParams(filters) });
   }
 
+  getScopeBlocks(filters: any = {}): Observable<any> {
+    return this.http.get(`${this.baseUrl}/scope/blocks`, { params: this.buildParams(filters) });
+  }
+
+  getScopeRooms(filters: any = {}): Observable<any> {
+    return this.http.get(`${this.baseUrl}/scope/rooms`, { params: this.buildParams(filters) });
+  }
+
   getScopeCategories(filters: any = {}): Observable<any> {
     return this.http.get(`${this.baseUrl}/scope/categories`, { params: this.buildParams(filters) });
   }

@@ -1418,6 +1418,16 @@ export class AssetsForm implements OnInit {
     this.locationAPI.getHistory(id).subscribe(res => this.locationHistory = res);
   }
 
+  // Approval status of a location-history row (REQUESTED = awaiting sign-off).
+  locationStatusLabel(status: string | null | undefined): string {
+    switch ((status || '').toUpperCase()) {
+      case 'APPROVED': return 'Approved';
+      case 'REQUESTED': return 'Pending approval';
+      case 'REJECTED': return 'Rejected';
+      default: return status || '—';
+    }
+  }
+
   // saveAssignment() {
   //   if (!this.asset.id) {
   //     this.toast("error", "Save basic details first");

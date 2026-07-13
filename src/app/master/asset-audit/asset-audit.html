@@ -226,6 +226,13 @@
     <div class="form-field">
       <label><i class="pi pi-map-marker"></i> Scope by Location <span class="optional-hint">(leave blank to include all assets)</span></label>
       <div class="location-scope-grid">
+        <div *ngIf="branchFeatures">
+          <label class="sub-label">Branch</label>
+          <p-select [options]="branchOptions" [(ngModel)]="createForm.branchId"
+            optionLabel="label" optionValue="value"
+            placeholder="All branches" [showClear]="true" appendTo="body" [style]="{'width':'100%'}"
+            [filter]="true" (onChange)="onScopeBranchChange()" (onClear)="onScopeBranchChange()"></p-select>
+        </div>
         <div>
           <label class="sub-label">Floor</label>
           <p-select [options]="locationFloors" [(ngModel)]="createForm.floor"
@@ -236,13 +243,15 @@
           <label class="sub-label">Block / Wing</label>
           <p-select [options]="locationBlocks" [(ngModel)]="createForm.block"
             placeholder="All blocks" [showClear]="true" appendTo="body" [style]="{'width':'100%'}"
-            [loading]="locationsLoading" (onChange)="onScopeFloorChange()" (onClear)="onScopeFloorChange()"></p-select>
+            [emptyMessage]="createForm.floor ? 'No blocks on this floor' : 'Pick a floor first'"
+            (onChange)="onScopeBlockChange()" (onClear)="onScopeBlockChange()"></p-select>
         </div>
         <div>
           <label class="sub-label">Room</label>
           <p-select [options]="locationRooms" [(ngModel)]="createForm.room"
             placeholder="All rooms" [showClear]="true" appendTo="body" [style]="{'width':'100%'}"
-            [loading]="locationsLoading" (onChange)="loadScopePreview()" (onClear)="loadScopePreview()"></p-select>
+            [emptyMessage]="createForm.block ? 'No rooms in this block' : 'Pick a block first'"
+            (onChange)="onScopeRoomChange()" (onClear)="onScopeRoomChange()"></p-select>
         </div>
       </div>
     </div>
@@ -294,7 +303,17 @@
 
       @if (needsExternal) {
         <div class="auditor-block">
-          <label class="sub-label">External auditors</label>
+          <label class="sub-label">Existing external auditors</label>
+          <p-multiSelect [options]="externalAuditorOptions" [(ngModel)]="createForm.existingExternalAuditorIds"
+            optionLabel="name" optionValue="id" placeholder="Select from registered auditors"
+            appendTo="body" [style]="{'width':'100%'}" [filter]="true" display="chip"
+            emptyMessage="No external auditors registered yet — add one below">
+            <ng-template let-a pTemplate="item">
+              <span>{{ a.name }} <small style="opacity:.6">{{ a.email }}<span *ngIf="a.organization"> · {{ a.organization }}</span></small></span>
+            </ng-template>
+          </p-multiSelect>
+
+          <label class="sub-label" style="margin-top:.75rem">Or add a new external auditor</label>
           @for (ext of createForm.externalAuditors; track $index) {
             <div class="ext-row">
               <input pInputText [(ngModel)]="ext.name" placeholder="Name *" />
@@ -304,7 +323,7 @@
               <button class="ext-del" type="button" (click)="removeExternalAuditor($index)" title="Remove"><i class="pi pi-trash"></i></button>
             </div>
           }
-          <p-button label="Add external auditor" icon="pi pi-plus" size="small" severity="secondary" (onClick)="addExternalAuditor()"></p-button>
+          <p-button label="Add new auditor" icon="pi pi-plus" size="small" severity="secondary" (onClick)="addExternalAuditor()"></p-button>
         </div>
       }
     </div>

@@ -386,6 +386,25 @@
   margin-top: 2rem;
   text-align: center;
 }
+.auditor-portal-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1.1rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid #ccfbf1;
+  border-radius: 10px;
+  background: #f0fdfa;
+  color: #0f766e;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.auditor-portal-link:hover {
+  background: #ccfbf1;
+  border-color: #99f6e4;
+}
 .security-badge {
   display: inline-flex;
   align-items: center;

@@ -51,6 +51,7 @@ import { SubAssets } from './master/sub-assets/sub-assets';
 import { DecisionEngine } from './master/decision-engine/decision-engine';
 import { PurchaseOrders } from './master/purchase-orders/purchase-orders';
 import { GoodsReceipts } from './master/goods-receipts/goods-receipts';
+// import { ProcurementTat } from './master/procurement-tat/procurement-tat';
 import { WorkOrders } from './master/work-orders/work-orders';
 import { StoreManagement } from './master/store-management/store-management';
 import { CfoDashboard } from './master/cfo-dashboard/cfo-dashboard';
@@ -80,9 +81,18 @@ import { AssetPoolPage } from './master/asset-pool/asset-pool';
 import { DataExport } from './master/data-export/data-export';
 import { FloorPlanPage } from './master/floor-plan/floor-plan';
 import { ExternalAuditor } from './master/external-auditor/external-auditor';
+import { LocationApprovals } from './master/location-approvals/location-approvals';
+import { AuditorLogin } from './auditor/auditor-login/auditor-login';
+import { AuditorAudits } from './auditor/auditor-audits/auditor-audits';
+import { AuditorAuditDetail } from './auditor/auditor-audit-detail/auditor-audit-detail';
+import { externalAuditGuard } from './external-audit.guard';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
+  // ── External auditor portal (email-OTP login, scoped to assigned audits) ──
+  { path: 'auditor/login', component: AuditorLogin },
+  { path: 'auditor/audits', component: AuditorAudits, canActivate: [externalAuditGuard] },
+  { path: 'auditor/audits/:id', component: AuditorAuditDetail, canActivate: [externalAuditGuard] },
   { path: 'assets/view', component: AssetsTable, canActivate: [authGuard] },
   { path: 'assets/new', component: AssetsForm, canActivate: [authGuard] },
   { path: 'assets/assignments', component: AssetAssignment, canActivate: [authGuard] },
@@ -137,6 +147,7 @@ export const routes: Routes = [
   { path: 'decision-engine', component: DecisionEngine, canActivate: [authGuard] },
   { path: 'purchase-orders', component: PurchaseOrders, canActivate: [authGuard] },
   { path: 'goods-receipts', component: GoodsReceipts, canActivate: [authGuard] },
+  // { path: 'procurement-tat', component: ProcurementTat, canActivate: [authGuard] },
   { path: 'work-orders', component: WorkOrders, canActivate: [authGuard] },
   { path: 'store-management', component: StoreManagement, canActivate: [authGuard] },
   { path: 'cfo-dashboard', component: CfoDashboard, canActivate: [authGuard] },
@@ -167,6 +178,7 @@ export const routes: Routes = [
   { path: 'data-export', component: DataExport, canActivate: [authGuard] },
   { path: 'floor-plan', component: FloorPlanPage, canActivate: [authGuard] },
   { path: 'external-auditors', component: ExternalAuditor, canActivate: [authGuard] },
+  { path: 'location-approvals', component: LocationApprovals, canActivate: [authGuard] },
   {
     path: 'assets/scan/:assetId',
     component: AssetScan

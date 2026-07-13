@@ -1535,6 +1535,7 @@
                                 <th>Placement</th>
                                 <th>Mount</th>
                                 <th>Emp Responsible</th>
+                                <th>Status</th>
                                 <th>Date</th>
                             </tr>
                         </ng-template>
@@ -1557,6 +1558,12 @@
                                 </td>
                                 <td>{{ row.mountType || '-' }}</td>
                                 <td>{{ row.employeeResponsible?.name || '-' }}</td>
+                                <td>
+                                    <span class="loc-status" [ngClass]="'loc-' + (row.status || '').toLowerCase()">
+                                        {{ locationStatusLabel(row.status) }}
+                                    </span>
+                                    <span class="loc-current" *ngIf="row.isActive" title="Current active location">current</span>
+                                </td>
                                 <td>{{ row.createdAt | date }}</td>
                             </tr>
                         </ng-template>

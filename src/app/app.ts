@@ -238,7 +238,9 @@ export class App implements OnInit, OnDestroy {
 
   isNoLayoutRoute(): boolean {
     const url = this.router.url.split('?')[0];
-    return url === '/login' || url.startsWith('/assets/scan/');
+    // The external-auditor portal renders its own chrome — never show the
+    // staff sidebar/topbar for it.
+    return url === '/login' || url.startsWith('/assets/scan/') || url.startsWith('/auditor');
   }
 
   goToNotifications() {

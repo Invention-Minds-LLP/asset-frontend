@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { Router, RouterLink } from '@angular/router';
 import { ModuleAccessService } from '../services/module-access/module-access';
+import { BranchFeatures } from '../services/branch-features/branch-features';
 import { TableModule } from "primeng/table";
 
 @Component({
@@ -31,6 +32,10 @@ export class Sidebar implements OnInit {
       path: '/master-dashboard', route: '/master-dashboard', hasDropdown: false
     },
     {
+      icon: 'pi pi-globe', label: 'Head Office',
+      path: '/head-office', route: '/head-office', hasDropdown: false
+    },
+    {
       icon: 'pi pi-id-card', label: 'My Assets',
       path: '/my-assets', route: '/my-assets', hasDropdown: false
     },
@@ -47,6 +52,7 @@ export class Sidebar implements OnInit {
         { label: 'Import', route: '/import', icon: 'pi pi-upload' },
         { label: 'Sub-Assets', route: '/sub-assets', icon: 'pi pi-sitemap' },
         { label: 'Department Assets', route: '/department-assets', icon: 'pi pi-building' },
+        { label: 'Location Approvals', route: '/location-approvals', icon: 'pi pi-check-circle' },
         { label: 'Revenue Log', route: '/revenue-log', icon: 'pi pi-chart-line' },
         { label: 'Asset Disposal', route: '/disposal', icon: 'pi pi-trash' },
         { label: 'E-Waste Management', route: '/e-waste', icon: 'pi pi-recycle' },
@@ -58,14 +64,15 @@ export class Sidebar implements OnInit {
     },
 
     // ── Procurement ───────────────────────────────────────
-    // {
-    //   icon: 'pi pi-shopping-cart', label: 'Procurement',
-    //   path: '/procurement', hasDropdown: true,
-    //   dropdownItems: [
-    //     { label: 'Purchase Orders', route: '/purchase-orders', icon: 'pi pi-file-edit' },
-    //     { label: 'Goods Receipt (GRA)', route: '/goods-receipts', icon: 'pi pi-inbox' },
-    //   ]
-    // },
+    {
+      icon: 'pi pi-shopping-cart', label: 'Procurement',
+      path: '/procurement', hasDropdown: true,
+      dropdownItems: [
+        { label: 'Purchase Orders', route: '/purchase-orders', icon: 'pi pi-file-edit' },
+        { label: 'Goods Receipt (GRA)', route: '/goods-receipts', icon: 'pi pi-inbox' },
+        { label: 'TAT Report', route: '/procurement-tat', icon: 'pi pi-stopwatch' },
+      ]
+    },
 
     // ── Store & Inventory ─────────────────────────────────
     {
@@ -114,7 +121,7 @@ export class Sidebar implements OnInit {
         // { label: 'Branch Command Center', route: '/branch-dashboard', icon: 'pi pi-building-columns' },
         { label: 'Financial Dashboard', route: '/financial-dashboard', icon: 'pi pi-indian-rupee' },
         { label: 'CFO Dashboard', route: '/cfo-dashboard', icon: 'pi pi-chart-pie' },
-        { label: 'COO Dashboard', route: '/coo-dashboard', icon: 'pi pi-gauge' },
+        { label: 'Operations Dashboard', route: '/coo-dashboard', icon: 'pi pi-gauge' },
         { label: 'Cost Analysis', route: '/cost-analysis', icon: 'pi pi-chart-bar' },
         { label: 'Decision Engine', route: '/decision-engine', icon: 'pi pi-microchip' },
         { label: 'Batch Depreciation', route: '/batch-depreciation', icon: 'pi pi-chart-line' },
@@ -186,7 +193,18 @@ export class Sidebar implements OnInit {
   menuItems: any[] = [...this.allMenuItems];
   activeItem = this.menuItems[0];
 
-  constructor(private router: Router, private moduleAccessService: ModuleAccessService, private cdr: ChangeDetectorRef) {
+  // Tenant switch: when branch features are off (single-branch clients like
+  // JMRH), the multi-branch Head Office entry is hidden regardless of
+  // module permissions.
+  private branchFeaturesEnabled = true;
+
+  private gateBranchItems(items: any[]): any[] {
+    if (this.branchFeaturesEnabled) return items;
+    return items.filter(i => (i.route || i.path) !== '/head-office');
+  }
+
+  constructor(private router: Router, private moduleAccessService: ModuleAccessService,
+              private branchFeaturesSvc: BranchFeatures, private cdr: ChangeDetectorRef) {
     this.router.events.subscribe(() => {
       const currentRoute = this.router.url;
 
@@ -210,6 +228,13 @@ export class Sidebar implements OnInit {
     });
   }
   ngOnInit() {
+    this.branchFeaturesSvc.isEnabled().then((v) => {
+      this.branchFeaturesEnabled = v;
+      if (!v) {
+        this.menuItems = this.gateBranchItems(this.menuItems);
+        this.cdr.detectChanges();
+      }
+    });
     this.moduleAccessService.getMyAccess().subscribe({
       next: (result) => {
         let filtered: any[];
@@ -240,7 +265,7 @@ export class Sidebar implements OnInit {
 
         // Defer to next tick to avoid NG0100 (ExpressionChangedAfterItHasBeenCheckedError)
         setTimeout(() => {
-          this.menuItems = filtered;
+          this.menuItems = this.gateBranchItems(filtered);
           this.cdr.detectChanges();
         });
       },

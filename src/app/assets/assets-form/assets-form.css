@@ -1016,3 +1016,26 @@ input[pInputText],
   font-weight: 600;
   color: var(--text-color-secondary);
 }
+
+/* Location-history approval status */
+.loc-status {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.loc-status.loc-approved { background: #dcfce7; color: #15803d; }
+.loc-status.loc-requested { background: #fef3c7; color: #b45309; }
+.loc-status.loc-rejected { background: #fee2e2; color: #b91c1c; }
+.loc-current {
+  display: inline-block;
+  margin-left: 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #0d9488;
+}

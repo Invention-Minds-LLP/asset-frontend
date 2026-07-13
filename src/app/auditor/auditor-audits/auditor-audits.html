@@ -1,0 +1,70 @@
+<div class="aud-shell">
+  <!-- Portal header -->
+  <header class="aud-topbar">
+    <div class="aud-topbar-brand">
+      <i class="pi pi-verified"></i>
+      <span>Auditor Portal</span>
+    </div>
+    <div class="aud-topbar-user">
+      <div class="aud-topbar-identity">
+        <span class="aud-topbar-name">{{ auditorName() }}</span>
+        <span class="aud-topbar-org" *ngIf="auditorOrg()">{{ auditorOrg() }}</span>
+      </div>
+      <button class="aud-logout-btn" (click)="logout()" title="Sign out">
+        <i class="pi pi-sign-out"></i> Logout
+      </button>
+    </div>
+  </header>
+
+  <main class="aud-main">
+    <div class="aud-page-head">
+      <h1>My Assigned Audits</h1>
+      <p>Audits assigned to you. Open one to verify items and view its floor map.</p>
+    </div>
+
+    <!-- Loading -->
+    <div class="aud-state" *ngIf="loading">
+      <i class="pi pi-spin pi-spinner"></i> Loading your audits…
+    </div>
+
+    <!-- Error -->
+    <div class="aud-state error" *ngIf="!loading && error">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>{{ error }}</span>
+      <button class="aud-retry" (click)="load()">Retry</button>
+    </div>
+
+    <!-- Empty -->
+    <div class="aud-state" *ngIf="!loading && !error && audits.length === 0">
+      <i class="pi pi-inbox"></i>
+      <span>No audits are assigned to you yet.</span>
+    </div>
+
+    <!-- List -->
+    <div class="aud-grid" *ngIf="!loading && !error && audits.length > 0">
+      <button class="aud-card" *ngFor="let a of audits" (click)="openAudit(a)">
+        <div class="aud-card-top">
+          <span class="aud-card-title">{{ a.auditName || ('Audit #' + a.id) }}</span>
+          <span class="aud-badge" [ngClass]="statusClass(a.status)">{{ statusLabel(a.status) }}</span>
+        </div>
+        <div class="aud-card-meta" *ngIf="a.block || a.floor || a.location">
+          <i class="pi pi-map-marker"></i>
+          <span>
+            {{ a.block }}<span *ngIf="a.block && (a.floor || a.location)"> · </span>{{ a.floor }}<span
+              *ngIf="a.floor && a.location"> · </span>{{ a.location }}
+          </span>
+        </div>
+        <div class="aud-card-stats">
+          <div class="stat"><span class="stat-num">{{ a.totalCount ?? (a.items?.length || 0) }}</span><span class="stat-lbl">Items</span></div>
+          <div class="stat ok"><span class="stat-num">{{ a.verifiedCount ?? 0 }}</span><span class="stat-lbl">Verified</span></div>
+          <div class="stat warn"><span class="stat-num">{{ a.missingCount ?? 0 }}</span><span class="stat-lbl">Missing</span></div>
+          <div class="stat bad"><span class="stat-num">{{ a.mismatchCount ?? 0 }}</span><span class="stat-lbl">Mismatch</span></div>
+        </div>
+        <div class="aud-card-foot">
+          <span><i class="pi pi-calendar"></i> Created {{ formatDate(a.createdAt) }}</span>
+          <i class="pi pi-chevron-right"></i>
+        </div>
+      </button>
+    </div>
+  </main>
+</div>

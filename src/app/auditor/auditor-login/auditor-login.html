@@ -1,0 +1,58 @@
+<div class="aud-login-page">
+  <div class="aud-login-card">
+    <div class="aud-login-header">
+      <div class="aud-brand-mark"><i class="pi pi-verified"></i></div>
+      <h2>External Auditor Portal</h2>
+      <p *ngIf="step === 'identifier'">Sign in with your registered email to access your assigned audits.</p>
+      <p *ngIf="step === 'otp'">Enter the 6-digit code we sent to <strong>{{ email }}</strong>.</p>
+    </div>
+
+    <!-- Step 1: email -->
+    <form *ngIf="step === 'identifier'" class="aud-form" (ngSubmit)="requestCode()">
+      <div class="aud-input-group">
+        <div class="aud-input-icon"><i class="pi pi-envelope"></i></div>
+        <input type="email" placeholder="you@organization.com" [(ngModel)]="email" name="email"
+          autocomplete="email" (keyup.enter)="requestCode()" />
+      </div>
+
+      <div class="aud-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <button type="submit" class="aud-submit-btn" [disabled]="loading">
+        <span *ngIf="!loading"><i class="pi pi-send"></i> Send login code</span>
+        <span *ngIf="loading"><i class="pi pi-spin pi-spinner"></i> Sending…</span>
+      </button>
+    </form>
+
+    <!-- Step 2: OTP -->
+    <form *ngIf="step === 'otp'" class="aud-form" (ngSubmit)="verifyCode()">
+      <div class="aud-input-group">
+        <div class="aud-input-icon"><i class="pi pi-key"></i></div>
+        <input type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code"
+          [ngModel]="otp" (ngModelChange)="onOtpInput($event)" name="otp" autocomplete="one-time-code"
+          (keyup.enter)="verifyCode()" />
+      </div>
+
+      <div class="aud-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <button type="submit" class="aud-submit-btn" [disabled]="loading">
+        <span *ngIf="!loading"><i class="pi pi-sign-in"></i> Verify &amp; sign in</span>
+        <span *ngIf="loading"><i class="pi pi-spin pi-spinner"></i> Verifying…</span>
+      </button>
+
+      <div class="aud-otp-actions">
+        <button type="button" class="aud-link-btn" (click)="backToIdentifier()">
+          <i class="pi pi-arrow-left"></i> Change email
+        </button>
+        <button type="button" class="aud-link-btn" (click)="resendCode()"
+          [disabled]="resendCountdown > 0 || loading">
+          {{ resendCountdown > 0 ? 'Resend in ' + resendCountdown + 's' : 'Resend code' }}
+        </button>
+      </div>
+    </form>
+
+    <div class="aud-login-footer">
+      <a routerLink="/login" class="aud-staff-link"><i class="pi pi-arrow-left"></i> Staff sign in</a>
+      <p class="aud-copyright">&copy; {{ currentYear }} Smart Assets</p>
+    </div>
+  </div>
+</div>

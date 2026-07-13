@@ -1,0 +1,121 @@
+<div class="la-page">
+  <header class="la-header">
+    <div class="la-title">
+      <div class="la-title-icon"><i class="pi pi-check-circle"></i></div>
+      <div>
+        <h1>Location Approvals</h1>
+        <p>Supervisor changes route to the HOD; HOD changes route to management.</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="la-tabs">
+    <button [class.active]="tab === 'pending'" (click)="setTab('pending')">
+      <i class="pi pi-inbox"></i> Pending Approvals
+      <span class="la-count" *ngIf="pending.length">{{ pending.length }}</span>
+    </button>
+    <button [class.active]="tab === 'mine'" (click)="setTab('mine')">
+      <i class="pi pi-user"></i> My Requests
+      <span class="la-count muted" *ngIf="myRequests.length">{{ myRequests.length }}</span>
+    </button>
+  </div>
+
+  <!-- ── Pending approvals ── -->
+  <div *ngIf="tab === 'pending'">
+    <div class="la-loading" *ngIf="loadingPending"><i class="pi pi-spin pi-spinner"></i> Loading…</div>
+
+    <div class="la-empty-state" *ngIf="!loadingPending && pending.length === 0">
+      <i class="pi pi-check-circle"></i>
+      <h3>All clear</h3>
+      <p>No location changes are waiting for your approval.</p>
+    </div>
+
+    <div class="la-grid" *ngIf="!loadingPending && pending.length">
+      <div class="la-card" *ngFor="let row of pending" [ngClass]="'tier-' + (row.approvalLevel || '').toLowerCase()">
+        <div class="la-card-head">
+          <div class="la-asset">
+            <span class="la-asset-name">{{ row.asset?.assetName || 'Asset' }}</span>
+            <span class="la-asset-code">{{ row.asset?.assetId }}</span>
+          </div>
+          <span class="la-tier-badge">{{ levelLabel(row.approvalLevel) }} approval</span>
+        </div>
+
+        <div class="la-move">
+          <i class="pi pi-map-marker"></i>
+          <div>
+            <span class="la-move-label">New location</span>
+            <strong>{{ locationLabel(row) }}</strong>
+            <span class="la-branch" *ngIf="row.branch?.name">{{ row.branch.name }}</span>
+          </div>
+        </div>
+
+        <div class="la-meta">
+          <div class="la-meta-item">
+            <i class="pi pi-user"></i>
+            <span>{{ row.requestedBy?.name || 'Unknown' }}<em *ngIf="row.requestedBy?.role"> · {{ row.requestedBy?.role }}</em></span>
+          </div>
+          <div class="la-meta-item">
+            <i class="pi pi-clock"></i>
+            <span>{{ formatDate(row.requestedAt) }}</span>
+          </div>
+          <div class="la-meta-item" *ngIf="row.requestReason">
+            <i class="pi pi-comment"></i>
+            <span>{{ row.requestReason }}</span>
+          </div>
+        </div>
+
+        <div class="la-card-actions">
+          <button class="la-btn reject" [disabled]="acting" (click)="openReject(row)">
+            <i class="pi pi-times"></i> Reject
+          </button>
+          <button class="la-btn approve" [disabled]="acting" (click)="approve(row)">
+            <i class="pi pi-check"></i> Approve
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── My requests ── -->
+  <div *ngIf="tab === 'mine'">
+    <div class="la-loading" *ngIf="loadingMine"><i class="pi pi-spin pi-spinner"></i> Loading…</div>
+
+    <div class="la-empty-state" *ngIf="!loadingMine && myRequests.length === 0">
+      <i class="pi pi-inbox"></i>
+      <h3>Nothing yet</h3>
+      <p>You haven't requested any location changes.</p>
+    </div>
+
+    <div class="la-list" *ngIf="!loadingMine && myRequests.length">
+      <div class="la-row" *ngFor="let row of myRequests" [ngClass]="'st-' + (row.status || '').toLowerCase()">
+        <div class="la-row-main">
+          <div class="la-asset">
+            <span class="la-asset-name">{{ row.asset?.assetName || 'Asset' }}</span>
+            <span class="la-asset-code">{{ row.asset?.assetId }}</span>
+          </div>
+          <div class="la-row-loc"><i class="pi pi-map-marker"></i> {{ locationLabel(row) }}<span class="la-branch" *ngIf="row.branch?.name"> · {{ row.branch.name }}</span></div>
+        </div>
+        <div class="la-row-side">
+          <span class="la-status" [ngClass]="'st-' + (row.status || '').toLowerCase()">{{ row.status }}</span>
+          <span class="la-row-note"
+            *ngIf="row.status === 'REJECTED' && row.rejectionReason">{{ row.rejectionReason }}</span>
+          <span class="la-row-date">{{ formatDate(row.requestedAt) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reject dialog -->
+<p-dialog header="Reject location change" [(visible)]="showReject" [style]="{ width: '420px' }" [modal]="true">
+  <div class="la-reject">
+    <label>Reason (optional)</label>
+    <textarea pTextarea [(ngModel)]="rejectReason" rows="3" placeholder="Why is this change being rejected?"></textarea>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showReject = false" [disabled]="acting"></p-button>
+    <p-button label="Reject" icon="pi pi-times" severity="danger" (onClick)="confirmReject()" [loading]="acting"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-toast></p-toast>

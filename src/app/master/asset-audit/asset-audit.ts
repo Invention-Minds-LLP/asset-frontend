@@ -14,6 +14,9 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { MessageService } from 'primeng/api';
 import { AssetAuditService } from '../../services/asset-audit/asset-audit';
+import { Branches } from '../../services/branches/branches';
+import { BranchFeatures } from '../../services/branch-features/branch-features';
+import { ExternalAuditorService } from '../../services/external-auditor/external-auditor';
 import { DatePicker } from 'primeng/datepicker';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
@@ -49,7 +52,7 @@ export class AssetAudit implements OnInit {
 
   // Create dialog
   showCreateDialog = false;
-  createForm: any = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null, floor: null, block: null, room: null, categoryIds: [], auditorType: null, internalAuditorIds: [], externalAuditors: [] };
+  createForm: any = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null, floor: null, block: null, room: null, categoryIds: [], auditorType: null, internalAuditorIds: [], existingExternalAuditorIds: [], externalAuditors: [] };
   createLoading = false;
 
   // Location options
@@ -57,6 +60,14 @@ export class AssetAudit implements OnInit {
   locationBlocks: string[] = [];
   locationRooms: string[] = [];
   locationsLoading = false;
+
+  // Branch scoping — gated by the ENABLE_BRANCH_FEATURES tenant switch, same as
+  // the assets table. When off (single-branch tenant) the branch selector is hidden.
+  branchFeatures = true;
+  branchOptions: { label: string; value: number }[] = [];
+
+  // Existing external auditors (master list, ACTIVE only) for the picker.
+  externalAuditorOptions: { id: number; email: string; name: string; organization?: string | null }[] = [];
 
   // Scope wizard (floor ↔ category)
   scopeCategories: { id: number; name: string; count: number }[] = [];
@@ -107,13 +118,59 @@ export class AssetAudit implements OnInit {
   constructor(
     private auditService: AssetAuditService,
     private messageService: MessageService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private branchesService: Branches,
+    private branchFeaturesSvc: BranchFeatures,
+    private externalAuditorService: ExternalAuditorService
   ) {}
 
   ngOnInit() {
     this.loadAudits();
     this.loadLocationOptions();
     this.loadEmployees();
+    this.loadBranchFeatures();
+    this.loadExternalAuditors();
+  }
+
+  // Resolve the tenant branch switch, then load branches only if enabled.
+  loadBranchFeatures() {
+    this.branchFeaturesSvc.isEnabled().then((enabled) => {
+      setTimeout(() => {
+        this.branchFeatures = enabled;
+        this.cdr.detectChanges();
+      });
+      if (enabled) this.loadBranches();
+    });
+  }
+
+  loadBranches() {
+    this.branchesService.getBranches().subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          this.branchOptions = (res || [])
+            .filter((b: any) => b.isActive !== false)
+            .map((b: any) => ({ label: b.name, value: b.id }));
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
+    });
+  }
+
+  // Existing external auditors (ACTIVE) for the picker in the create dialog.
+  loadExternalAuditors() {
+    this.externalAuditorService.list({ status: 'ACTIVE' }).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          const list = Array.isArray(res) ? res : (res?.data ?? []);
+          this.externalAuditorOptions = list.map((a: any) => ({
+            id: a.id, email: a.email, name: a.name, organization: a.organization,
+          }));
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
+    });
   }
 
   loadEmployees() {
@@ -166,12 +223,16 @@ export class AssetAudit implements OnInit {
 
   // Create
   openCreateDialog() {
-    this.createForm = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null, floor: null, block: null, room: null, categoryIds: [], auditorType: null, internalAuditorIds: [], externalAuditors: [] };
+    this.createForm = { auditName: '', auditDate: null, description: '', branchId: null, departmentId: null, floor: null, block: null, room: null, categoryIds: [], auditorType: null, internalAuditorIds: [], existingExternalAuditorIds: [], externalAuditors: [] };
     this.scopeCategories = [];
     this.scopePreview = null;
+    // Block/room lists cascade from the floor (and branch); start empty.
+    this.locationBlocks = [];
+    this.locationRooms = [];
     this.loadScopeFloors();
     this.loadScopeCategories();
     if (!this.employees.length) this.loadEmployees();
+    if (!this.externalAuditorOptions.length) this.loadExternalAuditors();
     this.showCreateDialog = true;
   }
 
@@ -181,8 +242,10 @@ export class AssetAudit implements OnInit {
 
   onAuditorTypeChange() {
     if (!this.needsInternal) this.createForm.internalAuditorIds = [];
-    if (!this.needsExternal) this.createForm.externalAuditors = [];
-    else if (!this.createForm.externalAuditors.length) this.addExternalAuditor();
+    if (!this.needsExternal) {
+      this.createForm.externalAuditors = [];
+      this.createForm.existingExternalAuditorIds = [];
+    }
   }
 
   addExternalAuditor() {
@@ -220,11 +283,49 @@ export class AssetAudit implements OnInit {
     });
   }
 
-  // Categories present on the chosen floor (floor-first flow), with counts.
+  // Blocks available within the chosen branch + floor.
+  loadScopeBlocks() {
+    const params = this.scopeParams();
+    if (this.createForm.floor) params.floor = this.createForm.floor;
+    this.auditService.getScopeBlocks(params).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          this.locationBlocks = res.data || [];
+          if (this.createForm.block && !this.locationBlocks.includes(this.createForm.block)) {
+            this.createForm.block = null;
+          }
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
+    });
+  }
+
+  // Rooms available within the chosen branch + floor + block.
+  loadScopeRooms() {
+    const params = this.scopeParams();
+    if (this.createForm.floor) params.floor = this.createForm.floor;
+    if (this.createForm.block) params.block = this.createForm.block;
+    this.auditService.getScopeRooms(params).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          this.locationRooms = res.data || [];
+          if (this.createForm.room && !this.locationRooms.includes(this.createForm.room)) {
+            this.createForm.room = null;
+          }
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
+    });
+  }
+
+  // Categories present on the chosen floor/block/room (floor-first flow), with counts.
   loadScopeCategories() {
     const params = this.scopeParams();
     if (this.createForm.floor) params.floor = this.createForm.floor;
     if (this.createForm.block) params.block = this.createForm.block;
+    if (this.createForm.room) params.room = this.createForm.room;
     this.auditService.getScopeCategories(params).subscribe({
       next: (res: any) => {
         setTimeout(() => {
@@ -243,6 +344,7 @@ export class AssetAudit implements OnInit {
     const params = this.scopeParams();
     if (this.createForm.floor) params.floor = this.createForm.floor;
     if (this.createForm.block) params.block = this.createForm.block;
+    if (this.createForm.room) params.room = this.createForm.room;
     if (this.createForm.categoryIds?.length) params.categoryIds = this.createForm.categoryIds.join(',');
     this.auditService.getScopePreview(params).subscribe({
       next: (res: any) => {
@@ -252,8 +354,38 @@ export class AssetAudit implements OnInit {
     });
   }
 
-  // Floor changed → refresh the categories available on it + preview.
+  // Branch changed → reset floor/block/room, reload the floors for that branch.
+  onScopeBranchChange() {
+    this.createForm.floor = null;
+    this.createForm.block = null;
+    this.createForm.room = null;
+    this.locationBlocks = [];
+    this.locationRooms = [];
+    this.loadScopeFloors();
+    this.loadScopeCategories();
+    this.loadScopePreview();
+  }
+
+  // Floor changed → reset block/room, reload blocks + categories + preview.
   onScopeFloorChange() {
+    this.createForm.block = null;
+    this.createForm.room = null;
+    this.locationRooms = [];
+    this.loadScopeBlocks();
+    this.loadScopeCategories();
+    this.loadScopePreview();
+  }
+
+  // Block changed → reset room, reload rooms + categories + preview.
+  onScopeBlockChange() {
+    this.createForm.room = null;
+    this.loadScopeRooms();
+    this.loadScopeCategories();
+    this.loadScopePreview();
+  }
+
+  // Room changed → refresh categories + preview.
+  onScopeRoomChange() {
     this.loadScopeCategories();
     this.loadScopePreview();
   }
@@ -284,12 +416,18 @@ export class AssetAudit implements OnInit {
       for (const empId of this.createForm.internalAuditorIds) auditors.push({ type: 'INTERNAL', employeeId: empId });
     }
     if (this.needsExternal) {
+      // Existing auditors picked from the master list → sent by id.
+      const existingIds: number[] = this.createForm.existingExternalAuditorIds || [];
+      for (const id of existingIds) auditors.push({ type: 'EXTERNAL', externalAuditorId: id });
+
+      // New auditors typed inline → sent by name/email (backend auto-provisions).
       const valid = (this.createForm.externalAuditors || []).filter((a: any) => a.name?.trim() && a.email?.trim());
-      if (!valid.length) {
-        this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Add at least one external auditor with a name and email' });
+      for (const a of valid) auditors.push({ type: 'EXTERNAL', name: a.name.trim(), email: a.email.trim(), organization: a.organization?.trim() || null, phone: a.phone?.trim() || null });
+
+      if (!existingIds.length && !valid.length) {
+        this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Select an existing external auditor or add a new one with a name and email' });
         return;
       }
-      for (const a of valid) auditors.push({ type: 'EXTERNAL', name: a.name.trim(), email: a.email.trim(), organization: a.organization?.trim() || null, phone: a.phone?.trim() || null });
     }
 
     const payload = { ...this.createForm, auditorType: this.createForm.auditorType || null, auditors };

@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { MessageService } from 'primeng/api';
 import { TenantConfigService } from '../../services/tenant-config/tenant-config';
+import { BranchFeatures } from '../../services/branch-features/branch-features';
 
 @Component({
   selector: 'app-tenant-config',
@@ -31,7 +32,8 @@ export class TenantConfig implements OnInit {
   constructor(
     private configService: TenantConfigService,
     private messageService: MessageService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private branchFeatures: BranchFeatures
   ) {}
 
   ngOnInit() {
@@ -78,6 +80,10 @@ export class TenantConfig implements OnInit {
         this.saving[key] = false;
         const cfg = this.configs.find(c => c.key === key);
         if (cfg) cfg.value = value;
+        // Bust the branch-features cache so branch-gated screens (audit,
+        // assets table, dashboards) reflect the new value on their next load
+        // without needing a full browser reload.
+        if (key === 'ENABLE_BRANCH_FEATURES') this.branchFeatures.refresh();
         setTimeout(() => this.cdr.detectChanges());
       },
       error: (err: any) => {

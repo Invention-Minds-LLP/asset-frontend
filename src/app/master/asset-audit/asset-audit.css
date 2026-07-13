@@ -115,7 +115,7 @@
 
 .location-scope-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 0.5rem;
   margin-top: 0.25rem;
 }
@@ -158,11 +158,12 @@
 
 /* ── Auditor assignment ──────────────────────────────────────────────── */
 .auditor-block { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem; }
-.ext-row { display: grid; grid-template-columns: 1.2fr 1.4fr 1.2fr 0.9fr auto; gap: 0.4rem; align-items: center; }
-.ext-row input { padding: 7px 10px; border: 1px solid var(--surface-border); border-radius: 6px; font-size: 0.85rem; background: var(--surface-card); color: var(--text-color); width: 100%; }
-.ext-del { border: none; background: transparent; color: #dc2626; cursor: pointer; padding: 6px; border-radius: 6px; }
+/* Wrap into ~2 inputs per row so values stay fully readable inside the
+   520px dialog (the old single-row 5-column layout truncated the text). */
+.ext-row { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; margin-bottom: 0.6rem; padding-bottom: 0.6rem; border-bottom: 1px dashed var(--surface-border); }
+.ext-row input { flex: 1 1 45%; min-width: 150px; padding: 8px 11px; border: 1px solid var(--surface-border); border-radius: 6px; font-size: 0.85rem; background: var(--surface-card); color: var(--text-color); }
+.ext-del { flex: 0 0 auto; margin-left: auto; border: none; background: transparent; color: #dc2626; cursor: pointer; padding: 6px; border-radius: 6px; }
 .ext-del:hover { background: var(--surface-hover); }
-@media (max-width: 560px) { .ext-row { grid-template-columns: 1fr 1fr; } }
 
 .auditors-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
 .auditors-label { font-weight: 600; font-size: 0.85rem; color: var(--text-color-secondary); display: inline-flex; align-items: center; gap: 5px; }
