@@ -179,6 +179,7 @@ export class AssetsForm implements OnInit {
   departments: any[] = [];
   vendors: any[] = [];
   categories: any[] = [];
+  subTypes: any[] = [];
   stores: any[] = [];
   employees: any[] = [];
   branches: any[] = [];
@@ -238,6 +239,7 @@ export class AssetsForm implements OnInit {
     residualValuePercent: 0,
 
     assetCategoryId: null,
+    assetSubTypeId: null,
     currentStoreId: null,
     serialNumber: "",
     assetPhoto: "",
@@ -727,6 +729,13 @@ export class AssetsForm implements OnInit {
       }
     });
 
+    this.assetAPI.getSubTypes().subscribe({
+      next: (res) => {
+        this.subTypes = res || [];
+        this.cdr.markForCheck();
+      }
+    });
+
     this.assetAPI.getVendors().subscribe({
       next: (res) => {
         this.vendors = res || [];
@@ -1088,6 +1097,7 @@ export class AssetsForm implements OnInit {
       assetType: a.assetType,
       assetNature: a.assetNature,
       assetCategoryId: a.assetCategoryId,
+      assetSubTypeId: a.assetSubTypeId,
       modeOfProcurement: a.modeOfProcurement,
 
       // intangible details (if applicable)
@@ -2349,9 +2359,10 @@ export class AssetsForm implements OnInit {
     this.assetAPI.updateAssetMakeModel(this.asset.id, {
       manufacturer: this.asset.manufacturer?.trim() || null,
       modelNumber: this.asset.modelNumber?.trim() || null,
+      assetSubTypeId: this.asset.assetSubTypeId ? Number(this.asset.assetSubTypeId) : null,
     }).subscribe({
-      next: () => { this.savingMakeModel = false; this.toast('success', 'Make & model saved'); },
-      error: (err: any) => { this.savingMakeModel = false; this.toast('error', err?.error?.message || 'Failed to save make/model'); }
+      next: () => { this.savingMakeModel = false; this.toast('success', 'Saved'); this.cdr.markForCheck(); },
+      error: (err: any) => { this.savingMakeModel = false; this.toast('error', err?.error?.message || 'Failed to save'); this.cdr.markForCheck(); }
     });
   }
 

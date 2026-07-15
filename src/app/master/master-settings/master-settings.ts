@@ -85,6 +85,13 @@ export class MasterSettings implements OnInit {
   showCategoryForm = false;
   savingAsset = false;
 
+  // ── Asset Sub-Types (flat/global) ─────────────────────────────────────────
+  subTypes: any[] = [];
+  subTypeForm: { name: string; code?: string | null; description?: string | null } = { name: '' };
+  editingSubTypeId: number | null = null;
+  showSubTypeForm = false;
+  savingSubType = false;
+
   // ── Vendors ──────────────────────────────────────────────────────────────
   vendors: any[] = [];
   vendorForm: any = {
@@ -121,6 +128,7 @@ export class MasterSettings implements OnInit {
     this.loadDepartments();
     this.loadBranches();
     this.loadCategories();
+    this.loadSubTypes();
     this.loadVendors();
   }
 
@@ -293,6 +301,60 @@ export class MasterSettings implements OnInit {
     this.assetsService.deleteCategory(cat.id).subscribe({
       next: () => { setTimeout(() => { this.toast('success', 'Category deleted'); this.loadCategories(); this.cdr.detectChanges(); }); },
       error: err => this.toast('error', err?.error?.message || 'Failed to delete category')
+    });
+  }
+
+  // ── Asset Sub-Types ────────────────────────────────────────────────────────
+  loadSubTypes() {
+    this.assetsService.getSubTypes().subscribe({
+      next: s => { setTimeout(() => { this.subTypes = s; this.cdr.detectChanges(); }); },
+      error: () => this.toast('error', 'Failed to load sub-types')
+    });
+  }
+
+  openSubTypeForm(st?: any) {
+    if (st) {
+      this.editingSubTypeId = st.id;
+      this.subTypeForm = { name: st.name, code: st.code ?? null, description: st.description ?? null };
+    } else {
+      this.editingSubTypeId = null;
+      this.subTypeForm = { name: '', code: null, description: null };
+    }
+    this.showSubTypeForm = true;
+  }
+
+  saveSubType() {
+    if (!this.subTypeForm.name.trim()) { this.toast('warn', 'Sub-type name is required'); return; }
+    this.savingSubType = true;
+    const payload: any = {
+      name: this.subTypeForm.name.trim(),
+      code: this.subTypeForm.code?.trim() || null,
+      description: this.subTypeForm.description?.trim() || null,
+    };
+    const call = this.editingSubTypeId
+      ? this.assetsService.updateSubType(this.editingSubTypeId, payload)
+      : this.assetsService.createSubType(payload);
+
+    call.subscribe({
+      next: () => {
+        setTimeout(() => {
+          this.toast('success', this.editingSubTypeId ? 'Sub-type updated' : 'Sub-type created');
+          this.showSubTypeForm = false;
+          this.loadSubTypes();
+          this.savingSubType = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: err => { setTimeout(() => { this.savingSubType = false; this.cdr.detectChanges(); });
+        this.toast('error', err?.error?.message || 'Failed to save sub-type'); }
+    });
+  }
+
+  deleteSubType(st: any) {
+    if (!confirm(`Delete sub-type "${st.name}"?`)) return;
+    this.assetsService.deleteSubType(st.id).subscribe({
+      next: () => { setTimeout(() => { this.toast('success', 'Sub-type deleted'); this.loadSubTypes(); this.cdr.detectChanges(); }); },
+      error: err => this.toast('error', err?.error?.message || 'Failed to delete sub-type')
     });
   }
 

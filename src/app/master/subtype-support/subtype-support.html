@@ -1,0 +1,124 @@
+<p-toast />
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><div><i class="pi pi-sitemap"></i></div><div> Sub-Type Support &amp; Assets</div></h2>
+    <p class="subtitle">
+      Assign the repair engineer who handles tickets for each asset sub-type, and see how many
+      assets of each sub-type belong to the department (source &amp; target).
+    </p>
+  </div>
+
+  <!-- Restricted roles: no access -->
+  <div *ngIf="restricted" class="notice-card">
+    <i class="pi pi-lock"></i>
+    <span>You don't have access to configure sub-type support.</span>
+  </div>
+
+  <ng-container *ngIf="!restricted">
+    <!-- Department scope -->
+    <div class="scope-row">
+      <label class="scope-label">Department</label>
+
+      <!-- HOD: locked to own department -->
+      <span class="dept-chip" *ngIf="isHod">
+        <i class="pi pi-building"></i>
+        {{ hodDeptName || 'Your department' }}
+      </span>
+
+      <!-- All-department roles: pick any department -->
+      <p-select *ngIf="canSeeAll" [options]="departments" optionLabel="name" optionValue="id"
+        [(ngModel)]="selectedDeptId" [filter]="true" appendTo="body"
+        placeholder="Select a department" (onChange)="onDeptChange()"
+        styleClass="scope-select"></p-select>
+    </div>
+
+    <!-- Empty state before a department is chosen -->
+    <div *ngIf="!effectiveDeptId" class="notice-card">
+      <i class="pi pi-info-circle"></i>
+      <span>Select a department to configure engineers and view asset counts.</span>
+    </div>
+
+    <!-- Main content -->
+    <p-tabView class="custom-tabs" *ngIf="effectiveDeptId">
+      <!-- ── Engineer configuration ─────────────────────────────────────────── -->
+      <p-tabPanel header="Repair Engineer Config">
+        <div class="table-shell">
+          <p-table [value]="subTypes" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width:56px">#</th>
+                <th>Sub Type</th>
+                <th style="width:220px">Current Engineer</th>
+                <th style="width:280px">Assign Engineer</th>
+                <th style="width:150px">Actions</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-st let-i="rowIndex">
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td><strong>{{ st.name }}</strong> <small class="muted" *ngIf="st.code">({{ st.code }})</small></td>
+                <td>
+                  <p-tag *ngIf="configuredEngineer(st.id)" severity="success" [value]="configuredEngineer(st.id)"></p-tag>
+                  <span *ngIf="!configuredEngineer(st.id)" class="fallback">Falls back to supervisor</span>
+                </td>
+                <td>
+                  <p-select [options]="employees" optionLabel="name" optionValue="id"
+                    [(ngModel)]="assignments[st.id]" [filter]="true" [showClear]="true"
+                    placeholder="Select engineer" appendTo="body" styleClass="w-full"></p-select>
+                </td>
+                <td class="action-cell">
+                  <p-button icon="pi pi-check" label="Save" size="small"
+                    [loading]="savingId === st.id" (onClick)="saveAssignment(st)"></p-button>
+                  <p-button icon="pi pi-times" severity="danger" [text]="true" size="small"
+                    pTooltip="Clear" tooltipPosition="top" (onClick)="clearAssignment(st)"></p-button>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="5" class="empty-row">No sub-types found. Create them in Master Settings first.</td></tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </p-tabPanel>
+
+      <!-- ── Asset count list ─────────────────────────────────────────────────── -->
+      <p-tabPanel header="Asset Count by Sub-Type">
+        <div class="totals">
+          <div class="stat">
+            <span class="stat-value">{{ summaryTotals.sourceCount }}</span>
+            <span class="stat-label">Source (owning dept)</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ summaryTotals.targetCount }}</span>
+            <span class="stat-label">Target (end-user dept)</span>
+          </div>
+        </div>
+
+        <div class="table-shell">
+          <p-table [value]="summaryRows" [paginator]="true" [rows]="15" styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width:56px">#</th>
+                <th>Sub Type</th>
+                <th style="width:200px">Source (owning dept)</th>
+                <th style="width:200px">Target (end-user dept)</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row let-i="rowIndex">
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td><strong>{{ row.name }}</strong> <small class="muted" *ngIf="row.code">({{ row.code }})</small></td>
+                <td><span class="count-pill">{{ row.sourceCount }}</span></td>
+                <td><span class="count-pill">{{ row.targetCount }}</span></td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="4" class="empty-row">No assets with a sub-type in this scope.</td></tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  </ng-container>
+</div>

@@ -24,6 +24,7 @@ import { SupportMatrix } from './master/support-matrix/support-matrix';
 import { Escalation } from './master/escalation/escalation';
 import { Acknowledgement } from './master/acknowledgement/acknowledgement';
 import { MasterSettings } from './master/master-settings/master-settings';
+import { SubtypeSupport } from './master/subtype-support/subtype-support';
 import { ModuleAccess } from './master/module-access/module-access';
 import { FinancialDashboard } from './master/financial-dashboard/financial-dashboard';
 import { AuditTrail } from './master/audit-trail/audit-trail';
@@ -119,6 +120,7 @@ export const routes: Routes = [
   { path: 'escalation', component: Escalation, canActivate: [authGuard] },
   { path: 'acknowledgement', component: Acknowledgement, canActivate: [authGuard] },
   { path: 'master-settings', component: MasterSettings, canActivate: [authGuard] },
+  { path: 'subtype-support', component: SubtypeSupport, canActivate: [authGuard] },
   { path: 'module-access', component: ModuleAccess, canActivate: [authGuard] },
   { path: 'financial-dashboard', component: FinancialDashboard, canActivate: [authGuard] },
   { path: 'reports', component: Reports, canActivate: [authGuard] },

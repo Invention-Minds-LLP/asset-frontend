@@ -58,7 +58,7 @@ export class Assets {
     return this.http.put<any>(`${this.assetsUrl}/${id}`, assetData);
   }
 
-  updateAssetMakeModel(id: number, payload: { manufacturer: string | null; modelNumber: string | null }): Observable<any> {
+  updateAssetMakeModel(id: number, payload: { manufacturer: string | null; modelNumber: string | null; assetSubTypeId?: number | null }): Observable<any> {
     return this.http.patch<any>(`${this.assetsUrl}/${id}/make-model`, payload);
   }
 
@@ -111,6 +111,44 @@ export class Assets {
 
   deleteCategory(id: number): Observable<any> {
     return this.http.delete<any>(`${environment.apiUrl}/categories/${id}`);
+  }
+
+  // ── Asset sub-types (flat/global master) ──────────────────────────────────
+  getSubTypes(includeInactive = false) {
+    const q = includeInactive ? '?includeInactive=true' : '';
+    return this.http.get<any[]>(`${environment.apiUrl}/asset-subtypes${q}`);
+  }
+
+  createSubType(data: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/asset-subtypes`, data);
+  }
+
+  updateSubType(id: number, data: any): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/asset-subtypes/${id}`, data);
+  }
+
+  deleteSubType(id: number): Observable<any> {
+    return this.http.delete<any>(`${environment.apiUrl}/asset-subtypes/${id}`);
+  }
+
+  // HOD/Admin sub-type asset counts (source + target dept)
+  getSubTypeSummary(departmentId?: number): Observable<any> {
+    const q = departmentId ? `?departmentId=${departmentId}` : '';
+    return this.http.get<any>(`${environment.apiUrl}/asset-subtypes/summary${q}`);
+  }
+
+  // ── Sub-type → repair engineer config (HOD/Admin) ─────────────────────────
+  getSubTypeSupport(departmentId?: number): Observable<any> {
+    const q = departmentId ? `?departmentId=${departmentId}` : '';
+    return this.http.get<any>(`${environment.apiUrl}/subtype-support${q}`);
+  }
+
+  upsertSubTypeSupport(data: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/subtype-support`, data);
+  }
+
+  deleteSubTypeSupport(id: number): Observable<any> {
+    return this.http.delete<any>(`${environment.apiUrl}/subtype-support/${id}`);
   }
 
   updateDepartment(id: number, name: string): Observable<any> {

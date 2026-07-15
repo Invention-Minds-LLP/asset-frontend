@@ -236,10 +236,11 @@ export class TicketingForm {
   }
   issueChange() {
     const selectedAsset = this.assets.find(asset => asset.id === this.ticket.assetId);
-    if (selectedAsset) {
+    // Only prefill location from the asset when it actually has one — otherwise
+    // keep whatever the user typed so the required Location field isn't silently
+    // blanked (which made Save fail with no feedback).
+    if (selectedAsset?.currentLocation) {
       this.ticket.location = selectedAsset.currentLocation;
-    } else {
-      this.ticket.location = '';
     }
     this.fetchKbSuggestions();
   }
@@ -286,6 +287,22 @@ export class TicketingForm {
 
 
   onSubmit(form: NgForm) {
+    // Guard first: an invalid form must surface the missing fields and release
+    // the button — otherwise Save spins forever with no API call and no feedback.
+    if (!form.valid) {
+      Object.values(form.controls || {}).forEach((c: any) => c.markAsTouched());
+      this.submitting = false;
+      const missing = Object.keys(form.controls || {}).filter((k) => form.controls[k]?.invalid);
+      this.msg.add({
+        severity: 'warn',
+        summary: 'Incomplete form',
+        detail: missing.length
+          ? `Please fill required field(s): ${missing.join(', ')}`
+          : 'Please fill all required fields.',
+      });
+      this.cdr.detectChanges();
+      return;
+    }
     this.submitting = true;
     if (form.valid) {
       console.log(this.ticket)

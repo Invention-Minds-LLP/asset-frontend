@@ -162,7 +162,70 @@
         </ng-template>
       </p-table>
     </p-tabPanel>
-  
+
+    <!-- ── Asset Sub Types ──────────────────────────────────────────────────── -->
+    <p-tabPanel header="Asset Sub Types">
+      <div class="tab-toolbar">
+        <p-button label="Add Sub Type" icon="pi pi-plus" (onClick)="openSubTypeForm()" />
+      </div>
+
+      @if (showSubTypeForm) {
+        <div class="inline-form card">
+          <h4>{{ editingSubTypeId ? 'Edit Sub Type' : 'New Sub Type' }}</h4>
+          <div class="form-row">
+            <p-floatlabel variant="on">
+              <input pInputText id="stName" [(ngModel)]="subTypeForm.name" />
+              <label for="stName">Sub Type Name (e.g. Desktop Monitor)</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <input pInputText id="stCode" [(ngModel)]="subTypeForm.code" maxlength="10" />
+              <label for="stCode">Code (optional)</label>
+            </p-floatlabel>
+          </div>
+          <div class="form-row">
+            <p-floatlabel variant="on">
+              <input pInputText id="stDesc" [(ngModel)]="subTypeForm.description" />
+              <label for="stDesc">Description (optional)</label>
+            </p-floatlabel>
+          </div>
+
+          <div class="form-actions">
+            <p-button label="Save" icon="pi pi-check" (onClick)="saveSubType()" [loading]="savingSubType" />
+            <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showSubTypeForm = false" />
+          </div>
+        </div>
+      }
+
+      <p-table [value]="subTypes" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Description</th>
+            <th>Assets</th>
+            <th style="width:120px">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-st let-i="rowIndex">
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;"><strong>{{ st.name }}</strong></td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ st.code || '—' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ st.description || '—' }}</td>
+            <td>{{ st._count?.assets ?? 0 }}</td>
+            <td>
+              <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openSubTypeForm(st)" />
+              <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Delete" tooltipPosition="top" (onClick)="deleteSubType(st)" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="empty-msg">No sub-types found.</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
     <!-- ── Vendors ──────────────────────────────────────────────────────────── -->
     <p-tabPanel header="Vendors">
       <div class="tab-toolbar">

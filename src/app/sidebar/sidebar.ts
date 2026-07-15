@@ -175,6 +175,7 @@ export class Sidebar implements OnInit {
         { label: 'SLA Matrix', route: '/sla', icon: 'pi pi-clock' },
         { label: 'Escalation Matrix', route: '/escalation', icon: 'pi pi-sort-alt' },
         { label: 'Support Matrix', route: '/support-matrix', icon: 'pi pi-users' },
+        { label: 'Sub-Type Support & Assets', route: '/subtype-support', icon: 'pi pi-sitemap' },
         { label: 'Master Settings', route: '/master-settings', icon: 'pi pi-cog' },
         { label: 'External Auditors', route: '/external-auditors', icon: 'pi pi-id-card' },
         { label: 'Approval Config', route: '/approval-config', icon: 'pi pi-check-circle' },
