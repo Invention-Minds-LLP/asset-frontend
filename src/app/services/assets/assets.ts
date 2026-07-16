@@ -255,6 +255,14 @@ export class Assets {
       payload
     );
   }
+  // Direct assignment for imported/already-assigned assets — sets the fields and
+  // sends an acknowledgement request to whichever assignee changed.
+  directAssignWithAck(assetId: number, payload: any) {
+    return this.http.patch(
+      `${environment.apiUrl}/assignments/${assetId}/direct-assign`,
+      payload
+    );
+  }
   initiateHodAck(assetId: number, payload: { departmentId: number; conditionAtHandover?: string }): Observable<any> {
     return this.http.post(`${environment.apiUrl}/assignments/${assetId}/initiate-hod-ack`, payload);
   }

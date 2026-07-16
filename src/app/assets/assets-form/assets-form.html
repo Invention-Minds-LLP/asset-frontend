@@ -796,7 +796,7 @@
                     <!-- SOURCE SUPERVISOR -->
                     <p-floatlabel variant="on">
                         <p-select [options]="employees" optionLabel="name" optionValue="id" name="supervisorId"
-                            [(ngModel)]="asset.supervisorId" [disabled]="flowState.sourceHodStatus !== 'ACKNOWLEDGED'"
+                            [(ngModel)]="asset.supervisorId" [disabled]="!isDirectAssignAsset && flowState.sourceHodStatus !== 'ACKNOWLEDGED'"
                             appendTo="body" [filter]="true"></p-select>
                         <label>Source Supervisor *</label>
                     </p-floatlabel>
@@ -823,7 +823,7 @@
                 <div class="two-fields" *ngIf="!targetDepartmentId">
                     <p-floatlabel variant="on">
                         <p-select [options]="employees" optionLabel="name" optionValue="id" name="allottedToId"
-                            [(ngModel)]="asset.allottedToId" [disabled]="flowState.supervisorStatus !== 'ACKNOWLEDGED'"
+                            [(ngModel)]="asset.allottedToId" [disabled]="!isDirectAssignAsset && flowState.supervisorStatus !== 'ACKNOWLEDGED'"
                             appendTo="body" [filter]="true">
                         </p-select>
                         <label>End User (Optional)</label>
@@ -839,7 +839,7 @@
                     <p-floatlabel variant="on">
                         <p-select [options]="departments" optionLabel="name" optionValue="id" name="targetDepartmentId"
                             [(ngModel)]="targetDepartmentId" (onChange)="onTargetDepartmentChange()"
-                            [disabled]="flowState.supervisorStatus !== 'ACKNOWLEDGED'" appendTo="body"
+                            [disabled]="!isDirectAssignAsset && flowState.supervisorStatus !== 'ACKNOWLEDGED'" appendTo="body"
                             [filter]="true"></p-select>
                         <label>Target Department (Optional)</label>
                     </p-floatlabel>
@@ -848,28 +848,38 @@
                     <p-floatlabel variant="on">
                         <p-select [options]="employees" optionLabel="name" optionValue="id" name="targetAllottedToId"
                             [(ngModel)]="targetAllottedToId" appendTo="body"
-                            [disabled]="flowState.targetHodStatus !== 'ACKNOWLEDGED'" [filter]="true"></p-select>
+                            [disabled]="!isDirectAssignAsset && flowState.targetHodStatus !== 'ACKNOWLEDGED'" [filter]="true"></p-select>
                         <label>Target End User (Optional)</label>
                     </p-floatlabel>
                 </div>
 
                 <hr style="margin: 15px 0;">
 
-                <h3 class="section-title">Condition at Handover *</h3>
-                <textarea pInputTextarea rows="2" [(ngModel)]="handoverCondition" name="handoverCondition"
-                    placeholder="Describe condition (Working / Accessories / Scratches / Missing parts etc.)"></textarea>
+                <!-- Direct-assigned / imported asset: no acknowledgement ceremony —
+                     just save department / supervisor / end-user straight away. -->
+                <ng-container *ngIf="isDirectAssignAsset">
+                    <button pButton style="margin-top: 5px" label="Save Assignment" icon="pi pi-check"
+                        (click)="saveDirectAssignment()" [loading]="sendingAssignment"></button>
+                </ng-container>
 
-                <div style="margin-top:10px; font-size: 13px;">
-                    <b>Source HOD:</b> {{ flowState.sourceHodStatus }} |
-                    <b>Supervisor:</b> {{ flowState.supervisorStatus }} |
-                    <b>Target HOD:</b> {{ flowState.targetHodStatus }} |
-                    <b>End User:</b> {{ flowState.endUserStatus }}
-                </div>
+                <!-- New (in-flow) asset: HOD → Supervisor → End-User acknowledgement chain. -->
+                <ng-container *ngIf="!isDirectAssignAsset">
+                    <h3 class="section-title">Condition at Handover *</h3>
+                    <textarea pInputTextarea rows="2" [(ngModel)]="handoverCondition" name="handoverCondition"
+                        placeholder="Describe condition (Working / Accessories / Scratches / Missing parts etc.)"></textarea>
 
-                <button pButton style="margin-top: 15px" [label]="assignmentButtonLabel" (click)="saveAssignment()"
-                    [loading]="sendingAssignment"></button>
-                <button *ngIf="canResend" pButton label="Resend Request" class="p-button-secondary"
-                    (click)="resendCurrentStage()"></button>
+                    <div style="margin-top:10px; font-size: 13px;">
+                        <b>Source HOD:</b> {{ flowState.sourceHodStatus }} |
+                        <b>Supervisor:</b> {{ flowState.supervisorStatus }} |
+                        <b>Target HOD:</b> {{ flowState.targetHodStatus }} |
+                        <b>End User:</b> {{ flowState.endUserStatus }}
+                    </div>
+
+                    <button pButton style="margin-top: 15px" [label]="assignmentButtonLabel" (click)="saveAssignment()"
+                        [loading]="sendingAssignment"></button>
+                    <button *ngIf="canResend" pButton label="Resend Request" class="p-button-secondary"
+                        (click)="resendCurrentStage()"></button>
+                </ng-container>
             </div>
         </p-tabPanel>
 

@@ -651,6 +651,23 @@ export class AssetsForm implements OnInit {
   private returnLastY = 0;
 
 
+  // An asset assigned outside the acknowledgement flow (imported / directly
+  // assigned): it has a real (non-TEMP) ID and no acknowledgement records at all.
+  // For these, the assignment fields are editable directly and saved via the
+  // normal Save — they don't need to re-run the HOD → Supervisor → End-User
+  // handover. A TEMP- id (source HOD not yet acknowledged) or any in-progress
+  // flow keeps the strict gating.
+  get isDirectAssignAsset(): boolean {
+    if (!this.asset?.id) return false;
+    if (String(this.asset?.assetId || '').startsWith('TEMP')) return false;
+    // Non-TEMP assets only get a real ID via the source-HOD acknowledgement, so a
+    // real ID with sourceHodStatus still NONE means it was assigned outside the
+    // flow (imported). Keyed on sourceHodStatus alone so that sending per-role
+    // acknowledgement requests (which set supervisor/end-user to PENDING) does
+    // NOT flip the asset back into the strict flow UI.
+    return this.flowState.sourceHodStatus === 'NONE';
+  }
+
   get assignmentButtonLabel(): string {
     // guide user based on state
     if (this.flowState.sourceHodStatus !== "ACKNOWLEDGED") return "Send Source HOD Acknowledgement";
@@ -1458,6 +1475,38 @@ export class AssetsForm implements OnInit {
   //     error: () => this.toast("error", "Failed to update assignment")
   //   });
   // }
+
+  // Direct assignment for imported / already-assigned assets — no acknowledgement
+  // chain. Persists department / supervisor / end-user straight to the asset.
+  saveDirectAssignment() {
+    if (!this.asset?.id) return this.toast("error", "Save basic details first");
+    if (!this.asset.departmentId) return this.toast("error", "Select Source Department");
+
+    this.sendingAssignment = true;
+    const payload: any = { departmentId: Number(this.asset.departmentId) };
+    if (this.asset.supervisorId) payload.supervisorId = Number(this.asset.supervisorId);
+    if (this.asset.allottedToId) payload.allottedToId = Number(this.asset.allottedToId);
+    if (this.targetDepartmentId) payload.targetDepartmentId = Number(this.targetDepartmentId);
+
+    this.assetAPI.directAssignWithAck(this.asset.id, payload).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          this.sendingAssignment = false;
+          const n = res?.acknowledgementRequested?.length || 0;
+          this.toast("success", n
+            ? `Assignment updated. Acknowledgement requested from ${n} ${n === 1 ? 'person' : 'people'}.`
+            : "Assignment updated");
+          this.refreshFlowState();
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err: any) => {
+        setTimeout(() => { this.sendingAssignment = false; this.cdr.detectChanges(); });
+        this.toast("error", err?.error?.message || "Failed to update assignment");
+      },
+    });
+    return;
+  }
 
   saveAssignment() {
     this.sendingAssignment = true;
