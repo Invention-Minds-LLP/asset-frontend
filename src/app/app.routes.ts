@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { AssetsTable } from './assets/assets-table/assets-table';
 import { authGuard } from './auth.guard';
+import { procurementGuard } from './procurement.guard';
 import { AssetsForm } from './assets/assets-form/assets-form';
 import { WarrantyTable } from './warranty/warranty-table/warranty-table/warranty-table';
 import { WarrantyForm } from './warranty/warranty-form/warranty-form';
@@ -147,8 +148,8 @@ export const routes: Routes = [
   { path: 'cost-analysis', component: CostAnalysis, canActivate: [authGuard] },
   { path: 'sub-assets', component: SubAssets, canActivate: [authGuard] },
   { path: 'decision-engine', component: DecisionEngine, canActivate: [authGuard] },
-  { path: 'purchase-orders', component: PurchaseOrders, canActivate: [authGuard] },
-  { path: 'goods-receipts', component: GoodsReceipts, canActivate: [authGuard] },
+  { path: 'purchase-orders', component: PurchaseOrders, canActivate: [authGuard, procurementGuard] },
+  { path: 'goods-receipts', component: GoodsReceipts, canActivate: [authGuard, procurementGuard] },
   // { path: 'procurement-tat', component: ProcurementTat, canActivate: [authGuard] },
   { path: 'work-orders', component: WorkOrders, canActivate: [authGuard] },
   { path: 'store-management', component: StoreManagement, canActivate: [authGuard] },

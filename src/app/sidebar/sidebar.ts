@@ -8,6 +8,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { Router, RouterLink } from '@angular/router';
 import { ModuleAccessService } from '../services/module-access/module-access';
 import { BranchFeatures } from '../services/branch-features/branch-features';
+import { ProcurementFeature } from '../services/procurement-feature/procurement-feature';
 import { TableModule } from "primeng/table";
 
 @Component({
@@ -194,6 +195,10 @@ export class Sidebar implements OnInit {
   menuItems: any[] = [...this.allMenuItems];
   activeItem = this.menuItems[0];
 
+  // Permission-filtered menu (before tenant gates). Kept so tenant flags that
+  // resolve asynchronously can re-apply their gates without re-fetching access.
+  private baseMenu: any[] = [...this.allMenuItems];
+
   // Tenant switch: when branch features are off (single-branch clients like
   // JMRH), the multi-branch Head Office entry is hidden regardless of
   // module permissions.
@@ -204,8 +209,23 @@ export class Sidebar implements OnInit {
     return items.filter(i => (i.route || i.path) !== '/head-office');
   }
 
+  // Tenant switch: clients without procurement (e.g. JMRH) hide the whole
+  // Procurement group when TenantConfig ENABLE_PROCUREMENT=false.
+  private procurementEnabled = true;
+
+  private gateProcurementItems(items: any[]): any[] {
+    if (this.procurementEnabled) return items;
+    return items.filter(i => (i.route || i.path) !== '/procurement' && i.label !== 'Procurement');
+  }
+
+  // Apply every tenant-level menu gate in one place.
+  private applyTenantGates(items: any[]): any[] {
+    return this.gateProcurementItems(this.gateBranchItems(items));
+  }
+
   constructor(private router: Router, private moduleAccessService: ModuleAccessService,
-              private branchFeaturesSvc: BranchFeatures, private cdr: ChangeDetectorRef) {
+              private branchFeaturesSvc: BranchFeatures, private procurementFeatureSvc: ProcurementFeature,
+              private cdr: ChangeDetectorRef) {
     this.router.events.subscribe(() => {
       const currentRoute = this.router.url;
 
@@ -228,13 +248,28 @@ export class Sidebar implements OnInit {
       this.activeMenu = found ? found.label : '';
     });
   }
+  // Re-apply all tenant gates to the permission-filtered menu. Safe to call
+  // whenever a tenant flag resolves or access is (re)loaded.
+  private rebuildMenu() {
+    this.menuItems = this.applyTenantGates(this.baseMenu);
+    this.cdr.detectChanges();
+  }
+
   ngOnInit() {
+    // The sidebar re-mounts on each login (it's *ngIf'd out on the login route),
+    // but these services are root singletons whose cache survives logout→login.
+    // Drop the memo so every login re-reads the current tenant flags from the
+    // server instead of showing a value cached in a previous session.
+    this.branchFeaturesSvc.refresh();
+    this.procurementFeatureSvc.refresh();
+
     this.branchFeaturesSvc.isEnabled().then((v) => {
       this.branchFeaturesEnabled = v;
-      if (!v) {
-        this.menuItems = this.gateBranchItems(this.menuItems);
-        this.cdr.detectChanges();
-      }
+      this.rebuildMenu();
+    });
+    this.procurementFeatureSvc.isEnabled().then((v) => {
+      this.procurementEnabled = v;
+      this.rebuildMenu();
     });
     this.moduleAccessService.getMyAccess().subscribe({
       next: (result) => {
@@ -264,10 +299,10 @@ export class Sidebar implements OnInit {
             .filter((item): item is any => item !== null);
         }
 
+        this.baseMenu = filtered;
         // Defer to next tick to avoid NG0100 (ExpressionChangedAfterItHasBeenCheckedError)
         setTimeout(() => {
-          this.menuItems = this.gateBranchItems(filtered);
-          this.cdr.detectChanges();
+          this.rebuildMenu();
         });
       },
       error: () => {

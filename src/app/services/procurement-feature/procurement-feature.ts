@@ -3,13 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environment/environment.prod';
 
 /**
- * Tenant switch for all branch-wise UI (filters, tiles, breakdowns, columns).
- * Driven by TenantConfig key ENABLE_BRANCH_FEATURES — set "false" for
- * single-branch clients (e.g. JMRH) to hide branch controls everywhere.
+ * Tenant switch for the Procurement module (Purchase Orders, Goods Receipt, TAT).
+ * Driven by TenantConfig key ENABLE_PROCUREMENT — set "false" for clients that
+ * don't use procurement (e.g. JMRH) to hide the module everywhere.
  * Missing key or request failure defaults to ENABLED (current behavior).
  */
 @Injectable({ providedIn: 'root' })
-export class BranchFeatures {
+export class ProcurementFeature {
   private cached: Promise<boolean> | null = null;
 
   constructor(private http: HttpClient) {}
@@ -17,7 +17,7 @@ export class BranchFeatures {
   isEnabled(): Promise<boolean> {
     if (!this.cached) {
       this.cached = new Promise<boolean>((resolve) => {
-        this.http.get<any>(`${environment.apiUrl}/tenant-config/ENABLE_BRANCH_FEATURES`).subscribe({
+        this.http.get<any>(`${environment.apiUrl}/tenant-config/ENABLE_PROCUREMENT`).subscribe({
           next: (cfg) => resolve(cfg?.value !== 'false'),
           error: (err) => {
             // A real 404 (key absent) is authoritative → default ON and cache it.
@@ -33,11 +33,7 @@ export class BranchFeatures {
     return this.cached;
   }
 
-  /**
-   * Drop the memoized value so the next isEnabled() re-fetches from the server.
-   * Call this right after ENABLE_BRANCH_FEATURES is changed so branch-gated
-   * screens reflect the new setting on their next load without a full reload.
-   */
+  /** Drop the memoized value so the next isEnabled() re-fetches from the server. */
   refresh(): void {
     this.cached = null;
   }
