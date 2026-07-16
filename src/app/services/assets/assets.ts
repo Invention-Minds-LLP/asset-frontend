@@ -113,10 +113,24 @@ export class Assets {
     return this.http.delete<any>(`${environment.apiUrl}/categories/${id}`);
   }
 
-  // ── Asset sub-types (flat/global master) ──────────────────────────────────
-  getSubTypes(includeInactive = false) {
-    const q = includeInactive ? '?includeInactive=true' : '';
-    return this.http.get<any[]>(`${environment.apiUrl}/asset-subtypes${q}`);
+  // ── Asset supervisors (many; shift-wise duty) ─────────────────────────────
+  getAssetSupervisors(assetId: number): Observable<any> {
+    return this.http.get<any[]>(`${this.assetsUrl}/${assetId}/supervisors`);
+  }
+
+  setAssetSupervisors(assetId: number, supervisors: { employeeId: number; isPrimary?: boolean }[]): Observable<any> {
+    return this.http.put<any>(`${this.assetsUrl}/${assetId}/supervisors`, { supervisors });
+  }
+
+  // ── Asset sub-types (department-owned) ────────────────────────────────────
+  // departmentId: HOD is scoped server-side regardless; Admin/others may pass it
+  // to filter (e.g. the asset form passes the asset's department).
+  getSubTypes(departmentId?: number, includeInactive = false) {
+    const params = new URLSearchParams();
+    if (departmentId != null) params.set('departmentId', String(departmentId));
+    if (includeInactive) params.set('includeInactive', 'true');
+    const q = params.toString();
+    return this.http.get<any[]>(`${environment.apiUrl}/asset-subtypes${q ? '?' + q : ''}`);
   }
 
   createSubType(data: any): Observable<any> {

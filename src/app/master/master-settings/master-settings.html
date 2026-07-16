@@ -187,6 +187,12 @@
               <input pInputText id="stDesc" [(ngModel)]="subTypeForm.description" />
               <label for="stDesc">Description (optional)</label>
             </p-floatlabel>
+            <!-- Owning department — Admin/CEO pick it; HOD is scoped automatically. -->
+            <p-floatlabel variant="on" *ngIf="isSubTypeAdmin">
+              <p-select id="stDept" [options]="departments" optionLabel="name" optionValue="id"
+                [(ngModel)]="subTypeForm.departmentId" [filter]="true" appendTo="body" />
+              <label for="stDept">Department</label>
+            </p-floatlabel>
           </div>
 
           <div class="form-actions">
@@ -202,6 +208,7 @@
             <th>#</th>
             <th>Name</th>
             <th>Code</th>
+            <th *ngIf="isSubTypeAdmin">Department</th>
             <th>Description</th>
             <th>Assets</th>
             <th style="width:120px">Actions</th>
@@ -212,6 +219,7 @@
             <td>{{ i + 1 }}</td>
             <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;"><strong>{{ st.name }}</strong></td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ st.code || '—' }}</td>
+            <td *ngIf="isSubTypeAdmin" class="ellipsis-cell" appOverflowTooltip>{{ st.department?.name || '—' }}</td>
             <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ st.description || '—' }}</td>
             <td>{{ st._count?.assets ?? 0 }}</td>
             <td>

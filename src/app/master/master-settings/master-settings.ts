@@ -85,12 +85,14 @@ export class MasterSettings implements OnInit {
   showCategoryForm = false;
   savingAsset = false;
 
-  // ── Asset Sub-Types (flat/global) ─────────────────────────────────────────
+  // ── Asset Sub-Types (department-owned) ────────────────────────────────────
   subTypes: any[] = [];
-  subTypeForm: { name: string; code?: string | null; description?: string | null } = { name: '' };
+  subTypeForm: { name: string; code?: string | null; description?: string | null; departmentId?: number | null } = { name: '' };
   editingSubTypeId: number | null = null;
   showSubTypeForm = false;
   savingSubType = false;
+  // Admin/CEO/etc. pick a department for each sub-type; HOD is scoped server-side.
+  isSubTypeAdmin = !['HOD'].includes(((typeof window !== 'undefined' && localStorage.getItem('role')) || '').toUpperCase());
 
   // ── Vendors ──────────────────────────────────────────────────────────────
   vendors: any[] = [];
@@ -315,22 +317,25 @@ export class MasterSettings implements OnInit {
   openSubTypeForm(st?: any) {
     if (st) {
       this.editingSubTypeId = st.id;
-      this.subTypeForm = { name: st.name, code: st.code ?? null, description: st.description ?? null };
+      this.subTypeForm = { name: st.name, code: st.code ?? null, description: st.description ?? null, departmentId: st.departmentId ?? null };
     } else {
       this.editingSubTypeId = null;
-      this.subTypeForm = { name: '', code: null, description: null };
+      this.subTypeForm = { name: '', code: null, description: null, departmentId: null };
     }
     this.showSubTypeForm = true;
   }
 
   saveSubType() {
     if (!this.subTypeForm.name.trim()) { this.toast('warn', 'Sub-type name is required'); return; }
+    // Admin/CEO/etc. must choose the owning department; HOD is scoped server-side.
+    if (this.isSubTypeAdmin && !this.subTypeForm.departmentId) { this.toast('warn', 'Select a department for this sub-type'); return; }
     this.savingSubType = true;
     const payload: any = {
       name: this.subTypeForm.name.trim(),
       code: this.subTypeForm.code?.trim() || null,
       description: this.subTypeForm.description?.trim() || null,
     };
+    if (this.isSubTypeAdmin && this.subTypeForm.departmentId) payload.departmentId = Number(this.subTypeForm.departmentId);
     const call = this.editingSubTypeId
       ? this.assetsService.updateSubType(this.editingSubTypeId, payload)
       : this.assetsService.createSubType(payload);

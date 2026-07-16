@@ -73,9 +73,7 @@ export class SubtypeSupport implements OnInit {
 
     if (this.restricted) return; // no data load for restricted roles
 
-    this.assetsService.getSubTypes().subscribe({
-      next: (s) => { setTimeout(() => { this.subTypes = s || []; this.cdr.markForCheck(); }); },
-    });
+    // Sub-types are department-owned and loaded per the selected department in reload().
 
     // Load departments (used for the picker, and to resolve the HOD's own name)
     this.assetsService.getDepartments().subscribe({
@@ -105,6 +103,11 @@ export class SubtypeSupport implements OnInit {
     const dept = this.effectiveDeptId;
     if (!dept) return;
     this.loading = true;
+
+    // Sub-types owned by this department (HOD is scoped server-side anyway).
+    this.assetsService.getSubTypes(this.canSeeAll ? dept : undefined).subscribe({
+      next: (s) => { setTimeout(() => { this.subTypes = s || []; this.cdr.markForCheck(); }); },
+    });
 
     // Engineers in this department
     this.assetsService.getEmployees().subscribe({

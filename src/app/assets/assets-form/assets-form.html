@@ -802,6 +802,23 @@
                     </p-floatlabel>
                 </div>
 
+                <!-- ADDITIONAL (SHIFT-WISE) SUPERVISORS — many supervisors can share
+                     an asset. Saved to the asset's supervisor set; the field above is
+                     the primary. Available once the asset is saved. -->
+                <div class="two-fields" *ngIf="asset.id" style="align-items:end;">
+                    <p-floatlabel variant="on">
+                        <p-multiSelect [options]="employees" optionLabel="name" optionValue="id"
+                            name="additionalSupervisorIds" [(ngModel)]="additionalSupervisorIds"
+                            appendTo="body" [filter]="true" display="chip"
+                            [style]="{ width: '100%' }" ></p-multiSelect>
+                        <label>Additional Supervisors (shift-wise)</label>
+                    </p-floatlabel>
+                    <div>
+                        <button pButton type="button" label="Save Supervisors" icon="pi pi-users"
+                            (click)="saveSupervisors()" [loading]="savingSupervisors"></button>
+                    </div>
+                </div>
+
                 <!-- END USER (only when NO target department flow) -->
                 <div class="two-fields" *ngIf="!targetDepartmentId">
                     <p-floatlabel variant="on">

@@ -5,6 +5,7 @@ import { CommonModule } from "@angular/common";
 import { InputTextModule } from "primeng/inputtext";
 import { FloatLabelModule } from "primeng/floatlabel";
 import { SelectModule } from "primeng/select";
+import { MultiSelectModule } from "primeng/multiselect";
 import { DatePickerModule } from "primeng/datepicker";
 import { TableModule } from "primeng/table";
 import { CheckboxModule } from "primeng/checkbox";
@@ -46,6 +47,7 @@ type PendingRole = "HOD" | "SUPERVISOR" | "END_USER" | null;
     InputTextModule,
     FloatLabelModule,
     SelectModule,
+    MultiSelectModule,
     DatePickerModule,
     TableModule,
     TextareaModule,
@@ -180,6 +182,9 @@ export class AssetsForm implements OnInit {
   vendors: any[] = [];
   categories: any[] = [];
   subTypes: any[] = [];
+  // Co-supervisors (excludes the primary in asset.supervisorId) for shift-wise duty.
+  additionalSupervisorIds: number[] = [];
+  savingSupervisors = false;
   stores: any[] = [];
   employees: any[] = [];
   branches: any[] = [];
@@ -729,12 +734,8 @@ export class AssetsForm implements OnInit {
       }
     });
 
-    this.assetAPI.getSubTypes().subscribe({
-      next: (res) => {
-        this.subTypes = res || [];
-        this.cdr.markForCheck();
-      }
-    });
+    // Sub-types are department-owned; the dropdown is loaded per the asset's
+    // department once the asset is loaded (loadSubTypesForAsset).
 
     this.assetAPI.getVendors().subscribe({
       next: (res) => {
@@ -941,6 +942,8 @@ export class AssetsForm implements OnInit {
       this.loadInsuranceHistory();
       this.evaluateAccessRights()
       this.loadSpecifications();
+      this.loadSupervisors();
+      this.loadSubTypesForAsset();
       // preserveExisting: keep the asset's stored SLA times on load — don't
       // recompute/overwrite from the (possibly changed) matrix. (#2 fix)
       this.loadSlaOptionsByCategory(true);
@@ -2353,6 +2356,52 @@ export class AssetsForm implements OnInit {
   }
 
   savingMakeModel = false;
+  // Sub-types shown are those owned by the asset's department.
+  loadSubTypesForAsset() {
+    const deptId = this.asset?.departmentId ? Number(this.asset.departmentId) : undefined;
+    this.assetAPI.getSubTypes(deptId).subscribe({
+      next: (res) => { this.subTypes = res || []; this.cdr.markForCheck(); },
+      error: () => { this.subTypes = []; this.cdr.markForCheck(); },
+    });
+  }
+
+  // Load the asset's supervisor set; primary lands on asset.supervisorId, the
+  // rest populate the co-supervisor multi-select.
+  loadSupervisors() {
+    if (!this.asset?.id) return;
+    this.assetAPI.getAssetSupervisors(this.asset.id).subscribe({
+      next: (rows: any[]) => {
+        const list = rows || [];
+        const primary = list.find(r => r.isPrimary);
+        if (primary) this.asset.supervisorId = primary.employeeId;
+        this.additionalSupervisorIds = list
+          .filter(r => !r.isPrimary)
+          .map(r => r.employeeId);
+        this.cdr.markForCheck();
+      },
+      error: () => { }
+    });
+  }
+
+  // Persist the full supervisor set: primary (asset.supervisorId) + co-supervisors.
+  saveSupervisors() {
+    if (!this.asset?.id) { this.toast('error', 'Save asset first'); return; }
+    if (!this.asset.supervisorId) { this.toast('error', 'Select the primary Source Supervisor first'); return; }
+
+    const supervisors = [
+      { employeeId: Number(this.asset.supervisorId), isPrimary: true },
+      ...this.additionalSupervisorIds
+        .filter(id => Number(id) !== Number(this.asset.supervisorId))
+        .map(id => ({ employeeId: Number(id), isPrimary: false })),
+    ];
+
+    this.savingSupervisors = true;
+    this.assetAPI.setAssetSupervisors(this.asset.id, supervisors).subscribe({
+      next: () => { this.savingSupervisors = false; this.toast('success', 'Supervisors saved'); this.cdr.markForCheck(); },
+      error: (err: any) => { this.savingSupervisors = false; this.toast('error', err?.error?.message || 'Failed to save supervisors'); this.cdr.markForCheck(); }
+    });
+  }
+
   saveMakeModel() {
     if (!this.asset?.id) { this.toast('error', 'Save asset first'); return; }
     this.savingMakeModel = true;
