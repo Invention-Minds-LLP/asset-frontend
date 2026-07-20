@@ -234,3 +234,22 @@ input[pInputText],
 
 .text-success { color: #22c55e; }
 .text-muted { color: var(--text-muted); }
+
+.table-search {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+.table-search input {
+  width: 320px;
+  max-width: 100%;
+}
+
+/* Schedules table: stop cramped wrapping, give columns room */
+:host ::ng-deep .p-datatable th,
+:host ::ng-deep .p-datatable td {
+  white-space: nowrap;
+  vertical-align: middle;
+  padding: 0.6rem 0.85rem;
+}
+:host ::ng-deep .p-datatable .p-column-filter { margin-left: 0.35rem; }

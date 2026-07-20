@@ -103,15 +103,41 @@
           <p-button label="Create Schedule" icon="pi pi-plus" size="small" (onClick)="openCreateSchedule()"></p-button>
         </div>
 
-        <p-table [value]="schedules" [loading]="schedulesLoading" [paginator]="true" [rows]="15"
-          [rowsPerPageOptions]="[10,15,25]" styleClass="p-datatable-sm p-datatable-striped">
+        <p-table #dt [value]="schedules" [loading]="schedulesLoading" [paginator]="true" [rows]="15"
+          [rowsPerPageOptions]="[10,15,25]" styleClass="p-datatable-sm p-datatable-striped" responsiveLayout="scroll"
+          [globalFilterFields]="['equipmentName','make','model','serialNumber','warrantyStatus','department','location']">
+          <ng-template pTemplate="caption">
+            <div class="table-search">
+              <p-iconfield>
+                <p-inputicon styleClass="pi pi-search" />
+                <input pInputText type="text" placeholder="Search equipment, make, model, serial, department…"
+                  (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+              </p-iconfield>
+            </div>
+          </ng-template>
           <ng-template pTemplate="header">
             <tr>
-              <th>Asset</th>
+              <th>Equipment Name
+                <p-columnFilter type="text" field="equipmentName" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false" />
+              </th>
+              <th>Make
+                <p-columnFilter type="text" field="make" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false" />
+              </th>
+              <th>Model
+                <p-columnFilter type="text" field="model" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false" />
+              </th>
+              <th>Serial Number
+                <p-columnFilter type="text" field="serialNumber" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false" />
+              </th>
+              <th pSortableColumn="installationDate">Installation Date <p-sortIcon field="installationDate" /></th>
+              <th>Warranty
+                <p-columnFilter type="text" field="warrantyStatus" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false" />
+              </th>
+              <th pSortableColumn="nextDueAt">PM Due Date <p-sortIcon field="nextDueAt" /></th>
+              <th>Department / Location
+                <p-columnFilter type="text" field="department" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false" />
+              </th>
               <th>Frequency</th>
-              <th>Start Date</th>
-              <th>Next Due</th>
-              <th>Reminder</th>
               <th>Status</th>
               <th>PM Done?</th>
               <th>Last Done</th>
@@ -121,18 +147,27 @@
           </ng-template>
           <ng-template pTemplate="body" let-s>
             <tr>
-              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">
-                <strong>{{ s.asset?.assetName || s.asset?.assetId || '—' }}</strong>
-                @if (s.asset?.manufacturer || s.asset?.modelNumber) {
-                  <div style="font-size: 0.75rem; opacity: 0.7;">
-                    {{ s.asset?.manufacturer }}{{ s.asset?.manufacturer && s.asset?.modelNumber ? ' · ' : '' }}{{ s.asset?.modelNumber }}
-                  </div>
-                }
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">
+                <strong>{{ s.equipmentName || '—' }}</strong>
+              </td>
+              <td>{{ s.make || '—' }}</td>
+              <td>{{ s.model || '—' }}</td>
+              <td>{{ s.serialNumber || '—' }}</td>
+              <td>{{ s.installationDate ? (s.installationDate | date:'mediumDate') : '—' }}</td>
+              <td>
+                @if (s.warrantyStatus) {
+                  <p-tag [value]="s.warrantyStatus" [severity]="warrantySeverity(s.warrantyStatus)"></p-tag>
+                } @else { — }
+                <div *ngIf="s.warrantyExpiry" style="font-size: 0.72rem; opacity: 0.7; margin-top:2px;">
+                  Exp: {{ s.warrantyExpiry | date:'mediumDate' }}
+                </div>
+              </td>
+              <td>{{ s.nextDueAt | date:'mediumDate' }}</td>
+              <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">
+                {{ s.department || '—' }}
+                <div *ngIf="s.location" style="font-size: 0.72rem; opacity: 0.7;">{{ s.location }}</div>
               </td>
               <td>Every {{ s.frequencyValue }} {{ s.frequencyUnit }}</td>
-              <td>{{ s.startDate ? (s.startDate | date:'mediumDate') : '—' }}</td>
-              <td>{{ s.nextDueAt | date:'mediumDate' }}</td>
-              <td>{{ s.reminderDays || 7 }} days before</td>
               <td>
                 <p-tag [value]="getScheduleStatus(s)" [severity]="getScheduleStatusSeverity(getScheduleStatus(s))"></p-tag>
               </td>
@@ -140,11 +175,11 @@
                 <p-tag [value]="getPmDoneStatus(s)" [severity]="getPmDoneSeverity(getPmDoneStatus(s))"></p-tag>
               </td>
               <td>{{ s.lastDoneAt ? (s.lastDoneAt | date:'mediumDate') : '—' }}</td>
-              <td class="ellipsis-cell" [pTooltip]="getReason(s.reason)" tooltipPosition="top" style="--ellipsis-max-width: 240px;">{{ s.reason || '—' }}</td>
+              <td class="ellipsis-cell" [pTooltip]="getReason(s.reason)" tooltipPosition="top" style="--ellipsis-max-width: 200px;">{{ s.reason || '—' }}</td>
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">
-            <tr><td colspan="7" class="text-center">No schedules found. Create one to get started.</td></tr>
+            <tr><td colspan="13" class="text-center">No schedules found. Create one to get started.</td></tr>
           </ng-template>
         </p-table>
       </div>

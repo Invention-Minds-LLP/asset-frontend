@@ -247,6 +247,7 @@ export class AssetsTable implements OnInit {
     { label: 'Reference Code', value: 'referenceCode' },
     { label: 'Stores Ref ID', value: 'storeAssetId' },
     { label: 'Manufacturer', value: 'manufacturer' },
+    { label: 'Model', value: 'modelNumber' },
     { label: 'Invoice Number', value: 'invoiceNumber' },
     { label: 'Purchase Order No', value: 'purchaseOrderNo' },
     { label: 'Current Location', value: 'currentLocation' },

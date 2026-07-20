@@ -13,6 +13,8 @@ import { PreventiveMaintenanceService } from '../../services/preventive-maintena
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { TextareaModule } from 'primeng/textarea';
 import { DatePickerModule } from 'primeng/datepicker';
 import { Assets } from '../../services/assets/assets';
@@ -21,7 +23,7 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
 @Component({
   selector: 'app-preventive-maintenance',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule, ToastModule, TabViewModule, SelectModule, TooltipModule, DialogModule, InputNumberModule, InputTextModule, TextareaModule, DatePickerModule, OverflowTooltipDirective],
+  imports: [CommonModule, FormsModule, ButtonModule, TableModule, TagModule, ToastModule, TabViewModule, SelectModule, TooltipModule, DialogModule, InputNumberModule, InputTextModule, IconFieldModule, InputIconModule, TextareaModule, DatePickerModule, OverflowTooltipDirective],
   templateUrl: './preventive-maintenance.html',
   styleUrl: './preventive-maintenance.css',
   providers: [MessageService]
@@ -213,7 +215,8 @@ export class PreventiveMaintenance implements OnInit {
     this.pmService.getAllSchedules().subscribe({
       next: (res: any) => {
         setTimeout(() => {
-          this.schedules = Array.isArray(res) ? res : (res?.data ?? []);
+          const list = Array.isArray(res) ? res : (res?.data ?? []);
+          this.schedules = list.map((r: any) => this.flattenScheduleRow(r));
           this.schedulesLoading = false;
           this.cdr.detectChanges();
         });
@@ -222,6 +225,33 @@ export class PreventiveMaintenance implements OnInit {
         setTimeout(() => { this.schedulesLoading = false; this.cdr.detectChanges(); });
       }
     });
+  }
+
+  // Flatten nested asset fields to the row so the table columns and the
+  // global/column filters can bind to plain field names.
+  flattenScheduleRow(r: any) {
+    const a = r?.asset || {};
+    const warranty = Array.isArray(a.warranties) && a.warranties.length ? a.warranties[0] : null;
+    return {
+      ...r,
+      equipmentName: a.assetName || a.assetId || '',
+      make: a.manufacturer || '',
+      model: a.modelNumber || '',
+      serialNumber: a.serialNumber || '',
+      installationDate: a.installedAt || null,
+      warrantyStatus: a.warrantyStatus || '',
+      warrantyExpiry: warranty?.warrantyEnd || null,
+      department: a.department?.name || '',
+      location: a.currentLocation || '',
+    };
+  }
+
+  warrantySeverity(status: string): 'success' | 'danger' | 'secondary' {
+    switch ((status || '').toUpperCase()) {
+      case 'UNDER_WARRANTY': return 'success';
+      case 'EXPIRED': return 'danger';
+      default: return 'secondary';
+    }
   }
 
   openCreateSchedule() {

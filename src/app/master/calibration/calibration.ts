@@ -7,6 +7,8 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TabViewModule } from 'primeng/tabview';
 import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
@@ -31,6 +33,8 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
     ToastModule,
     TabViewModule,
     InputTextModule,
+    IconFieldModule,
+    InputIconModule,
     FloatLabelModule,
     SelectModule,
     TextareaModule,
@@ -130,9 +134,23 @@ export class Calibration implements OnInit {
   loadSchedules() {
     this.loading = true;
     this.calibrationService.getAllSchedules().subscribe({
-      next: (res) => { setTimeout(() => { this.schedules = res || []; this.loading = false; this.cdr.detectChanges(); }); },
+      next: (res) => { setTimeout(() => { this.schedules = (res || []).map((r: any) => this.flattenScheduleRow(r)); this.loading = false; this.cdr.detectChanges(); }); },
       error: () => { setTimeout(() => { this.loading = false; this.cdr.detectChanges(); }); }
     });
+  }
+
+  // Flatten nested asset fields to the row so table columns and the global/column
+  // filters can bind to plain field names (PrimeNG resolves these directly).
+  flattenScheduleRow(r: any) {
+    const a = r?.asset || {};
+    return {
+      ...r,
+      make: a.manufacturer || '',
+      model: a.modelNumber || '',
+      serialNumber: a.serialNumber || '',
+      department: a.department?.name || '',
+      location: a.currentLocation || '',
+    };
   }
 
   loadDue() {

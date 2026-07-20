@@ -136,11 +136,33 @@
 
     <!-- Schedules -->
     <p-tabPanel header="Schedules">
-      <p-table [value]="schedules" [loading]="loading" [paginator]="true" [rows]="10"
-        responsiveLayout="scroll" styleClass="p-datatable-sm">
+      <p-table #dt [value]="schedules" [loading]="loading" [paginator]="true" [rows]="10"
+        responsiveLayout="scroll" styleClass="p-datatable-sm"
+        [globalFilterFields]="['asset.assetName','make','model','serialNumber','department','location']">
+        <ng-template pTemplate="caption">
+          <div class="table-search">
+            <p-iconfield>
+              <p-inputicon styleClass="pi pi-search" />
+              <input pInputText type="text" placeholder="Search make, model, serial, department…"
+                (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+            </p-iconfield>
+          </div>
+        </ng-template>
         <ng-template pTemplate="header">
           <tr>
             <th>Asset</th>
+            <th>Make
+              <p-columnFilter type="text" field="make" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false" />
+            </th>
+            <th>Model
+              <p-columnFilter type="text" field="model" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false" />
+            </th>
+            <th>Serial Number
+              <p-columnFilter type="text" field="serialNumber" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false" />
+            </th>
+            <th>Department / Location
+              <p-columnFilter type="text" field="department" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false" />
+            </th>
             <th>Frequency</th>
             <th>Next Due</th>
             <th>Last Calibrated</th>
@@ -153,9 +175,13 @@
           <tr>
             <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 260px;">
               {{ row.asset?.assetName }}
-              <div *ngIf="row.asset?.manufacturer || row.asset?.modelNumber" style="font-size: 0.75rem; opacity: 0.7;">
-                {{ row.asset?.manufacturer }}{{ row.asset?.manufacturer && row.asset?.modelNumber ? ' · ' : '' }}{{ row.asset?.modelNumber }}
-              </div>
+            </td>
+            <td>{{ row.make || '—' }}</td>
+            <td>{{ row.model || '—' }}</td>
+            <td>{{ row.serialNumber || '—' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">
+              {{ row.department || '—' }}
+              <div *ngIf="row.location" style="font-size: 0.75rem; opacity: 0.7;">{{ row.location }}</div>
             </td>
             <td>{{ row.frequencyValue }} {{ row.frequencyUnit }}</td>
             <td [class.text-danger]="row.nextDueAt < today">{{ row.nextDueAt | date:'dd MMM yyyy' }}</td>
@@ -171,7 +197,7 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="7" class="text-center">No schedules</td></tr>
+          <tr><td colspan="11" class="text-center">No schedules</td></tr>
         </ng-template>
       </p-table>
     </p-tabPanel>
