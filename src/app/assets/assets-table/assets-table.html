@@ -48,6 +48,11 @@
             <span class="pi pi-refresh"></span>
           </button>
 
+          <button *ngIf="canConfigureColumns" class="icon-button" (click)="openColumnConfig()"
+            title="Configure table columns for this department">
+            <span class="pi pi-cog"></span>
+          </button>
+
           <!-- <button class="icon-button" *ngIf="dt" (click)="exportCSV()" title="Export to CSV">
             <span class="pi pi-download"></span>
           </button> -->
@@ -72,16 +77,27 @@
           <tr>
             <th></th>
             <th>No</th>
-            <th>Asset ID</th>
-            <th>Stores Ref</th>
-            <th>Reference Code</th>
-            <th>Asset Name</th>
-            <th>Asset Type</th>
-            <th>Department</th>
-            <th *ngIf="branchFeatures">Branch</th>
-            <th>Asset Category</th>
-            <th>Allotted To</th>
-            <th>Asset Photo</th>
+            <th *ngFor="let col of displayColumns">
+              <div class="th-cell">
+                <span>{{ col.label }}</span>
+                <ng-container *ngIf="col.filterField as ff">
+                  <i class="pi pi-filter th-filter-icon" [class.active]="columnFilters[ff]"
+                    [pTooltip]="columnFilters[ff] ? 'Filtered: ' + columnFilters[ff] : 'Filter ' + col.label"
+                    tooltipPosition="top" (click)="toggleColumnFilter(ff, $event)"></i>
+                  <div class="col-filter-pop" *ngIf="openFilterKey === ff" (click)="$event.stopPropagation()">
+                    <input type="text" pInputText [(ngModel)]="columnFilterDraft"
+                      placeholder="Filter {{ col.label }}" autofocus
+                      (keyup.enter)="applyColumnFilter(ff)" />
+                    <div class="col-filter-actions">
+                      <button pButton type="button" size="small" label="Clear" severity="secondary"
+                        [text]="true" (click)="clearColumnFilter(ff)"></button>
+                      <button pButton type="button" size="small" label="Apply"
+                        (click)="applyColumnFilter(ff)"></button>
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </th>
             <th>Action</th>
           </tr>
         </ng-template>
@@ -95,20 +111,14 @@
             <td>
               {{ (currentPage - 1) * rowsPerPage + i + 1 }}
             </td>
-            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetId }}</td>
-            <td class="ellipsis-cell" appOverflowTooltip style="font-family:monospace;color:var(--menu-color);">{{
-              asset.storeAssetId || '-' }}</td>
-            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.referenceCode || '-' }}</td>
-            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ asset.assetName }}</td>
-            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetType }}</td>
-            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.department?.name || '-' }}</td>
-            <td *ngIf="branchFeatures" class="ellipsis-cell" appOverflowTooltip>{{ asset.currentBranch?.name || '-' }}</td>
-            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.assetCategory?.name || '-' }}</td>
-            <td class="ellipsis-cell" appOverflowTooltip>{{ asset.allottedTo?.name ? asset.allottedTo.name : 'Not Allotted' }}</td>
-            <td style="text-align: center;">
-              <!-- <img [src]="asset.assetPhoto" class="asset-photo" /> -->
-              <img *ngIf="asset.assetPhoto; else noPhoto" [src]="asset.assetPhoto" class="asset-photo" />
-              <ng-template #noPhoto>-</ng-template>
+            <!-- Department-configured columns -->
+            <td *ngFor="let col of displayColumns" class="ellipsis-cell" appOverflowTooltip
+              [style.font-family]="col.type === 'mono' ? 'monospace' : null">
+              <ng-container *ngIf="col.type === 'photo'; else textCell">
+                <img *ngIf="asset.assetPhoto; else noPhoto" [src]="asset.assetPhoto" class="asset-photo" />
+                <ng-template #noPhoto>-</ng-template>
+              </ng-container>
+              <ng-template #textCell>{{ getCell(asset, col) }}</ng-template>
             </td>
             <td class="action-cell">
               <button *ngIf="canViewAsset" pButton type="button" label="View" class="view-btn"
@@ -189,5 +199,58 @@
   <ng-template pTemplate="footer">
     <p-button label="Cancel" severity="secondary" (onClick)="showHodApprovalDialog=false" />
     <p-button label="Submit" (onClick)="submitHodApproval()" />
+  </ng-template>
+</p-dialog>
+
+<!-- ── Column configuration (department-specific asset table) ─────────────── -->
+<p-dialog header="Configure Table Columns" [(visible)]="showColumnDialog" [modal]="true"
+  [style]="{ width: '760px', maxWidth: '95vw' }" appendTo="body">
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    <p style="margin:0; color:var(--text-color-secondary, #64748b); font-size:.88rem;">
+      Choose and order the columns shown in the asset table for this department. Asset ID and Asset
+      Name are always shown.
+    </p>
+
+    <!-- Admin picks the department; HOD is locked to their own. -->
+    <div *ngIf="isColAdmin" style="max-width:320px;">
+      <label style="display:block;margin-bottom:.35rem;font-size:.8rem;font-weight:600;">Department</label>
+      <p-select [options]="departments" optionLabel="name" optionValue="id" [(ngModel)]="colConfigDeptId"
+        [filter]="true" appendTo="body" placeholder="Select a department" (onChange)="onColConfigDeptChange()"
+        styleClass="w-full"></p-select>
+    </div>
+
+    <!-- Add a column -->
+    <div style="max-width:320px;">
+      <label style="display:block;margin-bottom:.35rem;font-size:.8rem;font-weight:600;">Add column</label>
+      <p-select [options]="addableColumns" optionLabel="label" optionValue="key" optionDisabled="disabled"
+        [filter]="true" appendTo="body" placeholder="Select a column to add" (onChange)="addColumn($event.value)"
+        [ngModel]="null" styleClass="w-full"></p-select>
+    </div>
+
+    <!-- Selected columns, in display order -->
+    <div class="col-config-list">
+      <div *ngFor="let col of pickSelected; let i = index" class="col-config-row">
+        <span class="col-idx">{{ i + 1 }}</span>
+        <span class="col-name">{{ col.label }}
+          <small *ngIf="isMandatory(col)" style="color:#94a3b8;">(always shown)</small>
+        </span>
+        <span class="col-actions">
+          <button pButton type="button" icon="pi pi-arrow-up" [text]="true" size="small"
+            [disabled]="i === 0" (click)="moveColumn(i, -1)" pTooltip="Move up"></button>
+          <button pButton type="button" icon="pi pi-arrow-down" [text]="true" size="small"
+            [disabled]="i === pickSelected.length - 1" (click)="moveColumn(i, 1)" pTooltip="Move down"></button>
+          <button pButton type="button" icon="pi pi-times" severity="danger" [text]="true" size="small"
+            [disabled]="isMandatory(col)" (click)="removeColumn(i)" pTooltip="Remove"></button>
+        </span>
+      </div>
+      <div *ngIf="!pickSelected.length" style="color:#94a3b8;padding:12px;text-align:center;">
+        No columns selected. Add columns above.
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" (onClick)="showColumnDialog=false" />
+    <p-button label="Save" icon="pi pi-check" (onClick)="saveColumns()" [loading]="savingColumns" />
   </ng-template>
 </p-dialog>

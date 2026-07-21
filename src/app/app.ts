@@ -13,6 +13,7 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { NotificationsService } from './services/notifications/notifications';
+import { Auth } from './services/auth/auth';
 import { environment } from '../environment/environment.prod';
 
 @Component({
@@ -32,6 +33,7 @@ export class App implements OnInit, OnDestroy {
     private zone: NgZone,
     private confirmationService: ConfirmationService,
     private location: Location,
+    private auth: Auth,
   ) {}
 
   goBack() {
@@ -205,7 +207,7 @@ export class App implements OnInit, OnDestroy {
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('authToken');
+    return this.auth.isLoggedIn();
   }
 
   toggleTheme() {
@@ -225,7 +227,7 @@ export class App implements OnInit, OnDestroy {
       rejectLabel: 'Cancel',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
-        localStorage.clear();
+        this.auth.logout();
         this.router.navigate(['/login']);
       }
     });

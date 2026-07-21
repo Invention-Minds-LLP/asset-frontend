@@ -25,6 +25,7 @@ import { MessageService } from 'primeng/api';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { COLUMN_CATALOG, CATALOG_BY_KEY, MANDATORY_KEYS, readPath, resolveColumns, ColumnDef } from './asset-columns.catalog';
 
 
 type FilterField = string;
@@ -73,6 +74,140 @@ export class AssetsTable implements OnInit {
     { label: 'Reject', value: 'REJECTED' }
   ];
 
+  // ── Department-configurable columns ────────────────────────────────────────
+  displayColumns: ColumnDef[] = [];        // resolved columns rendered in the table
+  private role = (typeof window !== 'undefined' && localStorage.getItem('role') || '').toUpperCase();
+  private myDeptId = (typeof window !== 'undefined' && Number(localStorage.getItem('departmentId'))) || null;
+  get canConfigureColumns(): boolean {
+    return this.role === 'HOD' || ['ADMIN', 'CEO_COO', 'OPERATIONS', 'FINANCE', 'CFO'].includes(this.role);
+  }
+  get isColAdmin(): boolean { return this.role !== 'HOD' && this.canConfigureColumns; }
+
+  // Column-picker dialog state
+  showColumnDialog = false;
+  savingColumns = false;
+  colConfigDeptId: number | null = null;   // admin picks a department
+  departments: any[] = [];
+  pickSelected: ColumnDef[] = [];
+
+  // Cell value for a non-photo column (handles nested paths, dates, currency).
+  getCell(asset: any, col: ColumnDef): string {
+    const v = readPath(asset, col.path);
+    if (v === null || v === undefined || v === '') return col.fallback ?? '';
+    if (col.type === 'date') { const d = new Date(v); return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString(); }
+    if (col.type === 'currency') { const n = Number(v); return isNaN(n) ? String(v) : n.toLocaleString(); }
+    return String(v);
+  }
+
+  private readonly DEFAULT_KEYS = [
+    'assetId', 'storeAssetId', 'referenceCode', 'assetName', 'assetType',
+    'departmentName', 'assetCategoryName', 'allottedToName', 'assetPhoto',
+  ];
+
+  // Load the effective columns for the current user's department.
+  loadColumns() {
+    this.assetService.getMyColumns().subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          this.displayColumns = resolveColumns(res?.columns || this.DEFAULT_KEYS, this.branchFeatures);
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        setTimeout(() => {
+          this.displayColumns = resolveColumns(this.DEFAULT_KEYS, this.branchFeatures);
+          this.cdr.detectChanges();
+        });
+      },
+    });
+  }
+
+  // All catalog columns offered in the picker (branch column hidden when off).
+  private availableCatalog(): ColumnDef[] {
+    return COLUMN_CATALOG.filter((c) => !c.branchGated || this.branchFeatures);
+  }
+
+  openColumnConfig() {
+    const deptId = this.isColAdmin ? (this.colConfigDeptId || this.myDeptId) : this.myDeptId;
+    this.colConfigDeptId = deptId;
+    if (this.isColAdmin && !this.departments.length) {
+      this.assetService.getDepartments().subscribe({
+        next: (d: any) => { setTimeout(() => { this.departments = d || []; this.cdr.detectChanges(); }); },
+      });
+    }
+    this.loadPickerForDept(deptId);
+    this.showColumnDialog = true;
+  }
+
+  onColConfigDeptChange() { this.loadPickerForDept(this.colConfigDeptId); }
+
+  private loadPickerForDept(deptId: number | null) {
+    if (!deptId) { this.pickSelected = []; this.cdr.detectChanges(); return; }
+    this.assetService.getDeptColumns(deptId).subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          const keys: string[] = res?.columns || this.DEFAULT_KEYS;
+          this.pickSelected = keys.map((k) => CATALOG_BY_KEY[k]).filter(Boolean);
+          this.cdr.detectChanges();
+        });
+      },
+    });
+  }
+
+  isMandatory(col: ColumnDef): boolean { return MANDATORY_KEYS.includes(col.key); }
+
+  // All columns from the catalog appear in the "Add column" dropdown (already-
+  // selected ones are marked; picking one that's already added is a no-op).
+  get addableColumns(): { key: string; label: string; disabled: boolean }[] {
+    const chosen = new Set(this.pickSelected.map((c) => c.key));
+    return this.availableCatalog().map((c) => ({
+      key: c.key,
+      label: chosen.has(c.key) ? `${c.label} (added)` : c.label,
+      disabled: chosen.has(c.key),
+    }));
+  }
+
+  addColumn(key: string) {
+    const col = CATALOG_BY_KEY[key];
+    if (col && !this.pickSelected.some((c) => c.key === key)) this.pickSelected = [...this.pickSelected, col];
+  }
+  removeColumn(i: number) {
+    if (this.isMandatory(this.pickSelected[i])) return; // can't remove mandatory
+    this.pickSelected = this.pickSelected.filter((_, idx) => idx !== i);
+  }
+  moveColumn(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= this.pickSelected.length) return;
+    const arr = [...this.pickSelected];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    this.pickSelected = arr;
+  }
+
+  saveColumns() {
+    const deptId = this.colConfigDeptId;
+    if (!deptId) { this.messageService.add({ severity: 'warn', summary: 'Select department', detail: 'Choose a department first' }); return; }
+    const keys = this.pickSelected.map((c) => c.key);
+    this.savingColumns = true;
+    this.assetService.setDeptColumns(deptId, keys).subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          this.savingColumns = false;
+          this.showColumnDialog = false;
+          this.messageService.add({ severity: 'success', summary: 'Saved', detail: 'Columns updated' });
+          // Editing our own department → apply to the live table immediately.
+          if (Number(deptId) === Number(this.myDeptId)) {
+            this.displayColumns = resolveColumns(res?.columns || keys, this.branchFeatures);
+          }
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => {
+        setTimeout(() => { this.savingColumns = false; this.cdr.detectChanges(); });
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || 'Failed to save columns' });
+      },
+    });
+  }
+
   branchFeatures = true; // tenant switch — hides branch filter/column when false
 
   constructor(
@@ -96,7 +231,11 @@ export class AssetsTable implements OnInit {
       !targetElement.closest('.filter-menu')
     ) {
       this.dropdownVisible = false;
-      console.log("Clicked outside the filter dropdown, closing it.");
+    }
+    // Close an open column-header filter popup when clicking elsewhere
+    // (the popup and funnel icon stop propagation, so their clicks don't reach here).
+    if (!targetElement.closest('.col-filter-pop') && !targetElement.closest('.th-filter-icon')) {
+      this.openFilterKey = null;
     }
   }
   // Server already returns just this page; no client-side slicing.
@@ -112,6 +251,7 @@ export class AssetsTable implements OnInit {
     this.loadAccessPermissions();
     this.branchFeaturesSvc.isEnabled().then((v) => {
       this.branchFeatures = v;
+      this.loadColumns(); // depends on branchFeatures for the branch-gated column
       this.cdr.detectChanges();
       if (!v) return; // tenant switch off — no branch dropdown to populate
       this.branchService.getBranches().subscribe({
@@ -145,6 +285,7 @@ export class AssetsTable implements OnInit {
       search: this.searchTerm || '',
       filterField: this.selectedFilter,
       branchId: this.selectedBranchId,
+      filters: this.columnFilters,
     }).subscribe({
       next: (res) => {
         setTimeout(() => {  // ✅ defer update after Angular's change detection
@@ -267,6 +408,39 @@ export class AssetsTable implements OnInit {
     { label: 'Disposal Method', value: 'disposalMethod' },
   ]
 
+  // ── Per-column header filters (funnel icons, like the PM/Calibration tables) ──
+  // Server-side: each entry is { backendFilterField → text }, AND-combined and sent
+  // to /assets/paginated as `filters`. Only columns with a ColumnDef.filterField
+  // show a funnel.
+  columnFilters: Record<string, string> = {};
+  openFilterKey: string | null = null;   // which column's filter popup is open
+  columnFilterDraft = '';                // text being typed in the open popup
+
+  toggleColumnFilter(field: string, ev: Event) {
+    ev.stopPropagation();
+    if (this.openFilterKey === field) { this.openFilterKey = null; return; }
+    this.openFilterKey = field;
+    this.columnFilterDraft = this.columnFilters[field] || '';
+  }
+
+  applyColumnFilter(field: string) {
+    const v = (this.columnFilterDraft || '').trim();
+    if (v) this.columnFilters[field] = v; else delete this.columnFilters[field];
+    this.openFilterKey = null;
+    this.currentPage = 1;
+    this.loadPage();
+  }
+
+  clearColumnFilter(field: string) {
+    delete this.columnFilters[field];
+    this.columnFilterDraft = '';
+    this.openFilterKey = null;
+    this.currentPage = 1;
+    this.loadPage();
+  }
+
+  get hasColumnFilters(): boolean { return Object.keys(this.columnFilters).length > 0; }
+
 
   dropdownVisible = false;
 
@@ -299,6 +473,8 @@ export class AssetsTable implements OnInit {
     this.currentPage = 1;
     this.selectedFilter = 'assetName';
     this.filteredActive = false;
+    this.columnFilters = {};
+    this.openFilterKey = null;
     this.loadPage();
   }
 
@@ -364,26 +540,17 @@ export class AssetsTable implements OnInit {
       default: return status;
     }
   }
-  cols = [
-    { field: 'assetId', header: 'Asset ID' },
-    { field: 'referenceCode', header: 'Reference Code' },
-    { field: 'assetName', header: 'Asset Name' },
-    { field: 'assetType', header: 'Asset Type' },
-    { field: 'departmentName', header: 'Department' },
-    { field: 'assetCategoryName', header: 'Asset Category' },
-    { field: 'allottedToName', header: 'Allotted To' }
-  ];
-
+  // Export matches the on-screen (department-configured) columns.
   get exportAssets() {
-    return this.filteredAssets.map(asset => ({
-      assetId: asset.assetId,
-      referenceCode: asset.referenceCode || '-',
-      assetName: asset.assetName || '-',
-      assetType: asset.assetType || '-',
-      departmentName: asset.department?.name || '-',
-      assetCategoryName: asset.assetCategory?.name || '-',
-      allottedToName: asset.allottedTo?.name || 'Not Allotted'
-    }));
+    return this.filteredAssets.map((asset) => {
+      const row: any = {};
+      for (const col of this.displayColumns) {
+        row[col.label] = col.type === 'photo'
+          ? (readPath(asset, col.path) ? 'Yes' : '-')
+          : this.getCell(asset, col);
+      }
+      return row;
+    });
   }
 
   openHodApproval(asset: any) {

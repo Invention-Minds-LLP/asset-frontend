@@ -24,13 +24,15 @@ export class Assets {
   }
 
   /** GET assets with server-side pagination + search (master table only) */
-  getAssetsPaginated(params: { page: number; limit: number; search?: string; filterField?: string; branchId?: number | null }): Observable<any> {
+  getAssetsPaginated(params: { page: number; limit: number; search?: string; filterField?: string; branchId?: number | null; filters?: Record<string, string> }): Observable<any> {
     let q = new URLSearchParams();
     q.set('page', String(params.page));
     q.set('limit', String(params.limit));
     if (params.search) q.set('search', params.search);
     if (params.filterField) q.set('filterField', params.filterField);
     if (params.branchId) q.set('branchId', String(params.branchId));
+    // Per-column header filters → single JSON param, AND-combined server-side.
+    if (params.filters && Object.keys(params.filters).length) q.set('filters', JSON.stringify(params.filters));
     return this.http.get<any>(`${this.assetsUrl}/paginated?${q.toString()}`);
   }
 
@@ -111,6 +113,17 @@ export class Assets {
 
   deleteCategory(id: number): Observable<any> {
     return this.http.delete<any>(`${environment.apiUrl}/categories/${id}`);
+  }
+
+  // ── Department-specific asset-table columns ───────────────────────────────
+  getMyColumns(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/department-columns/mine`);
+  }
+  getDeptColumns(departmentId: number): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/department-columns/${departmentId}`);
+  }
+  setDeptColumns(departmentId: number, columns: string[]): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/department-columns/${departmentId}`, { columns });
   }
 
   // ── Asset supervisors (many; shift-wise duty) ─────────────────────────────

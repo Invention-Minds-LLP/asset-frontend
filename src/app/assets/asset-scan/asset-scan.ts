@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Assets } from '../../services/assets/assets';
+import { Auth } from '../../services/auth/auth';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
@@ -14,6 +15,7 @@ export class AssetScan implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private assetScanService = inject(Assets);
+  private auth = inject(Auth);
   private cdr = inject(ChangeDetectorRef);
 
   loading = true;          // summary (name + code) load
@@ -129,8 +131,10 @@ export class AssetScan implements OnInit {
   }
 
   private hasToken(): boolean {
-    return typeof window !== 'undefined' &&
-      !!(localStorage.getItem('authToken') || sessionStorage.getItem('authToken'));
+    if (typeof window === 'undefined') return false;
+    // Staff token is in memory (Auth service); external auditors keep theirs in
+    // localStorage under the same key.
+    return !!this.auth.getToken() || !!localStorage.getItem('authToken');
   }
 
   get master() {

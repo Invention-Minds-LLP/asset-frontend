@@ -31,12 +31,9 @@ export class Login {
 
   ngOnInit(): void {
 
-    if (typeof window !== 'undefined' && localStorage) {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        console.log('User already logged in');
-        this.router.navigateByUrl(this.returnUrl);
-      }
+    // If a silent refresh (APP_INITIALIZER) already restored a session, skip login.
+    if (this.authService.isLoggedIn()) {
+      this.router.navigateByUrl(this.returnUrl);
     }
   }
   images = [
@@ -66,14 +63,9 @@ export class Login {
 
     this.authService.login(this.employeeId, this.password).subscribe({
       next: (response) => {
-        console.log('Login success:', response);
-        localStorage.setItem('authToken', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-        localStorage.setItem('role', response.user.role);
-        localStorage.setItem('name', response.user.name);
-        localStorage.setItem("employeeDbId", response.user.employeeDbId);
-        localStorage.setItem("departmentId", response.user.departmentId);
-        console.log(localStorage.getItem('user'))
+        // Access token → memory (Auth service); refresh token is in an httpOnly
+        // cookie the server just set. Only non-secret display data is persisted.
+        this.authService.setSession(response.token, response.user);
         this.employeeId = '';
         this.password = '';
         this.loading = false;

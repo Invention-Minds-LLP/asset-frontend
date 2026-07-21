@@ -2,57 +2,68 @@ import { inject } from '@angular/core';
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, switchMap } from 'rxjs/operators';
+import { Auth } from './services/auth/auth';
 
 export const AuthInterceptor: HttpInterceptorFn = (
   req: HttpRequest<any>,
   next: HttpHandlerFn
 ): Observable<HttpEvent<any>> => {
+  const auth = inject(Auth);
   const router = inject(Router);
 
-  if (typeof window !== 'undefined' && localStorage) {
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+  if (typeof window === 'undefined') return next(req);
 
-    let authReq = req;
-    if (token) {
-      authReq = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    }
+  // External auditors keep their localStorage token (separate portal, out of
+  // scope for the refresh-cookie flow). Staff use the in-memory access token.
+  const isExternal = localStorage.getItem('userType') === 'EXTERNAL';
+  const isAuthEndpoint = req.url.includes('/users/refresh')
+    || req.url.includes('/users/login')
+    || req.url.includes('/users/logout');
 
-    return next(authReq).pipe(
-      catchError((error: HttpErrorResponse) => {
-        // Only 401 (not authenticated / token invalid) ends the session.
-        // 403 means "logged in but not allowed" (e.g. a management-only
-        // endpoint hit by an HOD) — the calling component handles it; the
-        // user must NOT be logged out.
-        if (error.status === 401) {
-          console.warn(`${error.status} error encountered.`);
-          // Remember the session type before wiping it, so external auditors
-          // land back on their own portal rather than the staff login.
-          const wasExternal = localStorage.getItem('userType') === 'EXTERNAL';
-          localStorage.removeItem('authToken');
-          sessionStorage.removeItem('authToken');
-          localStorage.removeItem('userType');
-          localStorage.removeItem('externalAuditor');
-          // The QR scan landing is public (name + code shown without login).
-          // A background 401 there — e.g. a stale token rejected by the API —
-          // must NOT hijack the page to /login. The scan page redirects to
-          // login itself only when the user explicitly asks for full details.
-          if (wasExternal) {
-            router.navigate(['/auditor/login']);
-          } else if (!router.url.startsWith('/assets/scan/')) {
+  const token = isExternal ? (localStorage.getItem('authToken') || '') : auth.getToken();
+
+  // withCredentials so the httpOnly refresh + CSRF cookies flow to the API.
+  const authReq = req.clone({
+    withCredentials: true,
+    ...(token && !isAuthEndpoint ? { setHeaders: { Authorization: `Bearer ${token}` } } : {}),
+  });
+
+  return next(authReq).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (error.status !== 401 || isAuthEndpoint) {
+        return throwError(() => error);
+      }
+
+      if (isExternal) {
+        // External auditor session ended → back to their own login.
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userType');
+        localStorage.removeItem('externalAuditor');
+        router.navigate(['/auditor/login']);
+        return throwError(() => error);
+      }
+
+      // Staff: attempt a single silent refresh, then retry the original request.
+      return auth.refresh().pipe(
+        switchMap(() => {
+          const fresh = auth.getToken();
+          const retried = req.clone({
+            withCredentials: true,
+            ...(fresh ? { setHeaders: { Authorization: `Bearer ${fresh}` } } : {}),
+          });
+          return next(retried);
+        }),
+        catchError(() => {
+          // Refresh failed → session is over. The QR scan landing is public, so
+          // a background 401 there must NOT hijack the page to /login.
+          auth.clearSession();
+          if (!router.url.startsWith('/assets/scan/')) {
             router.navigate(['/login']);
           }
-        }
-        return throwError(() => error);
-      })
-    );
-  }
-
-  // ✅ Always return the unmodified request if token logic doesn't run
-  return next(req);
+          return throwError(() => error);
+        })
+      );
+    })
+  );
 };
-
