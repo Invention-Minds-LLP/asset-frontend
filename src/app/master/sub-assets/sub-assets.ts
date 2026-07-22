@@ -292,33 +292,7 @@ export class SubAssets implements OnInit {
     }
 
     this.addSaving = true;
-    // Field names must match the backend contract. Category & status are
-    // inherited from the parent server-side, so they're not sent here.
-    const payload: any = {
-      sourceType: this.addForm.sourceType,
-      assetCondition: this.addForm.condition || 'NEW',
-      remarks: this.addForm.notes || null,
-    };
-
-    if (this.addForm.sourceType === 'INVENTORY_SPARE') {
-      payload.sparePartId = Number(this.addForm.sparePartId);
-      payload.serialNumber = this.addForm.serialNumber || null;
-      payload.purchaseCost = this.addForm.cost != null && this.addForm.cost !== '' ? Number(this.addForm.cost) : null;
-    } else if (this.addForm.sourceType === 'INVENTORY_CONSUMABLE') {
-      payload.consumableId = Number(this.addForm.consumableId);
-      payload.serialNumber = this.addForm.serialNumber || null;
-      payload.purchaseCost = this.addForm.cost != null && this.addForm.cost !== '' ? Number(this.addForm.cost) : null;
-    } else {
-      payload.assetName = this.addForm.assetName.trim();
-      payload.serialNumber = this.addForm.serialNumber || null;
-      payload.assetType = this.addForm.assetType || null;
-      // Real category id; if left blank the backend inherits the parent's category.
-      if (this.addForm.categoryId) payload.assetCategoryId = Number(this.addForm.categoryId);
-      payload.modeOfProcurement = this.addForm.procurementType || null;
-      payload.purchaseCost = this.addForm.cost ? Number(this.addForm.cost) : null;
-      payload.invoiceNumber = this.addForm.invoiceNumber || null;
-      payload.purchaseDate = this.addForm.purchaseDate || null;
-    }
+    const payload = this._buildAddPayload();
 
     this.assetsAPI.createSubAsset(this.addParentAssetId, payload).subscribe({
       next: (res: any) => {
@@ -346,14 +320,19 @@ export class SubAssets implements OnInit {
         });
       },
       error: (err) => {
-        this.addSaving = false;
-        const body = err?.error;
-        if (err?.status === 422 && body?.thresholdWarning) {
-          this.thresholdInfo = body;
-          this.showThresholdDialog = true;
-        } else {
-          this.toast('error', body?.message || 'Failed to add sub-asset');
-        }
+        // Zoneless: state set in an async callback needs an explicit CD pass,
+        // otherwise the threshold dialog only appears on the next user click.
+        setTimeout(() => {
+          this.addSaving = false;
+          const body = err?.error;
+          if (err?.status === 422 && body?.thresholdWarning) {
+            this.thresholdInfo = body;
+            this.showThresholdDialog = true;
+          } else {
+            this.toast('error', body?.message || 'Failed to add sub-asset');
+          }
+          this.cdr.detectChanges();
+        });
       }
     });
   }
@@ -477,21 +456,32 @@ export class SubAssets implements OnInit {
     this._submitAddPayload(payload);
   }
 
+  // Single source of truth for the add-sub-asset payload — used by the normal
+  // submit AND by the 40% threshold dialog (which only appends forceCreate /
+  // createAsStandalone). Field names must match the backend contract; category &
+  // status are inherited from the parent server-side, so they're not sent here.
   private _buildAddPayload(): any {
     const payload: any = {
       sourceType: this.addForm.sourceType,
-      condition: this.addForm.condition || 'NEW',
-      notes: this.addForm.notes || null,
+      assetCondition: this.addForm.condition || 'NEW',
+      remarks: this.addForm.notes || null,
     };
+
     if (this.addForm.sourceType === 'INVENTORY_SPARE') {
       payload.sparePartId = Number(this.addForm.sparePartId);
       payload.serialNumber = this.addForm.serialNumber || null;
+      payload.purchaseCost = this.addForm.cost != null && this.addForm.cost !== '' ? Number(this.addForm.cost) : null;
+    } else if (this.addForm.sourceType === 'INVENTORY_CONSUMABLE') {
+      payload.consumableId = Number(this.addForm.consumableId);
+      payload.serialNumber = this.addForm.serialNumber || null;
+      payload.purchaseCost = this.addForm.cost != null && this.addForm.cost !== '' ? Number(this.addForm.cost) : null;
     } else {
       payload.assetName = this.addForm.assetName?.trim();
       payload.serialNumber = this.addForm.serialNumber || null;
       payload.assetType = this.addForm.assetType || null;
-      payload.procurementType = this.addForm.procurementType || null;
-      payload.cost = this.addForm.cost ? Number(this.addForm.cost) : null;
+      // Real category id; if left blank the backend inherits the parent's category.
+      if (this.addForm.categoryId) payload.assetCategoryId = Number(this.addForm.categoryId);
+      payload.modeOfProcurement = this.addForm.procurementType || null;
       payload.purchaseCost = this.addForm.cost ? Number(this.addForm.cost) : null;
       payload.invoiceNumber = this.addForm.invoiceNumber || null;
       payload.purchaseDate = this.addForm.purchaseDate || null;
@@ -523,8 +513,11 @@ export class SubAssets implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.addSaving = false;
-        this.toast('error', err?.error?.message || 'Failed');
+        setTimeout(() => {
+          this.addSaving = false;
+          this.toast('error', err?.error?.message || 'Failed');
+          this.cdr.detectChanges();
+        });
       }
     });
   }
