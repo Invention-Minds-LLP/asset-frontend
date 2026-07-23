@@ -493,7 +493,10 @@ export class StoreManagement implements OnInit {
     this.http.get<any>(`${this.apiUrl}/assets`, { params: { currentStoreId: String(fromId), status: 'IN_STORE' } }).subscribe({
       next: (data: any) => {
         const list = Array.isArray(data) ? data : (data?.data ?? []);
-        this.assetOptions = list.map((a: any) => ({ label: `${a.assetName} (${a.assetId})`, value: a.id }));
+        this.assetOptions = list.map((a: any) => {
+          const makeModel = [a.manufacturer, a.modelNumber].filter(Boolean).join(' ');
+          return { label: `${a.assetName} (${a.assetId})${makeModel ? ` · ${makeModel}` : ''}`, value: a.id };
+        });
         setTimeout(() => this.cdr.detectChanges());
       },
       error: () => {}

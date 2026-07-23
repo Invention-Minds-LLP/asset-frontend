@@ -194,6 +194,8 @@
                 <th>Asset ID</th>
                 <th>Stores Ref</th>
                 <th>Name</th>
+                <th>Make</th>
+                <th>Model</th>
                 <th>Category</th>
                 <th>Store</th>
                 <th>Status</th>
@@ -204,6 +206,8 @@
                 <td>{{ asset.assetId || '—' }}</td>
                 <td>{{ asset.storeAssetId || '—' }}</td>
                 <td>{{ asset.assetName }}</td>
+                <td>{{ asset.manufacturer || '—' }}</td>
+                <td>{{ asset.modelNumber || '—' }}</td>
                 <td>{{ asset.assetCategory?.name || '—' }}</td>
                 <td>{{ asset.currentStore?.name || '—' }}</td>
                 <td><p-tag value="In Store" severity="info"></p-tag></td>
@@ -300,6 +304,8 @@
             <th>Asset ID</th>
             <th>Stores Ref</th>
             <th>Name</th>
+            <th>Make</th>
+            <th>Model</th>
             <th>Category</th>
             <th>Store</th>
             <th>Status</th>
@@ -310,13 +316,15 @@
             <td>{{ asset.assetId || '—' }}</td>
             <td>{{ asset.storeAssetId || '—' }}</td>
             <td>{{ asset.assetName }}</td>
+            <td>{{ asset.manufacturer || '—' }}</td>
+            <td>{{ asset.modelNumber || '—' }}</td>
             <td>{{ asset.assetCategory?.name || '—' }}</td>
             <td>{{ asset.currentStore?.name || '—' }}</td>
             <td><p-tag value="In Store" severity="info"></p-tag></td>
           </tr>
         </ng-template>
         <ng-template #emptymessage>
-          <tr><td colspan="6" class="text-center">No assets parked in this store.</td></tr>
+          <tr><td colspan="8" class="text-center">No assets parked in this store.</td></tr>
         </ng-template>
       </p-table>
     } @else {
@@ -502,18 +510,21 @@
       </div>
       <p-table [value]="transferDetail.items || []" styleClass="p-datatable-sm" [tableStyle]="{'margin-top':'0.75rem'}">
         <ng-template pTemplate="header">
-          <tr><th>Item</th><th>Type</th><th style="text-align:right">Qty</th><th style="text-align:right">Received</th></tr>
+          <tr><th>Item</th><th>Type</th><th>Asset No</th><th>Make</th><th>Model</th><th style="text-align:right">Qty</th><th style="text-align:right">Received</th></tr>
         </ng-template>
         <ng-template pTemplate="body" let-it>
           <tr>
             <td>{{ it.itemName || '—' }}</td>
             <td>{{ it.itemType }}</td>
+            <td>{{ it.assetNumber || '—' }}</td>
+            <td>{{ it.make || '—' }}</td>
+            <td>{{ it.model || '—' }}</td>
             <td style="text-align:right">{{ it.quantity }}</td>
             <td style="text-align:right">{{ it.receivedQty ?? '—' }}</td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="4" class="text-center">No items.</td></tr>
+          <tr><td colspan="7" class="text-center">No items.</td></tr>
         </ng-template>
       </p-table>
     }
