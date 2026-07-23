@@ -17,7 +17,7 @@ import { SlaMatrix } from './master/sla-matrix/sla-matrix';
 import { Inventory } from './master/inventory/inventory';
 import { AssetTransfer } from './asset-transfer/asset-transfer';
 import { Dashboard } from './master/dashboard/dashboard';
-import { DepartmentDashboard } from './master/department-dashboard/department-dashboard';
+// import { DepartmentDashboard } from './master/department-dashboard/department-dashboard';
 import { HodDashboard } from './master/hod-dashboard/hod-dashboard';
 import { GatePass } from './master/gate-pass/gate-pass';
 import { GatePassSecurity } from './master/gate-pass-security/gate-pass-security';
@@ -115,7 +115,7 @@ export const routes: Routes = [
   { path: 'transfer', component: AssetTransfer, canActivate: [authGuard] },
   // ── New master module routes ────────────────────────────────────────────────
   { path: 'master-dashboard', component: Dashboard, canActivate: [authGuard] },
-  { path: 'department-dashboard', component: DepartmentDashboard, canActivate: [authGuard] },
+  // { path: 'department-dashboard', component: DepartmentDashboard, canActivate: [authGuard] },
   { path: 'hod-dashboard', component: HodDashboard, canActivate: [authGuard] },
   { path: 'gate-pass', component: GatePass, canActivate: [authGuard] },
   { path: 'gate-pass/security', component: GatePassSecurity, canActivate: [authGuard] },
