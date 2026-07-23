@@ -33,6 +33,14 @@ export class Sidebar implements OnInit {
       path: '/master-dashboard', route: '/master-dashboard', hasDropdown: false
     },
     {
+      icon: 'pi pi-th-large', label: 'Department Dashboard',
+      path: '/department-dashboard', route: '/department-dashboard', hasDropdown: false
+    },
+    {
+      icon: 'pi pi-sitemap', label: 'Assignment Dashboard',
+      path: '/hod-dashboard', route: '/hod-dashboard', hasDropdown: false
+    },
+    {
       icon: 'pi pi-globe', label: 'Head Office',
       path: '/head-office', route: '/head-office', hasDropdown: false
     },

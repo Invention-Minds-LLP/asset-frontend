@@ -1,0 +1,170 @@
+<div class="hd-page">
+  <div class="hd-header">
+    <div class="hd-title">
+      <h2>{{ departmentName || 'Department' }} — Assignment Dashboard</h2>
+      <p-tag value="HOD" severity="info"></p-tag>
+    </div>
+    <div class="hd-field" *ngIf="isAdmin">
+      <label>Department</label>
+      <p-select [options]="departments" optionLabel="name" optionValue="id" [(ngModel)]="selectedDeptId"
+        [filter]="true" appendTo="body" placeholder="Select" (onChange)="onDeptChange()" styleClass="hd-select"></p-select>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="hd-empty"><i class="pi pi-spin pi-spinner"></i> Loading…</div>
+
+  <ng-container *ngIf="!loading && data">
+    <!-- KPIs -->
+    <div class="hd-kpis">
+      <div class="hd-kpi" *ngFor="let k of kpis" [style.--accent]="toneColor(k.tone)"
+        [class.clickable]="canDrill(k)" (click)="openKpi(k)"
+        [pTooltip]="canDrill(k) ? 'Click to see the list' : ''" tooltipPosition="top">
+        <div class="hd-kpi-top">
+          <span class="hd-kpi-icon"><i class="pi {{ k.icon || 'pi-chart-bar' }}"></i></span>
+          <span class="hd-kpi-pct" *ngIf="k.pct !== undefined">{{ k.pct }}%</span>
+        </div>
+        <span class="hd-kpi-value">{{ k.value }}</span>
+        <span class="hd-kpi-label">{{ k.label }} <i class="pi pi-external-link hd-kpi-link" *ngIf="canDrill(k)"></i></span>
+      </div>
+    </div>
+
+    <!-- Aging chips -->
+    <div class="hd-chips" *ngIf="data.aging?.length">
+      <div class="hd-chip" *ngFor="let c of data.aging" [style.--accent]="toneColor(c.severity)">
+        <i class="pi {{ c.icon }}"></i><span class="ct">{{ c.label }}</span><span class="cv">{{ c.value }}</span>
+      </div>
+    </div>
+
+    <div class="hd-grid">
+      <!-- Action Center -->
+      <div class="hd-card hd-actions" *ngIf="actions.length">
+        <h3><i class="pi pi-bolt"></i> Assignment gaps — needs you</h3>
+        <div class="hd-action-group" *ngFor="let a of actions">
+          <div class="hd-action-head" [style.--sev]="toneColor(a.severity)">
+            <span class="sev-dot"></span>{{ a.label }}<span class="cnt">{{ a.items.length }}</span>
+          </div>
+          <div class="hd-action-item" *ngFor="let it of a.items" (click)="go(it.route)"
+            pTooltip="Open asset to fix" tooltipPosition="left">
+            <span class="ai-urg" [style.background]="urgencyColor(it.urgency)"></span>
+            <span class="ai-main">
+              <span class="ai-title">{{ it.title }}</span>
+              <span class="ai-sub">{{ it.subtitle }}</span>
+            </span>
+            <span class="ai-meta">{{ it.meta }}</span>
+            <i class="pi pi-angle-right ai-go"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="hd-charts">
+        <div class="hd-card-row">
+          <div class="hd-card hd-flex" *ngIf="data.gauges?.length">
+            <viz-gauge *ngFor="let g of data.gauges" [label]="g.label" [value]="g.value" [max]="g.max" [unit]="g.unit" [available]="g.available"></viz-gauge>
+          </div>
+          <div class="hd-card hd-flex" *ngIf="data.donut?.slices?.length">
+            <viz-donut [title]="data.donut.title" [slices]="data.donut.slices"></viz-donut>
+          </div>
+        </div>
+
+        <div class="hd-card" *ngIf="data.trend?.series?.length">
+          <viz-trend-line [title]="data.trend.title" [labels]="data.trend.labels" [series]="data.trend.series"></viz-trend-line>
+        </div>
+
+        <div class="hd-card-row">
+          <div class="hd-card" *ngIf="data.funnel?.items?.length">
+            <viz-bars [title]="data.funnel.title" [items]="data.funnel.items" [colorSlot]="4"></viz-bars>
+          </div>
+          <div class="hd-card" *ngIf="data.pendingFunnel?.items?.length">
+            <viz-bars [title]="data.pendingFunnel.title" [items]="data.pendingFunnel.items" [colorSlot]="3"></viz-bars>
+          </div>
+        </div>
+
+        <div class="hd-card" *ngIf="data.supervisorLoad?.items?.length">
+          <viz-bars [title]="data.supervisorLoad.title" [items]="data.supervisorLoad.items" [colorSlot]="1"></viz-bars>
+        </div>
+
+        <div class="hd-card" *ngIf="data.bars?.items?.length">
+          <viz-bars [title]="data.bars.title" [items]="data.bars.items" [colorSlot]="2"></viz-bars>
+        </div>
+
+        <div class="hd-card" *ngIf="data.recentlyCompleted?.length">
+          <h3><i class="pi pi-check-circle" style="color:#0ca30c"></i> Recently completed</h3>
+          <div class="hd-recent" *ngFor="let r of data.recentlyCompleted" (click)="openAsset(r.assetId)">
+            <span class="hd-recent-name">{{ r.assetName }} <small>{{ r.assetId }}</small></span>
+            <span class="hd-recent-when">{{ r.when | date:'mediumDate' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <div *ngIf="!loading && !data" class="hd-empty">No dashboard data available.</div>
+</div>
+
+<!-- ── KPI drill-down list ─────────────────────────────────────────────────── -->
+<p-dialog [header]="listTitle" [(visible)]="showListDialog" [modal]="true" styleClass="hd-list-dialog"
+  [style]="{ width: '920px', maxWidth: '96vw' }" appendTo="body">
+
+  <!-- toolbar: search + count + export -->
+  <div class="dl-toolbar">
+    <span class="dl-search">
+      <i class="pi pi-search"></i>
+      <input pInputText type="text" [(ngModel)]="listSearch" (ngModelChange)="onListSearch()" placeholder="Search all {{ listTotal }} assets…" />
+    </span>
+    <span class="dl-count">
+      <ng-container *ngIf="listTotal"><b>{{ rangeStart }}–{{ rangeEnd }}</b> of {{ listTotal }}</ng-container>
+    </span>
+    <button pButton type="button" icon="pi pi-download" label="Export" size="small" [outlined]="true"
+      (click)="exportListCsv()" [loading]="exportingCsv" [disabled]="!listTotal"></button>
+  </div>
+
+  <div class="dl-scroll">
+    <table class="dl-table">
+      <thead>
+        <tr>
+          <th>Asset</th><th>Category</th><th>Status</th>
+          <th>Supervisor</th><th>End User</th><th>Target Dept</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="listLoading"><td colspan="7" class="dl-empty"><i class="pi pi-spin pi-spinner"></i> Loading…</td></tr>
+        <ng-container *ngIf="!listLoading">
+          <tr *ngFor="let r of listRows" (click)="openAsset(r.assetId)">
+            <td class="dl-asset">
+              <span class="dl-name">{{ r.assetName }}</span>
+              <span class="dl-id">{{ r.assetId }}</span>
+            </td>
+            <td class="dl-muted">{{ r.category }}</td>
+            <td><span class="dl-pill" [style.--c]="toneColor(statusTone(r.status))">{{ r.status }}</span></td>
+            <td>
+              <span *ngIf="r.supervisor !== '—'">{{ r.supervisor }}</span>
+              <span *ngIf="r.supervisor === '—'" class="dl-none">Not set</span>
+            </td>
+            <td>
+              <span *ngIf="r.endUser !== '—'">{{ r.endUser }}</span>
+              <span *ngIf="r.endUser === '—'" class="dl-none">Not set</span>
+            </td>
+            <td>
+              <span *ngIf="r.targetDept !== '—'" class="dl-muted">{{ r.targetDept }}</span>
+              <span *ngIf="r.targetDept === '—'" class="dl-dash">—</span>
+            </td>
+            <td class="dl-go"><i class="pi pi-angle-right"></i></td>
+          </tr>
+          <tr *ngIf="!listRows.length">
+            <td colspan="7" class="dl-empty">No matching assets.</td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- pager -->
+  <div class="dl-pager" *ngIf="totalPages > 1">
+    <button pButton type="button" icon="pi pi-angle-left" size="small" [text]="true"
+      (click)="prevPage()" [disabled]="listPage <= 1 || listLoading"></button>
+    <span class="dl-page">Page {{ listPage }} of {{ totalPages }}</span>
+    <button pButton type="button" icon="pi pi-angle-right" size="small" [text]="true"
+      (click)="nextPage()" [disabled]="listPage >= totalPages || listLoading"></button>
+  </div>
+</p-dialog>

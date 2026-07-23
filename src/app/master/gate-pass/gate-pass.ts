@@ -21,6 +21,9 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
 
 interface ItemRow {
   assetId: number | null;
+  description: string;
+  make: string;
+  model: string;
   quantity: number;
   remarks: string;
 }
@@ -88,11 +91,11 @@ export class GatePass implements OnInit {
       vehicleType: null as string | null,
       reason: '',
       ticketId: null as number | null,
-      items: [{ assetId: null, quantity: 1, remarks: '' } as ItemRow],
+      items: [{ assetId: null, description: '', make: '', model: '', quantity: 1, remarks: '' } as ItemRow],
     };
   }
 
-  addItem() { this.form.items.push({ assetId: null, quantity: 1, remarks: '' }); }
+  addItem() { this.form.items.push({ assetId: null, description: '', make: '', model: '', quantity: 1, remarks: '' }); }
   removeItem(i: number) {
     if (this.form.items.length === 1) { this.toast('warn', 'At least one item is required'); return; }
     this.form.items.splice(i, 1);
@@ -127,12 +130,13 @@ export class GatePass implements OnInit {
 
   // ── Save (always lands as DRAFT) ───────────────────────────────────────────
   save() {
-    const cleanItems = (this.form.items || []).filter(i => i.assetId);
+    // An item is valid if it links an asset OR describes a (non-asset) spare / surgical item.
+    const cleanItems = (this.form.items || []).filter(i => i.assetId || i.description?.trim());
     if (!this.form.issuedTo || !this.form.purpose || !this.form.type) {
       this.toast('warn', 'Type, Issued To and Purpose are required'); return;
     }
     if (cleanItems.length === 0) {
-      this.toast('warn', 'Add at least one asset item'); return;
+      this.toast('warn', 'Add at least one item (select an asset or enter an item description)'); return;
     }
 
     const payload: any = {
@@ -145,7 +149,14 @@ export class GatePass implements OnInit {
       vehicleType: this.form.vehicleType,
       reason: this.form.reason,
       ticketId: this.form.ticketId,
-      items: cleanItems.map(i => ({ assetId: Number(i.assetId), quantity: Number(i.quantity || 1), remarks: i.remarks })),
+      items: cleanItems.map(i => ({
+        assetId: i.assetId ? Number(i.assetId) : null,
+        description: i.description?.trim() || null,
+        make: i.make?.trim() || null,
+        model: i.model?.trim() || null,
+        quantity: Number(i.quantity || 1),
+        remarks: i.remarks,
+      })),
     };
 
     const obs = this.editingId
@@ -173,8 +184,15 @@ export class GatePass implements OnInit {
       reason: row.reason || '',
       ticketId: row.ticketId ?? null,
       items: (row.items || []).length
-        ? row.items.map((it: any) => ({ assetId: it.assetId, quantity: it.quantity || 1, remarks: it.remarks || '' }))
-        : [{ assetId: null, quantity: 1, remarks: '' }],
+        ? row.items.map((it: any) => ({
+            assetId: it.assetId ?? null,
+            description: it.description || '',
+            make: it.make || '',
+            model: it.model || '',
+            quantity: it.quantity || 1,
+            remarks: it.remarks || '',
+          }))
+        : [{ assetId: null, description: '', make: '', model: '', quantity: 1, remarks: '' }],
     };
   }
 
