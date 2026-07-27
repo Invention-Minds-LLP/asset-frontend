@@ -14,11 +14,12 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { NotificationsService } from './services/notifications/notifications';
 import { Auth } from './services/auth/auth';
+import { TrialBanner } from './shared/trial-banner/trial-banner';
 import { environment } from '../environment/environment.prod';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule, InputSwitchModule, Sidebar, RouterOutlet, ToastModule, BadgeModule, OverlayPanelModule, ButtonModule, ConfirmDialogModule],
+  imports: [CommonModule, FormsModule, InputSwitchModule, Sidebar, RouterOutlet, ToastModule, BadgeModule, OverlayPanelModule, ButtonModule, ConfirmDialogModule, TrialBanner],
   templateUrl: './app.html',
   styleUrl: './app.css',
   standalone: true,
@@ -241,8 +242,13 @@ export class App implements OnInit, OnDestroy {
   isNoLayoutRoute(): boolean {
     const url = this.router.url.split('?')[0];
     // The external-auditor portal renders its own chrome — never show the
-    // staff sidebar/topbar for it.
-    return url === '/login' || url.startsWith('/assets/scan/') || url.startsWith('/auditor');
+    // staff sidebar/topbar for it. Same for the demo trial screens: the console
+    // is ours (no client session at all) and the blocked screen is terminal.
+    return url === '/login'
+      || url.startsWith('/assets/scan/')
+      || url.startsWith('/auditor')
+      || url.startsWith('/trial-admin')
+      || url.startsWith('/trial-blocked');
   }
 
   goToNotifications() {

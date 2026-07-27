@@ -86,6 +86,8 @@ import { DataExport } from './master/data-export/data-export';
 import { FloorPlanPage } from './master/floor-plan/floor-plan';
 import { ExternalAuditor } from './master/external-auditor/external-auditor';
 import { LocationApprovals } from './master/location-approvals/location-approvals';
+import { TrialAdmin } from './master/trial-admin/trial-admin';
+import { TrialBlocked } from './shared/trial-blocked/trial-blocked';
 import { AuditorLogin } from './auditor/auditor-login/auditor-login';
 import { AuditorAudits } from './auditor/auditor-audits/auditor-audits';
 import { AuditorAuditDetail } from './auditor/auditor-audit-detail/auditor-audit-detail';
@@ -190,5 +192,10 @@ export const routes: Routes = [
     path: 'assets/scan/:assetId',
     component: AssetScan
   },
+  // Demo trial screens. Neither sits behind authGuard: the console authenticates
+  // with its own admin key, and the blocked screen has to render precisely when
+  // the session has just been torn down.
+  { path: 'trial-admin', component: TrialAdmin },
+  { path: 'trial-blocked', component: TrialBlocked },
   { path: '**', redirectTo: 'login', pathMatch: 'full' }
 ];

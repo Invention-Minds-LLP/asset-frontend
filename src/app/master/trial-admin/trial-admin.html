@@ -1,0 +1,210 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="trial-page">
+
+  <!-- ── Key gate ─────────────────────────────────────────────────────────── -->
+  <div class="key-gate" *ngIf="!unlocked">
+    <div class="key-card">
+      <i class="pi pi-lock key-icon"></i>
+      <h2>Demo Trial Console</h2>
+      <p>Enter the trial admin key for this instance.</p>
+      <input pInputText type="password" [(ngModel)]="keyInput" placeholder="Trial admin key"
+             (keyup.enter)="unlock()" autocomplete="off" />
+      <p-button label="Unlock" icon="pi pi-unlock" (onClick)="unlock()" [disabled]="!keyInput.trim()"></p-button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="unlocked">
+
+    <div class="page-head">
+      <div>
+        <h1>Demo Trial Console</h1>
+        <span class="sub" *ngIf="!enabled">
+          <i class="pi pi-info-circle"></i>
+          TRIAL_ENABLED is off on this instance — nothing here is being enforced.
+        </span>
+      </div>
+      <div class="head-actions">
+        <p-button label="Refresh" icon="pi pi-refresh" severity="secondary" [outlined]="true"
+                  (onClick)="load()" [loading]="loading"></p-button>
+        <p-button label="Lock" icon="pi pi-lock" severity="secondary" [text]="true" (onClick)="lock()"></p-button>
+      </div>
+    </div>
+
+    <!-- ── No licence yet ─────────────────────────────────────────────────── -->
+    <div class="empty-card" *ngIf="!loading && !license">
+      <i class="pi pi-calendar-plus"></i>
+      <p>No trial licence on this instance yet. Fill the form below and save to start one.</p>
+    </div>
+
+    <!-- ── Status ─────────────────────────────────────────────────────────── -->
+    <div class="status-card" *ngIf="license" [class.dead]="expired">
+      <div class="status-main">
+        <div class="status-client">
+          <span class="label">Demo for</span>
+          <span class="value">{{ license.clientName }}</span>
+        </div>
+        <p-tag [value]="expired ? (license.status === 'REVOKED' ? 'REVOKED' : 'EXPIRED') : 'ACTIVE'"
+               [severity]="expired ? 'danger' : 'success'"></p-tag>
+      </div>
+
+      <div class="status-grid">
+        <div class="stat">
+          <span class="stat-label">Expires</span>
+          <span class="stat-value">{{ license.expiresAt | date: 'dd MMM yyyy, h:mm a' }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Remaining</span>
+          <span class="stat-value" [class.warn]="!expired && (status?.hoursLeft ?? 0) < 24">{{ timeLeft() }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Live sessions</span>
+          <span class="stat-value">{{ activeSessions }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Bound IP</span>
+          <span class="stat-value mono">{{ license.lockedIp || '—' }}</span>
+        </div>
+      </div>
+
+      <div class="status-actions">
+        <p-button label="+1 day" icon="pi pi-plus" severity="secondary" [outlined]="true" (onClick)="extend(1)"></p-button>
+        <p-button label="+3 days" icon="pi pi-plus" severity="secondary" [outlined]="true" (onClick)="extend(3)"></p-button>
+        <p-button label="+7 days" icon="pi pi-plus" severity="secondary" [outlined]="true" (onClick)="extend(7)"></p-button>
+        <span class="spacer"></span>
+        <p-button label="End all sessions" icon="pi pi-sign-out" severity="warn" [outlined]="true"
+                  (onClick)="endSessions()"></p-button>
+        <p-button *ngIf="license.status !== 'REVOKED'" label="Revoke now" icon="pi pi-ban" severity="danger"
+                  (onClick)="revoke()"></p-button>
+        <p-button *ngIf="license.status === 'REVOKED'" label="Reactivate" icon="pi pi-check" severity="success"
+                  (onClick)="reactivate()"></p-button>
+      </div>
+    </div>
+
+    <!-- ── Settings ───────────────────────────────────────────────────────── -->
+    <div class="card">
+      <h3>Trial terms</h3>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Client name</label>
+          <input pInputText [(ngModel)]="form.clientName" placeholder="e.g. Apollo Hospitals" />
+        </div>
+
+        <div class="field">
+          <label>Expires on</label>
+          <p-datepicker [(ngModel)]="form.expiresAt" [showTime]="true" hourFormat="12"
+                        dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
+        </div>
+
+        <div class="field">
+          <label>Allowed employee IDs</label>
+          <input pInputText [(ngModel)]="form.allowedEmployeeIds" placeholder="EMP001, EMP002 — blank means anyone" />
+          <small>Only these employee IDs can sign in during the demo.</small>
+        </div>
+
+        <div class="field">
+          <label>IP handling</label>
+          <p-select [options]="ipModes" [(ngModel)]="form.ipMode" optionLabel="label" optionValue="value"
+                    appendTo="body"></p-select>
+          <small>
+            Broadband and mobile networks change address often — <b>Alert</b> flags a new IP without
+            locking your evaluator out. Use <b>Lock</b> only when you suspect sharing.
+          </small>
+        </div>
+
+        <div class="field" *ngIf="form.ipMode === 'ALLOWLIST'">
+          <label>Allowed addresses</label>
+          <input pInputText [(ngModel)]="form.allowedIps" placeholder="49.207.1.5, 103.55.9.0/24, 192.168.1.*" />
+          <small>Exact IPs, CIDR ranges, or octet wildcards.</small>
+        </div>
+
+        <div class="field switch-field">
+          <label>One session at a time</label>
+          <p-inputSwitch [(ngModel)]="form.singleSession"></p-inputSwitch>
+          <small>
+            A second login ends the first one — if the password gets shared, they cannot use it
+            together. More dependable than IP checks.
+          </small>
+        </div>
+
+        <div class="field wide">
+          <label>Notes</label>
+          <input pInputText [(ngModel)]="form.notes" placeholder="Internal note — who asked, what was promised" />
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <p-button label="Save" icon="pi pi-save" (onClick)="save()" [loading]="saving"></p-button>
+        <p-button *ngIf="license?.lockedIp" label="Clear bound IP" icon="pi pi-refresh" severity="secondary"
+                  [outlined]="true" (onClick)="resetIp()"></p-button>
+      </div>
+    </div>
+
+    <!-- ── Access log ─────────────────────────────────────────────────────── -->
+    <div class="card">
+      <div class="tabs">
+        <button [class.active]="tab === 'violations'" (click)="tab = 'violations'">
+          Alerts &amp; blocks <span class="count">{{ violations.length }}</span>
+        </button>
+        <button [class.active]="tab === 'logins'" (click)="tab = 'logins'">
+          Login history <span class="count">{{ logins.length }}</span>
+        </button>
+      </div>
+
+      <p-table *ngIf="tab === 'violations'" [value]="violations" [paginator]="true" [rows]="15"
+               styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 11rem">When</th>
+            <th>What happened</th>
+            <th style="width: 9rem">Employee</th>
+            <th style="width: 11rem">IP address</th>
+            <th>Detail</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>{{ row.occurredAt | date: 'dd MMM, h:mm a' }}</td>
+            <td><p-tag [value]="reasonLabel(row.reason)" [severity]="reasonSeverity(row.reason)"></p-tag></td>
+            <td>{{ row.employeeId || '—' }}</td>
+            <td class="mono">{{ row.ipAddress || '—' }}</td>
+            <td class="muted">{{ row.detail || '—' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="5" class="empty-row">Nothing flagged yet.</td></tr>
+        </ng-template>
+      </p-table>
+
+      <p-table *ngIf="tab === 'logins'" [value]="logins" [paginator]="true" [rows]="15" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 11rem">When</th>
+            <th style="width: 9rem">Employee</th>
+            <th style="width: 8rem">Result</th>
+            <th style="width: 11rem">IP address</th>
+            <th>Device</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td>{{ row.attemptedAt | date: 'dd MMM, h:mm a' }}</td>
+            <td>{{ row.employeeID || '—' }}</td>
+            <td>
+              <p-tag [value]="row.success ? 'Success' : 'Failed'"
+                     [severity]="row.success ? 'success' : 'danger'"></p-tag>
+            </td>
+            <td class="mono">{{ row.ipAddress || '—' }}</td>
+            <td class="muted ua">{{ row.userAgent || '—' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="5" class="empty-row">No logins recorded.</td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+  </ng-container>
+</div>

@@ -31,6 +31,28 @@ export const AuthInterceptor: HttpInterceptorFn = (
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
+      // Demo trial ended / blocked. 403 rather than 401 on purpose: this is not a
+      // failed session that a refresh could rescue, so send them to a screen that
+      // explains why instead of bouncing them round the login page. Requests to
+      // the trial console itself are excluded — it must surface its own errors.
+      const trialCode: string | undefined = error.error?.code;
+      if (
+        error.status === 403 &&
+        typeof trialCode === 'string' &&
+        trialCode.startsWith('TRIAL_') &&
+        !req.url.includes('/trial')
+      ) {
+        sessionStorage.setItem(
+          'trialBlockedMessage',
+          error.error?.message || 'Your demo period has ended.'
+        );
+        auth.clearSession();
+        if (!router.url.startsWith('/trial-blocked')) {
+          router.navigate(['/trial-blocked']);
+        }
+        return throwError(() => error);
+      }
+
       if (error.status !== 401 || isAuthEndpoint) {
         return throwError(() => error);
       }

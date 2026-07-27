@@ -1,6 +1,9 @@
 <div *ngIf="!isNoLayoutRoute(); else loginTemplate" class="app-container" [class.sidebar-collapsed]="isSidebarCollapsed">
   <app-sidebar (collapsedChange)="isSidebarCollapsed = $event"></app-sidebar>
   <div class="content-area">
+    <!-- Demo countdown. Renders nothing on a non-demo instance. -->
+    <app-trial-banner></app-trial-banner>
+
     <!-- Global notification bell — top right corner -->
     <div class="top-bar">
       <div class="top-bar-left">
