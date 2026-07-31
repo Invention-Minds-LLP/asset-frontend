@@ -115,6 +115,18 @@ export class Assets {
     return this.http.delete<any>(`${environment.apiUrl}/categories/${id}`);
   }
 
+  // ── Department dashboards ─────────────────────────────────────────────────
+  // getDepartmentDashboard(departmentId?: number): Observable<any> {
+  //   const q = departmentId ? `?departmentId=${departmentId}` : '';
+  //   return this.http.get<any>(`${environment.apiUrl}/department-dashboard${q}`);
+  // }
+  // getDashboardProfiles(): Observable<any> {
+  //   return this.http.get<any>(`${environment.apiUrl}/department-dashboard/profiles`);
+  // }
+  // setDashboardProfile(departmentId: number, profile: string | null): Observable<any> {
+  //   return this.http.put<any>(`${environment.apiUrl}/department-dashboard/profile/${departmentId}`, { profile });
+  // }
+
   // ── Department-specific asset-table columns ───────────────────────────────
   getMyColumns(): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/department-columns/mine`);
@@ -497,6 +509,16 @@ export class Assets {
 
   hodApproveAsset(id: number, payload: { decision: string; remarks?: string }): Observable<any> {
     return this.http.post(`${this.assetsUrl}/${id}/hod-approval`, payload);
+  }
+
+  // QR sticker confirmation — one-way; the server rejects a second mark.
+  markQrStickered(id: number, payload: { stickeredAt?: string; stickeredById?: number; remarks?: string }): Observable<any> {
+    return this.http.post(`${this.assetsUrl}/${id}/qr-sticker`, payload);
+  }
+
+  // Management-only unlock so a replaced sticker can be re-confirmed.
+  unlockQrSticker(id: number, reason: string): Observable<any> {
+    return this.http.request('delete', `${this.assetsUrl}/${id}/qr-sticker`, { body: { reason } });
   }
 
   getDepartmentAssets(departmentId: number, params?: { status?: string; category?: string }): Observable<any> {

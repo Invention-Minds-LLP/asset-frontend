@@ -18,6 +18,10 @@ import { OverflowTooltipDirective } from '../shared/directives/overflow-tooltip.
 
 type FilterField = 'assetName' | 'assetId' | 'requestedBy' | 'transferType' | 'status';
 
+// Mirrors MGMT_APPROVAL_ROLES in the backend transfer controller — the server
+// is the real gate, this only decides what to render/fetch.
+const MANAGEMENT_ROLES = ['ADMIN', 'CEO_COO', 'FINANCE', 'OPERATIONS'];
+
 @Component({
   selector: 'app-asset-transfer',
   imports: [
@@ -43,7 +47,7 @@ type FilterField = 'assetName' | 'assetId' | 'requestedBy' | 'transferType' | 's
 export class AssetTransfer {
   transfers: any[] = [];
   isLoading = true;
-  role: any;
+  role = ((typeof window !== 'undefined' && localStorage.getItem('role')) || '').toUpperCase();
 
   currentPage = 1;
   rowsPerPage = 10;
@@ -97,11 +101,20 @@ export class AssetTransfer {
     }
   }
 
+  get canMgmtApprove(): boolean {
+    return MANAGEMENT_ROLES.includes(this.role);
+  }
+
   ngOnInit() {
-    if(this.role === "HOD"){
-    this.refreshList();}
-    else {
-    this.loadMgmtPending();}
+    if (this.role === 'HOD') {
+      this.refreshList();
+    } else {
+      this.isLoading = false;
+    }
+
+    if (this.canMgmtApprove) {
+      this.loadMgmtPending();
+    }
   }
 
   refreshList() {

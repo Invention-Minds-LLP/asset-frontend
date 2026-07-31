@@ -98,6 +98,7 @@
                 </ng-container>
               </div>
             </th>
+            <th>QR Sticker</th>
             <th>Action</th>
           </tr>
         </ng-template>
@@ -119,6 +120,18 @@
                 <ng-template #noPhoto>-</ng-template>
               </ng-container>
               <ng-template #textCell>{{ getCell(asset, col) }}</ng-template>
+            </td>
+            <!-- QR sticker: locks once confirmed; management gets an unlock. -->
+            <td class="qr-sticker-cell">
+              <span [pTooltip]="qrStickerTooltip(asset)" tooltipPosition="top">
+                <p-toggleswitch [(ngModel)]="asset.qrStickered"
+                  [disabled]="asset.qrStickered"
+                  (onChange)="onQrStickerToggle(asset, $event.checked)" />
+              </span>
+              <button *ngIf="asset.qrStickered && canUnlockQrSticker" pButton type="button"
+                icon="pi pi-lock-open" [text]="true" size="small" severity="secondary"
+                class="qr-unlock-btn" (click)="openQrUnlock(asset)"
+                pTooltip="Unlock so the sticker can be re-confirmed" tooltipPosition="top"></button>
             </td>
             <td class="action-cell">
               <button *ngIf="canViewAsset" pButton type="button" label="View" class="view-btn"
@@ -152,6 +165,7 @@
           <p-skeleton width="180px" height="20px"></p-skeleton>
           <p-skeleton width="180px" height="20px"></p-skeleton>
           <p-skeleton shape="circle" size="40px"></p-skeleton>
+          <p-skeleton width="44px" height="22px" borderRadius="12px"></p-skeleton>
           <p-skeleton width="60px" height="30px" borderRadius="6px"></p-skeleton>
         </div>
 
@@ -166,6 +180,7 @@
           <p-skeleton width="180px" height="16px"></p-skeleton>
           <p-skeleton width="180px" height="16px"></p-skeleton>
           <p-skeleton shape="circle" size="40px"></p-skeleton>
+          <p-skeleton width="44px" height="22px" borderRadius="12px"></p-skeleton>
           <p-skeleton width="60px" height="30px" borderRadius="6px"></p-skeleton>
         </div>
       </div>
@@ -199,6 +214,85 @@
   <ng-template pTemplate="footer">
     <p-button label="Cancel" severity="secondary" (onClick)="showHodApprovalDialog=false" />
     <p-button label="Submit" (onClick)="submitHodApproval()" />
+  </ng-template>
+</p-dialog>
+
+<!-- ── QR sticker confirmation ────────────────────────────────────────────── -->
+<p-dialog header="Confirm QR Sticker" [(visible)]="showQrStickerDialog" [modal]="true"
+  [closable]="!qrStickerSaving" [draggable]="false" [resizable]="false"
+  (onHide)="cancelQrSticker()" [style]="{width:'460px'}" styleClass="qr-dialog">
+  @if (qrStickerAsset) {
+  <div class="qr-dialog-body">
+    <div class="qr-asset-card">
+      <span class="qr-asset-name">{{ qrStickerAsset.assetName }}</span>
+      <span class="qr-asset-id">{{ qrStickerAsset.assetId || 'No Asset ID yet' }}</span>
+    </div>
+
+    <p class="qr-note">
+      <i class="pi pi-info-circle"></i>
+      <span>Once saved this can't be changed from the table — only management can unlock it.</span>
+    </p>
+
+    <div class="qr-field">
+      <label for="qrStickeredAt">Stickered On</label>
+      <p-datepicker inputId="qrStickeredAt" [(ngModel)]="qrStickeredAt" dateFormat="dd-mm-yy"
+        [maxDate]="today" appendTo="body" [showIcon]="true" />
+    </div>
+
+    <div class="qr-field">
+      <label for="qrStickeredBy">Stickered By</label>
+      <p-select inputId="qrStickeredBy" [options]="employees" optionLabel="name" optionValue="id"
+        [(ngModel)]="qrStickeredById" [filter]="true" filterBy="name,employeeID" appendTo="body"
+        placeholder="Select employee" />
+    </div>
+
+    <div class="qr-field">
+      <label for="qrStickerRemarks">Remarks <span class="qr-optional">optional</span></label>
+      <textarea id="qrStickerRemarks" pInputTextarea [(ngModel)]="qrStickerRemarks" rows="3"
+        placeholder="e.g. sticker placed on the rear panel"></textarea>
+    </div>
+  </div>
+  }
+  <ng-template pTemplate="footer">
+    <div class="qr-footer">
+      <button pButton type="button" label="Cancel" class="qr-btn qr-btn-ghost"
+        [disabled]="qrStickerSaving" (click)="cancelQrSticker()"></button>
+      <button pButton type="button" label="Save" icon="pi pi-check" class="qr-btn qr-btn-save"
+        [loading]="qrStickerSaving" (click)="saveQrSticker()"></button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- ── QR sticker unlock (management only) ────────────────────────────────── -->
+<p-dialog header="Unlock QR Sticker" [(visible)]="showQrUnlockDialog" [modal]="true"
+  [draggable]="false" [resizable]="false" [style]="{width:'460px'}" styleClass="qr-dialog">
+  @if (qrStickerAsset) {
+  <div class="qr-dialog-body">
+    <div class="qr-asset-card">
+      <span class="qr-asset-name">{{ qrStickerAsset.assetName }}</span>
+      <span class="qr-asset-id">{{ qrStickerAsset.assetId }}</span>
+    </div>
+
+    <p class="qr-note qr-note-warn">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>{{ qrStickerTooltip(qrStickerAsset) }}. Unlocking clears it so the sticker can be
+        confirmed again — the current details stay in the audit trail.</span>
+    </p>
+
+    <div class="qr-field">
+      <label for="qrUnlockReason">Reason <span class="qr-required">required</span></label>
+      <textarea id="qrUnlockReason" pInputTextarea [(ngModel)]="qrUnlockReason" rows="3"
+        placeholder="e.g. sticker damaged and re-printed"></textarea>
+    </div>
+  </div>
+  }
+  <ng-template pTemplate="footer">
+    <div class="qr-footer">
+      <button pButton type="button" label="Cancel" class="qr-btn qr-btn-ghost"
+        [disabled]="qrStickerSaving" (click)="showQrUnlockDialog=false"></button>
+      <button pButton type="button" label="Unlock" icon="pi pi-lock-open" class="qr-btn qr-btn-danger"
+        [loading]="qrStickerSaving" (click)="confirmQrUnlock()"></button>
+    </div>
   </ng-template>
 </p-dialog>
 

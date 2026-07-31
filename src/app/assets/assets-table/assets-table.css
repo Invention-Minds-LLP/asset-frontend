@@ -341,3 +341,226 @@ line-height: normal;
   justify-content: flex-end;
   gap: 0.4rem;
 }
+
+/* QR sticker toggle + management unlock button */
+.qr-sticker-cell {
+  white-space: nowrap;
+}
+.qr-sticker-cell .qr-unlock-btn {
+  margin-left: 0.25rem;
+  vertical-align: middle;
+}
+
+/* ── QR sticker dialogs ─────────────────────────────────────────────────────
+   Matches the transfer-dialog look (label 15px/500 #42526b, 8px radius inputs,
+   green focus ring). PrimeNG internals need ::ng-deep — and every control is
+   forced to 100% because this project has no utility classes (no Tailwind), so
+   `styleClass="w-full"` is a no-op here.
+   ────────────────────────────────────────────────────────────────────────── */
+.qr-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 2px;
+}
+
+.qr-asset-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  border-radius: 8px;
+}
+
+.qr-asset-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2d3d;
+}
+
+.qr-asset-id {
+  font-size: 13px;
+  color: #7b8794;
+  font-family: monospace;
+}
+
+.qr-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f0f9ff;
+  border: 1px solid #e0f2fe;
+  color: #41607a;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.qr-note i {
+  font-size: 14px;
+  margin-top: 1px;
+  color: #0ea5e9;
+}
+
+.qr-note-warn {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #7c4a12;
+}
+
+.qr-note-warn i {
+  color: #f59e0b;
+}
+
+.qr-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qr-field > label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #42526b;
+}
+
+.qr-optional,
+.qr-required {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: 1px;
+}
+
+.qr-optional {
+  color: #8494a7;
+  background: #f1f5f9;
+}
+
+.qr-required {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.qr-field textarea {
+  width: 100%;
+  min-height: 84px;
+  resize: none;
+  border: 1px solid #d9dee7;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: "Biryani", sans-serif;
+  color: #1f2d3d;
+  outline: none;
+  box-shadow: none;
+}
+
+.qr-field textarea:focus {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.12);
+}
+
+/* Stretch the PrimeNG controls — they default to their content width. */
+.qr-field ::ng-deep p-select,
+.qr-field ::ng-deep .p-select,
+.qr-field ::ng-deep p-datepicker,
+.qr-field ::ng-deep .p-datepicker,
+.qr-field ::ng-deep .p-inputtext {
+  width: 100%;
+}
+
+.qr-field ::ng-deep .p-select,
+.qr-field ::ng-deep .p-datepicker .p-inputtext {
+  height: 44px;
+  border-radius: 8px;
+  border-color: #d9dee7;
+  align-items: center;
+}
+
+/* The datepicker is a flex row (input + icon button) — let the input take the
+   slack instead of a hard 100%, so the button can't be pushed out of the field. */
+.qr-field ::ng-deep .p-datepicker .p-inputtext {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.qr-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+
+.qr-btn {
+  min-width: 110px !important;
+  height: 42px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  justify-content: center;
+}
+
+.qr-btn-ghost {
+  background: #fff !important;
+  border: 1px solid #d9dee7 !important;
+  color: #42526b !important;
+}
+
+.qr-btn-ghost:enabled:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+.qr-btn-save {
+  background: #10b981 !important;
+  border: 1px solid #10b981 !important;
+  color: #fff !important;
+}
+
+.qr-btn-save:enabled:hover {
+  background: #059669 !important;
+  border-color: #059669 !important;
+}
+
+.qr-btn-danger {
+  background: #ef4444 !important;
+  border: 1px solid #ef4444 !important;
+  color: #fff !important;
+}
+
+.qr-btn-danger:enabled:hover {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+
+/* Dialog chrome — PrimeNG builds these wrappers itself, so they need ::ng-deep. */
+:host ::ng-deep .qr-dialog .p-dialog-header {
+  padding: 20px 22px 6px;
+  border-bottom: none;
+}
+
+:host ::ng-deep .qr-dialog .p-dialog-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2d3d;
+}
+
+:host ::ng-deep .qr-dialog .p-dialog-content {
+  padding: 12px 22px 20px;
+}
+
+:host ::ng-deep .qr-dialog .p-dialog-footer {
+  padding: 0 22px 20px;
+  border-top: none;
+}

@@ -21,6 +21,8 @@ import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { DatePickerModule } from 'primeng/datepicker';
 import { MessageService } from 'primeng/api';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 import { Subject } from 'rxjs';
@@ -34,7 +36,8 @@ type FilterField = string;
   selector: 'app-assets-table',
   imports: [TableModule, ButtonModule, InputTextModule, DropdownModule,
     FormsModule, CommonModule, IconFieldModule, InputIconModule, Skeleton, TooltipModule,
-    DialogModule, SelectModule, TextareaModule, TagModule, ToastModule, OverflowTooltipDirective],
+    DialogModule, SelectModule, TextareaModule, TagModule, ToastModule, ToggleSwitchModule,
+    DatePickerModule, OverflowTooltipDirective],
   templateUrl: './assets-table.html',
   styleUrl: './assets-table.css',
   providers: [MessageService]
@@ -74,6 +77,22 @@ export class AssetsTable implements OnInit {
     { label: 'Reject', value: 'REJECTED' }
   ];
 
+  // ── QR sticker confirmation ────────────────────────────────────────────────
+  // Toggling on opens the details dialog; once saved the switch locks, and only
+  // management can unlock it (backend enforces both — the UI just mirrors it).
+  showQrStickerDialog = false;
+  showQrUnlockDialog = false;
+  qrStickerAsset: any = null;
+  qrStickeredAt: Date = new Date();
+  qrStickeredById: number | null = null;
+  qrStickerRemarks = '';
+  qrStickerSaving = false;
+  qrUnlockReason = '';
+  today = new Date();   // stickering can't be dated in the future
+  employees: { id: number; name: string; employeeID: string }[] = [];
+  private readonly myEmployeeDbId =
+    (typeof window !== 'undefined' && Number(localStorage.getItem('employeeDbId'))) || null;
+
   // ── Department-configurable columns ────────────────────────────────────────
   displayColumns: ColumnDef[] = [];        // resolved columns rendered in the table
   private role = (typeof window !== 'undefined' && localStorage.getItem('role') || '').toUpperCase();
@@ -82,6 +101,11 @@ export class AssetsTable implements OnInit {
     return this.role === 'HOD' || ['ADMIN', 'CEO_COO', 'OPERATIONS', 'FINANCE', 'CFO'].includes(this.role);
   }
   get isColAdmin(): boolean { return this.role !== 'HOD' && this.canConfigureColumns; }
+
+  // Mirrors QR_STICKER_UNLOCK_ROLES in assets.controller.ts.
+  get canUnlockQrSticker(): boolean {
+    return ['ADMIN', 'CEO_COO', 'OPERATIONS'].includes(this.role);
+  }
 
   // Column-picker dialog state
   showColumnDialog = false;
@@ -580,6 +604,132 @@ export class AssetsTable implements OnInit {
       }
     });
   }
+  // ── QR sticker confirmation ────────────────────────────────────────────────
+
+  // Anyone who can see the row may confirm its sticker — the people who
+  // physically apply labels are technicians and store staff, not just editors.
+  // Every mark is audit-logged with the employee, and management can unlock.
+  // (Deliberately NOT gated on canEditAsset: that flag looks up a module named
+  // 'assets' which doesn't exist — the real module is 'asset-master' — so it is
+  // false for every non-admin.)
+  // Tooltip on a locked switch — who confirmed it and when.
+  qrStickerTooltip(asset: any): string {
+    if (!asset?.qrStickered) return 'Mark QR sticker as applied';
+    const by = asset.qrStickeredBy?.name;
+    const on = asset.qrStickeredAt ? new Date(asset.qrStickeredAt).toLocaleDateString() : null;
+    if (by && on) return `Stickered by ${by} on ${on}`;
+    if (on) return `Stickered on ${on}`;
+    return 'QR sticker confirmed';
+  }
+
+  // ngModel has already flipped the row to true by the time this fires, so a
+  // cancelled/failed dialog just sets it back and the switch follows.
+  onQrStickerToggle(asset: any, checked: boolean) {
+    if (!checked) { asset.qrStickered = false; return; }
+
+    this.qrStickerAsset = asset;
+    this.qrStickeredAt = new Date();
+    this.qrStickeredById = this.myEmployeeDbId;
+    this.qrStickerRemarks = '';
+    this.showQrStickerDialog = true;
+
+    if (!this.employees.length) {
+      this.assetService.getEmployees().subscribe({
+        next: (res: any) => {
+          setTimeout(() => { this.employees = res || []; this.cdr.detectChanges(); });
+        },
+        error: () => { /* dropdown stays empty — the caller is credited by default */ },
+      });
+    }
+  }
+
+  cancelQrSticker() {
+    if (this.qrStickerAsset) this.qrStickerAsset.qrStickered = false;
+    this.showQrStickerDialog = false;
+    this.qrStickerAsset = null;
+    this.cdr.detectChanges();
+  }
+
+  saveQrSticker() {
+    const asset = this.qrStickerAsset;
+    if (!asset) return;
+
+    this.qrStickerSaving = true;
+    this.assetService.markQrStickered(asset.id, {
+      stickeredAt: (this.qrStickeredAt || new Date()).toISOString(),
+      stickeredById: this.qrStickeredById ?? undefined,
+      remarks: this.qrStickerRemarks || undefined,
+    }).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          // Patch the row from the server response so the tooltip is accurate
+          // without refetching the whole page.
+          asset.qrStickered = true;
+          asset.qrStickeredAt = res?.asset?.qrStickeredAt ?? this.qrStickeredAt;
+          asset.qrStickeredBy = res?.asset?.qrStickeredBy ?? null;
+          asset.qrStickeredRemarks = res?.asset?.qrStickeredRemarks ?? null;
+          this.qrStickerSaving = false;
+          this.showQrStickerDialog = false;
+          this.qrStickerAsset = null;
+          this.messageService.add({ severity: 'success', summary: 'Saved', detail: 'QR sticker confirmed' });
+          this.cdr.detectChanges();
+        });
+      },
+      error: (e: any) => {
+        setTimeout(() => {
+          asset.qrStickered = false;   // roll the switch back
+          this.qrStickerSaving = false;
+          this.cdr.detectChanges();
+        });
+        this.messageService.add({
+          severity: 'error', summary: 'Error',
+          detail: e?.error?.message || 'Failed to confirm QR sticker',
+        });
+      },
+    });
+  }
+
+  openQrUnlock(asset: any) {
+    this.qrStickerAsset = asset;
+    this.qrUnlockReason = '';
+    this.showQrUnlockDialog = true;
+  }
+
+  confirmQrUnlock() {
+    const asset = this.qrStickerAsset;
+    if (!asset) return;
+
+    const reason = (this.qrUnlockReason || '').trim();
+    if (!reason) {
+      this.messageService.add({ severity: 'warn', summary: 'Reason required', detail: 'Say why the confirmation is being unlocked' });
+      return;
+    }
+
+    this.qrStickerSaving = true;
+    this.assetService.unlockQrSticker(asset.id, reason).subscribe({
+      next: () => {
+        setTimeout(() => {
+          asset.qrStickered = false;
+          asset.qrStickeredAt = null;
+          asset.qrStickeredBy = null;
+          asset.qrStickeredRemarks = null;
+          this.qrStickerSaving = false;
+          this.showQrUnlockDialog = false;
+          this.qrStickerAsset = null;
+          this.messageService.add({ severity: 'success', summary: 'Unlocked', detail: 'QR sticker confirmation cleared' });
+          this.cdr.detectChanges();
+        });
+      },
+      error: (e: any) => {
+        setTimeout(() => { this.qrStickerSaving = false; this.cdr.detectChanges(); });
+        this.messageService.add({
+          severity: 'error', summary: 'Error',
+          detail: e?.error?.message || 'Failed to unlock QR sticker confirmation',
+        });
+      },
+    });
+  }
+
   exportCSV() {
     console.log("clicked");
     this.assetService.exportCsv().subscribe({
