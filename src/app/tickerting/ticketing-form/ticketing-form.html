@@ -56,6 +56,8 @@
                         <div class="error-msg" *ngIf="showError(issueTypeCtrl)">Issue Type is required</div>
                     </p-floatlabel>
 
+                    <!-- Priority hidden temporarily — see showPriority in the component. -->
+                    @if (showPriority) {
                     <p-floatlabel class="half-width" variant="on">
                         <p-select [(ngModel)]="ticket.priority" inputId="priority" name="priority" [options]="priority"
                             required #priorityCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(priorityCtrl)}"
@@ -63,6 +65,7 @@
                         <label for="priority">Priority</label>
                         <div class="error-msg" *ngIf="showError(priorityCtrl)">Priority is required</div>
                     </p-floatlabel>
+                    }
 
                 </div>
 

@@ -36,9 +36,19 @@ export class Assets {
     return this.http.get<any>(`${this.assetsUrl}/paginated?${q.toString()}`);
   }
 
-  /** GET all assets for dropdowns (no role filter — anyone can raise ticket for any asset) */
+  /** GET all assets for dropdowns (no role filter — finance / disposal / migration screens) */
   getAllAssetsForDropdown(): Observable<any[]> {
     return this.http.get<any[]>(`${this.assetsUrl}/all-dropdown`);
+  }
+
+  /**
+   * GET assets the caller may raise a ticket for. Role-scoped server-side,
+   * same rule as the mobile raise-ticket picker: management sees everything,
+   * a supervisor sees what they supervise or hold, everyone else sees only
+   * assets allotted to them.
+   */
+  getTicketAssetOptions(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.assetsUrl}/ticket-options`);
   }
 
   /** GET single asset by ID */
@@ -116,16 +126,16 @@ export class Assets {
   }
 
   // ── Department dashboards ─────────────────────────────────────────────────
-  // getDepartmentDashboard(departmentId?: number): Observable<any> {
-  //   const q = departmentId ? `?departmentId=${departmentId}` : '';
-  //   return this.http.get<any>(`${environment.apiUrl}/department-dashboard${q}`);
-  // }
-  // getDashboardProfiles(): Observable<any> {
-  //   return this.http.get<any>(`${environment.apiUrl}/department-dashboard/profiles`);
-  // }
-  // setDashboardProfile(departmentId: number, profile: string | null): Observable<any> {
-  //   return this.http.put<any>(`${environment.apiUrl}/department-dashboard/profile/${departmentId}`, { profile });
-  // }
+  getDepartmentDashboard(departmentId?: number): Observable<any> {
+    const q = departmentId ? `?departmentId=${departmentId}` : '';
+    return this.http.get<any>(`${environment.apiUrl}/department-dashboard${q}`);
+  }
+  getDashboardProfiles(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/department-dashboard/profiles`);
+  }
+  setDashboardProfile(departmentId: number, profile: string | null): Observable<any> {
+    return this.http.put<any>(`${environment.apiUrl}/department-dashboard/profile/${departmentId}`, { profile });
+  }
 
   // ── Department-specific asset-table columns ───────────────────────────────
   getMyColumns(): Observable<any> {

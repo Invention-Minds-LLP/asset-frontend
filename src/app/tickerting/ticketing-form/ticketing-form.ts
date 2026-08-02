@@ -43,7 +43,7 @@ export class TicketingForm {
     department: '',
     assetId: '',
     issueType: null as SelectOption | null,
-    priority: null as SelectOption | null,
+    priority: 'medium',
     workCategory: null as string | null,
     detailedDesc: '',
     location: '',
@@ -79,6 +79,11 @@ export class TicketingForm {
   ]
 
 
+
+  // Priority is hidden in the form for now — every ticket is raised as MEDIUM,
+  // which is what drives the SLA lookup server-side. Flip to true to bring the
+  // field back; nothing else needs changing.
+  showPriority = false;
 
   priority: SelectOption[] = [
     { name: 'Low', value: 'low' },
@@ -159,25 +164,23 @@ export class TicketingForm {
     if (ticketId) {
       this.ticketService.getTicketById(ticketId).subscribe({
         next: (data) => {
-          setTimeout(() => {
-            this.ticket = { ...data };
-            this.oldTicket = { ...data };
-            this.ticket.assetId = data.asset.id;
-            this.assets = [
-              {
-                ...data.asset,
-                label: `${data.asset.assetId} - ${data.asset.assetName}`,
-              }
-            ];
-            this.ticket.issueType = data.issueType;
-            this.ticket.priority = data.priority;
-            this.ticket.department = data.department.name;
-            this.ticket.departmentId = data.department.id;
-            this.ticket.raisedBy = `${data.raisedBy.name} ${data.raisedBy.employeeID}`;
-            this.ticket.location = data.location;
-            this.ticket.photoOfIssue = data.photoOfIssue || '';
-            this.cdr.detectChanges();
-          });
+          this.ticket = { ...data };
+          this.oldTicket = { ...data };
+          this.ticket.assetId = data.asset.id;
+          this.assets = [
+            {
+              ...data.asset,
+              label: `${data.asset.assetId} - ${data.asset.assetName}`,
+            }
+          ];
+          this.ticket.issueType = data.issueType;
+          this.ticket.priority = data.priority;
+          this.ticket.department = data.department.name;
+          this.ticket.departmentId = data.department.id;
+          this.ticket.raisedBy = `${data.raisedBy.name} ${data.raisedBy.employeeID}`;
+          this.ticket.location = data.location;
+          this.ticket.photoOfIssue = data.photoOfIssue || '';
+          this.cdr.markForCheck();
         },
         error: (err) => {
           console.error('Failed to fetch ticket data', err);
@@ -194,24 +197,40 @@ export class TicketingForm {
         console.log(this.employee)
         this.ticket.raisedBy = this.employee
 
+        // Show the last known department immediately so the field isn't blank
+        // while the lookup is in flight; the response below refreshes it.
+        const cachedDept = localStorage.getItem('departmentName');
+        if (cachedDept) {
+          this.departmentName = cachedDept;
+          this.ticket.department = cachedDept;
+          this.ticket.departmentId = Number(localStorage.getItem('departmentId')) || null;
+        }
+
         this.assetService.getDepartmentNameByEmployeeID(user.employeeID).subscribe({
           next: (data) => {
             this.departmentName = data.departmentName.name;
             this.ticket.department = this.departmentName
             this.ticket.departmentId = data.departmentName.id;
-            console.log(this.ticket.department)
+            localStorage.setItem('departmentName', this.departmentName);
+            this.cdr.markForCheck();
           },
           error: (err) => {
             console.error('Failed to fetch department name', err);
-            this.departmentName = 'Not found';
+            if (!this.departmentName) this.departmentName = 'Not found';
+            this.cdr.markForCheck();
           },
         });
 
-        this.assetService.getAllAssetsForDropdown().subscribe((data: any[]) => {
+        // Arriving from a QR scan (/ticket/new?assetCode=AST-001) — preselect it.
+        const scannedAssetCode = this.route.snapshot.queryParamMap.get('assetCode');
+
+        this.assetService.getTicketAssetOptions().subscribe((data: any[]) => {
           this.assets = data.map((asset: any) => ({
             ...asset,
             label: `${asset.assetId} - ${asset.assetName}`
           }));
+          if (scannedAssetCode) this.preselectAsset(scannedAssetCode);
+          this.cdr.markForCheck();
         });
       }
     }
@@ -222,6 +241,32 @@ export class TicketingForm {
 
 
 
+  // Select the scanned asset in the dropdown. If it isn't in the caller's
+  // role-scoped list, pull it in on its own — they physically scanned the QR on
+  // it, so they must be able to raise a ticket for it.
+  private preselectAsset(assetCode: string) {
+    const known = this.assets.find(a => a.assetId === assetCode);
+    if (known) {
+      this.ticket.assetId = known.id;
+      this.issueChange();
+      return;
+    }
+
+    this.assetService.getAssetByAssetId(assetCode).subscribe({
+      next: (asset: any) => {
+        if (!asset?.id) return;
+        this.assets = [
+          { ...asset, label: `${asset.assetId} - ${asset.assetName}` },
+          ...this.assets,
+        ];
+        this.ticket.assetId = asset.id;
+        this.issueChange();
+        this.cdr.markForCheck();
+      },
+      error: (err: any) => console.error('Failed to load scanned asset', err),
+    });
+  }
+
   loadEmployees() {
     this.assetService.getEmployees().subscribe({
       next: (res: any[]) => {
@@ -230,6 +275,7 @@ export class TicketingForm {
           label: `${e.employeeID} - ${e.name}`,
           value: e.id, // ✅ important: DB id
         }));
+        this.cdr.markForCheck();
       },
       error: () => this.toast('error', 'Failed to load employees')
     });
@@ -397,7 +443,7 @@ export class TicketingForm {
       department: '',
       assetId: '',
       issueType: null,
-      priority: null,
+      priority: 'medium',
       detailedDesc: '',
       location: '',
       status: 'new',

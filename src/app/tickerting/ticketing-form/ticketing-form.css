@@ -28,7 +28,9 @@
 
 .underline {
     border-top: 1px solid #C3C3C3;
-    width: 880px;
+    /* Was a hard 880px, which forced the page wider than a phone viewport. */
+    width: 100%;
+    max-width: 880px;
     height: 0px;
     flex-shrink: 0;
     margin-top: 20px;
@@ -206,3 +208,61 @@
     margin-bottom: .25rem;
 }
 .kb-detail-row strong { color: #374151; min-width: 100px; }
+
+/* ─── Responsive ─────────────────────────────────────────────────────────
+   This form is reached from the QR scan on a phone, so it has to hold up at
+   narrow widths: stack the paired fields, drop the percentage gutters, and
+   keep the decorative bell out of the heading's way. */
+@media (max-width: 900px) {
+    .form-content {
+        margin-top: 24px;
+        padding: 0 16px;
+    }
+
+    /* Department/Asset ID and Issue Type/Priority sat side by side at any
+       width, squeezing each to a few characters. Stack them instead. */
+    .column-one {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .form-part { gap: 16px; }
+
+    /* Decorative only (no click handler) and absolutely positioned over the
+       title on small screens. */
+    .notification { display: none; }
+
+    .btns {
+        padding: 1% 0 5%;
+        gap: 14px;
+    }
+
+    .save-btn,
+    .clear-btn { width: 50%; }
+}
+
+@media (max-width: 480px) {
+    .tickerting-container { padding-top: 8px; }
+
+    .header-part h1 { font-size: 20px; }
+
+    .form-content { padding: 0 12px; }
+
+    /* Full-width, thumb-sized controls. */
+    .p-inputtext,
+    .p-select { height: 48px; }
+
+    .btns {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .save-btn,
+    .clear-btn {
+        width: 100%;
+        min-height: 46px;
+    }
+
+    .kb-detail-row { flex-direction: column; gap: .15rem; }
+    .kb-detail-row strong { min-width: 0; }
+}

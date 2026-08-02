@@ -81,7 +81,7 @@
                             <th>Ticket ID</th>
                             <th>Raised By</th>
                             <th>Department</th>
-                            <th>Priority</th>
+                            @if (showPriority) { <th>Priority</th> }
                             <th>Action</th>
                         </tr>
                     </ng-template>
@@ -99,7 +99,7 @@
                             <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.ticketId }}</td>
                             <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.raisedBy ? ticketing.raisedBy.name : '-' }}</td>
                             <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.department?.name }}</td>
-                            <td>{{ ticketing.priority }}</td>
+                            @if (showPriority) { <td>{{ ticketing.priority }}</td> }
 
                             <td class="actions-cell">
                                 <button pButton type="button" label="view" class="view-btn"
@@ -145,7 +145,7 @@
                             <th>Asset</th>
                             <th>Department</th>
                             <th>Status</th>
-                            <th>Priority</th>
+                            @if (showPriority) { <th>Priority</th> }
                             <th>Updated</th>
                             <th>Action</th>
                         </tr>
@@ -162,7 +162,7 @@
                             <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 300px;">{{ t.asset?.assetId }} - {{ t.asset?.assetName }}</td>
                             <td class="ellipsis-cell" appOverflowTooltip>{{ t.department?.name }}</td>
                             <td>{{ t.status }}</td>
-                            <td>{{ t.priority }}</td>
+                            @if (showPriority) { <td>{{ t.priority }}</td> }
                             <td>{{ t.updatedAt | date:'dd-MMM-yyyy' }}</td>
                             <td class="actions-cell">
                                 <button pButton type="button" label="view" class="view-btn"
@@ -207,7 +207,7 @@
                             <th>Asset</th>
                             <th>Department</th>
                             <th>Status</th>
-                            <th>Priority</th>
+                            @if (showPriority) { <th>Priority</th> }
                             <th>Updated</th>
                             <th>Action</th>
                         </tr>
@@ -224,7 +224,7 @@
                             <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 300px;">{{ t.asset?.assetId }} - {{ t.asset?.assetName }}</td>
                             <td class="ellipsis-cell" appOverflowTooltip>{{ t.department?.name }}</td>
                             <td>{{ t.status }}</td>
-                            <td>{{ t.priority }}</td>
+                            @if (showPriority) { <td>{{ t.priority }}</td> }
                             <td>{{ t.updatedAt | date:'dd-MMM-yyyy' }}</td>
                             <td class="actions-cell">
                                 <button pButton type="button" label="view" class="view-btn"

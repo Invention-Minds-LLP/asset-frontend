@@ -64,6 +64,11 @@ export class TicketingTable {
     | "transferId" | "fromDept" | "toDept" | "requestedBy" | "transferComment"
     = "ticketId";
 
+  // Priority is hidden across the ticket screens for now (matches the flag of
+  // the same name in TicketingForm). Flip to true to bring the column and its
+  // search filter back.
+  showPriority = false;
+
   userRole = '';
   myEmployeeDbId: number | null = null;
 
@@ -234,7 +239,7 @@ export class TicketingTable {
       { label: "Asset Name", value: "assetName" },
       { label: "Department", value: "department" },
       { label: "Raised By", value: "raisedBy" },
-      { label: "Priority", value: "priority" },
+      ...(this.showPriority ? [{ label: "Priority", value: "priority" }] : []),
       { label: "Status", value: "status" },
     ];
   }
