@@ -26,12 +26,18 @@
           </div>
         </div>
 
-        <button class="view-more-btn" (click)="knowMore()" [disabled]="detailsLoading">
-          <ng-container *ngIf="detailsLoading">Loading…</ng-container>
-          <ng-container *ngIf="!detailsLoading">
-            {{ showDetails ? '&#9650; Hide Details' : '&#9660; Know More' }}
-          </ng-container>
-        </button>
+        <div class="qr-actions">
+          <button class="view-more-btn" (click)="knowMore()" [disabled]="detailsLoading">
+            <ng-container *ngIf="detailsLoading">Loading…</ng-container>
+            <ng-container *ngIf="!detailsLoading">
+              {{ showDetails ? '&#9650; Hide Details' : '&#9660; Know More' }}
+            </ng-container>
+          </button>
+
+          <button class="raise-ticket-btn" type="button" (click)="raiseTicket()">
+            &#128295; Raise Ticket
+          </button>
+        </div>
 
         <p *ngIf="detailsError" class="details-error">{{ detailsError }}</p>
       </div>

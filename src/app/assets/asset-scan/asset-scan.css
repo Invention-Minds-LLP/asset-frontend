@@ -104,20 +104,40 @@
 .status-disposed, .status-scrapped, .status-condemned, .status-dead, .status-rejected, .status-retired { background: #fee2e2; color: #991b1b; }
 .status-under_maintenance, .status-under_repair, .status-out_for_service { background: #dbeafe; color: #1e40af; }
 
-.view-more-btn {
+/* Action row under the summary. Wraps on narrow screens instead of overflowing. */
+.qr-actions {
   margin-top: auto;
-  align-self: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.view-more-btn,
+.raise-ticket-btn {
   padding: 10px 18px;
-  background: #1d4ed8;
-  color: #fff;
   border: none;
   border-radius: 8px;
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
+  /* Comfortable tap target — this page is opened from a phone camera. */
+  min-height: 44px;
   transition: background 0.15s;
 }
+
+.view-more-btn {
+  background: #1d4ed8;
+  color: #fff;
+}
 .view-more-btn:hover { background: #1e40af; }
+.view-more-btn:disabled { opacity: 0.65; cursor: default; }
+
+.raise-ticket-btn {
+  background: #b91c1c;
+  color: #fff;
+}
+.raise-ticket-btn:hover { background: #991b1b; }
 
 /* ─── Full detail sections ─────────────────────────────────────────── */
 .detail-sections {
@@ -211,4 +231,7 @@
 @media (max-width: 480px) {
   .qr-summary-fields { grid-template-columns: 1fr; gap: 10px 14px; }
   .qr-asset-name { font-size: 20px; }
+  /* Phone: stack the actions full-width so both are easy to hit. */
+  .qr-actions { flex-direction: column; align-items: stretch; gap: 8px; }
+  .view-more-btn, .raise-ticket-btn { width: 100%; }
 }

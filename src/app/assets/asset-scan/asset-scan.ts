@@ -130,6 +130,26 @@ export class AssetScan implements OnInit {
     });
   }
 
+  // "Raise Ticket": jump straight to the ticket form with this asset already
+  // selected. Someone standing in front of the asset with their phone shouldn't
+  // have to hunt for it in the dropdown. Login is required, so send them there
+  // first and bring them back to the pre-filled form.
+  raiseTicket(): void {
+    // The asset *code* (not the DB id) — that's what the form resolves against,
+    // and what GET /assets/:assetId looks up.
+    const code = this.summary?.assetId || this.assetId;
+    if (!code) return;
+
+    if (!this.hasToken()) {
+      this.router.navigate(['/login'], {
+        queryParams: { returnUrl: `/ticket/new?assetCode=${encodeURIComponent(code)}` }
+      });
+      return;
+    }
+
+    this.router.navigate(['/ticket/new'], { queryParams: { assetCode: code } });
+  }
+
   private hasToken(): boolean {
     if (typeof window === 'undefined') return false;
     // Staff token is in memory (Auth service); external auditors keep theirs in
