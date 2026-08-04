@@ -235,10 +235,20 @@
         branch, block/floor/room, mount, rack/U-position, coverage, GPS. Updates the asset's active location
         (history preserved). The asset and branch must already exist.
       </p>
+      <p class="card-desc">
+        Start with <strong>Download Current Locations</strong> — every asset pre-filled with what is on record,
+        plus a “What's Missing” tab. Fill the blanks and upload the same file back. Floor and Room are what the
+        guided audit walks by; without them an asset can't be routed to.
+      </p>
+
+      <button type="button" class="btn-template" (click)="downloadCurrentLocations()" [disabled]="downloadingCurrentLocations">
+        <i class="pi pi-file-excel"></i>
+        {{ downloadingCurrentLocations ? 'Preparing…' : 'Download Current Locations' }}
+      </button>
 
       <button type="button" class="btn-template" (click)="downloadLocationTemplate()" [disabled]="downloadingLocationTemplate">
         <i class="pi pi-download"></i>
-        {{ downloadingLocationTemplate ? 'Downloading…' : 'Download Template' }}
+        {{ downloadingLocationTemplate ? 'Downloading…' : 'Blank Template' }}
       </button>
 
       <input #locationsFileInput class="hidden-file-input" type="file" accept=".xlsx,.xls" (change)="onLocationsFileSelected($event)" />

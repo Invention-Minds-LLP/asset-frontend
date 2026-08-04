@@ -1390,13 +1390,7 @@ export class AssetsForm implements OnInit {
     // 👉 CREATE (first time)
     if (!this.currentLocationId) {
       this.locationAPI.addLocation(payload).subscribe({
-        next: () => {
-          this.toast('success', 'Location added');
-          // this.loadCurrentLocation();
-          this.resetLocationForm();
-          this.loadLocationHistory(this.asset.id);
-          this.updatingLocation = false;
-        },
+        next: (res: any) => this.afterLocationSaved(res, 'added'),
         error: () => {
           setTimeout(() => this.updatingLocation = false);
           this.toast('error', 'Failed to add location')
@@ -1407,16 +1401,35 @@ export class AssetsForm implements OnInit {
 
     // 👉 UPDATE (existing row)
     this.locationAPI.updateLocation(this.currentLocationId, payload).subscribe({
-      next: () => {
-        this.toast('success', 'Location updated');
-        this.resetLocationForm();
-        this.loadLocationHistory(this.asset.id);
-        this.updatingLocation = false;
-      },
+      next: (res: any) => this.afterLocationSaved(res, 'updated'),
       error: () => {
         setTimeout(() => this.updatingLocation = false);
         this.toast('error', 'Failed to update location')
       }
+    });
+  }
+
+  /**
+   * A location change routes through the approval module, so a 2xx does NOT
+   * mean the asset has moved — only management/admin edits apply immediately.
+   * Reporting "Location updated" on a queued request left people believing a
+   * move was live when it was still sitting with their HOD.
+   */
+  private afterLocationSaved(res: any, verb: 'added' | 'updated') {
+    if (res?.pending) {
+      const approver = res.level === 'MANAGEMENT' ? 'management' : 'your HOD';
+      this.toast(
+        'warn',
+        `Sent to ${approver} for approval. The asset's location is unchanged until it is signed off.`
+      );
+    } else {
+      this.toast('success', `Location ${verb}`);
+    }
+    this.resetLocationForm();
+    this.loadLocationHistory(this.asset.id);
+    setTimeout(() => {
+      this.updatingLocation = false;
+      this.cdr.detectChanges();
     });
   }
   loadCurrentLocation() {

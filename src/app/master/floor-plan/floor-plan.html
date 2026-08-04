@@ -53,10 +53,68 @@
         <option [ngValue]="''">All</option>
         <option *ngFor="let b of branches" [ngValue]="b.id">{{ b.name }}</option>
       </select>
+
+      <div class="mode-switch">
+        <button [class.on]="viewMode === 'grid'" (click)="setViewMode('grid')">
+          <i class="pi pi-th-large"></i> Plans
+        </button>
+        <button [class.on]="viewMode === 'stack'" (click)="setViewMode('stack')">
+          <i class="pi pi-building"></i> Building view
+        </button>
+      </div>
+    </div>
+
+    <!-- ── 2.5D stack: every floor of the branch, in order, with its pins ── -->
+    <div class="fp-card stack-card" *ngIf="viewMode === 'stack'">
+      <div class="stack-bar">
+        <span class="tb-count">
+          {{ stackFloors.length }} floor<span *ngIf="stackFloors.length !== 1">s</span> ·
+          {{ stackTotalPins }} pinned asset<span *ngIf="stackTotalPins !== 1">s</span>
+        </span>
+        <label class="tb-check">Spread
+          <input type="range" min="30" max="200" step="5" [(ngModel)]="spread" />
+        </label>
+        <label class="tb-check">Tilt
+          <input type="range" min="0" max="85" step="1" [(ngModel)]="tilt" />
+        </label>
+        <label class="tb-check">Rotate
+          <input type="range" min="-180" max="180" step="1" [(ngModel)]="yaw" />
+        </label>
+        <button class="btn-ghost sm" (click)="resetStackView()"><i class="pi pi-refresh"></i> Reset</button>
+        <span class="tb-count muted">Drag the building to rotate · click a floor to open it</span>
+      </div>
+
+      <div class="stack-scene"
+           (mousedown)="onStackDragStart($event)"
+           (mousemove)="onStackDragMove($event)"
+           (mouseup)="onStackDragEnd()"
+           (mouseleave)="onStackDragEnd()">
+        <div class="stack-inner" [style.transform]="sceneTransform">
+          <div class="floor" *ngFor="let f of stackFloors; let i = index; trackBy: trackById"
+               [style.transform]="floorTransform(i)"
+               [style.aspectRatio]="(f.plan.width && f.plan.height) ? f.plan.width + ' / ' + f.plan.height : '16 / 10'"
+               [class.hovered]="hoverFloorId === f.plan.id"
+               (mouseenter)="hoverFloorId = f.plan.id"
+               (mouseleave)="hoverFloorId = null"
+               (click)="openPlan(f.plan)">
+            <img [src]="imageUrl(f.plan)" [alt]="f.plan.name" draggable="false" />
+            <span class="sp" *ngFor="let pin of f.pins" [style.left.%]="pin.planX" [style.top.%]="pin.planY"></span>
+            <div class="floor-tag" [style.transform]="labelTransform">
+              {{ f.plan.floor || f.plan.name }}<small> · {{ f.pins.length }}</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="fp-empty" *ngIf="!stackFloors.length && !stackLoading">
+          <i class="pi pi-building"></i>
+          <p>No floor plans to stack. Pick a branch that has plans uploaded.</p>
+        </div>
+        <div class="fp-empty" *ngIf="stackLoading"><i class="pi pi-spin pi-spinner"></i><p>Loading floors…</p></div>
+      </div>
     </div>
 
     <!-- Plans grid -->
-    <div class="fp-grid" *ngIf="plans.length; else noPlans">
+    <div class="fp-grid" *ngIf="viewMode === 'grid' && plans.length">
       <div class="fp-tile" *ngFor="let p of plans; trackBy: trackById" (click)="openPlan(p)">
         <div class="fp-thumb"><img [src]="imageUrl(p)" [alt]="p.name" /></div>
         <div class="fp-tile-meta">
@@ -69,9 +127,9 @@
         <button class="fp-del" (click)="deletePlan(p, $event)" title="Delete"><i class="pi pi-trash"></i></button>
       </div>
     </div>
-    <ng-template #noPlans>
-      <div class="fp-empty"><i class="pi pi-map"></i><p>No floor plans yet. Upload one to start pinning assets.</p></div>
-    </ng-template>
+    <div class="fp-empty" *ngIf="viewMode === 'grid' && !plans.length">
+      <i class="pi pi-map"></i><p>No floor plans yet. Upload one to start pinning assets.</p>
+    </div>
   </ng-container>
 
   <!-- ── Viewer / pin editor ───────────────────────────────────────────── -->
@@ -90,34 +148,231 @@
     <div class="fp-editor">
       <!-- Plan image with pins -->
       <div class="fp-canvas-wrap">
-        <div class="fp-hint" *ngIf="selectedAssetId">Click on the plan to place the selected asset's pin.</div>
-        <div class="fp-canvas" [class.placing]="selectedAssetId" (click)="onPlanClick($event)">
-          <img [src]="imageUrl(selectedPlan)" [alt]="selectedPlan.name" draggable="false" />
-          <div class="pin" *ngFor="let pin of pins"
-               [style.left.%]="pin.planX" [style.top.%]="pin.planY"
-               (click)="$event.stopPropagation(); removePin(pin)"
-               [title]="pin.asset?.assetName + ' (' + pin.asset?.assetId + ') — click to remove'">
-            <i class="pi pi-map-marker"></i>
-            <span class="pin-label">{{ pin.asset?.assetName }}</span>
+
+        <!-- Filters + view controls, one row above the map -->
+        <div class="fp-toolbar">
+          <div class="tb-group tb-grow">
+            <i class="pi pi-search"></i>
+            <input type="text" [(ngModel)]="search" (ngModelChange)="onFiltersChanged()"
+                   placeholder="Find an asset by name or code…" />
+          </div>
+          <select [(ngModel)]="filterCategory" (ngModelChange)="onFiltersChanged()" title="Category">
+            <option [ngValue]="''">All categories</option>
+            <option *ngFor="let c of categories" [ngValue]="c">{{ c }}</option>
+          </select>
+          <select [(ngModel)]="filterStatus" (ngModelChange)="onFiltersChanged()" title="Status">
+            <option [ngValue]="''">All statuses</option>
+            <option *ngFor="let s of statuses" [ngValue]="s">{{ s }}</option>
+          </select>
+          <select [(ngModel)]="colourMode" title="Marker colouring">
+            <option value="none">Plain markers</option>
+            <option value="status">Colour by status</option>
+          </select>
+          <button class="btn-ghost sm" *ngIf="hasFilters" (click)="clearFilters()">
+            <i class="pi pi-filter-slash"></i> Clear
+          </button>
+          <span class="tb-count">
+            {{ visiblePins.length }}<span *ngIf="visiblePins.length !== pins.length"> of {{ pins.length }}</span> pinned
+          </span>
+
+          <div class="tb-zoom">
+            <button (click)="zoomBy(1/1.4)" title="Zoom out"><i class="pi pi-minus"></i></button>
+            <span class="tb-pct">{{ zoomPct }}%</span>
+            <button (click)="zoomBy(1.4)" title="Zoom in"><i class="pi pi-plus"></i></button>
+            <button (click)="resetView()" title="Fit to view"><i class="pi pi-window-maximize"></i></button>
+          </div>
+        </div>
+
+        <!-- Room / zone controls -->
+        <div class="fp-toolbar zone-bar">
+          <label class="tb-check" *ngIf="zones.length">
+            <input type="checkbox" [(ngModel)]="showZones" /> Show rooms
+          </label>
+          <label class="tb-check" *ngIf="zones.length">
+            <input type="checkbox" [(ngModel)]="heatmap" /> Heatmap by asset count
+          </label>
+          <span class="tb-count" *ngIf="zoneTotals">
+            {{ zones.length }} room<span *ngIf="zones.length !== 1">s</span> ·
+            {{ zoneTotals.zoned }}/{{ zoneTotals.pins }} pins inside a room
+          </span>
+          <span class="zone-chip" *ngIf="selectedZone">
+            <i class="pi pi-th-large"></i> {{ selectedZone.name }}
+            <button (click)="clearZone()" title="Show the whole floor"><i class="pi pi-times"></i></button>
+          </span>
+          <button class="btn-ghost sm" *ngIf="!tracing" (click)="startTrace()">
+            <i class="pi pi-pencil"></i> Trace a room
+          </button>
+        </div>
+
+        <!-- Tracing panel -->
+        <div class="fp-card trace-card" *ngIf="tracing">
+          <div class="trace-head">
+            <strong><i class="pi pi-pencil"></i> Tracing a room</strong>
+            <span>Click each corner on the plan ({{ tracePoints.length }} placed — 3 minimum). Zoom and pan still work.</span>
+          </div>
+          <div class="upload-grid">
+            <div class="fld">
+              <label>Room name *</label>
+              <input type="text" [(ngModel)]="traceForm.name" placeholder="e.g. Medical Records" />
+            </div>
+            <div class="fld">
+              <label>Room number</label>
+              <input type="text" [(ngModel)]="traceForm.roomNumber" placeholder="e.g. 1521" />
+            </div>
+            <div class="fld">
+              <label>Department</label>
+              <input type="text" [(ngModel)]="traceForm.department" placeholder="e.g. MRD" />
+            </div>
+            <div class="fld">
+              <label>Kind</label>
+              <select [(ngModel)]="traceForm.kind">
+                <option *ngFor="let k of zoneKinds" [ngValue]="k">{{ k }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="trace-actions">
+            <button class="btn-primary" (click)="saveZone()" [disabled]="savingZone || tracePoints.length < 3">
+              <i class="pi" [ngClass]="savingZone ? 'pi-spin pi-spinner' : 'pi-check'"></i>
+              {{ savingZone ? 'Saving…' : 'Save room' }}
+            </button>
+            <button class="btn-ghost sm" (click)="undoTracePoint()" [disabled]="!tracePoints.length">
+              <i class="pi pi-undo"></i> Undo point
+            </button>
+            <button class="btn-ghost sm" (click)="cancelTrace()"><i class="pi pi-times"></i> Cancel</button>
+          </div>
+        </div>
+
+        <!-- Status legend — shape + colour + label, so colour never carries meaning alone -->
+        <div class="fp-legend" *ngIf="colourMode === 'status'">
+          <span class="lg" *ngFor="let l of legend" [ngClass]="'s-' + l.key">
+            <i class="pi" [ngClass]="l.icon"></i>{{ l.label }}
+          </span>
+        </div>
+
+        <div class="fp-hint" *ngIf="selectedAssetId">
+          Click on the plan to place the selected asset's pin. Drag to pan, scroll to zoom.
+        </div>
+
+        <div #canvas class="fp-canvas"
+             [class.placing]="selectedAssetId"
+             [class.grabbing]="!selectedAssetId"
+             [style.aspectRatio]="canvasAspect"
+             (wheel)="onWheel($event)"
+             (mousedown)="onPanStart($event)"
+             (mousemove)="onPanMove($event)"
+             (mouseup)="onPanEnd()"
+             (mouseleave)="onPanEnd()"
+             (click)="onPlanClick($event)">
+
+          <div #stage class="fp-stage"
+               [style.transform]="stageTransform"
+               [class.labels-on]="labelsAlwaysOn">
+            <img [src]="imageUrl(selectedPlan)" [alt]="selectedPlan.name" draggable="false" />
+
+            <!-- Room outlines. viewBox 0-100 + preserveAspectRatio=none maps the
+                 stored percentages straight onto the image box. -->
+            <svg class="zone-layer" viewBox="0 0 100 100" preserveAspectRatio="none"
+                 *ngIf="showZones && zones.length">
+              <polygon *ngFor="let z of zones; trackBy: trackById"
+                       [attr.points]="zonePoints(z)"
+                       [attr.fill]="zoneFill(z)"
+                       [style.strokeWidth]="zoneStroke(z)"
+                       [class.dim]="selectedZoneId && selectedZoneId !== z.id"
+                       [class.active]="selectedZoneId === z.id"
+                       vector-effect="non-scaling-stroke"
+                       (click)="$event.stopPropagation(); selectZone(z)">
+                <title>{{ zoneTitle(z) }}</title>
+              </polygon>
+            </svg>
+
+            <!-- The outline being traced -->
+            <svg class="zone-layer tracing" viewBox="0 0 100 100" preserveAspectRatio="none"
+                 *ngIf="tracing && tracePoints.length">
+              <polygon [attr.points]="tracePolyPoints" [style.strokeWidth]="traceStroke"
+                       vector-effect="non-scaling-stroke"></polygon>
+            </svg>
+            <div class="trace-dot" *ngFor="let p of tracePoints; let i = index"
+                 [style.left.%]="p[0]" [style.top.%]="p[1]" [style.transform]="markerTransform">{{ i + 1 }}</div>
+
+            <!-- Room names, as HTML so they aren't stretched by the SVG scaling -->
+            <ng-container *ngIf="showZones">
+              <div class="zone-name" *ngFor="let z of zones; trackBy: trackById"
+                   [class.hidden]="!labelsAlwaysOn && selectedZoneId !== z.id"
+                   [class.on]="selectedZoneId === z.id"
+                   [style.left.%]="z.centroid?.x" [style.top.%]="z.centroid?.y"
+                   [style.transform]="markerTransform">
+                {{ z.name }}<small *ngIf="z.assetCount"> · {{ z.assetCount }}</small>
+              </div>
+            </ng-container>
+
+            <div class="pin" *ngFor="let c of clusters; trackBy: trackByCluster"
+                 [style.left.%]="c.planX" [style.top.%]="c.planY"
+                 [style.transform]="markerTransform"
+                 [class.is-cluster]="c.items.length > 1"
+                 [ngClass]="colourMode === 'status' && c.items.length === 1 ? 's-' + statusKey(c.items[0]) : ''"
+                 [title]="clusterTitle(c)"
+                 (click)="onMarkerClick(c, $event)">
+              <span class="dot" *ngIf="c.items.length === 1">
+                <i class="pi" *ngIf="colourMode === 'status'" [ngClass]="statusIcon(c.items[0])"></i>
+              </span>
+              <span class="count" *ngIf="c.items.length > 1">{{ c.items.length }}</span>
+              <span class="pin-label">{{ clusterLabel(c) }}</span>
+            </div>
+          </div>
+
+          <div class="fp-nopins" *ngIf="!clusters.length">
+            <span *ngIf="pins.length">No pins match the current filters.</span>
+            <span *ngIf="!pins.length">Nothing pinned on this plan yet.</span>
           </div>
         </div>
       </div>
 
-      <!-- Asset list -->
+      <!-- Rooms + asset list -->
       <aside class="fp-aside">
+        <ng-container *ngIf="zones.length">
+          <h3>Rooms</h3>
+          <p class="aside-hint">Click a room to show only its assets and zoom in.</p>
+          <div class="zone-list">
+            <div class="zone-row" *ngFor="let z of zones; trackBy: trackById"
+                 [class.selected]="selectedZoneId === z.id"
+                 (click)="selectZone(z)">
+              <span class="zone-swatch" [style.background]="heatmap ? zoneFill(z) : 'transparent'"></span>
+              <span class="zone-text">
+                {{ z.name }}
+                <small>
+                  <span *ngIf="z.roomNumber">#{{ z.roomNumber }} · </span>{{ z.kind }}
+                </small>
+              </span>
+              <span class="zone-n">{{ z.assetCount }}</span>
+              <button class="zone-del" (click)="deleteZone(z, $event)" title="Delete outline">
+                <i class="pi pi-trash"></i>
+              </button>
+            </div>
+          </div>
+          <p class="aside-hint" *ngIf="zoneTotals?.unzoned">
+            <i class="pi pi-exclamation-triangle"></i>
+            {{ zoneTotals.unzoned }} pin(s) sit outside every traced room.
+          </p>
+        </ng-container>
+
         <h3>Assets on this location</h3>
-        <p class="aside-hint">Green = already pinned. Click one, then click the plan.</p>
+        <p class="aside-hint">Green = already pinned. Click one, then click the plan to place it.</p>
         <div class="asset-list">
-          <button class="asset-row" *ngFor="let a of pinnable; trackBy: trackById"
-                  [class.selected]="selectedAssetId === a.assetId"
-                  [class.pinned]="a.pinnedHere"
-                  (click)="selectAsset(a.assetId)">
-            <i class="pi" [ngClass]="a.pinnedHere ? 'pi-map-marker' : 'pi-circle'"></i>
-            <span class="asset-name">
-              {{ a.assetName }}
-              <small>{{ a.assetCode }}<span *ngIf="a.category"> · {{ a.category }}</span></small>
-            </span>
-          </button>
+          <div class="asset-row-wrap" *ngFor="let a of pinnable; trackBy: trackById">
+            <button class="asset-row"
+                    [class.selected]="selectedAssetId === a.assetId"
+                    [class.pinned]="a.pinnedHere"
+                    (click)="selectAsset(a.assetId)">
+              <i class="pi" [ngClass]="a.pinnedHere ? 'pi-map-marker' : 'pi-circle'"></i>
+              <span class="asset-name">
+                {{ a.assetName }}
+                <small>{{ a.assetCode }}<span *ngIf="a.category"> · {{ a.category }}</span></small>
+              </span>
+            </button>
+            <button class="row-zoom" *ngIf="a.pinnedHere" (click)="zoomToAsset(a.assetId)" title="Zoom to this pin">
+              <i class="pi pi-search-plus"></i>
+            </button>
+          </div>
           <div class="fp-empty small" *ngIf="!pinnable.length"><p>No assets have an active location at this branch/floor yet.</p></div>
         </div>
       </aside>

@@ -86,6 +86,12 @@ export class ImportExcel {
     return this.http.get(`${this.baseUrl}/locations-template`, { responseType: 'blob' });
   }
 
+  // Every asset pre-filled with its current location. Same sheet shape as the
+  // template, so it goes straight back into uploadLocationsWorkbook().
+  downloadCurrentLocations(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/locations-export`, { responseType: 'blob' });
+  }
+
   uploadDepartmentsWorkbook(file: File): Observable<ImportResponse> {
     const formData = new FormData();
     formData.append('file', file);

@@ -697,3 +697,58 @@
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
   z-index: 60;
 }
+
+/* ── Checklist tab ──────────────────────────────────────────────────────── */
+.cl-bar { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+.cl-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #6b7280; }
+.cl-mode { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #d9dee7; background: #fff; color: #4b5563; font-size: 0.78rem; font-weight: 600; padding: 0.33rem 0.65rem; border-radius: 8px; cursor: pointer; }
+.cl-mode.on { border-color: #2563eb; color: #2563eb; background: #eff4ff; }
+.cl-search { position: relative; display: inline-flex; align-items: center; }
+.cl-search i { position: absolute; left: 9px; font-size: 0.78rem; color: #9aa3b2; }
+.cl-search input { padding: 6px 10px 6px 27px; min-width: 210px; border: 1px solid #d9dee7; border-radius: 8px; font-size: 0.8rem; }
+.cl-clear { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #d9dee7; background: transparent; color: #4b5563; font-size: 0.76rem; padding: 0.32rem 0.6rem; border-radius: 8px; cursor: pointer; }
+.cl-count { margin-left: auto; font-size: 0.76rem; color: #6b7280; font-weight: 600; }
+
+.facets { display: flex; flex-direction: column; gap: 4px; margin-bottom: 0.8rem; }
+.facet-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.f-label { width: 52px; flex-shrink: 0; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #9aa3b2; }
+.facets .chip { border: 1px solid #d9dee7; background: #fff; color: #4b5563; font-size: 0.71rem; padding: 3px 9px; border-radius: 999px; cursor: pointer; }
+.facets .chip b { opacity: .7; margin-left: 2px; font-variant-numeric: tabular-nums; }
+.facets .chip.on { border-color: #2563eb; color: #2563eb; background: #eff4ff; }
+
+.cl-group { border: 1px solid #e5e8ee; border-radius: 10px; margin-bottom: 0.55rem; overflow: hidden; background: #fff; }
+.cl-head { display: flex; align-items: center; gap: 0.55rem; width: 100%; padding: 0.65rem 0.85rem; border: none; background: transparent; text-align: left; cursor: pointer; }
+.cl-head:hover { background: #f7f9fc; }
+.cl-head i { font-size: 0.72rem; color: #9aa3b2; }
+.cl-head .g-name { font-weight: 700; font-size: 0.9rem; }
+.cl-head .g-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #eff4ff; color: #2563eb; }
+.cl-head .g-badge.ok { background: #e8f7ee; color: #16a34a; }
+.cl-head .g-meta { margin-left: auto; font-size: 0.72rem; color: #6b7280; font-variant-numeric: tabular-nums; }
+
+.cl-rows { border-top: 1px solid #eef1f6; }
+.cl-row { display: flex; align-items: flex-start; gap: 0.7rem; padding: 0.55rem 0.85rem; border-bottom: 1px solid #f2f4f8; }
+.cl-row:last-child { border-bottom: none; }
+.cl-row.done { opacity: .6; }
+.cl-row .r-main { flex: 1; min-width: 0; }
+.cl-row .r-name { font-weight: 600; font-size: 0.85rem; }
+.cl-row .r-code { font-size: 0.71rem; font-family: ui-monospace, monospace; color: #6b7280; }
+.cl-row .r-where { font-size: 0.73rem; color: #6b7280; margin-top: 2px; }
+.cl-row .r-where i { font-size: 0.7rem; }
+.cl-row .r-tags { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; max-width: 320px; }
+.cl-row .tag { font-size: 0.66rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: #f1f3f8; color: #4b5563; }
+.cl-row .tag.muted { background: transparent; color: #9aa3b2; font-weight: 500; font-style: italic; }
+.cl-row .tag.st-VERIFIED { background: #e8f7ee; color: #16a34a; }
+.cl-row .tag.st-MISSING { background: #fdeaea; color: #dc2626; }
+.cl-row .tag.st-MISMATCH { background: #fff4d6; color: #b8800f; }
+.cl-row .r-act { flex-shrink: 0; border: 1px solid #d9dee7; background: #fff; color: #2563eb; border-radius: 8px; padding: 5px 9px; cursor: pointer; }
+.cl-row .r-act:hover { border-color: #2563eb; background: #eff4ff; }
+
+
+/* Table styling lifted from the staff checklist so both portals read the same. */
+.cl-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.cl-table th { text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: .4px; color: #9aa3b2; padding: 0.5rem 0.85rem; border-top: 1px solid #eef1f6; background: #f7f9fc; }
+.cl-table td { padding: 0.55rem 0.85rem; border-top: 1px solid #f2f4f8; vertical-align: top; }
+.cl-table tr.done { opacity: .62; }
+.cl-table .a-name { font-weight: 600; }
+.cl-table .a-code { font-size: 0.72rem; font-family: ui-monospace, monospace; color: #6b7280; }
+.cl-table .a-note { font-size: 0.7rem; color: #9aa3b2; margin-top: 2px; }

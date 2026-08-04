@@ -52,10 +52,26 @@
       <p-button icon="pi pi-arrow-left" label="Back to List" severity="secondary" (onClick)="backToList()"></p-button>
       <h2>{{ selectedAudit?.auditName }}</h2>
       <p-tag [value]="selectedAudit?.status" [severity]="getAuditStatusSeverity(selectedAudit?.status)"></p-tag>
-      <p-button [label]="showMap ? 'Show List' : 'Floor Map'" [icon]="showMap ? 'pi pi-list' : 'pi pi-map'"
-        severity="help" (onClick)="toggleMap()"></p-button>
+      <div class="view-switch">
+        <button [class.on]="viewMode === 'checklist'" (click)="setView('checklist')">
+          <i class="pi pi-check-square"></i> Checklist
+        </button>
+        <button [class.on]="viewMode === 'table'" (click)="setView('table')">
+          <i class="pi pi-list"></i> Table
+        </button>
+        <button [class.on]="viewMode === 'map'" (click)="setView('map')">
+          <i class="pi pi-map"></i> Plan
+        </button>
+      </div>
       <p-button *ngIf="selectedAudit?.status === 'IN_PROGRESS' && isRole('HOD', 'ADMIN')" icon="pi pi-check" label="Complete Audit"
-        severity="success" (onClick)="completeAudit(selectedAudit)" [loading]="completingAudit"></p-button>
+        severity="success" (onClick)="completeAudit(selectedAudit)"
+        [loading]="completingAudit" [disabled]="!canCompleteAudit"
+        [title]="completionReason"></p-button>
+    </div>
+
+    <!-- Why Complete is unavailable, before it's pressed -->
+    <div class="complete-note" *ngIf="selectedAudit?.status === 'IN_PROGRESS' && completion && !canCompleteAudit">
+      <i class="pi pi-exclamation-circle"></i> {{ completionReason }}
     </div>
 
     <!-- Assigned auditors -->
@@ -97,7 +113,112 @@
     </div>
 
     <!-- Floor Map view -->
-    <div class="audit-map" *ngIf="showMap">
+    <!-- ══ CHECKLIST — the primary way to work an audit ══════════════════ -->
+    <div class="checklist" *ngIf="viewMode === 'checklist'">
+
+      <div class="cl-bar">
+        <div class="group-switch">
+          <span class="cl-label">Group by</span>
+          <button *ngFor="let m of groupModes" [class.on]="clGroupBy === m.value" (click)="setGroupBy(m.value)">
+            <i [class]="m.icon"></i> {{ m.label }}
+          </button>
+        </div>
+
+        <span class="cl-search">
+          <i class="pi pi-search"></i>
+          <input type="text" [(ngModel)]="clSearch" (keyup.enter)="loadChecklist()"
+                 placeholder="Asset name, code, room…" />
+        </span>
+
+        <button class="cl-clear" *ngIf="hasChecklistFilters" (click)="clearChecklistFilters()">
+          <i class="pi pi-filter-slash"></i> Clear
+        </button>
+
+        <span class="cl-count" *ngIf="clTotals">
+          {{ clTotals.shown }} of {{ clTotals.all }}
+          <span class="sep">·</span> {{ clTotals.required }} required
+          <span class="sep">·</span> {{ clTotals.optional }} not required
+        </span>
+      </div>
+
+      <!-- Status filters. Facets come from the unfiltered set, so chips never vanish. -->
+      <div class="facets">
+        <div class="facet-row">
+          <span class="f-label">Audit</span>
+          <button *ngFor="let f of clFacets.itemStatus" class="chip" [class.on]="clItemStatus === f.value"
+                  (click)="toggleFilter('itemStatus', f.value)">{{ f.value }} <b>{{ f.count }}</b></button>
+        </div>
+        <div class="facet-row">
+          <span class="f-label">Asset</span>
+          <button *ngFor="let f of clFacets.assetStatus" class="chip" [class.on]="clAssetStatus === f.value"
+                  (click)="toggleFilter('assetStatus', f.value)">{{ f.value }} <b>{{ f.count }}</b></button>
+        </div>
+        <div class="facet-row">
+          <span class="f-label">Sticker</span>
+          <button *ngFor="let f of clFacets.sticker" class="chip" [class.on]="clSticker === f.value"
+                  (click)="toggleFilter('sticker', f.value)">{{ f.value }} <b>{{ f.count }}</b></button>
+        </div>
+      </div>
+
+      <div class="sticker-summary" *ngIf="clTotals">
+        <span><b>{{ clTotals.stickerPresent }}</b> sticker present</span>
+        <span class="bad"><b>{{ clTotals.stickerMissing }}</b> missing</span>
+        <span class="warn"><b>{{ clTotals.stickerDamaged }}</b> damaged</span>
+        <span class="muted"><b>{{ clTotals.stickerUnchecked }}</b> not checked</span>
+      </div>
+
+      <div class="cl-loading" *ngIf="clLoading"><i class="pi pi-spin pi-spinner"></i> Loading…</div>
+
+      <!-- Groups -->
+      <div class="cl-group" *ngFor="let g of clGroups">
+        <button class="cl-head" (click)="toggleChecklistGroup(g)">
+          <i [class]="isChecklistGroupOpen(g) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></i>
+          <span class="g-name">{{ g.name }}</span>
+          <p-tag *ngIf="g.complete" value="done" severity="success"></p-tag>
+          <p-tag *ngIf="!g.complete" [value]="g.pendingRequired + ' left'" severity="info"></p-tag>
+          <span class="g-meta">{{ g.verified }}✓ · {{ g.missing }}✗ · {{ g.pending }} pending · {{ g.total }} total</span>
+        </button>
+
+        <table class="cl-table" *ngIf="isChecklistGroupOpen(g)">
+          <thead>
+            <tr>
+              <th>Asset</th><th>Room</th><th>Asset status</th><th>Sticker</th><th>Audit</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of g.items" [class.done]="r.itemStatus !== 'PENDING'">
+              <td>
+                <div class="a-name">{{ r.assetName }}</div>
+                <div class="a-code">{{ r.assetCode }}</div>
+              </td>
+              <td>
+                <div>{{ r.room || '—' }}</div>
+                <div class="a-note" *ngIf="r.placementLabel">{{ r.placementLabel }}</div>
+              </td>
+              <td>
+                <p-tag [value]="r.assetStatus" [severity]="r.assetStatus === 'ACTIVE' ? 'success' : 'secondary'"></p-tag>
+                <div class="a-note" *ngIf="r.statusChanged">was {{ r.assetStatusAtAudit }}</div>
+                <div class="a-note" *ngIf="r.disposalRequest">disposal {{ r.disposalRequest.status }}</div>
+                <div class="a-note" *ngIf="!r.isRequired">not required</div>
+              </td>
+              <td><p-tag [value]="stickerLabel(r)" [severity]="stickerSeverity(r)"></p-tag></td>
+              <td><p-tag [value]="r.itemStatus" [severity]="getItemStatusSeverity(r.itemStatus)"></p-tag></td>
+              <td>
+                <p-button *ngIf="selectedAudit?.status === 'IN_PROGRESS' && isRole('HOD','SUPERVISOR','ADMIN')"
+                  icon="pi pi-check-square" size="small" severity="secondary"
+                  (onClick)="verifyMapItem(r)"></p-button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cl-empty" *ngIf="!clLoading && !clGroups.length">
+        <i class="pi pi-inbox"></i><p>Nothing matches these filters.</p>
+      </div>
+    </div>
+
+    <div class="audit-map" *ngIf="viewMode === 'map'">
       <div *ngIf="mapLoading" class="map-loading"><i class="pi pi-spin pi-spinner"></i> Loading floor map…</div>
 
       <div *ngIf="!mapLoading && !mapPlan" class="map-empty">
@@ -120,23 +241,83 @@
           <div class="next-banner done"><i class="pi pi-check-circle"></i> All pinned assets on this plan have been inspected.</div>
         </ng-template>
 
-        <div class="map-canvas">
-          <img [src]="planImageUrl()" [alt]="mapPlan.name" draggable="false" />
+        <!-- Map controls -->
+        <div class="map-toolbar">
+          <label class="map-check" *ngIf="mapZones.length">
+            <input type="checkbox" [(ngModel)]="showRooms" /> Show rooms
+          </label>
+          <span class="map-stat" *ngIf="zoneTotals?.zonesTotal">
+            {{ zoneTotals.zonesDone }}/{{ zoneTotals.zonesTotal }} rooms complete
+            <span *ngIf="zoneTotals.zonesWithIssues" class="bad">
+              · {{ zoneTotals.zonesWithIssues }} with issues
+            </span>
+          </span>
+          <span class="map-chip" *ngIf="activeZone">
+            <i class="pi pi-th-large"></i> {{ activeZone.name }}
+            <button (click)="focusZone(activeZone)" title="Back to the whole floor"><i class="pi pi-times"></i></button>
+          </span>
+          <div class="map-zoom">
+            <button (click)="zoomMap(1/1.4)" title="Zoom out"><i class="pi pi-minus"></i></button>
+            <span>{{ mapZoomPct }}%</span>
+            <button (click)="zoomMap(1.4)" title="Zoom in"><i class="pi pi-plus"></i></button>
+            <button (click)="resetMapView()" title="Fit"><i class="pi pi-window-maximize"></i></button>
+          </div>
+        </div>
 
-          <!-- Route line from the last-verified pin to the recommended next pin -->
-          <svg *ngIf="currentPin && nextItem" class="route-line" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <line [attr.x1]="currentPin.planX" [attr.y1]="currentPin.planY"
-                  [attr.x2]="nextItem.planX" [attr.y2]="nextItem.planY"></line>
-          </svg>
+        <div class="map-canvas"
+             (wheel)="onMapWheel($event)"
+             (mousedown)="onMapPanStart($event)"
+             (mousemove)="onMapPanMove($event)"
+             (mouseup)="onMapPanEnd()"
+             (mouseleave)="onMapPanEnd()">
+          <div class="map-stage" [style.transform]="mapTransform">
+            <img [src]="planImageUrl()" [alt]="mapPlan.name" draggable="false" />
 
-          <div class="pin" *ngFor="let it of mapPlaced"
-               [ngClass]="pinClass(it.status)" [class.pin-next]="isNext(it.itemId)"
-               [style.left.%]="it.planX" [style.top.%]="it.planY"
-               (click)="verifyMapItem(it)"
-               [title]="it.assetName + ' (' + (it.assetCode || '') + ') — ' + it.status">
-            <i class="pi pi-map-marker"></i>
-            <span class="pin-seq" *ngIf="routeIndex(it.itemId)">{{ routeIndex(it.itemId) }}</span>
-            <span class="pin-label">{{ it.assetName }}</span>
+            <!-- Room outlines, filled by audit progress -->
+            <svg class="zone-layer" viewBox="0 0 100 100" preserveAspectRatio="none"
+                 *ngIf="showRooms && mapZones.length">
+              <polygon *ngFor="let z of mapZones"
+                       [attr.points]="zonePoints(z)"
+                       [attr.fill]="zoneFill(z)"
+                       [style.strokeWidth]="zoneStroke(z)"
+                       [class.dim]="activeZoneId && activeZoneId !== z.id"
+                       [class.active]="activeZoneId === z.id"
+                       vector-effect="non-scaling-stroke"
+                       (click)="onZoneClick(z, $event)">
+                <title>{{ z.name }} — {{ zoneStateLabel(z) }}</title>
+              </polygon>
+            </svg>
+
+            <!-- Room badge: icon + text, so progress never rides on colour alone -->
+            <ng-container *ngIf="showRooms">
+              <div class="zone-badge" *ngFor="let z of mapZones"
+                   [ngClass]="'zs-' + z.state"
+                   [style.left.%]="z.centroid?.x" [style.top.%]="z.centroid?.y"
+                   [style.transform]="mapMarkerTransform"
+                   (click)="onZoneClick(z, $event)">
+                <i class="pi" [ngClass]="zoneStateIcon(z)"></i>
+                <span>{{ z.name }}</span>
+                <small *ngIf="z.total">{{ z.total - z.pending }}/{{ z.total }}</small>
+              </div>
+            </ng-container>
+
+            <!-- Route line from the last-verified pin to the recommended next pin -->
+            <svg *ngIf="currentPin && nextItem" class="route-line" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <line [attr.x1]="currentPin.planX" [attr.y1]="currentPin.planY"
+                    [attr.x2]="nextItem.planX" [attr.y2]="nextItem.planY"
+                    vector-effect="non-scaling-stroke"></line>
+            </svg>
+
+            <div class="pin" *ngFor="let it of visibleMapItems"
+                 [ngClass]="pinClass(it.status)" [class.pin-next]="isNext(it.itemId)"
+                 [style.left.%]="it.planX" [style.top.%]="it.planY"
+                 [style.transform]="mapMarkerTransform"
+                 (click)="onPinClick(it)"
+                 [title]="it.assetName + ' (' + (it.assetCode || '') + ') — ' + it.status">
+              <i class="pi pi-map-marker"></i>
+              <span class="pin-seq" *ngIf="routeIndex(it.itemId)">{{ routeIndex(it.itemId) }}</span>
+              <span class="pin-label">{{ it.assetName }}</span>
+            </div>
           </div>
         </div>
 
@@ -147,6 +328,51 @@
             <span><i class="pi pi-map-marker pin-verified"></i> Verified</span>
             <span><i class="pi pi-map-marker pin-missing"></i> Missing</span>
             <span><i class="pi pi-map-marker pin-mismatch"></i> Mismatch</span>
+          </div>
+
+          <!-- Suggested room order -->
+          <div class="unplaced" *ngIf="walkingOrder.length">
+            <h4><i class="pi pi-directions"></i> Room order ({{ walkingOrder.length }} left)</h4>
+            <p class="aside-hint">Shortest walk through the rooms that still have assets to check.</p>
+            <div class="unplaced-list">
+              <button class="walk-row" *ngFor="let w of walkingOrder; let i = index"
+                      [class.selected]="activeZoneId === w.id"
+                      (click)="focusZoneById(w.id)">
+                <span class="walk-n">{{ i + 1 }}</span>
+                <span class="walk-name">{{ w.name }}</span>
+                <span class="walk-pending">{{ w.pending }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Room progress -->
+          <div class="unplaced" *ngIf="mapZones.length">
+            <h4><i class="pi pi-th-large"></i> Rooms ({{ mapZones.length }})</h4>
+            <div class="unplaced-list">
+              <button class="walk-row" *ngFor="let z of mapZones"
+                      [class.selected]="activeZoneId === z.id"
+                      (click)="focusZone(z)">
+                <i class="pi walk-ico" [ngClass]="zoneStateIcon(z)" [style.color]="zoneFill(z)"></i>
+                <span class="walk-name">{{ z.name }}<small> · {{ zoneStateLabel(z) }}</small></span>
+                <span class="walk-pending" *ngIf="z.total">{{ z.pct }}%</span>
+              </button>
+            </div>
+            <p class="aside-hint" *ngIf="zoneTotals?.outsideZones">
+              <i class="pi pi-exclamation-triangle"></i>
+              {{ zoneTotals.outsideZones }} pinned asset(s) sit outside every traced room.
+            </p>
+          </div>
+
+          <!-- Not found -->
+          <div class="unplaced" *ngIf="notFound.length">
+            <h4 class="bad"><i class="pi pi-times-circle"></i> Not found ({{ notFound.length }})</h4>
+            <p class="aside-hint">Missing or mismatched — this is the shrinkage list.</p>
+            <div class="unplaced-list">
+              <button class="unplaced-row" *ngFor="let n of notFound" (click)="focusZoneById(n.zoneId)">
+                <p-tag [value]="n.status" [severity]="getItemStatusSeverity(n.status)"></p-tag>
+                <span>{{ n.assetName }} <small>{{ n.assetCode }}<span *ngIf="n.zoneName"> · {{ n.zoneName }}</span></small></span>
+              </button>
+            </div>
           </div>
 
           <div class="unplaced" *ngIf="mapUnplaced.length">
@@ -164,7 +390,7 @@
     </div>
 
     <!-- Items table -->
-    <p-table *ngIf="!showMap" [value]="auditItems" [loading]="detailLoading" [paginator]="true" [rows]="20"
+    <p-table *ngIf="viewMode === 'table'" [value]="auditItems" [loading]="detailLoading" [paginator]="true" [rows]="20"
       [rowsPerPageOptions]="[10,20,50]" styleClass="p-datatable-sm p-datatable-striped">
 
       <ng-template pTemplate="header">
@@ -280,6 +506,25 @@
           <i class="pi pi-globe"></i> Pick a floor and/or categories to scope the audit. Blank = all active assets.
         </div>
       }
+
+      <!-- Can the guided audit actually direct someone to these assets? -->
+      <div class="readiness" *ngIf="readiness && readiness.total" [ngClass]="readinessSeverity()">
+        <div class="rd-head">
+          <i class="pi" [ngClass]="readiness.verdict === 'GOOD' ? 'pi-check-circle' : 'pi-exclamation-triangle'"></i>
+          <strong>{{ readiness.guidable }} of {{ readiness.total }}</strong>
+          assets have a location note ({{ readiness.guidablePercent }}%)
+        </div>
+        <div class="rd-bars">
+          <span>Floor {{ readiness.percent.floor }}%</span>
+          <span>Room {{ readiness.percent.room }}%</span>
+          <span>Note {{ readiness.percent.note }}%</span>
+          <span>Placement {{ readiness.percent.placement }}%</span>
+          <span>Pinned {{ readiness.percent.pinned }}%</span>
+        </div>
+        <div class="rd-gap" *ngFor="let g of readiness.gaps.slice(0, 2)">
+          <b>{{ g.field }}</b> missing on {{ g.missing }} — {{ g.impact }}
+        </div>
+      </div>
     </div>
 
     <div class="form-field">
@@ -361,6 +606,11 @@
     <div class="form-field">
       <label>Actual Condition</label>
       <input pInputText [(ngModel)]="verifyForm.actualCondition" style="width:100%" />
+    </div>
+    <div class="form-field">
+      <label>QR sticker on the asset</label>
+      <p-select [options]="stickerOptions" [(ngModel)]="verifyForm.stickerStatus"
+        optionLabel="label" optionValue="value" placeholder="Not checked" styleClass="w-full"></p-select>
     </div>
     <div class="form-field">
       <label>Remarks</label>

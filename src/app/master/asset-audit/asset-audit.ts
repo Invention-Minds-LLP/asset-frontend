@@ -72,6 +72,9 @@ export class AssetAudit implements OnInit {
   // Scope wizard (floor ↔ category)
   scopeCategories: { id: number; name: string; count: number }[] = [];
   scopePreview: { total: number; pinned: number; unpinned: number; byCategory: any[] } | null = null;
+  // Location readiness for the scope being chosen — guidance quality is decided
+  // entirely by AssetLocation, so it is worth knowing before the audit exists.
+  readiness: any = null;
   scopeLoading = false;
 
   // Auditor assignment
@@ -86,6 +89,29 @@ export class AssetAudit implements OnInit {
   startingAudit = false;
   completingAudit = false;
 
+  // ── Checklist (default view) ──
+  // Grouped by floor / department / flat, filterable by audit status, asset
+  // lifecycle status and QR sticker state. Replaces the map as the way an audit
+  // is actually worked; the map is now a secondary view.
+  viewMode: 'checklist' | 'table' | 'map' = 'checklist';
+  clGroupBy = 'FLOOR';
+  clAssetStatus = '';
+  clItemStatus = '';
+  clSticker = '';
+  clSearch = '';
+  clGroups: any[] = [];
+  clFacets: any = { assetStatus: [], itemStatus: [], sticker: [] };
+  clTotals: any = null;
+  clLoading = false;
+  clOpen = new Set<string>();
+  completion: any = null;
+
+  readonly groupModes = [
+    { value: 'FLOOR', label: 'Floor', icon: 'pi pi-building' },
+    { value: 'DEPARTMENT', label: 'Department', icon: 'pi pi-sitemap' },
+    { value: 'ASSET', label: 'Asset', icon: 'pi pi-box' },
+  ];
+
   // Floor map view
   showMap = false;
   mapPlan: any = null;
@@ -96,6 +122,21 @@ export class AssetAudit implements OnInit {
   route: any[] = [];
   lastVerifiedItemId: number | null = null;
 
+  // Room-level progress (from /zone-progress)
+  mapZones: any[] = [];
+  walkingOrder: any[] = [];
+  notFound: any[] = [];
+  zoneTotals: any = null;
+  showRooms = true;
+  activeZoneId: number | null = null;
+
+  // Map zoom / pan
+  mapZoom = 1;
+  mapPanX = 0;
+  mapPanY = 0;
+  private mapDrag: { x: number; y: number; panX: number; panY: number } | null = null;
+  private mapDragged = false;
+
   // Verify dialog
   showVerifyDialog = false;
   selectedItemId: number | null = null;
@@ -105,9 +146,20 @@ export class AssetAudit implements OnInit {
     conditionMatch: true,
     actualLocation: '',
     actualCondition: '',
-    remarks: ''
+    remarks: '',
+    stickerStatus: ''
   };
   verifyLoading = false;
+
+  // QR sticker observed during the audit. Blank = not checked; the server only
+  // writes Asset.qrStickered when something was actually reported.
+  stickerOptions = [
+    { label: 'Not checked', value: '' },
+    { label: 'Sticker present', value: 'PRESENT' },
+    { label: 'No sticker', value: 'MISSING' },
+    { label: 'Damaged / unreadable', value: 'DAMAGED' },
+    { label: 'Not applicable', value: 'NOT_APPLICABLE' },
+  ];
 
   verifyStatusOptions = [
     { label: 'Verified', value: 'VERIFIED' },
@@ -256,9 +308,14 @@ export class AssetAudit implements OnInit {
     this.createForm.externalAuditors.splice(i, 1);
   }
 
+  // Shared by every scope selector, the preview AND the readiness panel, so all
+  // three agree with the assets the audit will actually enrol. departmentId was
+  // missing here while loadReadiness() sent it, which is why readiness could
+  // report on one set of assets and the preview on another.
   private scopeParams(extra: any = {}): any {
     const p: any = { ...extra };
     if (this.createForm.branchId) p.branchId = this.createForm.branchId;
+    if (this.createForm.departmentId) p.departmentId = this.createForm.departmentId;
     return p;
   }
 
@@ -340,12 +397,34 @@ export class AssetAudit implements OnInit {
     });
   }
 
+  loadReadiness() {
+    const f = this.createForm;
+    this.auditService.getLocationReadiness({
+      branchId: f.branchId, departmentId: f.departmentId,
+      floor: f.floor, block: f.block, room: f.room,
+    }).subscribe({
+      next: (res: any) => {
+        setTimeout(() => { this.readiness = res?.data ?? res; this.cdr.detectChanges(); });
+      },
+      error: () => { this.readiness = null; },
+    });
+  }
+
+  readinessSeverity(): string {
+    switch (this.readiness?.verdict) {
+      case 'GOOD': return 'ok';
+      case 'PARTIAL': return 'warn';
+      default: return 'bad';
+    }
+  }
+
   loadScopePreview() {
     const params = this.scopeParams();
     if (this.createForm.floor) params.floor = this.createForm.floor;
     if (this.createForm.block) params.block = this.createForm.block;
     if (this.createForm.room) params.room = this.createForm.room;
     if (this.createForm.categoryIds?.length) params.categoryIds = this.createForm.categoryIds.join(',');
+    this.loadReadiness();
     this.auditService.getScopePreview(params).subscribe({
       next: (res: any) => {
         setTimeout(() => { this.scopePreview = res.data || null; this.cdr.detectChanges(); });
@@ -456,7 +535,12 @@ export class AssetAudit implements OnInit {
   viewAudit(audit: any) {
     this.selectedAudit = audit;
     this.showDetail = true;
+    this.viewMode = 'checklist';
+    this.showMap = false;
+    this.clOpen.clear();
     this.loadAuditDetail(audit.id);
+    this.loadChecklist();
+    this.loadCompletionCheck();
   }
 
   loadAuditDetail(id: number) {
@@ -518,6 +602,117 @@ export class AssetAudit implements OnInit {
     return `${a.name}${a.organization ? ' (' + a.organization + ')' : ''}`;
   }
 
+  // ── Checklist ──
+  setView(mode: 'checklist' | 'table' | 'map') {
+    this.viewMode = mode;
+    this.showMap = mode === 'map';
+    if (mode === 'map' && this.selectedAudit && !this.mapPlan) this.loadFloorMap(this.selectedAudit.id);
+    if (mode === 'checklist') this.loadChecklist();
+  }
+
+  loadChecklist() {
+    if (!this.selectedAudit) return;
+    this.clLoading = true;
+    this.auditService.getChecklist(this.selectedAudit.id, {
+      groupBy: this.clGroupBy,
+      assetStatus: this.clAssetStatus,
+      itemStatus: this.clItemStatus,
+      sticker: this.clSticker,
+      q: this.clSearch,
+    }).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          const d = res?.data ?? res;
+          this.clGroupBy = d.groupBy || this.clGroupBy;
+          this.clGroups = d.groups || [];
+          this.clFacets = d.facets || { assetStatus: [], itemStatus: [], sticker: [] };
+          this.clTotals = d.totals || null;
+          // Open the first group with work left, so there is something to act on.
+          if (!this.clOpen.size) {
+            const first = this.clGroups.find((g) => !g.complete) ?? this.clGroups[0];
+            if (first) this.clOpen.add(first.key);
+          }
+          this.clLoading = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        setTimeout(() => { this.clLoading = false; this.cdr.detectChanges(); });
+      },
+    });
+  }
+
+  loadCompletionCheck() {
+    if (!this.selectedAudit) return;
+    this.auditService.getCompletionCheck(this.selectedAudit.id).subscribe({
+      next: (res: any) => {
+        setTimeout(() => { this.completion = res?.data ?? res; this.cdr.detectChanges(); });
+      },
+      error: () => {},
+    });
+  }
+
+  setGroupBy(mode: string) {
+    this.clGroupBy = mode;
+    this.clOpen.clear();
+    this.loadChecklist();
+  }
+
+  toggleFilter(kind: 'assetStatus' | 'itemStatus' | 'sticker', value: string) {
+    if (kind === 'assetStatus') this.clAssetStatus = this.clAssetStatus === value ? '' : value;
+    if (kind === 'itemStatus') this.clItemStatus = this.clItemStatus === value ? '' : value;
+    if (kind === 'sticker') this.clSticker = this.clSticker === value ? '' : value;
+    this.loadChecklist();
+  }
+
+  clearChecklistFilters() {
+    this.clAssetStatus = '';
+    this.clItemStatus = '';
+    this.clSticker = '';
+    this.clSearch = '';
+    this.loadChecklist();
+  }
+
+  get hasChecklistFilters(): boolean {
+    return !!(this.clAssetStatus || this.clItemStatus || this.clSticker || this.clSearch.trim());
+  }
+
+  toggleChecklistGroup(g: any) {
+    if (this.clOpen.has(g.key)) this.clOpen.delete(g.key);
+    else this.clOpen.add(g.key);
+  }
+
+  isChecklistGroupOpen(g: any): boolean { return this.clOpen.has(g.key); }
+
+  /** Sticker state to show: what this audit saw beats what the record claims. */
+  stickerLabel(r: any): string {
+    if (r?.stickerStatus) return r.stickerStatus;
+    return r?.qrStickered ? 'PRESENT' : 'NOT CHECKED';
+  }
+
+  stickerSeverity(r: any): string {
+    const s = this.stickerLabel(r);
+    if (s === 'PRESENT') return 'success';
+    if (s === 'MISSING') return 'danger';
+    if (s === 'DAMAGED') return 'warn';
+    return 'secondary';
+  }
+
+  get canCompleteAudit(): boolean { return !!this.completion?.canComplete; }
+  get completionBlockers(): number { return Number(this.completion?.blockingCount ?? 0); }
+
+  /** Explains why the Complete button is disabled, before it is pressed. */
+  get completionReason(): string {
+    if (this.canCompleteAudit) return 'All active assets are accounted for.';
+    if (!this.completionBlockers) return '';
+    const ex = (this.completion?.examples || [])
+      .slice(0, 3)
+      .map((e: any) => e.assetName || e.assetCode)
+      .filter(Boolean)
+      .join(', ');
+    return `${this.completionBlockers} active asset(s) still unchecked${ex ? ` — e.g. ${ex}` : ''}.`;
+  }
+
   // ── Floor map ──
   resetMap() {
     this.mapPlan = null;
@@ -526,6 +721,12 @@ export class AssetAudit implements OnInit {
     this.nextItem = null;
     this.route = [];
     this.lastVerifiedItemId = null;
+    this.mapZones = [];
+    this.walkingOrder = [];
+    this.notFound = [];
+    this.zoneTotals = null;
+    this.activeZoneId = null;
+    this.resetMapView();
   }
 
   toggleMap() {
@@ -546,6 +747,7 @@ export class AssetAudit implements OnInit {
           this.mapUnplaced = d.unplaced || [];
           this.mapLoading = false;
           this.loadNextItem(id);
+          this.loadZoneProgress(id);
           this.cdr.detectChanges();
         });
       },
@@ -571,6 +773,182 @@ export class AssetAudit implements OnInit {
       },
       error: () => {}
     });
+  }
+
+  // ── Room-level progress ──
+  loadZoneProgress(id: number) {
+    this.auditService.getZoneProgress(id).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          const d = res?.data ?? res;
+          this.mapZones = d.zones || [];
+          this.walkingOrder = d.walkingOrder || [];
+          this.notFound = d.notFound || [];
+          this.zoneTotals = d.totals || null;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
+    });
+  }
+
+  /** SVG points attribute for a room outline. */
+  zonePoints(z: any): string {
+    return (z?.polygon || []).map((p: number[]) => `${p[0]},${p[1]}`).join(' ');
+  }
+
+  /**
+   * Outline thickness divided by the zoom. non-scaling-stroke only defeats the
+   * SVG viewBox scaling; the stage's CSS transform still multiplies it.
+   */
+  zoneStroke(z: any): string {
+    const base = this.activeZoneId === z?.id ? 2.5 : 1.25;
+    return `${base / this.mapZoom}px`;
+  }
+
+  /**
+   * Room fill by audit state. Reserved status colours; every room also carries a
+   * visible "verified/total" badge, so progress never depends on colour alone.
+   */
+  zoneFill(z: any): string {
+    switch (z?.state) {
+      case 'done': return '#0ca30c';
+      case 'issue': return '#d03b3b';
+      case 'partial': return '#fab219';
+      case 'untouched': return '#6b7280';
+      default: return 'transparent';
+    }
+  }
+
+  zoneStateLabel(z: any): string {
+    switch (z?.state) {
+      case 'done': return 'Complete';
+      case 'issue': return z.missing ? `${z.missing} missing` : `${z.mismatch} mismatch`;
+      case 'partial': return `${z.total - z.pending}/${z.total} done`;
+      case 'untouched': return 'Not started';
+      default: return 'No assets';
+    }
+  }
+
+  zoneStateIcon(z: any): string {
+    switch (z?.state) {
+      case 'done': return 'pi-check-circle';
+      case 'issue': return 'pi-times-circle';
+      case 'partial': return 'pi-clock';
+      case 'untouched': return 'pi-circle';
+      default: return 'pi-minus';
+    }
+  }
+
+  /** Click a room to isolate + zoom to it; click again to go back to the floor. */
+  focusZone(z: any) {
+    if (this.activeZoneId === z.id) { this.activeZoneId = null; this.resetMapView(); return; }
+    this.activeZoneId = z.id;
+    this.zoomToZone(z);
+  }
+
+  zoneById(id: number): any | null {
+    return this.mapZones.find(z => z.id === id) || null;
+  }
+
+  focusZoneById(id: number) {
+    const z = this.zoneById(id);
+    if (z) this.focusZone(z);
+  }
+
+  /** Items shown on the map — narrowed to the focused room, if any. */
+  get visibleMapItems(): any[] {
+    if (!this.activeZoneId) return this.mapPlaced;
+    const z = this.zoneById(this.activeZoneId);
+    if (!z) return this.mapPlaced;
+    const ids = new Set((z.items || []).map((i: any) => i.itemId));
+    return this.mapPlaced.filter(p => ids.has(p.itemId));
+  }
+
+  get activeZone(): any | null {
+    return this.activeZoneId ? this.zoneById(this.activeZoneId) : null;
+  }
+
+  // ── Zoom / pan (pins are percentages, so they scale for free) ──
+  get mapTransform(): string {
+    return `translate(${this.mapPanX}px, ${this.mapPanY}px) scale(${this.mapZoom})`;
+  }
+
+  get mapMarkerTransform(): string {
+    return `translate(-50%, -100%) scale(${1 / this.mapZoom})`;
+  }
+
+  get mapZoomPct(): number { return Math.round(this.mapZoom * 100); }
+
+  resetMapView() {
+    this.mapZoom = 1;
+    this.mapPanX = 0;
+    this.mapPanY = 0;
+  }
+
+  zoomMap(factor: number) {
+    this.mapZoom = Math.min(8, Math.max(0.6, this.mapZoom * factor));
+  }
+
+  /** Fit the view to a room's bounds. */
+  zoomToZone(z: any) {
+    const b = z?.bounds;
+    if (!b || !b.width || !b.height) return;
+    const el = document.querySelector('.map-canvas') as HTMLElement | null;
+    if (!el) return;
+    const pad = 1.3;
+    this.mapZoom = Math.min(8, Math.max(0.6, Math.min(100 / (b.width * pad), 100 / (b.height * pad))));
+    const cx = b.minX + b.width / 2;
+    const cy = b.minY + b.height / 2;
+    this.mapPanX = el.clientWidth / 2 - (el.clientWidth * cx / 100) * this.mapZoom;
+    this.mapPanY = el.clientHeight / 2 - (el.clientHeight * cy / 100) * this.mapZoom;
+  }
+
+  onMapWheel(ev: WheelEvent) {
+    ev.preventDefault();
+    const el = ev.currentTarget as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    const cx = ev.clientX - rect.left;
+    const cy = ev.clientY - rect.top;
+    const z2 = Math.min(8, Math.max(0.6, this.mapZoom * (ev.deltaY < 0 ? 1.15 : 1 / 1.15)));
+    if (z2 === this.mapZoom) return;
+    const ix = (cx - this.mapPanX) / this.mapZoom;
+    const iy = (cy - this.mapPanY) / this.mapZoom;
+    this.mapPanX = cx - ix * z2;
+    this.mapPanY = cy - iy * z2;
+    this.mapZoom = z2;
+  }
+
+  onMapPanStart(ev: MouseEvent) {
+    if (ev.button !== 0) return;
+    this.mapDragged = false;
+    this.mapDrag = { x: ev.clientX, y: ev.clientY, panX: this.mapPanX, panY: this.mapPanY };
+  }
+
+  onMapPanMove(ev: MouseEvent) {
+    if (!this.mapDrag) return;
+    const dx = ev.clientX - this.mapDrag.x;
+    const dy = ev.clientY - this.mapDrag.y;
+    if (!this.mapDragged && Math.abs(dx) + Math.abs(dy) > 4) this.mapDragged = true;
+    if (!this.mapDragged) return;
+    this.mapPanX = this.mapDrag.panX + dx;
+    this.mapPanY = this.mapDrag.panY + dy;
+  }
+
+  onMapPanEnd() { this.mapDrag = null; }
+
+  /** Suppresses the click that ends a pan gesture. */
+  get mapWasDragged(): boolean { return this.mapDragged; }
+
+  onPinClick(it: any) {
+    if (this.mapDragged) { this.mapDragged = false; return; }
+    this.verifyMapItem(it);
+  }
+
+  onZoneClick(z: any, ev: Event) {
+    ev.stopPropagation();
+    if (this.mapDragged) { this.mapDragged = false; return; }
+    this.focusZone(z);
   }
 
   planImageUrl(): string { return this.auditService.imageUrl(this.mapPlan); }
@@ -609,7 +987,7 @@ export class AssetAudit implements OnInit {
     this.selectedItemId = item.itemId;
     this.verifyForm = {
       status: 'VERIFIED', locationMatch: true, conditionMatch: true,
-      actualLocation: '', actualCondition: '', remarks: ''
+      actualLocation: '', actualCondition: '', remarks: '', stickerStatus: ''
     };
     this.showVerifyDialog = true;
   }
@@ -687,6 +1065,8 @@ export class AssetAudit implements OnInit {
           this.messageService.add({ severity: 'success', summary: 'Verified', detail: 'Item verified' });
           if (this.selectedAudit) {
             this.loadAuditDetail(this.selectedAudit.id);
+            this.loadCompletionCheck();
+            if (this.viewMode === 'checklist') this.loadChecklist();
             if (this.showMap) {
               // Anchor the next-asset suggestion to the pin just inspected.
               this.lastVerifiedItemId = verifiedItemId;

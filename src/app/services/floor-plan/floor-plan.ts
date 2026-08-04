@@ -43,6 +43,28 @@ export class FloorPlanService {
     return this.http.delete<any>(`${this.base}/${id}`);
   }
 
+  // ── Zones (traced rooms / areas) ──
+  zones(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/${id}/zones`);
+  }
+
+  /** Zones plus the assets that fall inside each (derived server-side). */
+  zoneStats(id: number): Observable<{ zones: any[]; totals: any }> {
+    return this.http.get<{ zones: any[]; totals: any }>(`${this.base}/${id}/zone-stats`);
+  }
+
+  createZone(id: number, body: any): Observable<any> {
+    return this.http.post<any>(`${this.base}/${id}/zones`, body);
+  }
+
+  updateZone(id: number, zoneId: number, body: any): Observable<any> {
+    return this.http.put<any>(`${this.base}/${id}/zones/${zoneId}`, body);
+  }
+
+  deleteZone(id: number, zoneId: number): Observable<any> {
+    return this.http.delete<any>(`${this.base}/${id}/zones/${zoneId}`);
+  }
+
   /** Full URL for a stored floor-plan image. */
   imageUrl(plan: any): string {
     if (!plan?.imageUrl) return '';

@@ -45,6 +45,25 @@ export class ExternalAuditService {
     );
   }
 
+  /**
+   * Grouped, filterable checklist — same shape and same server-side builder as
+   * the internal auditor screens, scoped to audits this auditor is assigned to.
+   */
+  getChecklist(
+    id: number,
+    filters: { groupBy?: string; assetStatus?: string; itemStatus?: string; sticker?: string; q?: string } = {}
+  ): Observable<{ data: any }> {
+    const q = Object.entries(filters)
+      .filter(([, v]) => v !== undefined && v !== null && v !== '')
+      .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`);
+    return this.http.get<{ data: any }>(`${this.base}/audits/${id}/checklist${q.length ? `?${q.join('&')}` : ''}`);
+  }
+
+  /** Why "Complete audit" is or isn't available. */
+  getCompletionCheck(id: number): Observable<{ data: any }> {
+    return this.http.get<{ data: any }>(`${this.base}/audits/${id}/completion-check`);
+  }
+
   startAudit(id: number): Observable<{ data: any; message?: string }> {
     return this.http.put<{ data: any; message?: string }>(`${this.base}/audits/${id}/start`, {});
   }

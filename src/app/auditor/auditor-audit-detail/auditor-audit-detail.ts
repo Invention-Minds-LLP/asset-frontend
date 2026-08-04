@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TagModule } from 'primeng/tag';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   ExternalAuditService,
@@ -8,7 +9,7 @@ import {
 } from '../../services/external-audit/external-audit';
 import { ExternalAuthService } from '../../services/external-auth/external-auth';
 
-type Tab = 'items' | 'map';
+type Tab = 'checklist' | 'items' | 'map';
 
 interface VerifyForm {
   status: 'VERIFIED' | 'MISSING' | 'MISMATCH';
@@ -22,7 +23,7 @@ interface VerifyForm {
 @Component({
   selector: 'app-auditor-audit-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TagModule],
   templateUrl: './auditor-audit-detail.html',
   styleUrl: './auditor-audit-detail.css',
 })
@@ -33,9 +34,30 @@ export class AuditorAuditDetail implements OnInit {
 
   loading = true;
   error = '';
-  tab: Tab = 'items';
+  tab: Tab = 'checklist';
   busy = false; // start/complete in flight
   toast = '';
+
+  // ── Checklist: grouped by floor / department / flat, filterable by audit
+  // status, asset lifecycle status and QR sticker state. Same server-side
+  // builder as the staff screens, scoped to this auditor's audits.
+  clGroupBy = 'FLOOR';
+  clAssetStatus = '';
+  clItemStatus = '';
+  clSticker = '';
+  clSearch = '';
+  clGroups: any[] = [];
+  clFacets: any = { assetStatus: [], itemStatus: [], sticker: [] };
+  clTotals: any = null;
+  clLoading = false;
+  clOpen = new Set<string>();
+  completion: any = null;
+
+  readonly groupModes = [
+    { value: 'FLOOR', label: 'Floor', icon: 'pi pi-building' },
+    { value: 'DEPARTMENT', label: 'Department', icon: 'pi pi-sitemap' },
+    { value: 'ASSET', label: 'Asset', icon: 'pi pi-box' },
+  ];
 
   // Floor map state
   map: any = null;
@@ -79,6 +101,7 @@ export class AuditorAuditDetail implements OnInit {
         this.loading = false;
         if (!this.audit) this.error = 'Audit not found.';
         this.cdr.markForCheck();
+        if (this.audit) { this.loadChecklist(); this.loadCompletionCheck(); }
       },
       error: (err) => {
         this.loading = false;
@@ -101,6 +124,9 @@ export class AuditorAuditDetail implements OnInit {
     this.tab = tab;
     if (tab === 'map' && !this.mapLoaded && !this.mapLoading) {
       this.loadMap();
+    }
+    if (tab === 'checklist' && !this.clGroups.length && !this.clLoading) {
+      this.loadChecklist();
     }
   }
 
@@ -150,6 +176,14 @@ export class AuditorAuditDetail implements OnInit {
     return (this.audit?.status || '').toUpperCase() === 'IN_PROGRESS';
   }
 
+  /**
+   * Checklist rows come from the shared builder and key the item as `itemId`,
+   * while the items tab uses `id`. Normalise so one verify dialog serves both.
+   */
+  openVerifyRow(row: any): void {
+    this.openVerify({ ...row, id: row.itemId, status: row.itemStatus });
+  }
+
   openVerify(item: any): void {
     this.editingItem = item;
     this.form = {
@@ -192,6 +226,9 @@ export class AuditorAuditDetail implements OnInit {
         this.cdr.markForCheck();
         // If the map is open, refresh it (and the route) right away.
         if (this.tab === 'map') this.loadMap();
+        // Checklist counts and the completion guard both move on every verify.
+        if (this.tab === 'checklist') this.loadChecklist();
+        this.loadCompletionCheck();
       },
       error: (err) => {
         this.saving = false;
@@ -289,6 +326,98 @@ export class AuditorAuditDetail implements OnInit {
       MISMATCH: 'Mismatch',
     };
     return map[(status || '').toUpperCase()] || status || '—';
+  }
+
+  // ── Checklist ──
+  loadChecklist(): void {
+    this.clLoading = true;
+    this.auditService.getChecklist(this.auditId, {
+      groupBy: this.clGroupBy,
+      assetStatus: this.clAssetStatus,
+      itemStatus: this.clItemStatus,
+      sticker: this.clSticker,
+      q: this.clSearch,
+    }).subscribe({
+      next: (res) => {
+        const d: any = res?.data ?? res;
+        this.clGroupBy = d.groupBy || this.clGroupBy;
+        this.clGroups = d.groups || [];
+        this.clFacets = d.facets || { assetStatus: [], itemStatus: [], sticker: [] };
+        this.clTotals = d.totals || null;
+        if (!this.clOpen.size) {
+          const first = this.clGroups.find((g) => !g.complete) ?? this.clGroups[0];
+          if (first) this.clOpen.add(first.key);
+        }
+        this.clLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => { this.clLoading = false; this.cdr.markForCheck(); },
+    });
+  }
+
+  loadCompletionCheck(): void {
+    this.auditService.getCompletionCheck(this.auditId).subscribe({
+      next: (res) => { this.completion = res?.data ?? res; this.cdr.markForCheck(); },
+      error: () => {},
+    });
+  }
+
+  setGroupBy(mode: string): void { this.clGroupBy = mode; this.clOpen.clear(); this.loadChecklist(); }
+
+  toggleFilter(kind: 'assetStatus' | 'itemStatus' | 'sticker', value: string): void {
+    if (kind === 'assetStatus') this.clAssetStatus = this.clAssetStatus === value ? '' : value;
+    if (kind === 'itemStatus') this.clItemStatus = this.clItemStatus === value ? '' : value;
+    if (kind === 'sticker') this.clSticker = this.clSticker === value ? '' : value;
+    this.loadChecklist();
+  }
+
+  clearChecklistFilters(): void {
+    this.clAssetStatus = ''; this.clItemStatus = ''; this.clSticker = ''; this.clSearch = '';
+    this.loadChecklist();
+  }
+
+  get hasChecklistFilters(): boolean {
+    return !!(this.clAssetStatus || this.clItemStatus || this.clSticker || this.clSearch.trim());
+  }
+
+  toggleChecklistGroup(g: any): void {
+    if (this.clOpen.has(g.key)) this.clOpen.delete(g.key); else this.clOpen.add(g.key);
+  }
+  isChecklistGroupOpen(g: any): boolean { return this.clOpen.has(g.key); }
+
+  /** Same tag severities as the staff checklist, so both read identically. */
+  itemSeverity(status: string): string {
+    switch (status) {
+      case 'VERIFIED': return 'success';
+      case 'MISSING': return 'danger';
+      case 'MISMATCH': return 'warn';
+      default: return 'secondary';
+    }
+  }
+
+  stickerSeverity(r: any): string {
+    const s = this.stickerLabel(r);
+    if (s === 'PRESENT') return 'success';
+    if (s === 'MISSING') return 'danger';
+    if (s === 'DAMAGED') return 'warn';
+    return 'secondary';
+  }
+
+  /** What the audit observed beats what the asset record claims. */
+  stickerLabel(r: any): string {
+    return r?.stickerStatus || (r?.qrStickered ? 'PRESENT' : 'NOT CHECKED');
+  }
+
+  get canCompleteAudit(): boolean { return !!this.completion?.canComplete; }
+  get completionBlockers(): number { return Number(this.completion?.blockingCount ?? 0); }
+
+  /** Explains why Complete is unavailable, before it is pressed. */
+  get completionReason(): string {
+    if (this.canCompleteAudit) return 'All active assets are accounted for.';
+    if (!this.completionBlockers) return '';
+    const ex = (this.completion?.examples || []).slice(0, 3)
+      .map((e: any) => e.assetName || e.assetCode).filter(Boolean).join(', ');
+    return `${this.completionBlockers} active asset(s) still unchecked${ex ? ` — e.g. ${ex}` : ''}.`;
   }
 
   private emptyForm(): VerifyForm {

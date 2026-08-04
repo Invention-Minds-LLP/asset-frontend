@@ -31,6 +31,57 @@
 .fp-filter label { font-size: 0.82rem; font-weight: 600; color: var(--text-color-secondary); }
 .fp-filter select { padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface-card); color: var(--text-color); }
 
+/* Grid / building-view switch */
+.mode-switch { display: flex; gap: 2px; margin-left: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 2px; background: var(--surface-card); }
+.mode-switch button { display: inline-flex; align-items: center; gap: 0.35rem; border: none; background: transparent; color: var(--text-color-secondary); font-size: 0.8rem; font-weight: 600; padding: 0.35rem 0.7rem; border-radius: 6px; cursor: pointer; }
+.mode-switch button .pi { font-size: 0.85rem; }
+.mode-switch button:hover { background: var(--surface-hover); }
+.mode-switch button.on { background: #00a23d; color: #fff; }
+
+/* ── 2.5D building view ───────────────────────────────────────────────────── */
+.stack-card { padding: 0.85rem 1rem 1rem; }
+.stack-bar { display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+.stack-bar .tb-check { gap: 0.4rem; }
+.stack-bar input[type=range] { width: 96px; accent-color: #00a23d; }
+.stack-bar .tb-count.muted { color: var(--text-muted); font-weight: 400; }
+
+.stack-scene {
+  position: relative; height: 68vh; min-height: 380px;
+  perspective: 1700px; overflow: hidden; cursor: grab;
+  border: 1px solid var(--border-color); border-radius: 12px;
+  background: var(--surface-ground);
+}
+.stack-scene:active { cursor: grabbing; }
+.stack-inner {
+  position: absolute; left: 50%; top: 50%; width: 0; height: 0;
+  transform-style: preserve-3d; transition: transform 0.08s linear;
+}
+.floor {
+  position: absolute; left: 0; top: 0; width: 46vh; min-width: 300px; max-width: 620px;
+  transform-style: preserve-3d; cursor: pointer;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 18px 34px rgba(0,0,0,0.28);
+  background: #fff; transition: box-shadow 0.15s, outline-color 0.15s;
+  outline: 2px solid transparent;
+}
+.floor img { width: 100%; height: 100%; display: block; object-fit: fill; opacity: 0.94; }
+.floor.hovered { outline-color: #00a23d; box-shadow: 0 22px 44px rgba(0,162,61,0.35); }
+.floor .sp {
+  position: absolute; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%;
+  background: #2a78d6; box-shadow: 0 0 0 1.5px #fff;
+}
+.floor-tag {
+  position: absolute; left: 100%; top: 50%; margin-left: 10px;
+  transform-origin: left center; white-space: nowrap;
+  background: var(--surface-card); border: 1px solid var(--border-color);
+  color: var(--text-color); font-size: 0.72rem; font-weight: 700;
+  padding: 2px 7px; border-radius: 6px;
+}
+.floor-tag small { font-weight: 600; color: var(--text-color-secondary); }
+.stack-scene .fp-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+:host-context(html.app-dark) .floor .sp { background: #3987e5; }
+
 /* Plans grid */
 .fp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
 .fp-tile { position: relative; background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; }
@@ -55,15 +106,148 @@
 
 .fp-canvas-wrap { position: relative; }
 .fp-hint { background: var(--info-bg); color: var(--info-fg); font-size: 0.8rem; padding: 0.45rem 0.8rem; border-radius: 8px; margin-bottom: 0.6rem; font-weight: 600; }
-.fp-canvas { position: relative; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: var(--surface-card); line-height: 0; }
-.fp-canvas.placing { cursor: crosshair; box-shadow: 0 0 0 2px #00a23d inset; }
-.fp-canvas img { width: 100%; display: block; user-select: none; }
 
-/* Pins */
-.pin { position: absolute; transform: translate(-50%, -100%); cursor: pointer; display: flex; flex-direction: column; align-items: center; line-height: 1; z-index: 2; }
-.pin .pi { font-size: 1.6rem; color: #dc2626; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4)); }
-.pin .pin-label { background: rgba(17,24,39,0.85); color: #fff; font-size: 0.62rem; padding: 1px 6px; border-radius: 6px; white-space: nowrap; margin-top: 2px; opacity: 0; transition: opacity 0.12s; }
+/* Toolbar: filters + view controls in one row above the map */
+.fp-toolbar { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+.fp-toolbar select, .fp-toolbar input[type=text] {
+  padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px;
+  background: var(--surface-card); color: var(--text-color); font-size: 0.84rem;
+}
+.tb-group { display: flex; align-items: center; gap: 0.4rem; position: relative; }
+.tb-group.tb-grow { flex: 1 1 200px; min-width: 170px; }
+.tb-group .pi { position: absolute; left: 9px; font-size: 0.85rem; color: var(--text-muted); pointer-events: none; }
+.tb-group input[type=text] { width: 100%; padding-left: 28px; }
+.tb-count { font-size: 0.78rem; color: var(--text-color-secondary); font-weight: 600; white-space: nowrap; }
+.btn-ghost.sm { padding: 0.35rem 0.6rem; font-size: 0.78rem; }
+.btn-ghost.sm .pi { font-size: 0.8rem; }
+
+.tb-zoom { display: flex; align-items: center; gap: 2px; margin-left: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 2px; background: var(--surface-card); }
+.tb-zoom button { width: 28px; height: 26px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: var(--text-color); border-radius: 6px; cursor: pointer; }
+.tb-zoom button:hover { background: var(--surface-hover); }
+.tb-zoom button .pi { font-size: 0.78rem; }
+.tb-pct { font-size: 0.75rem; font-weight: 700; color: var(--text-color-secondary); min-width: 40px; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* Status legend — shape + colour + text, so hue never carries meaning alone */
+.fp-legend { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.6rem; padding: 0.45rem 0.7rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-card); }
+.fp-legend .lg { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.74rem; font-weight: 600; color: var(--text-color-secondary); }
+.fp-legend .lg .pi { font-size: 0.72rem; }
+.fp-legend .s-good .pi { color: #0ca30c; }
+.fp-legend .s-store .pi { color: #2a78d6; }
+.fp-legend .s-warning .pi { color: #fab219; }
+.fp-legend .s-critical .pi { color: #d03b3b; }
+.fp-legend .s-unknown .pi { color: #6b7280; }
+
+/* Canvas: fixed aspect box so image pixels and pin percentages line up */
+.fp-canvas {
+  position: relative; border: 1px solid var(--border-color); border-radius: 12px;
+  overflow: hidden; background: var(--surface-card); line-height: 0;
+  touch-action: none; user-select: none;
+}
+.fp-canvas.grabbing { cursor: grab; }
+.fp-canvas.grabbing:active { cursor: grabbing; }
+.fp-canvas.placing { cursor: crosshair; box-shadow: 0 0 0 2px #00a23d inset; }
+
+.fp-stage { position: absolute; inset: 0; transform-origin: 0 0; will-change: transform; }
+.fp-stage img { width: 100%; height: 100%; display: block; object-fit: fill; user-select: none; -webkit-user-drag: none; }
+
+.fp-nopins { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 4;
+  background: var(--surface-card); border: 1px solid var(--border-color); color: var(--text-color-secondary);
+  font-size: 0.78rem; line-height: 1.2; padding: 0.35rem 0.7rem; border-radius: 999px; }
+
+/* ── Markers ──────────────────────────────────────────────────────────────
+   A dot, not a 26px map glyph — that was the real source of the clutter.
+   `.dot` carries a 2px surface ring so overlapping markers stay readable. */
+.pin { position: absolute; cursor: pointer; display: flex; flex-direction: column; align-items: center; line-height: 1; z-index: 2; }
+.pin .dot {
+  width: 11px; height: 11px; border-radius: 50%;
+  background: #2a78d6; box-shadow: 0 0 0 2px var(--surface-card), 0 1px 2px rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center;
+}
+.pin .dot .pi { font-size: 7px; color: #fff; }
+.pin:hover { z-index: 6; }
+.pin:hover .dot { transform: scale(1.35); }
+
+/* Cluster badge */
+.pin.is-cluster .count {
+  min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
+  background: #1c5cab; color: #fff; font-size: 0.66rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 2px var(--surface-card), 0 1px 3px rgba(0,0,0,0.4);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status encoding — colour reinforces the icon, it never stands alone */
+.pin.s-good .dot { background: #0ca30c; }
+.pin.s-store .dot { background: #2a78d6; }
+.pin.s-warning .dot { background: #fab219; }
+.pin.s-warning .dot .pi { color: #3a2c00; }
+.pin.s-critical .dot { background: #d03b3b; }
+.pin.s-unknown .dot { background: #6b7280; }
+
+/* Labels: hover-only when zoomed out, always-on once zoomed in (level of detail) */
+.pin .pin-label {
+  background: rgba(17,24,39,0.88); color: #fff; font-size: 0.62rem; padding: 1px 6px;
+  border-radius: 6px; white-space: nowrap; margin-top: 3px; opacity: 0;
+  transition: opacity 0.12s; pointer-events: none;
+}
 .pin:hover .pin-label { opacity: 1; }
+.fp-stage.labels-on .pin .pin-label { opacity: 1; }
+
+:host-context(html.app-dark) .pin .dot { background: #3987e5; }
+:host-context(html.app-dark) .pin.is-cluster .count { background: #2a78d6; }
+
+/* ── Zones (traced rooms) ─────────────────────────────────────────────────── */
+.zone-bar { margin-top: -0.2rem; }
+.tb-check { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; color: var(--text-color-secondary); cursor: pointer; }
+.tb-check input { accent-color: #00a23d; }
+.zone-chip { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.76rem; font-weight: 700; background: var(--menu-active-bg); border: 1px solid #00a23d; color: var(--text-color); padding: 0.2rem 0.3rem 0.2rem 0.5rem; border-radius: 999px; }
+.zone-chip .pi { font-size: 0.72rem; }
+.zone-chip button { border: none; background: transparent; color: var(--text-color-secondary); cursor: pointer; display: flex; padding: 0 2px; }
+.zone-chip button:hover { color: #dc2626; }
+
+.zone-layer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; overflow: visible; }
+/* stroke-width is bound inline (divided by zoom) — see zoneStroke() */
+.zone-layer polygon {
+  fill: transparent; stroke: #2a78d6; stroke-opacity: 0.8;
+  fill-opacity: 0.3; cursor: pointer; pointer-events: all;
+}
+.zone-layer polygon:hover { stroke-opacity: 1; fill-opacity: 0.45; }
+.zone-layer polygon.active { stroke: #00a23d; stroke-opacity: 1; }
+.zone-layer polygon.dim { stroke-opacity: 0.2; fill-opacity: 0.1; }
+.zone-layer.tracing { z-index: 3; pointer-events: none; }
+.zone-layer.tracing polygon { fill: #00a23d; fill-opacity: 0.18; stroke: #00a23d; stroke-dasharray: 4 3; }
+
+.trace-dot { position: absolute; z-index: 4; width: 18px; height: 18px; border-radius: 50%; background: #00a23d; color: #fff; font-size: 0.6rem; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--surface-card); }
+
+.zone-name {
+  position: absolute; z-index: 2; pointer-events: none; white-space: nowrap;
+  font-size: 0.64rem; font-weight: 700; color: var(--text-color);
+  background: var(--surface-card); border: 1px solid var(--border-color);
+  padding: 1px 6px; border-radius: 999px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.zone-name small { font-weight: 600; color: var(--text-color-secondary); }
+.zone-name.hidden { display: none; }
+.zone-name.on { border-color: #00a23d; }
+
+.trace-card { margin-bottom: 0.6rem; padding: 0.85rem 1rem; }
+.trace-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 0.7rem; }
+.trace-head strong { font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; }
+.trace-head strong .pi { font-size: 0.85rem; color: #00a23d; }
+.trace-head span { font-size: 0.78rem; color: var(--text-color-secondary); }
+.trace-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+
+/* Rooms list in the sidebar */
+.zone-list { display: flex; flex-direction: column; gap: 0.3rem; max-height: 34vh; overflow-y: auto; margin-bottom: 0.9rem; }
+.zone-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.55rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-section); cursor: pointer; }
+.zone-row:hover { border-color: #00a23d; }
+.zone-row.selected { border-color: #00a23d; background: var(--menu-active-bg); }
+.zone-swatch { width: 10px; height: 10px; border-radius: 3px; border: 1px solid var(--border-color); flex-shrink: 0; }
+.zone-text { display: flex; flex-direction: column; font-size: 0.8rem; font-weight: 600; min-width: 0; flex: 1; }
+.zone-text small { font-weight: 400; font-size: 0.68rem; color: var(--text-color-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zone-n { font-size: 0.72rem; font-weight: 700; color: var(--text-color-secondary); font-variant-numeric: tabular-nums; }
+.zone-del { border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; padding: 0 2px; }
+.zone-del:hover { color: #dc2626; }
+.zone-del .pi { font-size: 0.78rem; }
 
 /* Aside asset list */
 .fp-aside { background: var(--surface-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; }
@@ -77,3 +261,12 @@
 .asset-row .pi { font-size: 0.9rem; color: var(--text-muted); flex-shrink: 0; }
 .asset-name { display: flex; flex-direction: column; font-size: 0.84rem; font-weight: 600; }
 .asset-name small { font-weight: 400; font-size: 0.72rem; color: var(--text-color-secondary); }
+
+/* row + "zoom to this pin" button */
+.asset-row-wrap { display: flex; align-items: stretch; gap: 0.3rem; }
+.asset-row-wrap .asset-row { flex: 1; min-width: 0; }
+.asset-row-wrap .asset-name { min-width: 0; }
+.asset-row-wrap .asset-name small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-zoom { flex-shrink: 0; width: 32px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-section); color: var(--text-color-secondary); cursor: pointer; }
+.row-zoom:hover { border-color: #00a23d; color: #00a23d; }
+.row-zoom .pi { font-size: 0.85rem; }

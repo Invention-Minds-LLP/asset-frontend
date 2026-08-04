@@ -36,6 +36,7 @@ assetsFile: File | null = null;
   locationsResponse: ImportResponse | null = null;
   locationsError = '';
   downloadingLocationTemplate = false;
+  downloadingCurrentLocations = false;
 
   // ── Department & assignment import ──
   departmentsFile: File | null = null;
@@ -242,6 +243,24 @@ assetsFile: File | null = null;
         this.downloadingLocationTemplate = false;
       },
       error: () => { this.downloadingLocationTemplate = false; }
+    });
+  }
+
+  // Every asset pre-filled with its current location — the practical way to do a
+  // bulk fill, since the blank template means typing thousands of rows by hand.
+  downloadCurrentLocations(): void {
+    this.downloadingCurrentLocations = true;
+    this.assetImportService.downloadCurrentLocations().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'asset-locations-current.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingCurrentLocations = false;
+      },
+      error: () => { this.downloadingCurrentLocations = false; }
     });
   }
 

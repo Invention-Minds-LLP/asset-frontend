@@ -80,6 +80,35 @@ export class AssetAuditService {
     return this.http.get(`${this.baseUrl}/${id}/next-item`, params ? { params } : {});
   }
 
+  /**
+   * Room-level rollup of the audit onto the plan's traced zones: per-room
+   * verified/missing/pending counts, the room walking order and the not-found list.
+   */
+  getZoneProgress(id: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/${id}/zone-progress`);
+  }
+
+  /** Grouped, filterable checklist — the primary way to work an audit. */
+  getChecklist(
+    id: number,
+    filters: { groupBy?: string; assetStatus?: string; itemStatus?: string; sticker?: string; q?: string } = {}
+  ): Observable<any> {
+    return this.http.get(`${this.baseUrl}/${id}/checklist`, { params: this.buildParams(filters) });
+  }
+
+  /**
+   * How much of a prospective scope the guided audit can actually direct
+   * someone to — shown before the audit is created, while it can still be fixed.
+   */
+  getLocationReadiness(filters: any = {}): Observable<any> {
+    return this.http.get(`${this.baseUrl}/location-readiness`, { params: this.buildParams(filters) });
+  }
+
+  /** Why "Complete audit" is or isn't available. */
+  getCompletionCheck(id: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/${id}/completion-check`);
+  }
+
   /** Full URL for a stored floor-plan image. */
   imageUrl(plan: any): string {
     if (!plan?.imageUrl) return '';

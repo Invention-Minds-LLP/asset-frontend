@@ -40,7 +40,8 @@
             (click)="startAudit()">
             <i class="pi" [ngClass]="busy ? 'pi-spin pi-spinner' : 'pi-play'"></i> Start audit
           </button>
-          <button class="btn-success" *ngIf="(audit.status || '') === 'IN_PROGRESS'" [disabled]="busy"
+          <button class="btn-success" *ngIf="(audit.status || '') === 'IN_PROGRESS'"
+            [disabled]="busy || !canCompleteAudit" [title]="completionReason"
             (click)="completeAudit()">
             <i class="pi" [ngClass]="busy ? 'pi-spin pi-spinner' : 'pi-check'"></i> Complete audit
           </button>
@@ -58,8 +59,98 @@
 
       <!-- Tabs -->
       <div class="aud-tabs">
+        <button [class.active]="tab === 'checklist'" (click)="setTab('checklist')"><i class="pi pi-check-square"></i> Checklist</button>
         <button [class.active]="tab === 'items'" (click)="setTab('items')"><i class="pi pi-list"></i> Items</button>
         <button [class.active]="tab === 'map'" (click)="setTab('map')"><i class="pi pi-map"></i> Floor map</button>
+      </div>
+
+      <!-- ── Checklist tab: the primary way to work the audit ── -->
+      <div *ngIf="tab === 'checklist'">
+        <div class="aud-hint" *ngIf="(audit.status || '') === 'IN_PROGRESS' && completion && !canCompleteAudit">
+          <i class="pi pi-exclamation-circle"></i> {{ completionReason }}
+        </div>
+
+        <div class="cl-bar">
+          <span class="cl-label">Group by</span>
+          <button class="cl-mode" *ngFor="let m of groupModes" [class.on]="clGroupBy === m.value"
+                  (click)="setGroupBy(m.value)"><i [class]="m.icon"></i> {{ m.label }}</button>
+
+          <span class="cl-search">
+            <i class="pi pi-search"></i>
+            <input type="text" [(ngModel)]="clSearch" (keyup.enter)="loadChecklist()"
+                   placeholder="Asset name, code, room…" />
+          </span>
+
+          <button class="cl-clear" *ngIf="hasChecklistFilters" (click)="clearChecklistFilters()">
+            <i class="pi pi-filter-slash"></i> Clear
+          </button>
+
+          <span class="cl-count" *ngIf="clTotals">
+            {{ clTotals.shown }} of {{ clTotals.all }} · {{ clTotals.required }} required
+          </span>
+        </div>
+
+        <div class="facets">
+          <div class="facet-row">
+            <span class="f-label">Audit</span>
+            <button *ngFor="let f of clFacets.itemStatus" class="chip" [class.on]="clItemStatus === f.value"
+                    (click)="toggleFilter('itemStatus', f.value)">{{ f.value }} <b>{{ f.count }}</b></button>
+          </div>
+          <div class="facet-row">
+            <span class="f-label">Asset</span>
+            <button *ngFor="let f of clFacets.assetStatus" class="chip" [class.on]="clAssetStatus === f.value"
+                    (click)="toggleFilter('assetStatus', f.value)">{{ f.value }} <b>{{ f.count }}</b></button>
+          </div>
+          <div class="facet-row">
+            <span class="f-label">Sticker</span>
+            <button *ngFor="let f of clFacets.sticker" class="chip" [class.on]="clSticker === f.value"
+                    (click)="toggleFilter('sticker', f.value)">{{ f.value }} <b>{{ f.count }}</b></button>
+          </div>
+        </div>
+
+        <div class="aud-empty small" *ngIf="clLoading">Loading…</div>
+
+        <div class="cl-group" *ngFor="let g of clGroups">
+          <button class="cl-head" (click)="toggleChecklistGroup(g)">
+            <i [class]="isChecklistGroupOpen(g) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></i>
+            <span class="g-name">{{ g.name }}</span>
+            <span class="g-badge" [class.ok]="g.complete">{{ g.complete ? 'done' : g.pendingRequired + ' left' }}</span>
+            <span class="g-meta">{{ g.verified }}✓ · {{ g.missing }}✗ · {{ g.pending }} pending · {{ g.total }} total</span>
+          </button>
+
+          <table class="cl-table" *ngIf="isChecklistGroupOpen(g)">
+            <thead>
+              <tr><th>Asset</th><th>Room</th><th>Asset status</th><th>Sticker</th><th>Audit</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of g.items" [class.done]="r.itemStatus !== 'PENDING'">
+                <td>
+                  <div class="a-name">{{ r.assetName }}</div>
+                  <div class="a-code">{{ r.assetCode }}</div>
+                </td>
+                <td>
+                  <div>{{ r.room || '—' }}</div>
+                  <div class="a-note" *ngIf="r.placementLabel">{{ r.placementLabel }}</div>
+                </td>
+                <td>
+                  <p-tag [value]="r.assetStatus" [severity]="r.assetStatus === 'ACTIVE' ? 'success' : 'secondary'"></p-tag>
+                  <div class="a-note" *ngIf="r.statusChanged">was {{ r.assetStatusAtAudit }}</div>
+                  <div class="a-note" *ngIf="r.disposalRequest">disposal {{ r.disposalRequest.status }}</div>
+                  <div class="a-note" *ngIf="!r.isRequired">not required</div>
+                </td>
+                <td><p-tag [value]="stickerLabel(r)" [severity]="stickerSeverity(r)"></p-tag></td>
+                <td><p-tag [value]="r.itemStatus" [severity]="itemSeverity(r.itemStatus)"></p-tag></td>
+                <td>
+                  <button class="r-act" *ngIf="canVerify()" (click)="openVerifyRow(r)">
+                    <i class="pi pi-check-square"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="aud-empty small" *ngIf="!clLoading && !clGroups.length">Nothing matches these filters.</div>
       </div>
 
       <!-- ── Items tab ── -->
