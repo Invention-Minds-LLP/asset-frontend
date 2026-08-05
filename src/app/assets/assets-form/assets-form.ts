@@ -1006,6 +1006,10 @@ export class AssetsForm implements OnInit {
     const isDuplicate = this.pendingDuplicate;
     this.pendingDuplicate = false;
 
+    if (!isDuplicate) {
+      this.saving = true;
+    }
+
     const request$ = isEdit
       ? this.assetAPI.updateAsset(this.asset.id, this.asset)
       : this.assetAPI.createAsset(this.asset);
@@ -1075,6 +1079,7 @@ export class AssetsForm implements OnInit {
         }
         if (isDuplicate) {
           this.prepareDuplicate();
+          this.savingDuplicate = false;
           // Keep on Basic Details tab; mark form pristine so required-field errors don't flash.
           this.activeTab = 0;
           setTimeout(() => {
@@ -1085,11 +1090,15 @@ export class AssetsForm implements OnInit {
           form.resetForm();
           this.clearForm();
           this.savingDuplicate = false;
+          this.saving = false;
           this.activeTab = 0;
         }
       },
       error: () => {
-        setTimeout(() => this.saving = false);
+        setTimeout(() => {
+          this.saving = false;
+          this.savingDuplicate = false;
+        });
         this.toast("error", "Failed to save");
       }
     });

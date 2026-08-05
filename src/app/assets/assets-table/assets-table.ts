@@ -418,6 +418,7 @@ export class AssetsTable implements OnInit {
     { label: 'Current Location', value: 'currentLocation' },
     // Related entities
     { label: 'Department', value: 'department' },
+    { label: 'Target Department', value: 'targetDepartment' },
     { label: 'Vendor', value: 'vendor' },
     { label: 'Allotted To', value: 'allottedTo' },
     { label: 'Supervisor', value: 'supervisor' },

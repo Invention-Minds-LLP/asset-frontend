@@ -284,6 +284,7 @@
               <!-- EMPLOYEE TABLE -->
               <p-table *ngIf="tableTab==='employee'" #dt [value]="employees" [loading]="loadingEmployees"
                 [scrollable]="true" scrollHeight="500px" [rowHover]="true" [stripedRows]="true"
+                [globalFilterFields]="['employeeID','name','department.name','designation','role','email','phone']"
                 styleClass="settings-table">
                 <ng-template pTemplate="header">
                   <tr>
@@ -339,6 +340,7 @@
               <!-- USER TABLE -->
               <p-table *ngIf="tableTab==='user'" #dtUser [value]="users" [loading]="loadingUsers"
                 [scrollable]="true" scrollHeight="500px" [rowHover]="true" [stripedRows]="true"
+                [globalFilterFields]="['employeeID','username','role']"
                 styleClass="settings-table">
                 <ng-template pTemplate="header">
                   <tr>

@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, Validators, FormGroup, FormsModule } 
 import { FormControl } from '@angular/forms';
 import { ViewChild } from '@angular/core';
 import { Table } from 'primeng/table';
+import { debounceTime } from 'rxjs';
 
 import { Router } from '@angular/router';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
@@ -186,6 +187,9 @@ export class Settings {
     this.resetForm.get('newPassword')?.valueChanges.subscribe(v => {
       this.checkPasswordStrength(v);
     });
+    this.searchCtrl.valueChanges.pipe(debounceTime(300)).subscribe(v => {
+      this.applySearch(v);
+    });
     this.applyAccessFilter();
   }
 
@@ -337,10 +341,15 @@ export class Settings {
   setTableTab(tab: 'employee' | 'user') {
     this.tableTab = tab;
     // re-apply search on tab switch
-    const value = (this.searchCtrl.value ?? '').trim();
+    setTimeout(() => this.applySearch(this.searchCtrl.value));
+  }
+
+  private applySearch(value: string | null) {
+    const term = (value ?? '').trim();
     setTimeout(() => {
-      if (tab === 'employee') this.dt?.filterGlobal(value, 'contains');
-      else this.dtUser?.filterGlobal(value, 'contains');
+      if (this.tableTab === 'employee') this.dt?.filterGlobal(term, 'contains');
+      else this.dtUser?.filterGlobal(term, 'contains');
+      this.cdr.detectChanges();
     });
   }
   loadDepartments() {
