@@ -3,12 +3,16 @@
 <div class="page-container">
   <div class="page-header">
     <h2><div><i class="pi pi-search-minus"></i></div><div> Root Cause Analysis</div></h2>
-    <p-button label="Refresh" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="loadAll()" [loading]="loading"></p-button>
+    <div style="display:flex; gap:.5rem;">
+      <p-button label="New RCA" icon="pi pi-plus" size="small" (onClick)="openCreate()"></p-button>
+      <p-button label="Refresh" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="loadAll()" [loading]="loading"></p-button>
+    </div>
   </div>
 
   <div class="info-note">
     <i class="pi pi-info-circle"></i>
-    RCA records are created per ticket. Select a record to view its Five Whys or 6M analysis.
+    RCA records are created per ticket. Once an analysis is marked <strong>Completed</strong> or
+    <strong>Reviewed</strong>, it is published to the Knowledge Base for other technicians.
   </div>
 
   <p-table [value]="rcas" [loading]="loading" [paginator]="true" [rows]="20"
@@ -34,8 +38,10 @@
         <td class="text-truncate">{{ rca.correctiveAction || '—' }}</td>
         <td>{{ formatDate(rca.performedAt) }}</td>
         <td>{{ formatDate(rca.createdAt) }}</td>
-        <td>
+        <td style="white-space:nowrap;">
           <p-button icon="pi pi-eye" size="small" severity="secondary" (onClick)="viewRca(rca)"></p-button>
+          <p-button icon="pi pi-pencil" size="small" severity="secondary" [text]="true" (onClick)="openEdit(rca)"></p-button>
+          <p-button icon="pi pi-trash" size="small" severity="danger" [text]="true" (onClick)="remove(rca)"></p-button>
         </td>
       </tr>
     </ng-template>
@@ -44,6 +50,114 @@
     </ng-template>
   </p-table>
 </div>
+
+<!-- ── Capture / Edit Dialog ── -->
+<p-dialog [header]="editingId ? 'Edit Root Cause Analysis' : 'New Root Cause Analysis'"
+  [(visible)]="showFormDialog" [modal]="true" [style]="{'width':'820px'}" [breakpoints]="{'960px':'95vw'}"
+  [closable]="true" [maximizable]="true">
+
+  <div class="rca-form">
+    <div class="form-row">
+      <div class="form-field">
+        <label>Ticket *</label>
+        <p-select [options]="tickets" optionLabel="label" optionValue="id" [(ngModel)]="form.ticketId"
+          placeholder="Select the ticket" appendTo="body" [filter]="true" [disabled]="!!editingId"
+          styleClass="w-full"></p-select>
+      </div>
+      <div class="form-field">
+        <label>Framework *</label>
+        <p-select [options]="frameworkOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="form.framework" appendTo="body" styleClass="w-full"></p-select>
+      </div>
+      <div class="form-field">
+        <label>Status</label>
+        <p-select [options]="statusOptions" optionLabel="label" optionValue="value"
+          [(ngModel)]="form.status" appendTo="body" styleClass="w-full"></p-select>
+      </div>
+    </div>
+
+    <!-- Five Whys -->
+    @if (needsFiveWhys) {
+    <div class="form-section">
+      <div class="section-head">
+        <h4><i class="pi pi-question-circle"></i> Five Whys</h4>
+        <p-button label="Add Why" icon="pi pi-plus" size="small" severity="secondary" [text]="true"
+          (onClick)="addWhy()"></p-button>
+      </div>
+      <p class="hint">Each answer becomes the next question — keep asking until you reach a cause you can act on.</p>
+
+      @for (w of fiveWhys; track $index) {
+      <div class="why-editor">
+        <span class="why-badge">Why {{ w.whyNumber }}</span>
+        <div class="why-inputs">
+          <input pInputText [(ngModel)]="w.question" placeholder="Why did this happen?" />
+          <input pInputText [(ngModel)]="w.answer" placeholder="Because…" />
+        </div>
+        <p-button icon="pi pi-times" size="small" severity="danger" [text]="true"
+          (onClick)="removeWhy($index)"></p-button>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- 6M -->
+    @if (needsSixM) {
+    <div class="form-section">
+      <div class="section-head">
+        <h4><i class="pi pi-chart-scatter"></i> 6M Analysis</h4>
+        <p-button label="Add Cause" icon="pi pi-plus" size="small" severity="secondary" [text]="true"
+          (onClick)="addSixM()"></p-button>
+      </div>
+      <p class="hint">List contributing causes by category, then tick the one that is the actual root.</p>
+
+      @for (s of sixMItems; track $index) {
+      <div class="sixm-editor">
+        <p-select [options]="sixMCategories" optionLabel="label" optionValue="value" [(ngModel)]="s.category"
+          appendTo="body" styleClass="sixm-cat"></p-select>
+        <input pInputText [(ngModel)]="s.cause" placeholder="Describe the cause" />
+        <label class="root-check">
+          <p-checkbox [(ngModel)]="s.isRoot" [binary]="true"></p-checkbox>
+          <span>Root</span>
+        </label>
+        <p-button icon="pi pi-times" size="small" severity="danger" [text]="true"
+          (onClick)="removeSixM($index)"></p-button>
+      </div>
+      }
+      @if (!sixMItems.length) {
+      <p class="empty-hint">No causes added yet.</p>
+      }
+    </div>
+    }
+
+    <!-- Narrative -->
+    <div class="form-section">
+      <div class="form-field">
+        <label>Summary</label>
+        <textarea pTextarea rows="2" [(ngModel)]="form.summary"
+          placeholder="What was investigated, in one or two lines"></textarea>
+      </div>
+      <div class="form-field">
+        <label>Conclusion <small>(published to the Knowledge Base)</small></label>
+        <textarea pTextarea rows="3" [(ngModel)]="form.conclusion"
+          placeholder="The root cause you settled on"></textarea>
+      </div>
+      <div class="form-field">
+        <label>Corrective Action <small>(what fixed it now)</small></label>
+        <textarea pTextarea rows="2" [(ngModel)]="form.correctiveAction"></textarea>
+      </div>
+      <div class="form-field">
+        <label>Preventive Action <small>(what stops it recurring)</small></label>
+        <textarea pTextarea rows="2" [(ngModel)]="form.preventiveAction"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="showFormDialog=false"></p-button>
+    <p-button [label]="editingId ? 'Save Changes' : 'Create RCA'" icon="pi pi-check" (onClick)="save()"
+      [loading]="saving"></p-button>
+  </ng-template>
+</p-dialog>
 
 <!-- Detail Dialog -->
 <p-dialog header="RCA Detail" [(visible)]="showDetailDialog" [modal]="true" [style]="{'width':'700px'}" [closable]="true">

@@ -88,7 +88,7 @@
 
                     <ng-template pTemplate="body" let-ticketing let-i="rowIndex">
                         <tr>
-                            <td>
+                            <td class="status-cell" [pTooltip]="statusLabel(ticketing.status)" tooltipPosition="right">
                                 <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(ticketing.status) }">
                                 </span>
                             </td>
@@ -104,6 +104,9 @@
                             <td class="actions-cell">
                                 <button pButton type="button" label="view" class="view-btn"
                                     (click)="viewWarranty(ticketing.ticketId)">
+                                </button>
+                                <button *ngIf="canAddRca(ticketing)" pButton label="Add RCA"
+                                    class="small-btn" (click)="addRca(ticketing)">
                                 </button>
                                 <button *ngIf="canReassignFromTable(ticketing)" pButton label="Reassign"
                                     class="small-btn btn-reas" (click)="openReassignDialogFromTable(ticketing)">
@@ -153,7 +156,7 @@
 
                     <ng-template pTemplate="body" let-t let-i="rowIndex">
                         <tr>
-                            <td>
+                            <td class="status-cell" [pTooltip]="statusLabel(t.status)" tooltipPosition="right">
                                 <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(t.status) }">
                                 </span>
                             </td>
@@ -215,7 +218,7 @@
 
                     <ng-template pTemplate="body" let-t let-i="rowIndex">
                         <tr>
-                            <td>
+                            <td class="status-cell" [pTooltip]="statusLabel(t.status)" tooltipPosition="right">
                                 <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(t.status) }">
                                 </span>
                             </td>
@@ -528,14 +531,22 @@
             </small>
         </div>
         <div class="field" style="margin-top:1rem">
-            <label>Root Cause <small style="color:#6b7280">(used for knowledge base suggestions)</small></label>
+            <label>Root Cause * <small style="color:#6b7280">(used for knowledge base suggestions)</small></label>
             <textarea pTextarea rows="3" formControlName="rootCause"
                 placeholder="What was the underlying cause of this issue?"></textarea>
+            <small class="p-error"
+                *ngIf="completeForm.controls['rootCause'].touched && completeForm.controls['rootCause'].invalid">
+                Root cause is required
+            </small>
         </div>
         <div class="field" style="margin-top:1rem">
-            <label>Resolution Summary <small style="color:#6b7280">(used for knowledge base suggestions)</small></label>
+            <label>Resolution Summary * <small style="color:#6b7280">(used for knowledge base suggestions)</small></label>
             <textarea pTextarea rows="3" formControlName="resolutionSummary"
                 placeholder="How was it fixed? Steps taken to resolve."></textarea>
+            <small class="p-error"
+                *ngIf="completeForm.controls['resolutionSummary'].touched && completeForm.controls['resolutionSummary'].invalid">
+                Resolution summary is required
+            </small>
         </div>
     </form>
 

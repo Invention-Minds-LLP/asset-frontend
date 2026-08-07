@@ -181,6 +181,9 @@ export class TicketingForm {
           this.ticket.location = data.location;
           this.ticket.photoOfIssue = data.photoOfIssue || '';
           this.cdr.markForCheck();
+          // Surface prior fixes for this asset as soon as the ticket opens — the
+          // technician shouldn't have to retype anything to get them.
+          this.fetchKbSuggestions();
         },
         error: (err) => {
           console.error('Failed to fetch ticket data', err);
@@ -296,8 +299,9 @@ export class TicketingForm {
     this.kbSuggestTimer = setTimeout(() => this.fetchKbSuggestions(), 800);
   }
 
+  // Runs in both modes: before raising (to deflect a duplicate) and while working
+  // an existing ticket (to show how this machine was fixed last time).
   fetchKbSuggestions() {
-    if (this.isEditMode) return;
     const issueType = this.ticket.issueType;
     const description = this.ticket.detailedDesc;
     const selectedAsset = this.assets.find(a => a.id === this.ticket.assetId);
@@ -307,18 +311,28 @@ export class TicketingForm {
     this.kbService.suggest({
       issueType: issueType || undefined,
       description: description || undefined,
-      assetId: selectedAsset?.assetId || undefined
+      assetId: selectedAsset?.assetId || undefined,
+      // Don't let a resolved ticket suggest itself back to the person reading it.
+      excludeTicketId: this.ticket.id || undefined
     }).subscribe({
       next: (res) => {
-        setTimeout(() => {
-          this.kbSuggestions = res || [];
-          this.showKbSuggestions = this.kbSuggestions.length > 0;
-          this.kbLoading = false;
-          this.cdr.detectChanges();
-        });
+        this.kbSuggestions = res || [];
+        this.showKbSuggestions = this.kbSuggestions.length > 0;
+        this.kbLoading = false;
+        this.cdr.markForCheck();
       },
-      error: () => { this.kbLoading = false; }
+      error: () => { this.kbLoading = false; this.cdr.markForCheck(); }
     });
+  }
+
+  // Human label for the ranking tier the backend assigned.
+  matchLabel(level: string): string {
+    switch (level) {
+      case 'SAME_ASSET': return 'Same asset';
+      case 'SAME_SUBTYPE': return 'Same sub-type';
+      case 'SAME_CATEGORY': return 'Same category';
+      default: return 'Similar issue';
+    }
   }
 
   toggleSuggestion(index: number) {

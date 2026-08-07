@@ -55,6 +55,7 @@ loadStats() {
     next: (res: any) => {
       this.statsArray = [
         { type: 'Total Articles', count: res.totalArticles || 0 },
+        { type: 'From RCA', count: res.fromRca || 0 },
         ...(res.byIssueType || []).map((item: any) => ({
           type: item.issueType,
           count: item.count

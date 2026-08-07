@@ -192,6 +192,17 @@
     font-weight: 700;
 }
 .kb-asset { color: var(--text-color-secondary); font-size: .78rem; flex:1; }
+/* Ranking tier badge — how closely this article relates to the current asset. */
+.kb-match {
+    background: #e5e7eb;
+    color: #4b5563;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: .68rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.kb-match-strong { background: #d1fae5; color: #047857; }
 .kb-desc {
     font-size: .82rem;
     color: #374151;

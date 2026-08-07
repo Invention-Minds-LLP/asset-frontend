@@ -16,3 +16,44 @@
 .why-num { font-weight: 700; color: var(--info-fg); min-width: 50px; }
 .why-q { font-size: 0.85rem; color: var(--text-color-secondary); }
 .why-a { font-size: 0.9rem; font-weight: 500; margin-top: 2px; }
+
+/* ─── Capture form ──────────────────────────────────────────────────────── */
+.rca-form { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+.form-row .form-field { flex: 1 1 200px; min-width: 180px; }
+
+.form-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 0.85rem; }
+.form-field label { font-size: 0.82rem; font-weight: 600; color: var(--text-color); }
+.form-field label small { font-weight: 400; color: var(--text-color-secondary); }
+.form-field textarea,
+.form-field input { width: 100%; }
+
+.form-section { border-top: 1px solid var(--border-color); padding-top: 0.9rem; }
+.section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem; }
+.section-head h4 { margin: 0; font-size: 0.95rem; color: var(--info-fg); display: flex; align-items: center; gap: 6px; }
+.hint { font-size: 0.78rem; color: var(--text-color-secondary); margin: 0 0 0.7rem; }
+.empty-hint { font-size: 0.82rem; color: var(--text-color-secondary); font-style: italic; margin: 0.25rem 0; }
+
+.why-editor { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
+.why-badge {
+  background: var(--info-bg); color: var(--info-fg);
+  font-size: 0.72rem; font-weight: 700; padding: 4px 8px; border-radius: 4px;
+  white-space: nowrap; min-width: 58px; text-align: center;
+}
+.why-inputs { flex: 1; display: flex; gap: 0.5rem; min-width: 0; }
+.why-inputs input { flex: 1; min-width: 0; }
+
+.sixm-editor { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
+.sixm-editor input { flex: 1; min-width: 0; }
+.sixm-cat { min-width: 150px; }
+.root-check { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; white-space: nowrap; }
+
+/* Phones: stack the paired inputs so nothing is squeezed to a few characters. */
+@media (max-width: 640px) {
+  .page-container { padding: 1rem 0.75rem; }
+  .why-editor, .sixm-editor { flex-wrap: wrap; }
+  .why-inputs { flex-direction: column; width: 100%; }
+  .sixm-editor input { flex: 1 1 100%; }
+  .sixm-cat { min-width: 130px; }
+}

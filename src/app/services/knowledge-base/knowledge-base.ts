@@ -16,11 +16,12 @@ export class KnowledgeBaseService {
     return this.http.get<any[]>(`${this.base}/search?${q.toString()}`);
   }
 
-  suggest(params: { issueType?: string; description?: string; assetId?: string }): Observable<any[]> {
+  suggest(params: { issueType?: string; description?: string; assetId?: string; excludeTicketId?: number }): Observable<any[]> {
     const q = new URLSearchParams();
     if (params.issueType) q.set('issueType', params.issueType);
     if (params.description) q.set('description', params.description);
     if (params.assetId) q.set('assetId', params.assetId);
+    if (params.excludeTicketId) q.set('excludeTicketId', String(params.excludeTicketId));
     return this.http.get<any[]>(`${this.base}/suggest?${q.toString()}`);
   }
 

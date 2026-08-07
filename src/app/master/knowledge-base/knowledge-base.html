@@ -30,12 +30,12 @@
       <div class="article-header">
         <div class="article-title">
           <i class="pi pi-ticket"></i>
-          <strong>{{ article.title || article.description | slice:0:80 }}{{ (article.title?.length || article.description?.length) > 80 ? '...' : '' }}</strong>
+          <strong>{{ article.detailedDesc | slice:0:80 }}{{ article.detailedDesc?.length > 80 ? '...' : '' }}</strong>
         </div>
         <div class="article-meta">
+          <p-tag *ngIf="article.source === 'RCA' || article.source === 'BOTH'" value="RCA" severity="success"></p-tag>
           <p-tag [value]="article.issueType || 'OTHER'" severity="info"></p-tag>
-          <p-tag [value]="article.priority" [severity]="getPrioritySeverity(article.priority)"></p-tag>
-          <span class="article-date">{{ article.resolvedAt | date:'mediumDate' }}</span>
+          <span class="article-date">{{ article.slaResolvedAt | date:'mediumDate' }}</span>
         </div>
       </div>
 
@@ -48,6 +48,40 @@
           <h4><i class="pi pi-check-circle"></i> Resolution</h4>
           <p>{{ article.resolutionSummary }}</p>
         </div>
+
+        <!-- Formal Root Cause Analysis, when one has been completed -->
+        <ng-container *ngIf="article.rca as rca">
+          <div class="article-section" *ngIf="rca.conclusion">
+            <h4><i class="pi pi-search-minus"></i> RCA Conclusion
+              <small class="rca-fw">{{ rca.framework }}</small>
+            </h4>
+            <p>{{ rca.conclusion }}</p>
+          </div>
+          <div class="article-section" *ngIf="rca.correctiveAction">
+            <h4><i class="pi pi-wrench"></i> Corrective Action</h4>
+            <p>{{ rca.correctiveAction }}</p>
+          </div>
+          <div class="article-section" *ngIf="rca.preventiveAction">
+            <h4><i class="pi pi-shield"></i> Preventive Action</h4>
+            <p>{{ rca.preventiveAction }}</p>
+          </div>
+          <div class="article-section" *ngIf="rca.fiveWhys?.length">
+            <h4><i class="pi pi-question-circle"></i> Five Whys</h4>
+            <div class="kb-why" *ngFor="let w of rca.fiveWhys">
+              <span class="kb-why-num">Why {{ w.whyNumber }}</span>
+              <span><em>{{ w.question }}</em> → {{ w.answer }}</span>
+            </div>
+          </div>
+          <div class="article-section" *ngIf="rca.sixMItems?.length">
+            <h4><i class="pi pi-chart-scatter"></i> 6M Causes</h4>
+            <div class="kb-sixm" *ngFor="let s of rca.sixMItems">
+              <p-tag [value]="s.category" severity="secondary"></p-tag>
+              <span>{{ s.cause }}</span>
+              <p-tag *ngIf="s.isRoot" value="ROOT" severity="danger"></p-tag>
+            </div>
+          </div>
+        </ng-container>
+
         <div class="article-section" *ngIf="article.asset">
           <h4><i class="pi pi-desktop"></i> Asset</h4>
           <p>{{ article.asset.assetName }} ({{ article.asset.assetId }})</p>

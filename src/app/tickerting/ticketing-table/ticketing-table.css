@@ -235,6 +235,9 @@
     margin-right: 10px;
 }
 
+/* The dot carries the status with no label, so signal that hovering explains it. */
+.status-cell { cursor: help; }
+
 .view-btn {
     display: flex;
     width: 80px;

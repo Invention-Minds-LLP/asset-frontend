@@ -20,6 +20,7 @@ import { Assets } from '../../services/assets/assets';
 import { PendingTransfers } from "../pending-transfers/pending-transfers";
 import { DurationPipe } from '../../pipes/duration.pipe';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
+import { TooltipModule } from 'primeng/tooltip';
 
 type FilterField = 'id' | 'name' | 'ticketid' | 'raisedby' | 'department' | 'priority';
 
@@ -27,7 +28,7 @@ type FilterField = 'id' | 'name' | 'ticketid' | 'raisedby' | 'department' | 'pri
   selector: 'app-ticketing-table',
   imports: [InputIcon, IconField, InputTextModule, FormsModule, ToastModule,
     TableModule, CommonModule, ButtonModule, FormsModule, TabViewModule, DialogModule,
-    SelectModule, TextareaModule, ReactiveFormsModule, DurationPipe, OverflowTooltipDirective],
+    SelectModule, TextareaModule, ReactiveFormsModule, DurationPipe, OverflowTooltipDirective, TooltipModule],
   templateUrl: './ticketing-table.html',
   styleUrl: './ticketing-table.css',
   providers: [MessageService]
@@ -160,10 +161,12 @@ export class TicketingTable {
       expectedReturnDate: [''],
       comment: ['', Validators.required],
     });
+    // Root cause + resolution are the Knowledge Base's only source of content,
+    // so they are mandatory here — the server enforces this too.
     this.completeForm = this.fb.group({
       note: ['', Validators.required],
-      rootCause: [''],
-      resolutionSummary: [''],
+      rootCause: ['', Validators.required],
+      resolutionSummary: ['', Validators.required],
     });
     this.resolveForm = this.fb.group({
       remarks: ['', Validators.required],
@@ -328,6 +331,19 @@ export class TicketingTable {
     console.log('Navigating to edit asset:', asset);
     this.router.navigate(['/ticket/edit', asset]);
   }
+
+  // Raise a formal Root Cause Analysis for this ticket. Opens the RCA page with
+  // the ticket preselected rather than duplicating the whole capture form here.
+  addRca(t: any) {
+    this.router.navigate(['/rca'], { queryParams: { ticketId: t.id, new: 1 } });
+  }
+
+  // RCA is for work that has actually been investigated — offer it once the
+  // technician has finished, and to the roles that would carry it out.
+  canAddRca(t: any) {
+    return ['HOD', 'SUPERVISOR', 'ADMIN'].includes(this.userRole)
+      && ['WORK_COMPLETED', 'RESOLVED', 'CLOSED'].includes(t.status);
+  }
   toast(severity: string, detail: string) {
     this.toastService.add({
       severity,
@@ -434,6 +450,16 @@ export class TicketingTable {
     const tab = this.visibleTabs[e.index] || 'ASSIGNED';
     this.setTab(tab);
   }
+  // The status column is only a coloured dot, so the tooltip is the only place
+  // the status is actually readable. Title-case it rather than showing IN_PROGRESS.
+  statusLabel(status: string): string {
+    if (!status) return 'Unknown';
+    return status
+      .split('_')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ');
+  }
+
   getStatusColor(status: string): string {
     switch (status) {
       case 'OPEN':

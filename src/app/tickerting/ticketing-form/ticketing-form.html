@@ -89,17 +89,20 @@
                 </div>
 
                 <!-- Knowledge Base Suggestions -->
-                @if (showKbSuggestions && !isEditMode) {
+                @if (showKbSuggestions) {
                 <div class="kb-suggestions">
                     <div class="kb-suggestions-header">
                         <i class="pi pi-lightbulb" style="color:#f59e0b"></i>
-                        <span>Similar resolved issues found — check before raising:</span>
+                        <span>{{ isEditMode ? 'How similar issues were fixed before:' : 'Similar resolved issues found — check before raising:' }}</span>
                         <button type="button" class="kb-dismiss" (click)="showKbSuggestions=false">✕</button>
                     </div>
                     @for (s of kbSuggestions; track s.id; let i = $index) {
                     <div class="kb-item" (click)="toggleSuggestion(i)">
                         <div class="kb-item-header">
                             <span class="kb-issue-type">{{ s.issueType | uppercase }}</span>
+                            @if (s.matchLevel) {
+                            <span class="kb-match" [class.kb-match-strong]="s.matchLevel === 'SAME_ASSET'">{{ matchLabel(s.matchLevel) }}</span>
+                            }
                             <span class="kb-asset">{{ s.asset?.assetName || 'General' }}</span>
                             <i class="pi" [class.pi-chevron-down]="expandedSuggestion !== i" [class.pi-chevron-up]="expandedSuggestion === i"></i>
                         </div>
