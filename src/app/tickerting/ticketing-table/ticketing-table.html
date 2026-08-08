@@ -81,6 +81,7 @@
                             <th>Ticket ID</th>
                             <th>Raised By</th>
                             <th>Department</th>
+                            <th>Raised On</th>
                             @if (showPriority) { <th>Priority</th> }
                             <th>Action</th>
                         </tr>
@@ -99,6 +100,7 @@
                             <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.ticketId }}</td>
                             <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.raisedBy ? ticketing.raisedBy.name : '-' }}</td>
                             <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.department?.name }}</td>
+                            <td class="raised-on">{{ ticketing.createdAt | date:'dd-MMM-yyyy hh:mm a' }}</td>
                             @if (showPriority) { <td>{{ ticketing.priority }}</td> }
 
                             <td class="actions-cell">
@@ -149,6 +151,7 @@
                             <th>Department</th>
                             <th>Status</th>
                             @if (showPriority) { <th>Priority</th> }
+                            <th>Raised On</th>
                             <th>Updated</th>
                             <th>Action</th>
                         </tr>
@@ -166,6 +169,7 @@
                             <td class="ellipsis-cell" appOverflowTooltip>{{ t.department?.name }}</td>
                             <td>{{ t.status }}</td>
                             @if (showPriority) { <td>{{ t.priority }}</td> }
+                            <td class="raised-on">{{ t.createdAt | date:'dd-MMM-yyyy hh:mm a' }}</td>
                             <td>{{ t.updatedAt | date:'dd-MMM-yyyy' }}</td>
                             <td class="actions-cell">
                                 <button pButton type="button" label="view" class="view-btn"
@@ -211,6 +215,7 @@
                             <th>Department</th>
                             <th>Status</th>
                             @if (showPriority) { <th>Priority</th> }
+                            <th>Raised On</th>
                             <th>Updated</th>
                             <th>Action</th>
                         </tr>
@@ -228,6 +233,7 @@
                             <td class="ellipsis-cell" appOverflowTooltip>{{ t.department?.name }}</td>
                             <td>{{ t.status }}</td>
                             @if (showPriority) { <td>{{ t.priority }}</td> }
+                            <td class="raised-on">{{ t.createdAt | date:'dd-MMM-yyyy hh:mm a' }}</td>
                             <td>{{ t.updatedAt | date:'dd-MMM-yyyy' }}</td>
                             <td class="actions-cell">
                                 <button pButton type="button" label="view" class="view-btn"
