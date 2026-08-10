@@ -460,6 +460,41 @@ export class TicketingTable {
       .join(' ');
   }
 
+  // Breakdown vs PM. Older tickets were saved as 'PM', so both spellings map.
+  workCategoryLabel(v: string): string {
+    switch (String(v || '').toUpperCase()) {
+      case 'PREVENTIVE_MAINTENANCE':
+      case 'PM': return 'Preventive';
+      case 'BREAKDOWN': return 'Breakdown';
+      case 'CORRECTIVE': return 'Corrective';
+      case 'CALIBRATION': return 'Calibration';
+      default: return '—';
+    }
+  }
+
+  // Who carried out the work. Null means the ticket predates the field being
+  // defaulted — say so rather than implying it was done in-house.
+  serviceTypeLabel(v: string): string {
+    switch (String(v || '').toUpperCase()) {
+      case 'INTERNAL': return 'Internal';
+      case 'WARRANTY': return 'Warranty';
+      case 'AMC': return 'AMC';
+      case 'CMC': return 'CMC';
+      case 'PAID': return 'Paid (External)';
+      default: return 'Not recorded';
+    }
+  }
+
+  // "24h (Vendor AMC)" — which commitment the breach clock is actually running on.
+  slaSourceLabel(v: string): string {
+    switch (String(v || '').toUpperCase()) {
+      case 'INTERNAL': return 'Internal SLA';
+      case 'VENDOR': return 'Vendor contract';
+      case 'BOTH': return 'Stricter of internal / vendor';
+      default: return 'Not set';
+    }
+  }
+
   getStatusColor(status: string): string {
     switch (status) {
       case 'OPEN':

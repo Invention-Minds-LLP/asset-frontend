@@ -96,6 +96,15 @@ getTransferHistory(ticketId: number) {
 getTicketMetrics(ticketDbId: number) {
   return this.http.get<any>(`${this.ticketUrl}/${ticketDbId}/metrics`);
 }
+
+/** Aggregated turnaround analytics. The server scopes HODs to their own department. */
+getTatAnalytics(params: { from?: string; to?: string; departmentId?: number } = {}) {
+  const q = new URLSearchParams();
+  if (params.from) q.set('from', params.from);
+  if (params.to) q.set('to', params.to);
+  if (params.departmentId) q.set('departmentId', String(params.departmentId));
+  return this.http.get<any>(`${this.ticketUrl}/analytics/tat?${q.toString()}`);
+}
 completeWork(ticketId: number, note: string, rootCause?: string, resolutionSummary?: string) {
   return this.http.patch(`${this.ticketUrl}/${ticketId}/complete-work`, { note, rootCause, resolutionSummary });
 }

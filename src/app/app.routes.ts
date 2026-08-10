@@ -45,6 +45,7 @@ import { UserActivity } from './master/user-activity/user-activity';
 import { PreventiveMaintenance } from './master/preventive-maintenance/preventive-maintenance';
 import { VendorPerformance } from './master/vendor-performance/vendor-performance';
 import { KnowledgeBase } from './master/knowledge-base/knowledge-base';
+import { TicketTat } from './master/ticket-tat/ticket-tat';
 import { NotificationPreferences } from './master/notification-preferences/notification-preferences';
 import { AssetIndent } from './master/asset-indent/asset-indent';
 import { EmployeeExit } from './master/employee-exit/employee-exit';
@@ -92,6 +93,14 @@ import { AuditorLogin } from './auditor/auditor-login/auditor-login';
 import { AuditorAudits } from './auditor/auditor-audits/auditor-audits';
 import { AuditorAuditDetail } from './auditor/auditor-audit-detail/auditor-audit-detail';
 import { externalAuditGuard } from './external-audit.guard';
+// ── Admin / Security registers ──────────────────────────────────────────────
+import { VehicleRegister } from './master/vehicle-register/vehicle-register';
+import { RentalAssetRegister } from './master/rental-asset-register/rental-asset-register';
+import { KeyRegister } from './master/key-register/key-register';
+import { IdCardRegister } from './master/id-card-register/id-card-register';
+import { GensetLog } from './master/genset-log/genset-log';
+import { ElectricityLog } from './master/electricity-log/electricity-log';
+import { MaterialInwardRegister } from './master/material-inward-register/material-inward-register';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -146,6 +155,7 @@ export const routes: Routes = [
   { path: 'preventive-maintenance', component: PreventiveMaintenance, canActivate: [authGuard] },
   { path: 'vendor-performance', component: VendorPerformance, canActivate: [authGuard] },
   { path: 'knowledge-base', component: KnowledgeBase, canActivate: [authGuard] },
+  { path: 'ticket-tat', component: TicketTat, canActivate: [authGuard] },
   { path: 'notification-preferences', component: NotificationPreferences, canActivate: [authGuard] },
   { path: 'asset-indent', component: AssetIndent, canActivate: [authGuard] },
   { path: 'employee-exit', component: EmployeeExit, canActivate: [authGuard] },
@@ -188,6 +198,14 @@ export const routes: Routes = [
   { path: 'floor-plan', component: FloorPlanPage, canActivate: [authGuard] },
   { path: 'external-auditors', component: ExternalAuditor, canActivate: [authGuard] },
   { path: 'location-approvals', component: LocationApprovals, canActivate: [authGuard] },
+  // ── Admin / Security registers ────────────────────────────────────────────
+  { path: 'vehicle-register', component: VehicleRegister, canActivate: [authGuard] },
+  { path: 'rental-asset-register', component: RentalAssetRegister, canActivate: [authGuard] },
+  { path: 'key-register', component: KeyRegister, canActivate: [authGuard] },
+  { path: 'id-card-register', component: IdCardRegister, canActivate: [authGuard] },
+  { path: 'genset-log', component: GensetLog, canActivate: [authGuard] },
+  { path: 'electricity-log', component: ElectricityLog, canActivate: [authGuard] },
+  { path: 'material-inward-register', component: MaterialInwardRegister, canActivate: [authGuard] },
   {
     path: 'assets/scan/:assetId',
     component: AssetScan

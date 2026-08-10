@@ -81,6 +81,8 @@
                             <th>Ticket ID</th>
                             <th>Raised By</th>
                             <th>Department</th>
+                            <th>Work Type</th>
+                            <th>Serviced By</th>
                             <th>Raised On</th>
                             @if (showPriority) { <th>Priority</th> }
                             <th>Action</th>
@@ -100,6 +102,8 @@
                             <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.ticketId }}</td>
                             <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.raisedBy ? ticketing.raisedBy.name : '-' }}</td>
                             <td class="ellipsis-cell" appOverflowTooltip>{{ ticketing.department?.name }}</td>
+                            <td>{{ workCategoryLabel(ticketing.workCategory) }}</td>
+                            <td>{{ serviceTypeLabel(ticketing.serviceType) }}</td>
                             <td class="raised-on">{{ ticketing.createdAt | date:'dd-MMM-yyyy hh:mm a' }}</td>
                             @if (showPriority) { <td>{{ ticketing.priority }}</td> }
 
@@ -151,6 +155,8 @@
                             <th>Department</th>
                             <th>Status</th>
                             @if (showPriority) { <th>Priority</th> }
+                            <th>Work Type</th>
+                            <th>Serviced By</th>
                             <th>Raised On</th>
                             <th>Updated</th>
                             <th>Action</th>
@@ -169,6 +175,8 @@
                             <td class="ellipsis-cell" appOverflowTooltip>{{ t.department?.name }}</td>
                             <td>{{ t.status }}</td>
                             @if (showPriority) { <td>{{ t.priority }}</td> }
+                            <td>{{ workCategoryLabel(t.workCategory) }}</td>
+                            <td>{{ serviceTypeLabel(t.serviceType) }}</td>
                             <td class="raised-on">{{ t.createdAt | date:'dd-MMM-yyyy hh:mm a' }}</td>
                             <td>{{ t.updatedAt | date:'dd-MMM-yyyy' }}</td>
                             <td class="actions-cell">
@@ -215,6 +223,8 @@
                             <th>Department</th>
                             <th>Status</th>
                             @if (showPriority) { <th>Priority</th> }
+                            <th>Work Type</th>
+                            <th>Serviced By</th>
                             <th>Raised On</th>
                             <th>Updated</th>
                             <th>Action</th>
@@ -233,6 +243,8 @@
                             <td class="ellipsis-cell" appOverflowTooltip>{{ t.department?.name }}</td>
                             <td>{{ t.status }}</td>
                             @if (showPriority) { <td>{{ t.priority }}</td> }
+                            <td>{{ workCategoryLabel(t.workCategory) }}</td>
+                            <td>{{ serviceTypeLabel(t.serviceType) }}</td>
                             <td class="raised-on">{{ t.createdAt | date:'dd-MMM-yyyy hh:mm a' }}</td>
                             <td>{{ t.updatedAt | date:'dd-MMM-yyyy' }}</td>
                             <td class="actions-cell">
@@ -472,13 +484,40 @@
         <div *ngIf="metricsError" class="p-error">{{ metricsError }}</div>
 
         <div *ngIf="!metricsLoading && metricsData">
+            <div>
+                <b>Work Type:</b> {{ workCategoryLabel(metricsData?.work?.category) }}
+                &nbsp;·&nbsp;
+                <b>Serviced By:</b> {{ serviceTypeLabel(metricsData?.work?.serviceType) }}
+            </div>
+
             <div><b>Total TAT:</b> {{ metricsData?.tat?.totalMs | duration }}</div>
             <div><b>Active TAT (excluding hold):</b> {{ metricsData?.tat?.activeMs | duration }}</div>
 
             <div style="margin-top:6px;">
-                <b>SLA:</b>
+                <b>Governing SLA:</b>
                 {{ metricsData?.sla?.value }} {{ metricsData?.sla?.unit }}
                 ({{ metricsData?.sla?.ms | duration }})
+                <small style="color:#6b7280;">— {{ slaSourceLabel(metricsData?.slaDetail?.source) }}</small>
+            </div>
+
+            <!-- Internal and vendor commitments split out, so a breach can be
+                 attributed to the team or to the vendor. -->
+            <div class="sla-split" *ngIf="metricsData?.slaDetail">
+                <div *ngIf="metricsData?.slaDetail?.internal?.value">
+                    <b>Internal SLA:</b>
+                    {{ metricsData?.slaDetail?.internal?.value }} {{ metricsData?.slaDetail?.internal?.unit }}
+                    <span *ngIf="metricsData?.slaDetail?.internal?.breached === true" style="color:red;">BREACHED</span>
+                    <span *ngIf="metricsData?.slaDetail?.internal?.breached === false" style="color:green;">OK</span>
+                </div>
+                <div *ngIf="metricsData?.slaDetail?.vendor?.value">
+                    <b>Vendor SLA:</b>
+                    {{ metricsData?.slaDetail?.vendor?.value }} {{ metricsData?.slaDetail?.vendor?.unit }}
+                    <span *ngIf="metricsData?.slaDetail?.vendor?.breached === true" style="color:red;">BREACHED</span>
+                    <span *ngIf="metricsData?.slaDetail?.vendor?.breached === false" style="color:green;">OK</span>
+                </div>
+                <div *ngIf="!metricsData?.slaDetail?.vendor?.value" class="muted-note">
+                    No vendor contract SLA on this asset.
+                </div>
             </div>
 
             <div>
@@ -572,13 +611,40 @@
         <div *ngIf="metricsError" class="p-error">{{ metricsError }}</div>
 
         <div *ngIf="!metricsLoading && metricsData">
+            <div>
+                <b>Work Type:</b> {{ workCategoryLabel(metricsData?.work?.category) }}
+                &nbsp;·&nbsp;
+                <b>Serviced By:</b> {{ serviceTypeLabel(metricsData?.work?.serviceType) }}
+            </div>
+
             <div><b>Total TAT:</b> {{ metricsData?.tat?.totalMs | duration }}</div>
             <div><b>Active TAT (excluding hold):</b> {{ metricsData?.tat?.activeMs | duration }}</div>
 
             <div style="margin-top:6px;">
-                <b>SLA:</b>
+                <b>Governing SLA:</b>
                 {{ metricsData?.sla?.value }} {{ metricsData?.sla?.unit }}
                 ({{ metricsData?.sla?.ms | duration }})
+                <small style="color:#6b7280;">— {{ slaSourceLabel(metricsData?.slaDetail?.source) }}</small>
+            </div>
+
+            <!-- Internal and vendor commitments split out, so a breach can be
+                 attributed to the team or to the vendor. -->
+            <div class="sla-split" *ngIf="metricsData?.slaDetail">
+                <div *ngIf="metricsData?.slaDetail?.internal?.value">
+                    <b>Internal SLA:</b>
+                    {{ metricsData?.slaDetail?.internal?.value }} {{ metricsData?.slaDetail?.internal?.unit }}
+                    <span *ngIf="metricsData?.slaDetail?.internal?.breached === true" style="color:red;">BREACHED</span>
+                    <span *ngIf="metricsData?.slaDetail?.internal?.breached === false" style="color:green;">OK</span>
+                </div>
+                <div *ngIf="metricsData?.slaDetail?.vendor?.value">
+                    <b>Vendor SLA:</b>
+                    {{ metricsData?.slaDetail?.vendor?.value }} {{ metricsData?.slaDetail?.vendor?.unit }}
+                    <span *ngIf="metricsData?.slaDetail?.vendor?.breached === true" style="color:red;">BREACHED</span>
+                    <span *ngIf="metricsData?.slaDetail?.vendor?.breached === false" style="color:green;">OK</span>
+                </div>
+                <div *ngIf="!metricsData?.slaDetail?.vendor?.value" class="muted-note">
+                    No vendor contract SLA on this asset.
+                </div>
             </div>
 
             <div>

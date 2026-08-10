@@ -73,8 +73,10 @@
                     <p-floatlabel variant="on" class="half-width">
                         <p-select [(ngModel)]="ticket.workCategory" inputId="workCategory" name="workCategory"
                             [options]="workCategoryOptions" optionLabel="name" optionValue="value"
-                            appendTo="body" [showClear]="true" />
+                            appendTo="body" required #workCategoryCtrl="ngModel"
+                            [ngClass]="{'ng-invalid': invaild(workCategoryCtrl)}" />
                         <label for="workCategory">Work Category</label>
+                        <div class="error-msg" *ngIf="showError(workCategoryCtrl)">Work Category is required</div>
                     </p-floatlabel>
                 </div>
                 <div class="">

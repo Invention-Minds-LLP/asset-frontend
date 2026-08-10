@@ -241,6 +241,15 @@
 /* Date + time on one line so the column doesn't wrap mid-timestamp. */
 .raised-on { white-space: nowrap; }
 
+/* Internal vs vendor SLA block inside the metrics panel. */
+.sla-split {
+    margin: 6px 0 0 12px;
+    padding-left: 10px;
+    border-left: 2px solid var(--surface-border, #e2e8f0);
+    font-size: 0.9rem;
+}
+.sla-split .muted-note { color: #6b7280; font-style: italic; }
+
 .view-btn {
     display: flex;
     width: 80px;

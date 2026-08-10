@@ -1,0 +1,135 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Rental Asset Register</h2>
+      <p>Log of inward / outward movement of rented assets.</p>
+    </div>
+    <p-button *ngIf="!showForm" label="New Entry" icon="pi pi-plus" (onClick)="showForm = true" />
+  </div>
+
+  <div class="form-card" *ngIf="showForm">
+    <h3>{{ editingId ? 'Edit Entry' : 'New Entry' }}</h3>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="directionOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.direction" name="direction" appendTo="body" />
+          <label>Direction *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="form.entryDate" name="entryDate" appendTo="body" dateFormat="dd M yy" />
+          <label>Date *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="returnableTypeOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.returnableType" name="returnableType" appendTo="body" [showClear]="true" />
+          <label>Returnable Type</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.vendorName" name="vendorName" />
+          <label>Vendor Name</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.brand" name="brand" />
+          <label>Brand</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.serialOrTagNo" name="serialOrTagNo" />
+          <label>Serial / Tag No</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.gatePassOrDcNo" name="gatePassOrDcNo" />
+          <label>Gate Pass / DC No</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.quantity" name="quantity" />
+          <label>Quantity</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="form.returnDate" name="returnDate" appendTo="body" dateFormat="dd M yy" />
+          <label>Return Date</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.handledBy" name="handledBy" />
+          <label>Handled By</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.description" name="description" />
+          <label>Description</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <textarea pTextarea [(ngModel)]="form.remarks" name="remarks" rows="2"></textarea>
+          <label>Remarks</label>
+        </p-floatlabel>
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="reset()" />
+      <p-button [label]="editingId ? 'Update' : 'Save'" icon="pi pi-save" (onClick)="save()" />
+    </div>
+  </div>
+
+  <p-table [value]="rows" [loading]="loading" [paginator]="true" [rows]="10"
+    responsiveLayout="scroll" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Date</th>
+        <th>Direction</th>
+        <th>Description</th>
+        <th>Brand</th>
+        <th>Serial/Tag</th>
+        <th>Vendor</th>
+        <th>Qty</th>
+        <th>Returnable</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ row.entryDate | date:'dd MMM yyyy' }}</td>
+        <td><strong>{{ row.direction }}</strong></td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ row.description || '—' }}</td>
+        <td>{{ row.brand || '—' }}</td>
+        <td>{{ row.serialOrTagNo || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ row.vendorName || '—' }}</td>
+        <td>{{ row.quantity ?? '—' }}</td>
+        <td>{{ row.returnableType || '—' }}</td>
+        <td>
+          <div class="action-buttons">
+            <p-button icon="pi pi-pencil" size="small" severity="secondary" [text]="true"
+              (onClick)="edit(row)" pTooltip="Edit" tooltipPosition="top" />
+            <p-button icon="pi pi-trash" size="small" severity="danger" [text]="true"
+              (onClick)="delete(row)" pTooltip="Delete" tooltipPosition="top" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="9" class="text-center">No rental asset entries recorded</td></tr>
+    </ng-template>
+  </p-table>
+</div>

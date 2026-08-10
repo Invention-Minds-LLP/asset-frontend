@@ -107,6 +107,7 @@ export class Sidebar implements OnInit {
         { label: 'Hierarchy Dashboard', route: '/hierarchy-config', icon: 'pi pi-sitemap' },
         { label: 'Knowledge Base', route: '/knowledge-base', icon: 'pi pi-book' },
         { label: 'Root Cause Analysis', route: '/rca', icon: 'pi pi-search-minus' },
+        { label: 'Ticket TAT Analytics', route: '/ticket-tat', icon: 'pi pi-clock' },
       ]
     },
 
@@ -167,6 +168,13 @@ export class Sidebar implements OnInit {
       dropdownItems: [
         { label: 'Gate Pass', route: '/gate-pass', icon: 'pi pi-id-card' },
         { label: 'Gate Pass — Security', route: '/gate-pass/security', icon: 'pi pi-shield' },
+        { label: 'Material Inward Register', route: '/material-inward-register', icon: 'pi pi-arrow-down-left' },
+        { label: 'Rental Asset Register', route: '/rental-asset-register', icon: 'pi pi-sync' },
+        { label: 'Key Register', route: '/key-register', icon: 'pi pi-key' },
+        { label: 'Temp ID Card Register', route: '/id-card-register', icon: 'pi pi-id-card' },
+        { label: 'Vehicle Register', route: '/vehicle-register', icon: 'pi pi-car' },
+        { label: 'Genset & Diesel Log', route: '/genset-log', icon: 'pi pi-bolt' },
+        { label: 'Electricity Meter Log', route: '/electricity-log', icon: 'pi pi-flash' },
         { label: 'Acknowledgement', route: '/acknowledgement', icon: 'pi pi-check-square' },
         { label: 'Physical Audit', route: '/asset-audit', icon: 'pi pi-clipboard' },
         { label: 'Floor Plans', route: '/floor-plan', icon: 'pi pi-map' },

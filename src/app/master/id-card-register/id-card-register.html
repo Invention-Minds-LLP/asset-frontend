@@ -1,0 +1,105 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Temp ID Card Register</h2>
+      <p>Log of temporary ID cards issued to employees / visitors at the gate.</p>
+    </div>
+    <p-button *ngIf="!showForm" label="New Entry" icon="pi pi-plus" (onClick)="showForm = true" />
+  </div>
+
+  <div class="form-card" *ngIf="showForm">
+    <h3>{{ editingId ? 'Edit Entry' : 'New Entry' }}</h3>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="form.entryDate" name="entryDate" appendTo="body" dateFormat="dd M yy" />
+          <label>Date *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.employeeName" name="employeeName" />
+          <label>Employee / Visitor Name *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.tempIdNo" name="tempIdNo" />
+          <label>Temp ID No</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.contactNo" name="contactNo" />
+          <label>Contact No</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.inTime" name="inTime" />
+          <label>In-Time</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.outTime" name="outTime" />
+          <label>Out-Time</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.issuedBy" name="issuedBy" />
+          <label>Issued By</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <textarea pTextarea [(ngModel)]="form.remarks" name="remarks" rows="2"></textarea>
+          <label>Remarks</label>
+        </p-floatlabel>
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="reset()" />
+      <p-button [label]="editingId ? 'Update' : 'Save'" icon="pi pi-save" (onClick)="save()" />
+    </div>
+  </div>
+
+  <p-table [value]="rows" [loading]="loading" [paginator]="true" [rows]="10"
+    responsiveLayout="scroll" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Date</th>
+        <th>Employee</th>
+        <th>Temp ID No</th>
+        <th>Contact</th>
+        <th>In-Time</th>
+        <th>Out-Time</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ row.entryDate | date:'dd MMM yyyy' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ row.employeeName || '—' }}</td>
+        <td><strong>{{ row.tempIdNo || '—' }}</strong></td>
+        <td>{{ row.contactNo || '—' }}</td>
+        <td>{{ row.inTime || '—' }}</td>
+        <td>{{ row.outTime || '—' }}</td>
+        <td>
+          <div class="action-buttons">
+            <p-button icon="pi pi-pencil" size="small" severity="secondary" [text]="true"
+              (onClick)="edit(row)" pTooltip="Edit" tooltipPosition="top" />
+            <p-button icon="pi pi-trash" size="small" severity="danger" [text]="true"
+              (onClick)="delete(row)" pTooltip="Delete" tooltipPosition="top" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="7" class="text-center">No ID card entries recorded</td></tr>
+    </ng-template>
+  </p-table>
+</div>

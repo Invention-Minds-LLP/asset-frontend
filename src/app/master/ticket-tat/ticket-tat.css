@@ -1,0 +1,69 @@
+.page-container { padding: 1.5rem; }
+
+.page-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.page-header h2 { margin: 0; font-size: 1.35rem; display: flex; align-items: center; gap: 8px; }
+.scope-chip {
+  background: var(--info-bg); color: var(--info-fg);
+  font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 12px;
+}
+
+.filter-bar {
+  display: flex; align-items: flex-end; gap: 0.85rem; flex-wrap: wrap;
+  padding: 0.9rem 1rem; margin-bottom: 1.25rem;
+  background: var(--surface-ground); border: 1px solid var(--surface-border); border-radius: 10px;
+}
+.filter-field { display: flex; flex-direction: column; gap: 4px; }
+.filter-field label { font-size: 0.75rem; font-weight: 600; color: var(--text-color-secondary); }
+
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.9rem; margin-bottom: 1.5rem;
+}
+.kpi-card {
+  background: var(--surface-card); border: 1px solid var(--surface-border);
+  border-radius: 10px; padding: 0.9rem 1rem;
+  display: flex; flex-direction: column; gap: 0.2rem;
+}
+.kpi-card.kpi-bad { border-color: #fca5a5; background: #fff5f5; }
+.kpi-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-color-secondary); font-weight: 600; }
+.kpi-value { font-size: 1.45rem; font-weight: 700; color: var(--text-color); }
+.kpi-value.sm { font-size: 1.05rem; }
+.kpi-value small { font-size: 0.8rem; font-weight: 500; color: var(--text-color-secondary); }
+
+.panel {
+  background: var(--surface-card); border: 1px solid var(--surface-border);
+  border-radius: 10px; padding: 1.1rem 1.25rem; margin-bottom: 1.25rem;
+}
+.panel h3 { margin: 0 0 0.25rem; font-size: 1rem; color: var(--info-fg); }
+.hint { font-size: 0.8rem; color: var(--text-color-secondary); margin: 0 0 0.85rem; }
+
+/* Inline magnitude bar — relative to the slowest status on screen.
+   The bar fills a track rather than the whole cell, so a 100% bar can never
+   push the duration label out of its column. */
+.bar-wrap { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+.bar-track {
+  flex: 1 1 auto;
+  min-width: 40px;
+  height: 10px;
+  background: var(--surface-ground, #eef1f5);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.bar {
+  height: 100%;
+  border-radius: 5px;
+  background: var(--info-fg);
+  opacity: 0.45;
+  min-width: 2px;
+}
+.bar-label { flex: 0 0 auto; font-size: 0.82rem; white-space: nowrap; }
+
+.muted { color: var(--text-color-secondary); }
+.center { text-align: center; padding: 1.5rem; }
+
+@media (max-width: 640px) {
+  .page-container { padding: 1rem 0.75rem; }
+  .filter-bar { flex-direction: column; align-items: stretch; }
+  .filter-field { width: 100%; }
+  .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+}

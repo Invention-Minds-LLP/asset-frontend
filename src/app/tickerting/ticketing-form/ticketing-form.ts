@@ -73,9 +73,12 @@ export class TicketingForm {
     { name: 'Software', value: 'software' },
   ]
 
+  // Values match the documented set on Ticket.workCategory. The server
+  // normalises anyway, but sending the canonical value keeps reports consistent.
   workCategoryOptions: SelectOption[] = [
-    { name: 'Preventive Maintenance (PM)', value: 'PM' },
+    { name: 'Preventive Maintenance (PM)', value: 'PREVENTIVE_MAINTENANCE' },
     { name: 'Breakdown / Corrective', value: 'BREAKDOWN' },
+    { name: 'Calibration', value: 'CALIBRATION' },
   ]
 
 

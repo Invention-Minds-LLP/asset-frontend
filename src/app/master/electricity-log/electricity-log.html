@@ -1,0 +1,125 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Electricity (BESCOM) Meter Log</h2>
+      <p>Monthly electricity meter opening / closing readings and units consumed.</p>
+    </div>
+    <p-button *ngIf="!showForm" label="New Entry" icon="pi pi-plus" (onClick)="showForm = true" />
+  </div>
+
+  <div class="form-card" *ngIf="showForm">
+    <h3>{{ editingId ? 'Edit Entry' : 'New Entry' }}</h3>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.month" name="month" />
+          <label>Month *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.floor" name="floor" />
+          <label>Floor</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.meterName" name="meterName" />
+          <label>Meter Name</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="form.startDate" name="startDate" appendTo="body" dateFormat="dd M yy" />
+          <label>Start Date</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.startTime" name="startTime" />
+          <label>Start Time</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.openingReading" name="openingReading" />
+          <label>Opening Reading</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="form.endDate" name="endDate" appendTo="body" dateFormat="dd M yy" />
+          <label>End Date</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.endTime" name="endTime" />
+          <label>End Time</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.closingReading" name="closingReading" />
+          <label>Closing Reading</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.totalUnits" name="totalUnits" />
+          <label>Total Units (auto if blank)</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <textarea pTextarea [(ngModel)]="form.remarks" name="remarks" rows="2"></textarea>
+          <label>Remarks</label>
+        </p-floatlabel>
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="reset()" />
+      <p-button [label]="editingId ? 'Update' : 'Save'" icon="pi pi-save" (onClick)="save()" />
+    </div>
+  </div>
+
+  <p-table [value]="rows" [loading]="loading" [paginator]="true" [rows]="10"
+    responsiveLayout="scroll" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Month</th>
+        <th>Floor/Meter</th>
+        <th>Start Date</th>
+        <th>Opening</th>
+        <th>End Date</th>
+        <th>Closing</th>
+        <th>Total Units</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td><strong>{{ row.month }}</strong></td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ (row.floor || '—') + ' / ' + (row.meterName || '—') }}</td>
+        <td>{{ row.startDate ? (row.startDate | date:'dd MMM yyyy') : '—' }}</td>
+        <td>{{ row.openingReading ?? '—' }}</td>
+        <td>{{ row.endDate ? (row.endDate | date:'dd MMM yyyy') : '—' }}</td>
+        <td>{{ row.closingReading ?? '—' }}</td>
+        <td>{{ row.totalUnits ?? '—' }}</td>
+        <td>
+          <div class="action-buttons">
+            <p-button icon="pi pi-pencil" size="small" severity="secondary" [text]="true"
+              (onClick)="edit(row)" pTooltip="Edit" tooltipPosition="top" />
+            <p-button icon="pi pi-trash" size="small" severity="danger" [text]="true"
+              (onClick)="delete(row)" pTooltip="Delete" tooltipPosition="top" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="8" class="text-center">No electricity meter entries recorded</td></tr>
+    </ng-template>
+  </p-table>
+</div>

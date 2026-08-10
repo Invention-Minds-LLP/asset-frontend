@@ -1,0 +1,290 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Material Inward Register</h2>
+      <p>Gatehouse log for material / assets arriving on campus — deliveries against Purchase Orders, Work Orders and returns.</p>
+    </div>
+    <p-button *ngIf="!showForm" label="New Gate Entry" icon="pi pi-plus" (onClick)="showForm = true" />
+  </div>
+
+  <div class="form-card" *ngIf="showForm">
+    <h3>{{ editingId ? 'Edit Gate Entry' : 'New Gate Entry' }}</h3>
+
+    <!-- ── Visit & reason ── -->
+    <h4 class="section-title">Visit & Reason</h4>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="form.entryDate" name="entryDate" appendTo="body" dateFormat="dd M yy" />
+          <label>Date *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="form.timeIn" name="timeIn" appendTo="body" [timeOnly]="true" hourFormat="12" />
+          <label>Time-In</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.securityGuardName" name="securityGuardName" />
+          <label>Security Guard</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="referenceTypeOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.referenceType" name="referenceType" appendTo="body"
+            (onChange)="onReferenceTypeChange()" />
+          <label>Reference Type</label>
+        </p-floatlabel>
+      </div>
+      <div class="field" *ngIf="form.referenceType === 'PURCHASE_ORDER'">
+        <p-floatlabel variant="on">
+          <p-select [options]="poOptions" optionLabel="label" optionValue="value" [filter]="true" [showClear]="true"
+            [(ngModel)]="form.purchaseOrderId" name="purchaseOrderId" appendTo="body" (onChange)="onSelectPo()" />
+          <label>Select Purchase Order</label>
+        </p-floatlabel>
+      </div>
+      <div class="field" *ngIf="form.referenceType === 'WORK_ORDER'">
+        <p-floatlabel variant="on">
+          <p-select [options]="woOptions" optionLabel="label" optionValue="value" [filter]="true" [showClear]="true"
+            [(ngModel)]="form.workOrderId" name="workOrderId" appendTo="body" (onChange)="onSelectWo()" />
+          <label>Select Work Order</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.referenceNo" name="referenceNo" />
+          <label>Reference No (PO / WO)</label>
+        </p-floatlabel>
+      </div>
+    </div>
+    <small class="hint">Pick the PO/WO from the list to auto-fill the number &amp; vendor — or just type the reference number if it isn't in the system yet.</small>
+
+    <!-- ── Delivering party ── -->
+    <h4 class="section-title">Delivering Party</h4>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.vendorName" name="vendorName" />
+          <label>Vendor / Coming From</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.deliveryPersonName" name="deliveryPersonName" />
+          <label>Delivery Person</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.deliveryPersonContact" name="deliveryPersonContact" />
+          <label>Contact No</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="govtIdTypeOptions" optionLabel="label" optionValue="value" [showClear]="true"
+            [(ngModel)]="form.govtIdType" name="govtIdType" appendTo="body" />
+          <label>Govt ID Type</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.govtIdNumber" name="govtIdNumber" />
+          <label>Govt ID Number</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.vehicleNo" name="vehicleNo" />
+          <label>Vehicle No</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="vehicleTypeOptions" optionLabel="label" optionValue="value" [showClear]="true"
+            [(ngModel)]="form.vehicleType" name="vehicleType" appendTo="body" />
+          <label>Vehicle Type</label>
+        </p-floatlabel>
+      </div>
+    </div>
+
+    <!-- ── Documents ── -->
+    <h4 class="section-title">Documents</h4>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.dcOrInvoiceNo" name="dcOrInvoiceNo" />
+          <label>DC / Invoice No</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.ewayBillNo" name="ewayBillNo" />
+          <label>E-way Bill No</label>
+        </p-floatlabel>
+      </div>
+    </div>
+
+    <!-- ── Material ── -->
+    <h4 class="section-title">Material</h4>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="returnableOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.returnableType" name="returnableType" appendTo="body" />
+          <label>Type</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.description" name="description" />
+          <label>Material Description *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.brand" name="brand" />
+          <label>Brand</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.serialOrTagNo" name="serialOrTagNo" />
+          <label>Serial / Tag No</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.quantity" name="quantity" min="1" />
+          <label>Quantity</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.packageCount" name="packageCount" min="0" />
+          <label>No. of Packages</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="conditionOptions" optionLabel="label" optionValue="value" [showClear]="true"
+            [(ngModel)]="form.conditionOnArrival" name="conditionOnArrival" appendTo="body" />
+          <label>Condition on Arrival</label>
+        </p-floatlabel>
+      </div>
+      <div class="field" *ngIf="form.returnableType === 'RETURNABLE'">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="form.returnDate" name="returnDate" appendTo="body" dateFormat="dd M yy" />
+          <label>Return Date</label>
+        </p-floatlabel>
+      </div>
+      <div class="field" *ngIf="form.returnableType === 'RETURNABLE'">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.gatePassNo" name="gatePassNo" />
+          <label>Linked Gate Pass No</label>
+        </p-floatlabel>
+      </div>
+    </div>
+
+    <!-- ── Receiving ── -->
+    <h4 class="section-title">Internal Receiving</h4>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.whomToMeet" name="whomToMeet" />
+          <label>Whom to Meet / Receiver</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="departmentOptions" optionLabel="label" optionValue="value" [filter]="true" [showClear]="true"
+            [(ngModel)]="form.department" name="department" appendTo="body" />
+          <label>Department</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-select [options]="employeeOptions" optionLabel="label" optionValue="value" [filter]="true" [showClear]="true"
+            [(ngModel)]="form.receivedBy" name="receivedBy" appendTo="body" />
+          <label>Received By</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="form.timeOut" name="timeOut" appendTo="body" [timeOnly]="true" hourFormat="12" />
+          <label>Time-Out</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.senderAddress" name="senderAddress" />
+          <label>Sender Address</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <textarea pTextarea [(ngModel)]="form.remarks" name="remarks" rows="2"></textarea>
+          <label>Remarks</label>
+        </p-floatlabel>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="reset()" />
+      <p-button [label]="editingId ? 'Update' : 'Save'" icon="pi pi-save" (onClick)="save()" />
+    </div>
+  </div>
+
+  <p-table [value]="rows" [loading]="loading" [paginator]="true" [rows]="10"
+    responsiveLayout="scroll" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Inward No</th>
+        <th>Date</th>
+        <th>Reference</th>
+        <th>Delivered By</th>
+        <th>Vehicle</th>
+        <th>Material</th>
+        <th>Qty</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td><strong>{{ row.inwardNo || '—' }}</strong></td>
+        <td>{{ row.entryDate | date:'dd MMM yyyy' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip>
+          <span *ngIf="row.referenceNo">{{ row.referenceNo }}</span>
+          <span *ngIf="!row.referenceNo">—</span>
+          <span *ngIf="row.referenceType" style="color:#64748b"> · {{ row.referenceType }}</span>
+        </td>
+        <td class="ellipsis-cell" appOverflowTooltip>{{ row.vendorName || row.deliveryPersonName || '—' }}</td>
+        <td>{{ row.vehicleNo || '—' }}</td>
+        <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ row.description }}</td>
+        <td>{{ row.quantity ?? '—' }}</td>
+        <td><p-tag [value]="row.status" [severity]="statusSeverity(row.status)" /></td>
+        <td>
+          <div class="action-buttons">
+            <p-button *ngIf="row.status === 'AT_GATE'" icon="pi pi-check" size="small" severity="info" [text]="true"
+              (onClick)="setStatus(row, 'RECEIVED')" pTooltip="Mark Received" tooltipPosition="top" />
+            <p-button *ngIf="row.status === 'RECEIVED'" icon="pi pi-verified" size="small" severity="success" [text]="true"
+              (onClick)="setStatus(row, 'HANDED_OVER')" pTooltip="Mark Handed Over" tooltipPosition="top" />
+            <p-button icon="pi pi-pencil" size="small" severity="secondary" [text]="true"
+              (onClick)="edit(row)" pTooltip="Edit" tooltipPosition="top" />
+            <p-button icon="pi pi-trash" size="small" severity="danger" [text]="true"
+              (onClick)="delete(row)" pTooltip="Delete" tooltipPosition="top" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="9" class="text-center">No gate entries recorded</td></tr>
+    </ng-template>
+  </p-table>
+</div>

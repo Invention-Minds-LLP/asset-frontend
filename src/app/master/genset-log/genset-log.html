@@ -1,0 +1,139 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Genset &amp; Diesel Log</h2>
+      <p>Daily generator run hours and diesel stock log.</p>
+    </div>
+    <p-button *ngIf="!showForm" label="New Entry" icon="pi pi-plus" (onClick)="showForm = true" />
+  </div>
+
+  <div class="form-card" *ngIf="showForm">
+    <h3>{{ editingId ? 'Edit Entry' : 'New Entry' }}</h3>
+    <div class="form-grid">
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-datepicker [(ngModel)]="form.logDate" name="logDate" appendTo="body" dateFormat="dd M yy" />
+          <label>Date *</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.genSetOnTime" name="genSetOnTime" />
+          <label>Gen-Set On-Time</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.genSetOffTime" name="genSetOffTime" />
+          <label>Gen-Set Off-Time</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.openingMeterReading" name="openingMeterReading" />
+          <label>Opening Meter Reading</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.closingMeterReading" name="closingMeterReading" />
+          <label>Closing Meter Reading</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.totalHoursRun" name="totalHoursRun" />
+          <label>Total Hours Run</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.dieselOpeningStock" name="dieselOpeningStock" />
+          <label>Diesel Opening Stock</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.dieselPurchasedBillNo" name="dieselPurchasedBillNo" />
+          <label>Diesel Purchased Bill No</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.litersPurchased" name="litersPurchased" />
+          <label>Liters Purchased</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.dieselClosingStock" name="dieselClosingStock" />
+          <label>Diesel Closing Stock</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText type="number" [(ngModel)]="form.consumptionLiters" name="consumptionLiters" />
+          <label>Consumption (L)</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.authorisedBy" name="authorisedBy" />
+          <label>Authorised By</label>
+        </p-floatlabel>
+      </div>
+      <div class="field full-width">
+        <p-floatlabel variant="on">
+          <textarea pTextarea [(ngModel)]="form.remarks" name="remarks" rows="2"></textarea>
+          <label>Remarks</label>
+        </p-floatlabel>
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="reset()" />
+      <p-button [label]="editingId ? 'Update' : 'Save'" icon="pi pi-save" (onClick)="save()" />
+    </div>
+  </div>
+
+  <p-table [value]="rows" [loading]="loading" [paginator]="true" [rows]="10"
+    responsiveLayout="scroll" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Date</th>
+        <th>On-Time</th>
+        <th>Off-Time</th>
+        <th>Hours Run</th>
+        <th>Opening</th>
+        <th>Closing</th>
+        <th>Diesel Purchased (L)</th>
+        <th>Consumption (L)</th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>{{ row.logDate | date:'dd MMM yyyy' }}</td>
+        <td>{{ row.genSetOnTime || '—' }}</td>
+        <td>{{ row.genSetOffTime || '—' }}</td>
+        <td>{{ row.totalHoursRun ?? '—' }}</td>
+        <td>{{ row.openingMeterReading ?? '—' }}</td>
+        <td>{{ row.closingMeterReading ?? '—' }}</td>
+        <td>{{ row.litersPurchased ?? '—' }}</td>
+        <td>{{ row.consumptionLiters ?? '—' }}</td>
+        <td>
+          <div class="action-buttons">
+            <p-button icon="pi pi-pencil" size="small" severity="secondary" [text]="true"
+              (onClick)="edit(row)" pTooltip="Edit" tooltipPosition="top" />
+            <p-button icon="pi pi-trash" size="small" severity="danger" [text]="true"
+              (onClick)="delete(row)" pTooltip="Delete" tooltipPosition="top" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="9" class="text-center">No genset logs recorded</td></tr>
+    </ng-template>
+  </p-table>
+</div>
