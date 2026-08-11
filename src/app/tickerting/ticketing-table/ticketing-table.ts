@@ -540,13 +540,21 @@ export class TicketingTable {
   }
 
   // -------- permission helpers (Assigned tab) ----------
+  // Gate on being the ASSIGNEE, not on holding the SUPERVISOR role — that is
+  // what the server enforces (requireAssignedTo). Auto-assignment can pick a
+  // configured sub-type repair engineer of any role, and a role check left
+  // those people staring at a ticket with no buttons on it.
+  private iAmAssignee(t: any): boolean {
+    return !!this.myEmployeeDbId && t?.assignedToId === this.myEmployeeDbId;
+  }
+
   canStartWork(t: any) {
-    return this.userRole === 'SUPERVISOR'
+    return this.iAmAssignee(t)
       && (t.status === 'ASSIGNED' || t.status === 'ON_HOLD');
   }
 
   canHold(t: any) {
-    return this.userRole === 'SUPERVISOR'
+    return this.iAmAssignee(t)
       && t.status === 'IN_PROGRESS';
   }
 
@@ -554,7 +562,7 @@ export class TicketingTable {
     return this.userRole === 'HOD' && t.status === 'WORK_COMPLETED';
   }
   canMarkCompleted(t: any) {
-    return this.userRole === 'SUPERVISOR'
+    return this.iAmAssignee(t)
       && (t.status === 'IN_PROGRESS' || t.status === 'ON_HOLD');
   }
 
