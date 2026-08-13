@@ -25,6 +25,8 @@ import { ModuleAccessService } from '../../services/module-access/module-access'
 import { EmployeeRole, Employees } from '../../services/employees/employees';
 import { Auth } from '../../services/auth/auth';
 import { TabViewModule } from 'primeng/tabview';
+import { CheckboxModule } from 'primeng/checkbox';
+import { TagModule } from 'primeng/tag';
 type SettingsSection = 'profile' | 'reset' | 'user' | 'employee' | 'table' | 'master';
 type ThemeMode = 'light' | 'dark';
 
@@ -43,6 +45,8 @@ type ThemeMode = 'light' | 'dark';
     Select,
     TabViewModule,
     FormsModule,
+    CheckboxModule,
+    TagModule,
   ],
  providers: [MessageService, ConfirmationService],
   templateUrl: './settings.html',
@@ -161,6 +165,9 @@ export class Settings {
       email:         ['', [Validators.email]],
       phone:         [''],
       reportingToId: [null as number | null],
+      // Contract / agency staff (e.g. outsourced security). Set at creation
+      // only — see the note in editEmployee().
+      isOutsourced:  [false],
     });
     this.userForm = this.fb.group({
       employeeID: ['', Validators.required],
@@ -398,11 +405,17 @@ export class Settings {
       email:         row.email ?? '',
       phone:         row.phone ?? '',
       reportingToId: row.reportingToId ?? null,
+      isOutsourced:  row.isOutsourced ?? false,
     });
     // Switch to the Employee Creation section so the form is visible
     this.activeSection = 'employee';
     // Disable Employee ID in edit mode — changing it would break the User FK
     this.employeeForm.get('employeeID')?.disable();
+    // Outsourced status rides on the employee ID (the "OS-" prefix), and that
+    // ID can't change here, so the flag can't either — flipping it would leave
+    // the two disagreeing. Existing staff are not reclassified; the backend
+    // ignores this field on update regardless.
+    this.employeeForm.get('isOutsourced')?.disable();
     this.cdr.detectChanges();
   }
 
@@ -427,6 +440,8 @@ export class Settings {
       email:         trim(v.email),
       phone:         trim(v.phone),
       reportingToId: v.reportingToId != null ? Number(v.reportingToId) : null,
+      // Only meaningful on create — the backend drops it on update.
+      isOutsourced:  v.isOutsourced === true,
     };
 
     const call = this.editingEmployeeId
@@ -450,8 +465,9 @@ export class Settings {
 
   clearEmployeeForm() {
     this.editingEmployeeId = null;
-    this.employeeForm.reset({ role: 'EXECUTIVE', departmentId: null, reportingToId: null });
+    this.employeeForm.reset({ role: 'EXECUTIVE', departmentId: null, reportingToId: null, isOutsourced: false });
     this.employeeForm.get('employeeID')?.enable();
+    this.employeeForm.get('isOutsourced')?.enable();
   }
 
   deleteEmployee(id: number) {

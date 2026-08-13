@@ -13,6 +13,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
 import { DatePickerModule } from 'primeng/datepicker';
+import { CheckboxModule } from 'primeng/checkbox';
 import { MessageService } from 'primeng/api';
 import { GatePassService } from '../../services/gate-pass/gate-pass';
 import { Assets } from '../../services/assets/assets';
@@ -35,7 +36,7 @@ interface ItemRow {
     CommonModule, FormsModule,
     ButtonModule, TableModule, TagModule, ToastModule, TabViewModule,
     InputTextModule, FloatLabelModule, SelectModule, TextareaModule, TooltipModule, DialogModule,
-    OverflowTooltipDirective,DatePickerModule
+    OverflowTooltipDirective, DatePickerModule, CheckboxModule
   ],
   templateUrl: './gate-pass.html',
   styleUrl: './gate-pass.css',
@@ -59,11 +60,56 @@ export class GatePass implements OnInit {
     { label: 'Returnable', value: 'RETURNABLE' },
     { label: 'Non-Returnable', value: 'NON_RETURNABLE' }
   ];
-  vehicleTypeOptions = [
-    { label: 'Hospital Vehicle', value: 'HOSPITAL_VEHICLE' },
-    { label: 'Outside Vehicle', value: 'OUTSIDE_VEHICLE' }
-  ];
   assetOptions: { label: string; value: number }[] = [];
+
+  // Who is looking. Row actions are the raiser's (plus admin) — an approver's
+  // tool for stopping someone else's pass is Reject, which records a reason.
+  private myEmployeeId = Number(localStorage.getItem('employeeDbId')) || null;
+  private myRole = localStorage.getItem('role') || '';
+  // Employee.role decides the approval route. Falls back to User.role for
+  // sessions that signed in before it was returned.
+  private myEmployeeRole = localStorage.getItem('employeeRole') || localStorage.getItem('role') || '';
+
+  /**
+   * Only approvers get the approval queue. Security staff are explicitly barred
+   * from approving (the API returns 403), so showing them an approval tab was
+   * offering a job they cannot do.
+   */
+  canApprove(): boolean {
+    const r = [this.myRole, this.myEmployeeRole];
+    if (r.includes('SECURITY')) return false;
+    return r.some(x => ['ADMIN', 'HOD', 'OPERATIONS', 'CEO_COO'].includes(x));
+  }
+
+  /** An HOD or above endorses their own request, so stage one is skipped. */
+  private skipsHodStage(): boolean {
+    return this.myEmployeeRole === 'HOD' || this.myEmployeeRole === 'CEO_COO';
+  }
+
+  /**
+   * The submit button said "Submit for HOD approval" for everyone — untrue for
+   * an HOD, whose pass goes straight to Operations.
+   */
+  submitTooltip(): string {
+    return this.skipsHodStage()
+      ? 'Submit for Operations approval — your own department approval is not required'
+      : 'Submit for HOD approval';
+  }
+
+  /** True when the signed-in user raised this pass. */
+  isMine(row: any): boolean {
+    return this.myEmployeeId != null && row?.requestedById === this.myEmployeeId;
+  }
+
+  /** Admins act on anyone's pass; everyone else only on their own. */
+  canManage(row: any): boolean {
+    return this.myRole === 'ADMIN' || this.isMine(row);
+  }
+  employeeOptions: { label: string; value: number }[] = [];
+  departmentOptions: { label: string; value: number }[] = [];
+  // Kept so picking a carrier can auto-fill their ID, phone and department.
+  private employeeById = new Map<number, any>();
+  private assetById = new Map<number, any>();
 
   constructor(
     private gatePassService: GatePassService,
@@ -77,6 +123,8 @@ export class GatePass implements OnInit {
     this.loadOverdue();
     this.loadPendingApproval();
     this.loadAssets();
+    this.loadEmployees();
+    this.loadDepartments();
   }
 
   // ── Form ───────────────────────────────────────────────────────────────────
@@ -86,12 +134,14 @@ export class GatePass implements OnInit {
       issuedTo: '',
       purpose: '',
       expectedReturnDate: null as Date | null,
-      courierDetails: '',
-      vehicleNo: '',
-      vehicleType: null as string | null,
+      // Carrier: an employee by default, or free text when someone outside the
+      // organisation (courier, vendor rep) is taking the items.
+      carriedByEmployeeId: null as number | null,
+      externalCarrier: false,
       carriedBy: '',
       employeeCode: '',
       employeeContact: '',
+      processDepartmentId: null as number | null,
       processDept: '',
       toAddress: '',
       reason: '',
@@ -121,16 +171,119 @@ export class GatePass implements OnInit {
     });
   }
   loadPendingApproval() {
+    if (!this.canApprove()) return;
     this.gatePassService.getPendingApproval().subscribe({
       next: r => { setTimeout(() => { this.pendingApprovalRows = r || []; this.cdr.detectChanges(); }); },
       error: () => {}
     });
   }
+  /**
+   * Uses the dropdown endpoint, not the role-scoped asset list.
+   *
+   * getAllAssets() scopes by who may MANAGE an asset, which is the wrong
+   * question here — a requester frequently ships equipment their own department
+   * doesn't own (a technician sends an ICU monitor; security sends a camera).
+   * With 7 of 9 departments holding no assets at all, that scoping left the
+   * picker empty for most people.
+   *
+   * Letting anyone select any asset is safe because the movement still needs the
+   * owning department's HOD to approve it, and a pass may only cover one
+   * department. This endpoint also excludes disposed/scrapped/retired assets,
+   * which should never leave on a gate pass anyway.
+   */
   loadAssets() {
-    this.assetsService.getAllAssets().subscribe({
-      next: (res: any[]) => { setTimeout(() => { this.assetOptions = res.map(a => ({ label: `${a.assetId} - ${a.assetName}`, value: a.id })); this.cdr.detectChanges(); }); },
+    this.assetsService.getAllAssetsForDropdown().subscribe({
+      next: (res: any[]) => {
+        setTimeout(() => {
+          // Keep the department against each asset so the one-department rule
+          // can be checked here, before the server rejects the submission.
+          this.assetById = new Map((res || []).map(a => [a.id, a]));
+          // Department is shown in the label: a pass may only cover one
+          // department, so the requester needs to see it while choosing.
+          this.assetOptions = (res || []).map(a => ({
+            label: `${a.assetId} - ${a.assetName}${a.department?.name ? ` · ${a.department.name}` : ''}`,
+            value: a.id,
+          }));
+          this.cdr.detectChanges();
+        });
+      },
       error: () => {}
     });
+  }
+
+  /**
+   * Distinct department names across the asset-linked rows. More than one means
+   * the pass would need two HODs to approve it, which the workflow doesn't allow.
+   */
+  private mixedDepartments(items: ItemRow[]): string[] {
+    const names = new Map<number, string>();
+    for (const it of items) {
+      if (!it.assetId) continue;
+      const a = this.assetById.get(it.assetId);
+      const deptId = a?.departmentId ?? a?.department?.id;
+      if (deptId == null) continue;
+      names.set(Number(deptId), a?.department?.name ?? this.departmentName(Number(deptId)));
+    }
+    return [...names.values()];
+  }
+
+  private departmentName(id: number): string {
+    return this.departmentOptions.find(d => d.value === id)?.label ?? `Department ${id}`;
+  }
+
+  loadEmployees() {
+    this.assetsService.getEmployees().subscribe({
+      next: (res: any[]) => {
+        setTimeout(() => {
+          this.employeeById = new Map((res || []).map(e => [e.id, e]));
+          this.employeeOptions = (res || []).map(e => ({
+            label: `${e.name} (${e.employeeID})`,
+            value: e.id,
+          }));
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
+    });
+  }
+
+  loadDepartments() {
+    this.assetsService.getDepartments().subscribe({
+      next: (res: any[]) => {
+        setTimeout(() => {
+          this.departmentOptions = (res || []).map(d => ({ label: d.name, value: d.id }));
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
+    });
+  }
+
+  /**
+   * Picking a carrier fills in their ID, phone and department, so the three
+   * dependent fields can't be typed wrong (or filled with "Goods").
+   */
+  onCarrierChange() {
+    const emp = this.form.carriedByEmployeeId ? this.employeeById.get(this.form.carriedByEmployeeId) : null;
+    if (!emp) { this.form.employeeCode = ''; this.form.employeeContact = ''; return; }
+    this.form.carriedBy = emp.name || '';
+    this.form.employeeCode = emp.employeeID || '';
+    this.form.employeeContact = emp.phone || '';
+    // Default the accountable department to theirs; still changeable, because a
+    // technician often carries another department's asset.
+    if (!this.form.processDepartmentId && emp.departmentId) {
+      this.form.processDepartmentId = emp.departmentId;
+    }
+  }
+
+  /** Switching to an external carrier drops the employee link and its auto-fill. */
+  onExternalCarrierChange() {
+    if (this.form.externalCarrier) {
+      this.form.carriedByEmployeeId = null;
+      this.form.employeeCode = '';
+    }
+    this.form.carriedBy = '';
+    this.form.employeeContact = '';
   }
 
   // ── Save (always lands as DRAFT) ───────────────────────────────────────────
@@ -143,15 +296,23 @@ export class GatePass implements OnInit {
     if (cleanItems.length === 0) {
       this.toast('warn', 'Add at least one item (select an asset or enter an item description)'); return;
     }
+    // Caught here as well as on the server, so the problem surfaces while the
+    // form is still open rather than at submit time.
+    const depts = this.mixedDepartments(cleanItems);
+    if (depts.length > 1) {
+      this.toast('warn', `This pass mixes assets from ${depts.join(' and ')}. Raise a separate gate pass for each department.`);
+      return;
+    }
 
     const payload: any = {
       type: this.form.type,
       issuedTo: this.form.issuedTo,
       purpose: this.form.purpose,
       expectedReturnDate: this.form.expectedReturnDate || undefined,
-      courierDetails: this.form.courierDetails,
-      vehicleNo: this.form.vehicleNo,
-      vehicleType: this.form.vehicleType,
+      // The server re-derives carriedBy / employeeCode / processDept from these
+      // links; the strings below only stand alone for an external carrier.
+      carriedByEmployeeId: this.form.externalCarrier ? null : this.form.carriedByEmployeeId,
+      processDepartmentId: this.form.processDepartmentId,
       carriedBy: this.form.carriedBy,
       employeeCode: this.form.employeeCode,
       employeeContact: this.form.employeeContact,
@@ -188,12 +349,13 @@ export class GatePass implements OnInit {
       issuedTo: row.issuedTo || '',
       purpose: row.purpose || '',
       expectedReturnDate: row.expectedReturnDate ? new Date(row.expectedReturnDate) : null,
-      courierDetails: row.courierDetails || '',
-      vehicleNo: row.vehicleNo || '',
-      vehicleType: row.vehicleType || null,
+      carriedByEmployeeId: row.carriedByEmployeeId ?? null,
+      // No employee link but a name recorded → it was an external carrier.
+      externalCarrier: !row.carriedByEmployeeId && !!row.carriedBy,
       carriedBy: row.carriedBy || '',
       employeeCode: row.employeeCode || '',
       employeeContact: row.employeeContact || '',
+      processDepartmentId: row.processDepartmentId ?? null,
       processDept: row.processDept || '',
       toAddress: row.toAddress || '',
       reason: row.reason || '',
@@ -214,7 +376,15 @@ export class GatePass implements OnInit {
   // ── Lifecycle actions ──────────────────────────────────────────────────────
   submit(row: any) {
     this.gatePassService.submit(row.id).subscribe({
-      next: () => { this.toast('success', 'Submitted for HOD approval'); this.refreshAll(); },
+      // Report where it ACTUALLY went, read back from the response, rather than
+      // assuming — the server decides the route.
+      next: (res: any) => {
+        const msg = res?.status === 'PENDING_OPS_APPROVAL'
+          ? 'Submitted for Operations approval'
+          : 'Submitted for HOD approval';
+        this.toast('success', msg);
+        this.refreshAll();
+      },
       error: (err) => this.toast('error', err?.error?.message || 'Failed to submit')
     });
   }
@@ -240,27 +410,67 @@ export class GatePass implements OnInit {
     });
   }
 
+  // Cancel / delete both go through a dialog rather than a browser confirm(),
+  // so the consequence is spelled out and the styling matches the rest of the app.
+  confirmDialog = {
+    open: false, row: null as any, saving: false,
+    mode: 'cancel' as 'cancel' | 'delete',
+  };
+
   cancel(row: any) {
-    if (!confirm(`Cancel gate pass ${row.gatePassNo}?`)) return;
-    this.gatePassService.updateStatus(row.id, 'CANCELLED').subscribe({
-      next: () => { this.toast('success', 'Cancelled'); this.refreshAll(); },
-      error: (err) => this.toast('error', err?.error?.message || 'Failed to cancel')
-    });
+    this.confirmDialog = { open: true, row, saving: false, mode: 'cancel' };
+  }
+
+  delete(row: any) {
+    if (row.status !== 'DRAFT') { this.toast('warn', 'Only DRAFT passes can be deleted'); return; }
+    this.confirmDialog = { open: true, row, saving: false, mode: 'delete' };
+  }
+
+  confirmDialogTitle(): string {
+    return this.confirmDialog.mode === 'delete' ? 'Delete Gate Pass' : 'Cancel Gate Pass';
+  }
+
+  confirmDialogBody(): string {
+    return this.confirmDialog.mode === 'delete'
+      ? 'This draft will be removed permanently, along with its items. This cannot be undone.'
+      : 'The pass will be cancelled and can no longer be approved or issued. Raise a new pass if the movement still needs to happen.';
+  }
+
+  runConfirmed() {
+    const { row, mode } = this.confirmDialog;
+    if (!row) return;
+    this.confirmDialog.saving = true;
+
+    const done = (msg: string) => {
+      setTimeout(() => {
+        this.confirmDialog = { open: false, row: null, saving: false, mode };
+        this.toast('success', msg);
+        this.refreshAll();
+        this.cdr.detectChanges();
+      });
+    };
+    const failed = (err: any, fallback: string) => {
+      setTimeout(() => { this.confirmDialog.saving = false; this.cdr.detectChanges(); });
+      this.toast('error', err?.error?.message || fallback);
+    };
+
+    if (mode === 'delete') {
+      this.gatePassService.delete(row.id).subscribe({
+        next: () => done('Deleted'),
+        error: (err) => failed(err, 'Failed to delete'),
+      });
+    } else {
+      this.gatePassService.updateStatus(row.id, 'CANCELLED').subscribe({
+        next: () => done('Cancelled'),
+        error: (err) => failed(err, 'Failed to cancel'),
+      });
+    }
   }
 
   close(row: any) {
     this.gatePassService.updateStatus(row.id, 'CLOSED').subscribe({
       next: () => { this.toast('success', 'Closed'); this.refreshAll(); },
       error: (err) => this.toast('error', err?.error?.message || 'Failed to close')
-    });
-  }
-
-  delete(row: any) {
-    if (row.status !== 'DRAFT') { this.toast('warn', 'Only DRAFT passes can be deleted'); return; }
-    if (!confirm(`Delete gate pass ${row.gatePassNo}?`)) return;
-    this.gatePassService.delete(row.id).subscribe({
-      next: () => { this.toast('success', 'Deleted'); this.refreshAll(); },
-      error: (err) => this.toast('error', err?.error?.message || 'Failed to delete')
     });
   }
 
@@ -280,10 +490,30 @@ export class GatePass implements OnInit {
   refreshAll() { this.loadAll(); this.loadOverdue(); this.loadPendingApproval(); }
   reset() { this.editingId = null; this.showForm = false; this.form = this.getEmptyForm(); }
 
+  /**
+   * Approval runs in two stages, so the raw status is ambiguous to a reader —
+   * "PENDING_APPROVAL" doesn't say *whose*. These labels do.
+   */
+  statusLabel(s: string): string {
+    const m: Record<string, string> = {
+      DRAFT: 'DRAFT',
+      PENDING_APPROVAL: 'AWAITING HOD',
+      PENDING_OPS_APPROVAL: 'AWAITING OPERATIONS',
+      APPROVED: 'APPROVED',
+      SECURITY_CLEARED: 'CLEARED — AWAITING EXIT',
+      REJECTED: 'REJECTED',
+      ISSUED: 'ISSUED',
+      RETURNED: 'RETURNED',
+      CLOSED: 'CLOSED',
+      CANCELLED: 'CANCELLED',
+    };
+    return m[s] ?? s;
+  }
+
   getStatusSeverity(s: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     const m: Record<string, any> = {
-      DRAFT: 'secondary', PENDING_APPROVAL: 'warn',
-      APPROVED: 'info', REJECTED: 'danger',
+      DRAFT: 'secondary', PENDING_APPROVAL: 'warn', PENDING_OPS_APPROVAL: 'warn',
+      APPROVED: 'info', SECURITY_CLEARED: 'info', REJECTED: 'danger',
       ISSUED: 'info', RETURNED: 'success', CLOSED: 'secondary', CANCELLED: 'danger'
     };
     return m[s] ?? 'secondary';

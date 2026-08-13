@@ -320,13 +320,41 @@ export class GoodsReceipts implements OnInit {
   inspectGRA() {
     if (!this.detailGRA) return;
     const user = { employeeDbId: localStorage.getItem('employeeDbId') };
-    const lineResults = (this.detailGRA.lines || []).map((line: any) => ({
-      lineId: line.id,
-      inspectionStatus: line.inspectionStatus || 'PASS',
-      inspectionRemarks: line.inspectionRemarks || '',
-      acceptedQty: line.inspectionStatus === 'FAIL' ? 0 : (line.acceptedQty ?? line.receivedQty ?? 0),
-      rejectedQty: line.inspectionStatus === 'FAIL' ? (line.receivedQty ?? 0) : (line.rejectedQty ?? 0),
-    }));
+
+    // Validate before submitting: result chosen, quantities reconcile with
+    // received, and quantities match the chosen result.
+    const lineResults: any[] = [];
+    for (const line of this.detailGRA.lines || []) {
+      const received = line.receivedQty ?? 0;
+      const result = line.inspectionStatus;
+      const label = line.description || `Line ${line.id}`;
+
+      if (!result) {
+        this.messageService.add({ severity: 'warn', summary: 'Missing', detail: `${label}: select an inspection result (Pass / Fail / Partial)` });
+        return;
+      }
+
+      // Pass/Fail are all-or-nothing — quantities derive automatically
+      const accepted = result === 'FAIL' ? 0 : result === 'PASS' ? received : (line.acceptedQty ?? 0);
+      const rejected = result === 'FAIL' ? received : result === 'PASS' ? 0 : (line.rejectedQty ?? 0);
+
+      if (accepted + rejected !== received) {
+        this.messageService.add({ severity: 'warn', summary: 'Quantities don\'t add up', detail: `${label}: accepted (${accepted}) + rejected (${rejected}) must equal received quantity (${received})` });
+        return;
+      }
+      if (result === 'PARTIAL' && (accepted === 0 || rejected === 0)) {
+        this.messageService.add({ severity: 'warn', summary: 'Invalid result', detail: `${label}: PARTIAL needs some accepted AND some rejected — use Pass or Fail otherwise` });
+        return;
+      }
+
+      lineResults.push({
+        lineId: line.id,
+        inspectionStatus: result,
+        inspectionRemarks: line.inspectionRemarks || '',
+        acceptedQty: accepted,
+        rejectedQty: rejected,
+      });
+    }
 
     this.inspectingGRA = true;
     this.graService.inspect(this.detailGRA.id, {
@@ -343,9 +371,9 @@ export class GoodsReceipts implements OnInit {
           this.cdr.detectChanges();
         });
       },
-      error: () => {
+      error: (err: any) => {
         this.inspectingGRA = false;
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to inspect GRA' });
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || 'Failed to inspect GRA' });
       }
     });
   }
@@ -366,9 +394,9 @@ export class GoodsReceipts implements OnInit {
           this.cdr.detectChanges();
         });
       },
-      error: () => {
+      error: (err: any) => {
         this.acceptingGRA = false;
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to accept GRA' });
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err?.error?.message || 'Failed to accept GRA' });
       }
     });
   }

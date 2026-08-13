@@ -37,8 +37,9 @@ interface ItemReturn {
   providers: [MessageService]
 })
 export class GatePassSecurity implements OnInit {
-  approvedRows: any[] = [];   // ready to issue (gate-out)
-  issuedRows: any[] = [];     // out, awaiting return (gate-in)
+  approvedRows: any[] = [];   // approved, awaiting desk verification
+  clearedRows: any[] = [];    // verified + transport recorded, awaiting label & exit
+  issuedRows: any[] = [];     // physically out, awaiting return (gate-in)
   overdueCount = 0;           // RETURNABLE + ISSUED + past expectedReturnDate
   loading = false;
 
@@ -59,6 +60,18 @@ export class GatePassSecurity implements OnInit {
     { label: 'Partial', value: 'PARTIAL' },
   ];
 
+  // ── History — every pass that physically crossed the gate ─────────────────
+  // Server-paginated: unlike the two queues, this only grows. It exists so the
+  // officer who just gated a pass in can still print it for their file — before
+  // this, gate-in made the pass disappear from the console entirely.
+  historyRows: any[] = [];
+  historyTotal = 0;
+  historyPage = 1;
+  historyLimit = 10;
+  historySearch = '';
+  historyLoading = false;
+  historyLoaded = false;
+
   constructor(
     private gatePassService: GatePassService,
     private messageService: MessageService,
@@ -73,6 +86,7 @@ export class GatePassSecurity implements OnInit {
       next: (rows) => {
         setTimeout(() => {
           this.approvedRows = (rows || []).filter(r => r.status === 'APPROVED');
+          this.clearedRows  = (rows || []).filter(r => r.status === 'SECURITY_CLEARED');
           this.issuedRows   = (rows || []).filter(r => r.status === 'ISSUED');
           const today = new Date().toISOString().slice(0, 10);
           this.overdueCount = this.issuedRows.filter(r =>
@@ -84,6 +98,42 @@ export class GatePassSecurity implements OnInit {
       },
       error: () => { this.loading = false; this.toast('error', 'Failed to load security queue'); }
     });
+  }
+
+  // Lazy — only hit the server when the operator actually opens the tab.
+  // Signature matches PrimeNG's TableLazyLoadEvent, whose fields are nullable.
+  loadHistory(event?: { first?: number | null; rows?: number | null }) {
+    if (event) {
+      this.historyLimit = event.rows ?? this.historyLimit;
+      this.historyPage = Math.floor((event.first ?? 0) / this.historyLimit) + 1;
+    }
+    this.historyLoading = true;
+    this.gatePassService.getSecurityHistory({
+      page: this.historyPage,
+      limit: this.historyLimit,
+      search: this.historySearch.trim() || undefined,
+    }).subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          this.historyRows = res?.data || [];
+          this.historyTotal = res?.total || 0;
+          this.historyLoading = false;
+          this.historyLoaded = true;
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        setTimeout(() => { this.historyLoading = false; this.cdr.detectChanges(); });
+        this.toast('error', 'Failed to load gate pass history');
+      }
+    });
+  }
+
+  searchHistory() { this.historyPage = 1; this.loadHistory(); }
+
+  onTabChange(index: number) {
+    // History is the fourth tab; load it once on first open.
+    if (index === 3 && !this.historyLoaded) this.loadHistory();
   }
 
   isOverdue(row: any): boolean {
@@ -102,21 +152,96 @@ export class GatePassSecurity implements OnInit {
     if (!q) return;
     // Server-side filter by gatePassNo isn't a separate endpoint; we filter client-side from the queue.
     // Fall back to /:id flow only if the user typed a numeric id.
-    const matchInApproved = this.approvedRows.find(r => r.gatePassNo === q);
-    const matchInIssued   = this.issuedRows.find(r => r.gatePassNo === q);
-    if (matchInApproved) { this.toast('success', `Found ${q} — ready to gate-out`); return; }
-    if (matchInIssued)   { this.toast('success', `Found ${q} — currently out, ready for gate-in`); return; }
+    if (this.approvedRows.some(r => r.gatePassNo === q)) { this.toast('success', `Found ${q} — ready to verify and clear`); return; }
+    if (this.clearedRows.some(r => r.gatePassNo === q))  { this.toast('success', `Found ${q} — cleared, awaiting label / exit`); return; }
+    if (this.issuedRows.some(r => r.gatePassNo === q))   { this.toast('success', `Found ${q} — currently out, ready for gate-in`); return; }
     this.toast('warn', `Gate pass ${q} not in queue (may be DRAFT, PENDING, REJECTED, RETURNED, or CLOSED)`);
   }
 
   // ── Gate-out (security issues asset) ─────────────────────────────────────
-  gateOut(row: any) {
-    if (!confirm(`Confirm gate-out of ${row.gatePassNo}? Asset(s) will be marked as physically released.`)) return;
-    this.gatePassService.gateOut(row.id).subscribe({
-      next: () => { this.toast('success', `${row.gatePassNo} issued`); this.loadQueue(); },
-      error: (err) => this.toast('error', err?.error?.message || 'Gate-out failed')
+  //
+  // A dialog rather than a browser confirm(): releasing goods is the moment the
+  // officer should be checking the items against what's in front of them, and a
+  // native confirm can't show the list.
+  // Vehicle and courier live here, not on the request form: the officer at the
+  // gate is the only person who can see which vehicle actually turned up.
+  clearDialog = {
+    open: false, row: null as any, saving: false,
+    vehicleNo: '', vehicleType: null as string | null, courierDetails: '',
+  };
+
+  // Gate-out is one click when the parcel is labelled. If it isn't, this dialog
+  // warns first — a warning, not a block: a jammed label printer must not be
+  // able to stop goods leaving, or security will simply work around the system.
+  gateOutWarn = { open: false, row: null as any, saving: false };
+
+  vehicleTypeOptions = [
+    { label: 'Hospital Vehicle', value: 'HOSPITAL_VEHICLE' },
+    { label: 'Outside Vehicle', value: 'OUTSIDE_VEHICLE' },
+  ];
+
+  openClear(row: any) {
+    this.clearDialog = {
+      open: true, row, saving: false,
+      vehicleNo: row?.vehicleNo || '',
+      vehicleType: row?.vehicleType || null,
+      courierDetails: row?.courierDetails || '',
+    };
+  }
+
+  confirmClear() {
+    const row = this.clearDialog.row;
+    if (!row) return;
+    this.clearDialog.saving = true;
+    this.gatePassService.securityClear(row.id, {
+      vehicleNo: this.clearDialog.vehicleNo.trim() || undefined,
+      vehicleType: this.clearDialog.vehicleType || undefined,
+      courierDetails: this.clearDialog.courierDetails.trim() || undefined,
+    }).subscribe({
+      next: () => {
+        setTimeout(() => {
+          this.clearDialog = { open: false, row: null, saving: false, vehicleNo: '', vehicleType: null, courierDetails: '' };
+          this.toast('success', `${row.gatePassNo} cleared — sent for label printing`);
+          this.loadQueue();
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => {
+        setTimeout(() => { this.clearDialog.saving = false; this.cdr.detectChanges(); });
+        this.toast('error', err?.error?.message || 'Clearance failed');
+      }
     });
   }
+
+  gateOut(row: any) {
+    if (!row.labelPrintedAt) { this.gateOutWarn = { open: true, row, saving: false }; return; }
+    this.doGateOut(row);
+  }
+
+  confirmGateOutAnyway() {
+    const row = this.gateOutWarn.row;
+    if (!row) return;
+    this.gateOutWarn.saving = true;
+    this.doGateOut(row, () => { this.gateOutWarn = { open: false, row: null, saving: false }; });
+  }
+
+  private doGateOut(row: any, after?: () => void) {
+    this.gatePassService.gateOut(row.id).subscribe({
+      next: () => {
+        setTimeout(() => {
+          after?.();
+          this.toast('success', `${row.gatePassNo} gated out`);
+          this.loadQueue();
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => {
+        setTimeout(() => { this.gateOutWarn.saving = false; this.cdr.detectChanges(); });
+        this.toast('error', err?.error?.message || 'Gate-out failed');
+      }
+    });
+  }
+
 
   // ── Gate-in (security receives asset back) ───────────────────────────────
   openGateIn(row: any) {
@@ -138,7 +263,13 @@ export class GatePassSecurity implements OnInit {
     if (!row) return;
     const itemReturns = items.map(it => ({ itemId: it.itemId, condition: it.condition, remarks: it.remarks }));
     this.gatePassService.gateIn(row.id, { itemReturns, returnedBy: returnedBy || undefined }).subscribe({
-      next: () => { this.toast('success', `${row.gatePassNo} received back`); this.gateInDialog.open = false; this.loadQueue(); },
+      next: () => {
+        this.toast('success', `${row.gatePassNo} received back — now in History, printable for your records`);
+        this.gateInDialog.open = false;
+        this.loadQueue();
+        // The pass has just left the queue for history; keep that view honest.
+        if (this.historyLoaded) this.loadHistory();
+      },
       error: (err) => this.toast('error', err?.error?.message || 'Gate-in failed')
     });
   }
@@ -154,6 +285,14 @@ export class GatePassSecurity implements OnInit {
       },
       error: () => this.toast('error', 'Failed to download PDF')
     });
+  }
+
+  getStatusSeverity(s: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+    const m: Record<string, any> = {
+      APPROVED: 'info', ISSUED: 'info', RETURNED: 'success',
+      CLOSED: 'secondary', CANCELLED: 'danger'
+    };
+    return m[s] ?? 'secondary';
   }
 
   toast(severity: 'success' | 'error' | 'warn', detail: string) {

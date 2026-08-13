@@ -4,7 +4,7 @@
   <div class="page-header">
     <div>
       <h2>Gate Pass Management</h2>
-      <p>Multi-asset passes with HOD approval and security gate-out / gate-in.</p>
+      <p>Raise a pass, track its approvals, and follow it through the gate.</p>
     </div>
     <p-button *ngIf="!showForm" label="New Gate Pass" icon="pi pi-plus"
       (onClick)="showForm = true" />
@@ -44,31 +44,42 @@
         </p-floatlabel>
       </div>
 
-      <div class="field">
-        <p-floatlabel variant="on">
-          <input pInputText [(ngModel)]="form.vehicleNo" name="vehicleNo" />
-          <label>Vehicle No</label>
-        </p-floatlabel>
+      <!-- Who is carrying the items. The toggle comes FIRST because it decides
+           which fields below apply — an employee (picked, so the gate can check
+           a badge against the pass) or an outsider we hold no record of. -->
+      <div class="field full-width carrier-toggle">
+        <p-checkbox inputId="externalCarrier" [(ngModel)]="form.externalCarrier"
+          name="externalCarrier" [binary]="true" (onChange)="onExternalCarrierChange()" />
+        <label for="externalCarrier">
+          <span>Carried by someone outside the organisation</span>
+          <small>Courier or vendor engineer — enter their name and contact by hand</small>
+        </label>
       </div>
 
-      <div class="field">
+      <!-- No placeholder on these selects: the float label already names the
+           field, and both render at once, printing one over the other. -->
+      <div class="field" *ngIf="!form.externalCarrier">
         <p-floatlabel variant="on">
-          <p-select [options]="vehicleTypeOptions" optionLabel="label" optionValue="value"
-            [(ngModel)]="form.vehicleType" name="vehicleType" appendTo="body" [showClear]="true" />
-          <label>Vehicle Type</label>
-        </p-floatlabel>
-      </div>
-
-      <div class="field">
-        <p-floatlabel variant="on">
-          <input pInputText [(ngModel)]="form.carriedBy" name="carriedBy" />
+          <p-select [options]="employeeOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.carriedByEmployeeId" name="carriedByEmployeeId"
+            (onChange)="onCarrierChange()" [filter]="true" [showClear]="true"
+            appendTo="body" />
           <label>Carried By</label>
         </p-floatlabel>
       </div>
 
-      <div class="field">
+      <div class="field" *ngIf="form.externalCarrier">
         <p-floatlabel variant="on">
-          <input pInputText [(ngModel)]="form.employeeCode" name="employeeCode" />
+          <input pInputText [(ngModel)]="form.carriedBy" name="carriedByExternal" />
+          <label>Carried By (name)</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="field" *ngIf="!form.externalCarrier">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="form.employeeCode" name="employeeCode"
+                 [readonly]="true" class="readonly-field"
+                 pTooltip="Filled from the selected employee" tooltipPosition="top" />
           <label>Employee ID</label>
         </p-floatlabel>
       </div>
@@ -76,13 +87,15 @@
       <div class="field">
         <p-floatlabel variant="on">
           <input pInputText [(ngModel)]="form.employeeContact" name="employeeContact" />
-          <label>Employee Contact</label>
+          <label>{{ form.externalCarrier ? 'Contact Number' : 'Employee Contact' }}</label>
         </p-floatlabel>
       </div>
 
       <div class="field">
         <p-floatlabel variant="on">
-          <input pInputText [(ngModel)]="form.processDept" name="processDept" />
+          <p-select [options]="departmentOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="form.processDepartmentId" name="processDepartmentId"
+            [filter]="true" [showClear]="true" appendTo="body" />
           <label>Process / Department</label>
         </p-floatlabel>
       </div>
@@ -91,13 +104,6 @@
         <p-floatlabel variant="on">
           <input pInputText [(ngModel)]="form.toAddress" name="toAddress" />
           <label>To (Destination Address)</label>
-        </p-floatlabel>
-      </div>
-
-      <div class="field full-width">
-        <p-floatlabel variant="on">
-          <input pInputText [(ngModel)]="form.courierDetails" name="courierDetails" />
-          <label>Courier Details</label>
         </p-floatlabel>
       </div>
 
@@ -115,16 +121,16 @@
       Link a registered asset, or — for spares / surgical equipment not in the asset master —
       leave Asset blank and enter an Item Description with Make.
     </small>
-    <p-table [value]="form.items" styleClass="p-datatable-sm">
+    <p-table [value]="form.items" styleClass="p-datatable-sm items-table">
       <ng-template pTemplate="header">
         <tr>
-          <th style="width:210px">Asset</th>
-          <th>Item Description</th>
-          <th style="width:140px">Make</th>
-          <th style="width:140px">Model <span style="color:#94a3b8;font-weight:normal">(optional)</span></th>
-          <th style="width:80px">Qty</th>
-          <th>Remarks</th>
-          <th style="width:50px"></th>
+          <th style="width:25%">Asset</th>
+          <th style="width:18%">Item Description</th>
+          <th style="width:13%">Make</th>
+          <th style="width:13%">Model <span style="color:#94a3b8;font-weight:normal">(optional)</span></th>
+          <th style="width:7%">Qty</th>
+          <th style="width:19%">Remarks</th>
+          <th style="width:5%"></th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-it let-i="rowIndex">
@@ -168,6 +174,8 @@
 
     <small style="display:block;margin-top:8px;color:#64748b;">
       Saving creates a DRAFT. Submit it from the list below to send for HOD approval.
+      Vehicle and courier details are recorded by the security supervisor at gate-out,
+      since the vehicle that actually arrives isn't known yet.
     </small>
   </div>
 
@@ -194,14 +202,14 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr>
-            <td><strong>{{ row.gatePassNo }}</strong></td>
+            <td><span class="pass-no">{{ row.gatePassNo }}</span></td>
             <td><p-tag [value]="row.type" /></td>
             <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ row.items?.length || 0 }}<span style="color:#64748b" *ngIf="row.items?.length"> · {{ row.items[0].asset?.assetName || row.items[0].description }}<span *ngIf="row.items.length > 1"> +{{ row.items.length - 1 }}</span></span></td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
             <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ row.purpose }}</td>
-            <td>{{ row.gatedOutAt ? (row.gatedOutAt | date:'dd MMM yyyy') : '—' }}</td>
-            <td>{{ row.expectedReturnDate ? (row.expectedReturnDate | date:'dd MMM yyyy') : '—' }}</td>
-            <td><p-tag [value]="row.status" [severity]="getStatusSeverity(row.status)" /></td>
+            <td class="nowrap">{{ row.gatedOutAt ? (row.gatedOutAt | date:'dd MMM yyyy') : '—' }}</td>
+            <td class="nowrap">{{ row.expectedReturnDate ? (row.expectedReturnDate | date:'dd MMM yyyy') : '—' }}</td>
+            <td><p-tag [value]="statusLabel(row.status)" [severity]="getStatusSeverity(row.status)" /></td>
             <td>
               <p-tag *ngIf="row.approvalStatus === 'APPROVED' || row.approvalStatus === 'AUTO_APPROVED'" [value]="row.approvalStatus" severity="success" />
               <p-tag *ngIf="row.approvalStatus === 'REJECTED'" [value]="row.approvalStatus" severity="danger" />
@@ -211,15 +219,15 @@
               <div class="action-buttons">
                 <p-button icon="pi pi-file-pdf" size="small" severity="info" [text]="true"
                   (onClick)="downloadPdf(row)" pTooltip="Download PDF" tooltipPosition="top" />
-                <p-button *ngIf="row.status === 'DRAFT'" icon="pi pi-pencil" size="small" severity="secondary" [text]="true"
+                <p-button *ngIf="canManage(row) && row.status === 'DRAFT'" icon="pi pi-pencil" size="small" severity="secondary" [text]="true"
                   (onClick)="edit(row)" pTooltip="Edit" tooltipPosition="top" />
-                <p-button *ngIf="row.status === 'DRAFT'" icon="pi pi-send" size="small" severity="warn"
-                  (onClick)="submit(row)" pTooltip="Submit for HOD approval" tooltipPosition="top" />
-                <p-button *ngIf="row.status === 'RETURNED'" icon="pi pi-check-square" size="small" severity="secondary" [text]="true"
+                <p-button *ngIf="canManage(row) && row.status === 'DRAFT'" icon="pi pi-send" size="small" severity="warn"
+                  (onClick)="submit(row)" [pTooltip]="submitTooltip()" tooltipPosition="top" />
+                <p-button *ngIf="canManage(row) && row.status === 'RETURNED'" icon="pi pi-check-square" size="small" severity="secondary" [text]="true"
                   (onClick)="close(row)" pTooltip="Close" tooltipPosition="top" />
-                <p-button *ngIf="['DRAFT','PENDING_APPROVAL','APPROVED'].includes(row.status)" icon="pi pi-times-circle" size="small" severity="warn" [text]="true"
+                <p-button *ngIf="canManage(row) && ['DRAFT','PENDING_APPROVAL','PENDING_OPS_APPROVAL','APPROVED','SECURITY_CLEARED'].includes(row.status)" icon="pi pi-times-circle" size="small" severity="warn" [text]="true"
                   (onClick)="cancel(row)" pTooltip="Cancel" tooltipPosition="top" />
-                <p-button *ngIf="row.status === 'DRAFT'" icon="pi pi-trash" size="small" severity="danger" [text]="true"
+                <p-button *ngIf="canManage(row) && row.status === 'DRAFT'" icon="pi pi-trash" size="small" severity="danger" [text]="true"
                   (onClick)="delete(row)" pTooltip="Delete" tooltipPosition="top" />
               </div>
             </td>
@@ -232,7 +240,7 @@
     </p-tabPanel>
 
     <!-- Pending HOD Approval (this user's department) -->
-    <p-tabPanel [header]="'Pending Approval (' + pendingApprovalRows.length + ')'">
+    <p-tabPanel *ngIf="canApprove()" [header]="'Pending Approval (' + pendingApprovalRows.length + ')'">
       <p-table [value]="pendingApprovalRows" responsiveLayout="scroll" styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
@@ -242,28 +250,32 @@
             <th>Issued To</th>
             <th>Purpose</th>
             <th>Requested By</th>
+            <th>Stage</th>
             <th>Requested At</th>
             <th>Action</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr>
-            <td><strong>{{ row.gatePassNo }}</strong></td>
+            <td><span class="pass-no">{{ row.gatePassNo }}</span></td>
             <td><p-tag [value]="row.type" /></td>
             <td>{{ row.items?.length || 0 }}</td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
             <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ row.purpose }}</td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ row.requestedBy?.name || '—' }}</td>
-            <td>{{ row.requestedAt | date:'dd MMM yyyy, HH:mm' }}</td>
+            <td><p-tag [value]="statusLabel(row.status)" severity="warn" /></td>
+            <td class="nowrap">{{ row.requestedAt | date:'dd MMM yyyy, HH:mm' }}</td>
             <td>
-              <p-button label="Approve" icon="pi pi-check" size="small" severity="success" (onClick)="openApprove(row)" />
-              <p-button label="Reject" icon="pi pi-times" size="small" severity="danger" [text]="true" (onClick)="openReject(row)" />
-              <p-button icon="pi pi-file-pdf" size="small" severity="info" [text]="true" (onClick)="downloadPdf(row)" pTooltip="Preview PDF" />
+              <div class="action-buttons">
+                <p-button label="Approve" icon="pi pi-check" size="small" severity="success" (onClick)="openApprove(row)" />
+                <p-button label="Reject" icon="pi pi-times" size="small" severity="danger" [text]="true" (onClick)="openReject(row)" />
+                <p-button icon="pi pi-file-pdf" size="small" severity="info" [text]="true" (onClick)="downloadPdf(row)" pTooltip="Preview PDF" />
+              </div>
             </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="8" class="text-center">No gate passes awaiting approval</td></tr>
+          <tr><td colspan="9" class="text-center">No gate passes awaiting approval</td></tr>
         </ng-template>
       </p-table>
     </p-tabPanel>
@@ -282,10 +294,10 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr>
-            <td><strong>{{ row.gatePassNo }}</strong></td>
+            <td><span class="pass-no">{{ row.gatePassNo }}</span></td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
             <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;">{{ row.purpose }}</td>
-            <td class="text-danger">{{ row.expectedReturnDate | date:'dd MMM yyyy' }}</td>
+            <td class="text-danger nowrap">{{ row.expectedReturnDate | date:'dd MMM yyyy' }}</td>
             <td>{{ row.items?.length || 0 }}</td>
           </tr>
         </ng-template>
@@ -298,6 +310,27 @@
   </p-tabView>
 
   <!-- ── Approve dialog ── -->
+  <!-- Cancel / delete confirmation — replaces the browser confirm() so the
+       consequence is stated rather than just the pass number. -->
+  <p-dialog [header]="confirmDialogTitle()" [(visible)]="confirmDialog.open" [modal]="true"
+            [style]="{width:'460px'}" [draggable]="false">
+    <div *ngIf="confirmDialog.row">
+      <p style="margin:0 0 10px;">
+        <strong>{{ confirmDialog.row.gatePassNo }}</strong> · {{ confirmDialog.row.purpose }}
+      </p>
+      <p style="margin:0;color:var(--text-color-secondary);font-size:0.87rem;">
+        {{ confirmDialogBody() }}
+      </p>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+      <p-button label="Keep it" severity="secondary" [text]="true"
+                (onClick)="confirmDialog.open = false" [disabled]="confirmDialog.saving" />
+      <p-button [label]="confirmDialog.mode === 'delete' ? 'Delete' : 'Cancel Pass'"
+                [icon]="confirmDialog.mode === 'delete' ? 'pi pi-trash' : 'pi pi-times-circle'"
+                severity="danger" (onClick)="runConfirmed()" [loading]="confirmDialog.saving" />
+    </div>
+  </p-dialog>
+
   <p-dialog header="Approve Gate Pass" [(visible)]="approveDialog.open" [modal]="true" [style]="{width:'460px'}">
     <p *ngIf="approveDialog.row"><strong>{{ approveDialog.row.gatePassNo }}</strong> · {{ approveDialog.row.purpose }}</p>
     <p-floatlabel variant="on" style="display:block;margin-top:14px;">

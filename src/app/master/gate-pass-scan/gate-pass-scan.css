@@ -1,0 +1,102 @@
+/* Opened from a phone camera far more often than from a desk, so this screen is
+   sized for a hand: single column, large verdict, thumb-sized controls. */
+.scan-container {
+  padding: 16px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.scan-header h2 { margin: 0; color: var(--heading-color); font-size: 1.35rem; }
+.scan-header p { margin: 4px 0 16px; color: var(--text-color-secondary); font-size: 0.88rem; }
+
+.lookup-bar {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.lookup-field { flex: 1 1 240px; }
+
+.lookup-bar input[pInputText],
+.lookup-bar .p-inputtext {
+  height: 46px !important;
+  font-size: 15px !important;
+  border-radius: 8px !important;
+  width: 100% !important;
+  /* Pass numbers are upper-case; stop phone keyboards lower-casing them. */
+  text-transform: uppercase;
+}
+.lookup-bar .p-button { height: 46px !important; }
+
+/* ── Verdict banner — the reason this screen exists ──────────────────────── */
+.verdict {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 18px; border-radius: 10px; margin-bottom: 14px;
+  border: 1px solid transparent;
+}
+.verdict i { font-size: 1.7rem; line-height: 1.2; flex: 0 0 auto; }
+.verdict h3 { margin: 0 0 4px; font-size: 1.1rem; }
+.verdict p { margin: 0; font-size: 0.9rem; }
+.verdict .hint { margin-top: 6px; opacity: 0.85; font-size: 0.83rem; }
+
+.verdict.ok   { background: #f0fdf4; border-color: #86efac; color: #14532d; }
+.verdict.ok i { color: #16a34a; }
+.verdict.stop   { background: #fef2f2; border-color: #fca5a5; color: #7f1d1d; }
+.verdict.stop i { color: #dc2626; }
+.verdict.done   { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+.verdict.done i { color: #475569; }
+
+.overdue-note {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; margin-bottom: 14px;
+  background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px;
+  color: #92400e; font-size: 0.86rem;
+}
+.overdue-note i { color: #d97706; }
+
+/* ── Detail cards ───────────────────────────────────────────────────────── */
+.pass-card {
+  border: 1px solid var(--surface-border, #e2e8f0);
+  border-radius: 10px; padding: 16px; margin-bottom: 14px;
+  background: var(--surface-card, #fff);
+}
+.pass-card h4 { margin: 0 0 10px; font-size: 0.95rem; color: var(--heading-color); }
+
+.pass-no {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 1.25rem; font-weight: 700; letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.facts { margin: 14px 0 0; display: grid; gap: 10px; }
+.facts > div { display: grid; grid-template-columns: 130px 1fr; gap: 10px; }
+.facts dt {
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-color-secondary); padding-top: 2px;
+}
+.facts dd { margin: 0; font-size: 0.92rem; word-break: break-word; }
+
+@media (max-width: 480px) {
+  /* Stacked labels read better than a squeezed two-column grid on a phone. */
+  .facts > div { grid-template-columns: 1fr; gap: 2px; }
+}
+
+.items { list-style: none; margin: 0; padding: 0; }
+.items li {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline;
+  padding: 8px 0; border-bottom: 1px solid var(--surface-border, #e2e8f0);
+  font-size: 0.92rem;
+}
+.items li:last-child { border-bottom: 0; }
+.items .code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.82rem; color: #1e3a8a;
+}
+.items .name { flex: 1 1 auto; }
+.items .qty { font-weight: 600; }
+.items .cond {
+  font-size: 0.75rem; padding: 2px 8px; border-radius: 10px;
+  background: #f1f5f9; color: #475569;
+}
+
+.hint { color: var(--text-color-secondary); font-size: 0.85rem; }
+
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }

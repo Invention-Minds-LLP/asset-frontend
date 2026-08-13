@@ -637,6 +637,35 @@
 .cell-contact-sub { color: var(--text-muted); font-size: 0.78rem; }
 
 /* Role pill — colour by role name */
+/* Contract / agency staff marker in the employee table. Mirrors .role-pill so
+   the two read as one family, in amber to separate it from the role colours. */
+.os-pill {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Outsourced toggle on the employee form. */
+.outsource-field { display: flex; flex-direction: column; gap: 6px; }
+.outsource-row { display: flex; align-items: center; gap: 10px; }
+.outsource-row label { font-size: 0.9rem; color: var(--text-color); cursor: pointer; }
+/* Block, NOT flex. A flex container makes every child its own flex item —
+   including bare text nodes and the <b> tags in this sentence — so the hint
+   rendered as a row of disconnected columns instead of a sentence. */
+.outsource-hint {
+  display: block;
+  font-size: 0.78rem; color: var(--text-color-secondary); line-height: 1.5;
+}
+.outsource-hint i { margin-right: 5px; }
+.outsource-hint b { color: var(--heading-color); font-weight: 700; }
+
 .role-pill {
   display: inline-block;
   padding: 3px 10px;

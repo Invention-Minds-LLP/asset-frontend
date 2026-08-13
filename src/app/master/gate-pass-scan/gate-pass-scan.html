@@ -1,0 +1,99 @@
+<div class="scan-container">
+  <p-toast />
+
+  <div class="scan-header">
+    <h2>Gate Pass Check</h2>
+    <p>Scan the QR on a parcel, or type the pass number printed on the label.</p>
+  </div>
+
+  <!-- Lookup — also the fallback for older labels whose QR isn't a link -->
+  <div class="lookup-bar">
+    <p-floatlabel variant="on" class="lookup-field">
+      <input pInputText [(ngModel)]="lookupNo" name="lookupNo" (keyup.enter)="lookup()"
+             autocapitalize="characters" spellcheck="false" />
+      <label>Gate Pass No (e.g. GP-20260813-0007)</label>
+    </p-floatlabel>
+    <p-button label="Check" icon="pi pi-search" (onClick)="lookup()" [loading]="loading" />
+    <p-button *ngIf="pass || notFound" label="Clear" severity="secondary" [text]="true" (onClick)="clear()" />
+  </div>
+
+  <!-- Not found -->
+  <div *ngIf="notFound" class="verdict stop">
+    <i class="pi pi-times-circle"></i>
+    <div>
+      <h3>No such gate pass</h3>
+      <p>{{ notFound }}</p>
+      <p class="hint">Check the number on the label. If it still fails, do not release the items —
+         refer to the security supervisor.</p>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div *ngIf="pass">
+    <!-- The verdict: the one thing a person at the gate needs -->
+    <div class="verdict" [ngClass]="verdictTone()">
+      <i class="pi"
+         [ngClass]="{
+           'pi-check-circle': verdictTone() === 'ok',
+           'pi-times-circle': verdictTone() === 'stop',
+           'pi-info-circle':  verdictTone() === 'done'
+         }"></i>
+      <div>
+        <h3>{{ verdictTitle() }}</h3>
+        <p>{{ verdictDetail() }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="isOverdue()" class="overdue-note">
+      <i class="pi pi-exclamation-triangle"></i>
+      Past its expected return date — flag this to the security supervisor.
+    </div>
+
+    <!-- Identity -->
+    <div class="pass-card">
+      <div class="pass-no">{{ pass.gatePassNo }}</div>
+      <p-tag [value]="pass.type === 'RETURNABLE' ? 'RETURNABLE' : 'NON-RETURNABLE'"
+             [severity]="pass.type === 'RETURNABLE' ? 'info' : 'warn'" />
+
+      <dl class="facts">
+        <div><dt>Issued To</dt><dd>{{ pass.issuedTo || '—' }}</dd></div>
+        <div><dt>Purpose</dt><dd>{{ pass.purpose || '—' }}</dd></div>
+        <div *ngIf="pass.toAddress"><dt>Destination</dt><dd>{{ pass.toAddress }}</dd></div>
+        <div *ngIf="pass.carriedBy"><dt>Carried By</dt><dd>{{ pass.carriedBy }}</dd></div>
+        <div *ngIf="pass.vehicleNo"><dt>Vehicle</dt><dd>{{ pass.vehicleNo }}</dd></div>
+        <div *ngIf="pass.type === 'RETURNABLE'">
+          <dt>Expected Return</dt>
+          <dd>{{ pass.expectedReturnDate ? (pass.expectedReturnDate | date:'dd MMM yyyy') : '—' }}</dd>
+        </div>
+        <div><dt>Approved By</dt><dd>{{ pass.approvedByEmployee?.name || 'Not approved' }}</dd></div>
+        <div *ngIf="pass.gatedOutAt">
+          <dt>Gated Out</dt>
+          <dd>{{ pass.gatedOutAt | date:'dd MMM yyyy, HH:mm' }} · {{ pass.gatedOutBy?.name || '—' }}</dd>
+        </div>
+        <div *ngIf="pass.gatedInAt">
+          <dt>Gated In</dt>
+          <dd>{{ pass.gatedInAt | date:'dd MMM yyyy, HH:mm' }} · {{ pass.gatedInBy?.name || '—' }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- Items to check against the parcel -->
+    <div class="pass-card">
+      <h4>Items on this pass ({{ pass.items?.length || 0 }})</h4>
+      <ul class="items">
+        <li *ngFor="let it of pass.items">
+          <span class="code" *ngIf="it.asset?.assetId">{{ it.asset.assetId }}</span>
+          <span class="name">{{ itemLabel(it) }}</span>
+          <span class="qty" *ngIf="it.quantity > 1">× {{ it.quantity }}</span>
+          <span class="cond" *ngIf="it.returnCondition">returned {{ it.returnCondition | lowercase }}</span>
+        </li>
+      </ul>
+      <p *ngIf="!pass.items?.length" class="hint">No items recorded on this pass.</p>
+    </div>
+
+    <div class="actions">
+      <p-button label="Open full pass (PDF)" icon="pi pi-file-pdf" severity="secondary"
+                (onClick)="downloadPdf()" />
+    </div>
+  </div>
+</div>

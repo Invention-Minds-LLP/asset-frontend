@@ -1,0 +1,104 @@
+<div class="page-container">
+  <p-toast />
+
+  <div class="page-header">
+    <div>
+      <h2>Gate Pass — Label Printing</h2>
+      <p>Print the stick-on label for each parcel security has cleared, and fix it to the item before it leaves.</p>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center;">
+      <p-floatlabel variant="on" style="width:240px;">
+        <input pInputText [(ngModel)]="lookupNo" name="lookupNo" (keyup.enter)="lookup()" />
+        <label>Look up by Gate Pass No</label>
+      </p-floatlabel>
+      <p-button label="Find" icon="pi pi-search" (onClick)="lookup()" />
+    </div>
+  </div>
+
+  <p-tabView class="custom-tabs">
+
+    <!-- ── To Print ── -->
+    <p-tabPanel [header]="'To Print (' + toPrintRows.length + ')'">
+      <p-table [value]="toPrintRows" [loading]="loading" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Gate Pass</th>
+            <th>Type</th>
+            <th>Items</th>
+            <th>Issued To</th>
+            <th>Vehicle</th>
+            <th>Cleared</th>
+            <th>Action</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td><span class="pass-no">{{ row.gatePassNo }}</span></td>
+            <td><p-tag [value]="row.type" [severity]="row.type === 'RETURNABLE' ? 'info' : 'warn'" /></td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">
+              {{ row.items?.length || 0 }} · {{ itemSummary(row) }}
+            </td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>
+              {{ row.vehicleNo || '—' }}
+              <small class="sub">{{ row.vehicleType || '' }}</small>
+            </td>
+            <td class="nowrap">{{ row.securityClearedAt | date:'dd MMM, HH:mm' }}</td>
+            <td>
+              <div class="action-buttons">
+                <p-button label="Print Label" icon="pi pi-print" severity="success" size="small"
+                  (onClick)="printLabel(row)" pTooltip="Generate the 4x6 stick-on label" tooltipPosition="top" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="7" class="text-center">Nothing waiting for a label — security hasn't cleared any parcels yet.</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
+    <!-- ── Already printed ── -->
+    <p-tabPanel [header]="'Printed (' + printedRows.length + ')'">
+      <p-table [value]="printedRows" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Gate Pass</th>
+            <th>Type</th>
+            <th>Items</th>
+            <th>Issued To</th>
+            <th>Printed At</th>
+            <th>Printed By</th>
+            <th>Action</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td><span class="pass-no">{{ row.gatePassNo }}</span></td>
+            <td><p-tag [value]="row.type" [severity]="row.type === 'RETURNABLE' ? 'info' : 'warn'" /></td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 240px;">
+              {{ row.items?.length || 0 }} · {{ itemSummary(row) }}
+            </td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
+            <td class="nowrap">{{ row.labelPrintedAt | date:'dd MMM, HH:mm' }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.labelPrintedBy?.name || '—' }}</td>
+            <td>
+              <div class="action-buttons">
+                <p-button label="Reprint" icon="pi pi-refresh" severity="secondary" [text]="true" size="small"
+                  (onClick)="printLabel(row)" pTooltip="Print another copy of this label" tooltipPosition="top" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="7" class="text-center">No labels printed for the current approved passes.</td></tr>
+        </ng-template>
+      </p-table>
+      <small class="tab-note">
+        Parcels leave this list once security gates them out.
+      </small>
+    </p-tabPanel>
+
+  </p-tabView>
+</div>

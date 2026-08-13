@@ -59,7 +59,21 @@
 .bar-label { flex: 0 0 auto; font-size: 0.82rem; white-space: nowrap; }
 
 .muted { color: var(--text-color-secondary); }
-.center { text-align: center; padding: 1.5rem; }
+.center { text-align: center; }
+td.center, .panel .center { padding: 1.5rem; }
+
+/* Two-row header on the department scorecard: volume vs speed. */
+.th-group { vertical-align: middle; }
+th.center { text-align: center; padding: 6px 10px; }
+
+/* Inline percentage next to a count. */
+.pct {
+  font-size: 0.75rem; font-weight: 600;
+  color: var(--text-color-secondary);
+  margin-left: 4px;
+}
+.pct-bad { color: #c53030; }
+.warn-num { font-weight: 700; color: #b7791f; }
 
 @media (max-width: 640px) {
   .page-container { padding: 1rem 0.75rem; }

@@ -103,18 +103,51 @@
       </p-table>
     </section>
 
-    <!-- Department comparison (management only) -->
+    <!-- Department scorecard (management only) -->
     <section class="panel" *ngIf="data.scope === 'ALL' && data.byDepartment?.length">
-      <h3>By department</h3>
-      <p class="hint">Slowest first. Active time excludes anything spent on hold.</p>
+      <h3>Department scorecard</h3>
+      <p class="hint">
+        Volume on the left, speed on the right — <strong>slowest first by median</strong>.
+        Median is the fairer comparison: one abandoned ticket can double a small department's average.
+        Active time excludes anything spent on hold.
+      </p>
+
       <p-table [value]="data.byDepartment" styleClass="p-datatable-sm p-datatable-striped">
         <ng-template pTemplate="header">
-          <tr><th>Department</th><th>Tickets</th><th>Avg Turnaround</th><th>Avg Active</th></tr>
+          <tr>
+            <th rowspan="2" class="th-group">Department</th>
+            <th colspan="4" class="th-group center">Tickets</th>
+            <th colspan="3" class="th-group center">How fast they clear them</th>
+          </tr>
+          <tr>
+            <th>Raised</th>
+            <th>Resolved</th>
+            <th>Still Open</th>
+            <th>Breached</th>
+            <th>Median</th>
+            <th>Average</th>
+            <th>Avg Active</th>
+          </tr>
         </ng-template>
         <ng-template pTemplate="body" let-d>
           <tr>
             <td><strong>{{ d.department }}</strong></td>
             <td>{{ d.tickets }}</td>
+            <td>
+              {{ d.resolved }}
+              <span class="pct" [class.pct-bad]="d.resolutionRate < 50">{{ d.resolutionRate }}%</span>
+            </td>
+            <td>
+              <span [class.warn-num]="d.open > 0">{{ d.open }}</span>
+            </td>
+            <td>
+              <span *ngIf="d.breached">
+                {{ d.breached }}
+                <span class="pct pct-bad">{{ d.breachRate }}%</span>
+              </span>
+              <span *ngIf="!d.breached" class="muted">—</span>
+            </td>
+            <td><strong>{{ d.medianTotalMs | duration }}</strong></td>
             <td>{{ d.avgTotalMs | duration }}</td>
             <td>{{ d.avgActiveMs | duration }}</td>
           </tr>

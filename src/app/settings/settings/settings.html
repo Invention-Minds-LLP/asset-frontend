@@ -192,6 +192,25 @@
               <label for="name">Name</label>
             </p-floatlabel>
 
+            <!-- Outsourced (contract / agency) staff. Creation-only: the OS-
+                 prefix lives in the employee ID, which is immutable once a
+                 login exists, so the flag is locked in edit mode too. -->
+            <div class="field outsource-field">
+              <div class="outsource-row">
+                <p-checkbox inputId="isOutsourced" formControlName="isOutsourced" [binary]="true"></p-checkbox>
+                <label for="isOutsourced">Outsourced employee (contract / agency staff)</label>
+              </div>
+              <small class="outsource-hint" *ngIf="employeeForm.get('isOutsourced')?.value && !editingEmployeeId">
+                <i class="pi pi-info-circle"></i>
+                Their ID will be saved with an <b>OS-</b> prefix — e.g. IM001 becomes <b>OS-IM001</b>.
+              </small>
+              <small class="outsource-hint" *ngIf="editingEmployeeId">
+                <i class="pi pi-lock"></i>
+                Set when the employee is created and cannot be changed here — the
+                Employee ID it pairs with is fixed once a login exists.
+              </small>
+            </div>
+
             <p-floatlabel variant="on" class="field">
               <input pInputText id="employeeID" formControlName="employeeID" />
               <label for="employeeID">Employee ID</label>
@@ -305,7 +324,12 @@
                     <td>
                       <div class="cell-stack">
                         <span class="cell-id">{{ row.employeeID }}</span>
-                        <span class="cell-name">{{ row.name }}</span>
+                        <span class="cell-name">
+                          {{ row.name }}
+                          <!-- Contract staff aren't payroll — flag them so
+                               headcount isn't read off this table by mistake. -->
+                          <span class="os-pill" *ngIf="row.isOutsourced">Outsourced</span>
+                        </span>
                       </div>
                     </td>
                     <td>{{ row.department?.name ?? '—' }}</td>

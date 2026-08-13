@@ -380,7 +380,15 @@
   /* padding: 0 12px;  */
 }
 .sidebar:not(.collapsed) .dropdown.open {
-  max-height: 500px;
+  /* Was 500px. `.dropdown` clips with overflow:hidden, so any group taller
+     than this had its bottom entries cut off and unreachable — Operations (16
+     items), Finance & Analytics (15) and Administration (14) all exceeded it,
+     and more so once labels wrap to two lines.
+
+     This value only has to exceed the tallest group; the transition eases from
+     0 to it, so the open animation reaches full height early and reads as
+     slightly quicker. That trade is worth it against unreachable menu items. */
+  max-height: 1600px;
   opacity: 1;
   pointer-events: auto;
   padding: 8px 12px;
@@ -399,7 +407,15 @@
 }
 
 /* .dropdown.open {
-  max-height: 500px;
+  /* Was 500px. `.dropdown` clips with overflow:hidden, so any group taller
+     than this had its bottom entries cut off and unreachable — Operations (16
+     items), Finance & Analytics (15) and Administration (14) all exceeded it,
+     and more so once labels wrap to two lines.
+
+     This value only has to exceed the tallest group; the transition eases from
+     0 to it, so the open animation reaches full height early and reads as
+     slightly quicker. That trade is worth it against unreachable menu items. */
+  max-height: 1600px;
   opacity: 1;
   pointer-events: auto;
   padding: 8px 12px;
@@ -407,7 +423,15 @@
 
 /* Expanded sidebar only */
 .sidebar:not(.collapsed) .dropdown.open {
-  max-height: 500px;
+  /* Was 500px. `.dropdown` clips with overflow:hidden, so any group taller
+     than this had its bottom entries cut off and unreachable — Operations (16
+     items), Finance & Analytics (15) and Administration (14) all exceeded it,
+     and more so once labels wrap to two lines.
+
+     This value only has to exceed the tallest group; the transition eases from
+     0 to it, so the open animation reaches full height early and reads as
+     slightly quicker. That trade is worth it against unreachable menu items. */
+  max-height: 1600px;
   opacity: 1;
   pointer-events: auto;
   padding: 8px 12px;

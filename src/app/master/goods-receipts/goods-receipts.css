@@ -74,3 +74,33 @@
   .dialog-actions { flex-direction: column; gap: 0.75rem; }
   .dialog-actions-left, .dialog-actions-right { justify-content: center; }
 }
+
+/* Receipt line cards (create view) */
+.gra-lines { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem; }
+.gra-line-card { border: 1px solid var(--surface-border); border-radius: 10px; padding: 0.75rem 1rem 1rem; background: var(--surface-50); }
+.gra-line-head { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+.gra-line-num { font-weight: 700; font-size: 0.85rem; color: var(--text-color-secondary); }
+.gra-line-total { margin-left: auto; font-size: 0.88rem; }
+.gra-line-total strong { color: #16a34a; }
+.gra-line-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem 1rem; }
+.gra-line-desc { grid-column: span 2; }
+@media (max-width: 900px) { .gra-line-grid { grid-template-columns: 1fr 1fr; } .gra-line-desc { grid-column: span 2; } }
+
+/* Detail dialog line cards */
+.gra-detail-desc { font-weight: 600; font-size: 0.92rem; }
+.gra-line-grid .gra-cell { min-width: 0; }
+.gra-cell label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-color-secondary); margin-bottom: 0.25rem; white-space: nowrap; }
+.gra-cell .val { font-weight: 600; font-size: 0.92rem; white-space: nowrap; }
+.gra-inspect-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem 1rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--surface-border); }
+.gra-inspect-result { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--surface-border); font-size: 0.85rem; }
+.gra-inspect-result label { color: var(--text-color-secondary); font-weight: 600; }
+.gra-inspect-counts { color: var(--text-color-secondary); }
+@media (max-width: 560px) { .gra-inspect-row { grid-template-columns: 1fr; } }
+
+/* PrimeNG inputs must respect their grid cell inside line cards —
+   the inner <input> has a fixed default width that otherwise overflows */
+.gra-line-card ::ng-deep .p-inputnumber { width: 100% !important; }
+.gra-line-card ::ng-deep .p-inputnumber-input { width: 100% !important; min-width: 0 !important; }
+.gra-line-card ::ng-deep .p-select { width: 100% !important; min-width: 0 !important; }
+.gra-line-card .form-field { min-width: 0; }
+.gra-line-card { overflow: hidden; }

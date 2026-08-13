@@ -45,6 +45,9 @@ export class Auth {
       localStorage.setItem('role', user.role ?? '');
       localStorage.setItem('employeeDbId', String(user.employeeDbId ?? ''));
       localStorage.setItem('departmentId', String(user.departmentId ?? ''));
+      // Employee.role, distinct from User.role — an ADMIN user can hold an HOD
+      // employee role, and workflow routing keys off the employee one.
+      localStorage.setItem('employeeRole', user.employeeRole ?? '');
       localStorage.setItem('name', user.name ?? '');
       localStorage.setItem('user', JSON.stringify(user));
     }

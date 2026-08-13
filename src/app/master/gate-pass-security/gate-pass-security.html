@@ -4,7 +4,7 @@
   <div class="page-header">
     <div>
       <h2>Security — Gate Pass Verification</h2>
-      <p>Verify and process gate passes at the gate. Issue (gate-out) approved passes; receive (gate-in) returned assets.</p>
+      <p>Verify approved passes and record transport, then gate them out when they actually leave, and receive them back on return.</p>
       <div *ngIf="overdueCount > 0" class="overdue-banner">
         <i class="pi pi-exclamation-triangle"></i>
         <strong>{{ overdueCount }} overdue</strong> returnable pass{{ overdueCount > 1 ? 'es' : '' }} — past expected return date.
@@ -21,10 +21,10 @@
     </div>
   </div>
 
-  <p-tabView class="custom-tabs">
+  <p-tabView class="custom-tabs" (onChange)="onTabChange($event.index)">
 
     <!-- ── Ready to Issue ── -->
-    <p-tabPanel [header]="'Ready to Issue (' + approvedRows.length + ')'">
+    <p-tabPanel [header]="'Ready to Verify (' + approvedRows.length + ')'">
       <p-table [value]="approvedRows" [loading]="loading" responsiveLayout="scroll" styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
@@ -32,7 +32,6 @@
             <th>Type</th>
             <th>Items</th>
             <th>Issued To</th>
-            <th>Vehicle</th>
             <th>Approved By</th>
             <th>Approved At</th>
             <th>Action</th>
@@ -40,34 +39,99 @@
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr>
-            <td><strong>{{ row.gatePassNo }}</strong></td>
+            <td><span class="pass-no">{{ row.gatePassNo }}</span></td>
             <td><p-tag [value]="row.type" [severity]="row.type === 'RETURNABLE' ? 'info' : 'warn'" /></td>
             <td>
-              <div *ngFor="let it of row.items" style="font-size:0.85rem;">
-                <span style="font-family:monospace;color:#1e3a8a;">{{ it.asset?.assetId }}</span>
-                · {{ it.asset?.assetName }}
-                <span *ngIf="it.quantity > 1" style="color:#64748b;"> × {{ it.quantity }}</span>
+              <div class="item-lines">
+                <div class="item-line" *ngFor="let it of row.items"
+                     [pTooltip]="(it.asset?.assetId || '') + ' ' + (it.asset?.assetName || it.description || '')"
+                     tooltipPosition="top">
+                  <span class="code">{{ it.asset?.assetId }}</span>
+                  · {{ it.asset?.assetName || it.description }}
+                  <span *ngIf="it.quantity > 1" class="qty"> × {{ it.quantity }}</span>
+                </div>
               </div>
             </td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
-            <td class="ellipsis-cell" appOverflowTooltip>
-              <div>{{ row.vehicleNo || '—' }}</div>
-              <small style="color:#64748b;">{{ row.vehicleType || '' }}</small>
-            </td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ row.approvedByEmployee?.name || '—' }}</td>
-            <td>{{ row.approvedAt | date:'dd MMM, HH:mm' }}</td>
+            <td class="nowrap">{{ row.approvedAt | date:'dd MMM, HH:mm' }}</td>
             <td>
-              <p-button label="Gate-Out" icon="pi pi-sign-out" severity="success" size="small"
-                (onClick)="gateOut(row)" pTooltip="Mark physically released" tooltipPosition="top" />
-              <p-button icon="pi pi-file-pdf" size="small" severity="info" [text]="true"
-                (onClick)="downloadPdf(row)" pTooltip="Open PDF" tooltipPosition="top" />
+              <div class="action-buttons">
+                <p-button label="Verify &amp; Clear" icon="pi pi-check-circle" severity="success" size="small"
+                  (onClick)="openClear(row)" pTooltip="Check items, record vehicle, send for labelling" tooltipPosition="top" />
+                <p-button icon="pi pi-file-pdf" size="small" severity="info" [text]="true"
+                  (onClick)="downloadPdf(row)" pTooltip="Open PDF" tooltipPosition="top" />
+              </div>
             </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="8" class="text-center">Nothing waiting at the gate to be issued.</td></tr>
+          <tr><td colspan="7" class="text-center">Nothing waiting to be verified.</td></tr>
         </ng-template>
       </p-table>
+    </p-tabPanel>
+
+    <!-- ── Cleared — labelled and awaiting exit ── -->
+    <p-tabPanel [header]="'Cleared — Awaiting Exit (' + clearedRows.length + ')'">
+      <p-table [value]="clearedRows" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Gate Pass</th>
+            <th>Type</th>
+            <th>Items</th>
+            <th>Issued To</th>
+            <th>Vehicle</th>
+            <th>Cleared</th>
+            <th>Label</th>
+            <th>Action</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td><span class="pass-no">{{ row.gatePassNo }}</span></td>
+            <td><p-tag [value]="row.type" [severity]="row.type === 'RETURNABLE' ? 'info' : 'warn'" /></td>
+            <td>
+              <div class="item-lines">
+                <div class="item-line" *ngFor="let it of row.items"
+                     [pTooltip]="(it.asset?.assetId || '') + ' ' + (it.asset?.assetName || it.description || '')"
+                     tooltipPosition="top">
+                  <span class="code">{{ it.asset?.assetId }}</span>
+                  · {{ it.asset?.assetName || it.description }}
+                </div>
+              </div>
+            </td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip>
+              {{ row.vehicleNo || '—' }}
+              <small class="sub">{{ row.vehicleType || '' }}</small>
+            </td>
+            <td class="nowrap">
+              {{ row.securityClearedAt | date:'dd MMM, HH:mm' }}
+              <small class="sub">by {{ row.securityClearedBy?.name || '—' }}</small>
+            </td>
+            <td>
+              <p-tag *ngIf="row.labelPrintedAt" value="Labelled" severity="success"
+                [pTooltip]="'Printed by ' + (row.labelPrintedBy?.name || 'security')" tooltipPosition="top" />
+              <p-tag *ngIf="!row.labelPrintedAt" value="Awaiting label" severity="warn"
+                pTooltip="Not yet printed by the label desk" tooltipPosition="top" />
+            </td>
+            <td>
+              <div class="action-buttons">
+                <p-button label="Gate-Out" icon="pi pi-sign-out" severity="success" size="small"
+                  (onClick)="gateOut(row)" pTooltip="Record that it has physically left" tooltipPosition="top" />
+                <p-button icon="pi pi-file-pdf" size="small" severity="info" [text]="true"
+                  (onClick)="downloadPdf(row)" pTooltip="Open PDF" tooltipPosition="top" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="8" class="text-center">Nothing cleared and waiting to leave.</td></tr>
+        </ng-template>
+      </p-table>
+      <small class="tab-note">
+        Gate-out records the actual departure — press it as the vehicle leaves, not before.
+      </small>
     </p-tabPanel>
 
     <!-- ── Out & Awaiting Return ── -->
@@ -81,43 +145,219 @@
             <th>Issued To</th>
             <th>Vehicle</th>
             <th>Gated Out</th>
+            <th>Label</th>
             <th>Expected Return</th>
             <th>Action</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-row>
           <tr [class.overdue-row]="isOverdue(row)">
-            <td><strong>{{ row.gatePassNo }}</strong></td>
+            <td><span class="pass-no">{{ row.gatePassNo }}</span></td>
             <td><p-tag [value]="row.type" /></td>
             <td>
-              <div *ngFor="let it of row.items" style="font-size:0.85rem;">
-                <span style="font-family:monospace;color:#1e3a8a;">{{ it.asset?.assetId }}</span>
-                · {{ it.asset?.assetName }}
+              <div class="item-lines">
+                <div class="item-line" *ngFor="let it of row.items"
+                     [pTooltip]="(it.asset?.assetId || '') + ' ' + (it.asset?.assetName || it.description || '')"
+                     tooltipPosition="top">
+                  <span class="code">{{ it.asset?.assetId }}</span>
+                  · {{ it.asset?.assetName || it.description }}
+                </div>
               </div>
             </td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ row.vehicleNo || '—' }}</td>
-            <td class="ellipsis-cell" appOverflowTooltip>{{ row.gatedOutAt | date:'dd MMM, HH:mm' }}<br><small style="color:#64748b;">by {{ row.gatedOutBy?.name }}</small></td>
+            <td class="nowrap">
+              {{ row.gatedOutAt | date:'dd MMM, HH:mm' }}
+              <small class="sub">by {{ row.gatedOutBy?.name }}</small>
+            </td>
             <td>
+              <p-tag *ngIf="row.labelPrintedAt" value="Labelled" severity="success"
+                [pTooltip]="'Printed by ' + (row.labelPrintedBy?.name || 'security')" tooltipPosition="top" />
+              <p-tag *ngIf="!row.labelPrintedAt" value="Awaiting label" severity="warn"
+                pTooltip="Not yet printed by the label desk" tooltipPosition="top" />
+            </td>
+            <td class="nowrap">
               {{ row.expectedReturnDate | date:'dd MMM yyyy' }}
               <span *ngIf="isOverdue(row)" class="overdue-pill">{{ daysOverdue(row) }}d overdue</span>
             </td>
             <td>
-              <p-button *ngIf="row.type === 'RETURNABLE'"
-                label="Gate-In" icon="pi pi-sign-in" severity="info" size="small"
-                (onClick)="openGateIn(row)" pTooltip="Mark physically received back" tooltipPosition="top" />
-              <p-button icon="pi pi-file-pdf" size="small" severity="info" [text]="true"
-                (onClick)="downloadPdf(row)" pTooltip="Open PDF" tooltipPosition="top" />
+              <div class="action-buttons">
+                <p-button *ngIf="row.type === 'RETURNABLE'"
+                  label="Gate-In" icon="pi pi-sign-in" severity="info" size="small"
+                  (onClick)="openGateIn(row)" pTooltip="Mark physically received back" tooltipPosition="top" />
+                <p-button icon="pi pi-file-pdf" size="small" severity="info" [text]="true"
+                  (onClick)="downloadPdf(row)" pTooltip="Open PDF" tooltipPosition="top" />
+              </div>
             </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="8" class="text-center">No assets currently out on a gate pass.</td></tr>
+          <tr><td colspan="9" class="text-center">No assets currently out on a gate pass.</td></tr>
+        </ng-template>
+      </p-table>
+      <small class="tab-note">
+        Non-returnable passes are not listed here — nothing is expected back. Find them under History.
+      </small>
+    </p-tabPanel>
+
+    <!-- ── History — everything that crossed the gate ── -->
+    <p-tabPanel header="History">
+      <div class="history-filters">
+        <p-floatlabel variant="on" class="search-field">
+          <input pInputText [(ngModel)]="historySearch" name="historySearch"
+                 (keyup.enter)="searchHistory()"
+                 pTooltip="Searches gate pass number, issued-to and vehicle number"
+                 tooltipPosition="top" />
+          <label>Search pass no / vehicle</label>
+        </p-floatlabel>
+        <p-button label="Search" icon="pi pi-search" size="small" (onClick)="searchHistory()" />
+        <p-button label="Clear" severity="secondary" [text]="true" size="small"
+                  (onClick)="historySearch=''; searchHistory()" />
+      </div>
+
+      <p-table [value]="historyRows" [loading]="historyLoading"
+        [paginator]="true" [rows]="historyLimit" [totalRecords]="historyTotal" [lazy]="true"
+        (onLazyLoad)="loadHistory($event)" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Gate Pass</th>
+            <th>Type</th>
+            <th>Items</th>
+            <th>Issued To</th>
+            <th>Gated Out</th>
+            <th>Gated In</th>
+            <th>Condition</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr>
+            <td><span class="pass-no">{{ row.gatePassNo }}</span></td>
+            <td><p-tag [value]="row.type" [severity]="row.type === 'RETURNABLE' ? 'info' : 'warn'" /></td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">
+              {{ row.items?.length || 0 }}
+              <span *ngIf="row.items?.length" class="muted">
+                · {{ row.items[0].asset?.assetName || row.items[0].description }}
+                <span *ngIf="row.items.length > 1">+{{ row.items.length - 1 }}</span>
+              </span>
+            </td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
+            <td class="nowrap">
+              {{ row.gatedOutAt | date:'dd MMM yy, HH:mm' }}
+              <small class="sub">by {{ row.gatedOutBy?.name || '—' }}</small>
+            </td>
+            <td class="nowrap">
+              <span *ngIf="row.gatedInAt">
+                {{ row.gatedInAt | date:'dd MMM yy, HH:mm' }}
+                <small class="sub">by {{ row.gatedInBy?.name || '—' }}</small>
+              </span>
+              <span *ngIf="!row.gatedInAt" class="muted">—</span>
+            </td>
+            <td>
+              <p-tag *ngIf="row.returnCondition" [value]="row.returnCondition"
+                [severity]="row.returnCondition === 'GOOD' ? 'success' : 'danger'" />
+              <span *ngIf="!row.returnCondition" class="muted">—</span>
+            </td>
+            <td><p-tag [value]="row.status" [severity]="getStatusSeverity(row.status)" /></td>
+            <td>
+              <div class="action-buttons">
+                <p-button icon="pi pi-file-pdf" label="Print" size="small" severity="info" [text]="true"
+                  (onClick)="downloadPdf(row)" pTooltip="Print the completed pass for your records"
+                  tooltipPosition="top" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="9" class="text-center">No gate passes have crossed the gate yet.</td></tr>
         </ng-template>
       </p-table>
     </p-tabPanel>
 
   </p-tabView>
+
+  <!-- ── Gate-Out Dialog ── -->
+  <p-dialog header="Verify &amp; Clear — Security Check" [(visible)]="clearDialog.open" [modal]="true"
+            [style]="{width:'640px'}" [draggable]="false">
+    <div *ngIf="clearDialog.row">
+      <p class="dialog-lead">
+        <strong>{{ clearDialog.row.gatePassNo }}</strong> · {{ clearDialog.row.purpose }}
+      </p>
+
+      <dl class="dialog-facts">
+        <div><dt>Issued To</dt><dd>{{ clearDialog.row.issuedTo || '—' }}</dd></div>
+        <div><dt>Carried By</dt><dd>{{ clearDialog.row.carriedBy || '—' }}</dd></div>
+        <div><dt>Destination</dt><dd>{{ clearDialog.row.toAddress || '—' }}</dd></div>
+        <div *ngIf="clearDialog.row.type === 'RETURNABLE'">
+          <dt>Expected Return</dt>
+          <dd>{{ clearDialog.row.expectedReturnDate ? (clearDialog.row.expectedReturnDate | date:'dd MMM yyyy') : '—' }}</dd>
+        </div>
+      </dl>
+
+      <!-- Recorded here, by the only person who can see the vehicle. -->
+      <h4 class="dialog-sub">Transport details</h4>
+      <div class="dialog-grid">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="clearDialog.vehicleNo" name="gateOutVehicleNo" />
+          <label>Vehicle No</label>
+        </p-floatlabel>
+        <p-floatlabel variant="on">
+          <p-select [options]="vehicleTypeOptions" optionLabel="label" optionValue="value"
+                    [(ngModel)]="clearDialog.vehicleType" name="gateOutVehicleType"
+                    [showClear]="true" appendTo="body" />
+          <label>Vehicle Type</label>
+        </p-floatlabel>
+        <p-floatlabel variant="on" class="span-2">
+          <input pInputText [(ngModel)]="clearDialog.courierDetails" name="gateOutCourier" />
+          <label>Courier details (company / AWB, if sent by courier)</label>
+        </p-floatlabel>
+      </div>
+
+      <h4 class="dialog-sub">Check these items before releasing</h4>
+      <ul class="dialog-items">
+        <li *ngFor="let it of clearDialog.row.items">
+          <span class="code" *ngIf="it.asset?.assetId">{{ it.asset.assetId }}</span>
+          <span>{{ it.asset?.assetName || it.description }}</span>
+          <span class="qty" *ngIf="it.quantity > 1">× {{ it.quantity }}</span>
+        </li>
+      </ul>
+
+      <p class="dialog-note">
+        Confirming records your clearance and the transport details, and sends the parcel
+        to label printing. It does not mark the pass as gone — do that from
+        <strong>Cleared — Awaiting Exit</strong> when it actually leaves.
+      </p>
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true"
+                (onClick)="clearDialog.open = false" [disabled]="clearDialog.saving" />
+      <p-button label="Confirm Clearance" icon="pi pi-check" severity="success"
+                (onClick)="confirmClear()" [loading]="clearDialog.saving" />
+    </div>
+  </p-dialog>
+
+  <!-- ── Gate-out without a label: warn, never block ── -->
+  <p-dialog header="No label printed" [(visible)]="gateOutWarn.open" [modal]="true"
+            [style]="{width:'460px'}" [draggable]="false">
+    <div *ngIf="gateOutWarn.row">
+      <div class="dialog-warn">
+        <i class="pi pi-exclamation-triangle"></i>
+        <strong>{{ gateOutWarn.row.gatePassNo }}</strong> has no stick-on label yet.
+      </div>
+      <p class="dialog-note">
+        The label desk normally prints one before the parcel leaves. You can still gate it
+        out — this is a reminder, not a block.
+      </p>
+    </div>
+    <div class="dialog-actions">
+      <p-button label="Wait for label" severity="secondary" [text]="true"
+                (onClick)="gateOutWarn.open = false" [disabled]="gateOutWarn.saving" />
+      <p-button label="Gate-Out anyway" icon="pi pi-sign-out" severity="warn"
+                (onClick)="confirmGateOutAnyway()" [loading]="gateOutWarn.saving" />
+    </div>
+  </p-dialog>
 
   <!-- ── Gate-In Dialog ── -->
   <p-dialog header="Gate-In — Receive Asset Back" [(visible)]="gateInDialog.open" [modal]="true" [style]="{width:'700px'}">

@@ -21,6 +21,8 @@ import { Dashboard } from './master/dashboard/dashboard';
 import { HodDashboard } from './master/hod-dashboard/hod-dashboard';
 import { GatePass } from './master/gate-pass/gate-pass';
 import { GatePassSecurity } from './master/gate-pass-security/gate-pass-security';
+import { GatePassPrintQueue } from './master/gate-pass-print-queue/gate-pass-print-queue';
+import { GatePassScan } from './master/gate-pass-scan/gate-pass-scan';
 import { Notifications } from './master/notifications/notifications';
 import { Calibration } from './master/calibration/calibration';
 import { SupportMatrix } from './master/support-matrix/support-matrix';
@@ -130,6 +132,12 @@ export const routes: Routes = [
   { path: 'hod-dashboard', component: HodDashboard, canActivate: [authGuard] },
   { path: 'gate-pass', component: GatePass, canActivate: [authGuard] },
   { path: 'gate-pass/security', component: GatePassSecurity, canActivate: [authGuard] },
+  { path: 'gate-pass/print-queue', component: GatePassPrintQueue, canActivate: [authGuard] },
+  // QR deep-link target. Guarded: a parcel scanned in transit shows a login
+  // screen, not its contents. The bare path serves the paste-a-number fallback
+  // for labels printed before the QR carried a URL.
+  { path: 'gate-pass/scan', component: GatePassScan, canActivate: [authGuard] },
+  { path: 'gate-pass/scan/:gatePassNo', component: GatePassScan, canActivate: [authGuard] },
   { path: 'notifications', component: Notifications, canActivate: [authGuard] },
   { path: 'calibration', component: Calibration, canActivate: [authGuard] },
   { path: 'support-matrix', component: SupportMatrix, canActivate: [authGuard] },

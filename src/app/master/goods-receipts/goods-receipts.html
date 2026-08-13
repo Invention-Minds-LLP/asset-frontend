@@ -49,7 +49,7 @@
           <td class="ellipsis-cell" appOverflowTooltip><strong>{{ gra.graNumber || gra.grnNumber || 'GRN-' + gra.id }}</strong></td>
           <td>{{ gra.receiptDate || gra.createdAt | date:'mediumDate' }}</td>
           <td class="ellipsis-cell" appOverflowTooltip>{{ gra.purchaseOrder?.poNumber || gra.poNumber || '--' }}</td>
-          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ gra.purchaseOrder?.vendor?.name || gra.vendorName || '--' }}</td>
+          <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 220px;">{{ gra.vendor?.name || gra.purchaseOrder?.vendor?.name || gra.vendorName || '--' }}</td>
           <td>
             <p-tag [value]="getStatusLabel(gra.status)" [severity]="getStatusSeverity(gra.status)"></p-tag>
           </td>
@@ -106,57 +106,52 @@
           (onClick)="addLine()"></p-button>
       </div>
 
-      <p-table [value]="graForm.lines" styleClass="p-datatable-sm" [style]="{'margin-top':'0.5rem'}">
-        <ng-template pTemplate="header">
-          <tr>
-            <th style="width:3rem">#</th>
-            <th>Description</th>
-            <th style="width:140px">Item Type</th>
-            <th style="width:90px">Received Qty</th>
-            <th style="width:180px">Store</th>
-            <th style="width:130px">Unit Price</th>
-            <th style="width:150px">Serial Number</th>
-            <th style="width:120px;text-align:right">Line Total</th>
-            <th style="width:3rem"></th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-line let-i="rowIndex">
-          <tr>
-            <td>{{ i + 1 }}</td>
-            <td>
-              <input pInputText [(ngModel)]="line.description" placeholder="Item description" style="width:100%" />
-            </td>
-            <td>
-              <p-select [options]="itemTypeOptions" [(ngModel)]="line.itemType"
-                [style]="{'width':'100%'}" appendTo="body"></p-select>
-            </td>
-            <td>
-              <p-inputNumber [(ngModel)]="line.receivedQty" [min]="1" [style]="{'width':'100%'}"
-                [showButtons]="true" buttonLayout="compact" incrementButtonClass="p-button-text"
-                decrementButtonClass="p-button-text"></p-inputNumber>
-            </td>
-            <td>
-              <p-select [options]="storeOptions" [(ngModel)]="line.storeId"
-                placeholder="Select store" [filter]="true" [showClear]="true"
-                [style]="{'width':'100%'}" appendTo="body"></p-select>
-            </td>
-            <td>
-              <p-inputNumber [(ngModel)]="line.unitPrice" [min]="0" mode="decimal"
-                [minFractionDigits]="2" [style]="{'width':'100%'}"></p-inputNumber>
-            </td>
-            <td>
-              <input pInputText [(ngModel)]="line.serialNumber" placeholder="S/N" style="width:100%" />
-            </td>
-            <td style="text-align:right; font-weight:600">
-              {{ formatCurrency(getLineTotal(line)) }}
-            </td>
-            <td>
+      <div class="gra-lines">
+        @for (line of graForm.lines; track $index; let i = $index) {
+          <div class="gra-line-card">
+            <div class="gra-line-head">
+              <span class="gra-line-num">Line {{ i + 1 }}</span>
+              <span class="gra-line-total">Line Total: <strong>{{ formatCurrency(getLineTotal(line)) }}</strong></span>
               <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small"
-                pTooltip="Remove Line" tooltipPosition="top" [disabled]="graForm.lines.length <= 1" (onClick)="removeLine(i)"></p-button>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+                pTooltip="Remove Line" tooltipPosition="top"
+                [disabled]="graForm.lines.length <= 1" (onClick)="removeLine(i)"></p-button>
+            </div>
+            <div class="gra-line-grid">
+              <div class="form-field gra-line-desc">
+                <label>Description *</label>
+                <input pInputText [(ngModel)]="line.description" placeholder="Item description" style="width:100%" />
+              </div>
+              <div class="form-field">
+                <label>Item Type</label>
+                <p-select [options]="itemTypeOptions" [(ngModel)]="line.itemType"
+                  [style]="{'width':'100%'}" appendTo="body"></p-select>
+              </div>
+              <div class="form-field">
+                <label>Received Qty *</label>
+                <p-inputNumber [(ngModel)]="line.receivedQty" [min]="1" [style]="{'width':'100%'}"></p-inputNumber>
+              </div>
+              <div class="form-field">
+                <label>Store</label>
+                <p-select [options]="storeOptions" [(ngModel)]="line.storeId"
+                  placeholder="Select store" [filter]="true" [showClear]="true"
+                  [style]="{'width':'100%'}" appendTo="body"></p-select>
+              </div>
+              <div class="form-field">
+                <label>Unit Price</label>
+                <p-inputNumber [(ngModel)]="line.unitPrice" [min]="0" mode="decimal"
+                  [minFractionDigits]="2" [style]="{'width':'100%'}"></p-inputNumber>
+              </div>
+              <div class="form-field gra-line-desc">
+                <label>Serial Numbers
+                  <i class="pi pi-info-circle kpi-i" pTooltip="For bulk quantities enter one serial per unit, separated by commas or new lines (e.g. SN001, SN002, SN003). Units without a serial get an auto-generated placeholder." tooltipPosition="top"></i>
+                </label>
+                <textarea pTextarea [(ngModel)]="line.serialNumber" [rows]="2" style="width:100%"
+                  placeholder="One serial per unit — comma or new-line separated for bulk"></textarea>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
 
       <!-- Totals Summary -->
       <div class="totals-summary">
@@ -189,7 +184,7 @@
         <div class="detail-meta">
           <span><strong>Date:</strong> {{ detailGRA.receiptDate || detailGRA.createdAt | date:'mediumDate' }}</span>
           <span><strong>PO:</strong> {{ detailGRA.purchaseOrder?.poNumber || '--' }}</span>
-          <span><strong>Vendor:</strong> {{ detailGRA.purchaseOrder?.vendor?.name || detailGRA.vendorName || '--' }}</span>
+          <span><strong>Vendor:</strong> {{ detailGRA.vendor?.name || detailGRA.purchaseOrder?.vendor?.name || detailGRA.vendorName || '--' }}</span>
         </div>
       </div>
     </div>
@@ -215,59 +210,62 @@
       <div class="section-title">Receipt Lines</div>
     </div>
 
-    @if (detailGRA.lines?.length) {
-      <p-table [value]="detailGRA.lines" styleClass="p-datatable-sm p-datatable-striped">
-        <ng-template pTemplate="header">
-          <tr>
-            <th>#</th>
-            <th>Description</th>
-            <th>Type</th>
-            <th>Received Qty</th>
-            <th style="text-align:right">Unit Price</th>
-            <th style="text-align:right">Total</th>
-            <th>Serial No.</th>
-            <th>Inspection</th>
-            @if (canInspect()) {
-              <th>Accepted</th>
-              <th>Rejected</th>
+    @for (line of detailGRA.lines; track line.id; let i = $index) {
+      <div class="gra-line-card">
+        <div class="gra-line-head">
+          <span class="gra-line-num">Line {{ i + 1 }}</span>
+          <span class="gra-detail-desc">{{ line.description }}</span>
+          <span class="gra-line-total">Total: <strong>{{ formatCurrency((line.receivedQty || line.quantity || 0) * (line.unitPrice || 0)) }}</strong></span>
+        </div>
+        <div class="gra-line-grid">
+          <div class="gra-cell">
+            <label>Type</label>
+            <span class="val">{{ line.itemType }}</span>
+          </div>
+          <div class="gra-cell">
+            <label>Received Qty</label>
+            <span class="val">{{ line.receivedQty || line.quantity }}</span>
+          </div>
+          <div class="gra-cell">
+            <label>Unit Price</label>
+            <span class="val">{{ formatCurrency(line.unitPrice) }}</span>
+          </div>
+          <div class="gra-cell">
+            <label>Serial No.</label>
+            <span class="val">{{ line.serialNumber || '--' }}</span>
+          </div>
+        </div>
+        @if (canInspect()) {
+          <div class="gra-inspect-row">
+            <div class="form-field">
+              <label>Inspection Result *</label>
+              <p-select
+                [options]="[{label:'Pass',value:'PASS'},{label:'Fail',value:'FAIL'},{label:'Partial',value:'PARTIAL'}]"
+                [(ngModel)]="line.inspectionStatus"
+                placeholder="Select result" [style]="{'width':'100%'}" appendTo="body"></p-select>
+            </div>
+            <div class="form-field">
+              <label>Accepted Qty</label>
+              <p-inputNumber [(ngModel)]="line.acceptedQty" [min]="0" [max]="line.receivedQty"
+                [style]="{'width':'100%'}"></p-inputNumber>
+            </div>
+            <div class="form-field">
+              <label>Rejected Qty</label>
+              <p-inputNumber [(ngModel)]="line.rejectedQty" [min]="0" [max]="line.receivedQty"
+                [style]="{'width':'100%'}"></p-inputNumber>
+            </div>
+          </div>
+        } @else {
+          <div class="gra-inspect-result">
+            <label>Inspection:</label>
+            <p-tag [value]="line.inspectionStatus || line.inspectionResult || 'Pending'"
+              [severity]="getInspectionSeverity(line.inspectionStatus || line.inspectionResult)"></p-tag>
+            @if (line.acceptedQty || line.rejectedQty) {
+              <span class="gra-inspect-counts">Accepted: <strong>{{ line.acceptedQty || 0 }}</strong> · Rejected: <strong>{{ line.rejectedQty || 0 }}</strong></span>
             }
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-line let-i="rowIndex">
-          <tr>
-            <td>{{ i + 1 }}</td>
-            <td>{{ line.description }}</td>
-            <td>{{ line.itemType }}</td>
-            <td>{{ line.receivedQty || line.quantity }}</td>
-            <td style="text-align:right">{{ formatCurrency(line.unitPrice) }}</td>
-            <td style="text-align:right"><strong>{{ formatCurrency((line.receivedQty || line.quantity || 0) * (line.unitPrice || 0)) }}</strong></td>
-            <td>{{ line.serialNumber || '--' }}</td>
-            <td>
-              @if (canInspect()) {
-                <p-select
-                  [options]="[{label:'Pass',value:'PASS'},{label:'Fail',value:'FAIL'},{label:'Partial',value:'PARTIAL'}]"
-                  [(ngModel)]="line.inspectionStatus"
-                  placeholder="Result" [style]="{'width':'110px'}" appendTo="body"></p-select>
-              } @else {
-                <p-tag [value]="line.inspectionStatus || line.inspectionResult || 'Pending'"
-                  [severity]="getInspectionSeverity(line.inspectionStatus || line.inspectionResult)"></p-tag>
-              }
-            </td>
-            @if (canInspect()) {
-              <td>
-                <p-inputNumber [(ngModel)]="line.acceptedQty" [min]="0" [max]="line.receivedQty"
-                  [style]="{'width':'80px'}" [showButtons]="true" buttonLayout="compact"
-                  incrementButtonClass="p-button-text" decrementButtonClass="p-button-text"></p-inputNumber>
-              </td>
-              <td>
-                <p-inputNumber [(ngModel)]="line.rejectedQty" [min]="0" [max]="line.receivedQty"
-                  [style]="{'width':'80px'}" [showButtons]="true" buttonLayout="compact"
-                  incrementButtonClass="p-button-text" decrementButtonClass="p-button-text"></p-inputNumber>
-              </td>
-            }
-          </tr>
-        </ng-template>
-      </p-table>
+          </div>
+        }
+      </div>
     }
 
     <!-- Detail Totals -->

@@ -168,6 +168,7 @@ export class Sidebar implements OnInit {
       dropdownItems: [
         { label: 'Gate Pass', route: '/gate-pass', icon: 'pi pi-id-card' },
         { label: 'Gate Pass — Security', route: '/gate-pass/security', icon: 'pi pi-shield' },
+        { label: 'Gate Pass — Label Printing', route: '/gate-pass/print-queue', icon: 'pi pi-print' },
         { label: 'Material Inward Register', route: '/material-inward-register', icon: 'pi pi-arrow-down-left' },
         { label: 'Rental Asset Register', route: '/rental-asset-register', icon: 'pi pi-sync' },
         { label: 'Key Register', route: '/key-register', icon: 'pi pi-key' },

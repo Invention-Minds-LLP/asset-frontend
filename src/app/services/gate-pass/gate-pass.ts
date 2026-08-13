@@ -38,6 +38,14 @@ export class GatePassService {
     return this.http.get<any[]>(`${this.apiUrl}/asset/${assetId}`);
   }
 
+  /**
+   * Look up a pass by its printed number — used by the QR deep link and by the
+   * scan screen's paste box (older labels carry a QR that isn't a link).
+   */
+  getByNo(gatePassNo: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/scan/${encodeURIComponent(gatePassNo.trim())}`);
+  }
+
   getOverdue(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/overdue`);
   }
@@ -47,9 +55,31 @@ export class GatePassService {
     return this.http.get<any[]>(`${this.apiUrl}/pending-approval`);
   }
 
-  /** Security inbox — APPROVED (ready to issue) + ISSUED (awaiting return) */
+  /** Security inbox — APPROVED (ready to issue) + ISSUED returnable (awaiting return) */
   getSecurityQueue(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/security-queue`);
+  }
+
+  /**
+   * Security history — every pass that physically crossed the gate. Paginated,
+   * because unlike the queue this only ever grows.
+   */
+  getSecurityHistory(params: {
+    page?: number; limit?: number; search?: string;
+    from?: string; to?: string; type?: string; status?: string;
+  } = {}): Observable<{ data: any[]; total: number; page: number; limit: number }> {
+    const query = Object.entries(params)
+      .filter(([, v]) => v !== undefined && v !== null && v !== '')
+      .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
+      .join('&');
+    return this.http.get<{ data: any[]; total: number; page: number; limit: number }>(
+      `${this.apiUrl}/security-history${query ? `?${query}` : ''}`
+    );
+  }
+
+  /** Label queue — APPROVED passes awaiting a stick-on label (security executive) */
+  getLabelQueue(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/label-queue`);
   }
 
   // ── CRUD ─────────────────────────────────────────────────────────────────
@@ -78,7 +108,15 @@ export class GatePassService {
     return this.http.post<any>(`${this.apiUrl}/${id}/reject`, { reason });
   }
 
-  /** Security marks pass as physically gated out (asset leaves premises) */
+  /**
+   * Desk clearance — supervisor has checked the items and recorded the vehicle.
+   * The parcel is still on site; the label is printed after this.
+   */
+  securityClear(id: number, payload: { vehicleNo?: string; vehicleType?: string; courierDetails?: string } = {}): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/security-clear`, payload);
+  }
+
+  /** The parcel actually leaves. Everything was captured at clearance. */
   gateOut(id: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${id}/gate-out`, {});
   }
@@ -101,5 +139,13 @@ export class GatePassService {
   /** Fetch the PDF as a blob (for triggering native download via blob URL). */
   downloadPdf(id: number): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' });
+  }
+
+  /**
+   * Compact stick-on label for the parcel (4x6in). Generating it stamps
+   * labelPrintedAt/By on the pass, so callers should refresh their list after.
+   */
+  downloadLabel(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${id}/label`, { responseType: 'blob' });
   }
 }

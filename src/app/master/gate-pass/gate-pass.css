@@ -186,3 +186,103 @@ input[pInputText],
   font-size: 14px !important;
   border-radius: 8px !important;
 }
+
+/* ── Items table ──────────────────────────────────────────────────────────
+   The Asset select carries a long label (AST-RP-PUR-FUR-FY2021-22-00003 -
+   Chair With Desk) and, with the default auto table layout, it stretched its
+   own column and squeezed the rest — Remarks collapsed to about 80px, so a
+   typist could not see what they had entered.
+
+   table-layout:fixed makes the declared column widths authoritative, and the
+   select's label ellipsises instead of forcing the column wider. */
+:host ::ng-deep .items-table table { table-layout: fixed; width: 100%; }
+
+:host ::ng-deep .items-table .p-select-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Every control fills its cell, so the visible width IS the usable width. */
+:host ::ng-deep .items-table input[pInputText],
+:host ::ng-deep .items-table .p-inputtext,
+:host ::ng-deep .items-table .p-select {
+  width: 100% !important;
+  min-width: 0;
+  height: 38px !important;
+  font-size: 13.5px !important;
+}
+
+:host ::ng-deep .items-table .p-datatable-thead > tr > th,
+:host ::ng-deep .items-table .p-datatable-tbody > tr > td {
+  padding: 8px 8px !important;
+  white-space: normal;
+  vertical-align: middle;
+}
+
+.items-hint { display: block; margin-bottom: 8px; color: #64748b; font-size: 0.82rem; }
+.items-add { margin-top: 8px; }
+/* External-carrier toggle.
+   `.field` sets flex-direction:column for stacked label+input, which stacked
+   this checkbox ON TOP of its own caption. It needs row explicitly — and full
+   width, so the caption has room to sit on one line instead of wrapping into
+   three inside a 250px grid cell. */
+.carrier-toggle {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface-hover, #f8fafc);
+  border: 1px solid var(--surface-border, #e2e8f0);
+  border-radius: 8px;
+}
+.carrier-toggle label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  cursor: pointer;
+  line-height: 1.35;
+}
+.carrier-toggle label small { color: #64748b; font-size: 0.76rem; }
+
+/* Auto-filled from the chosen employee — styled so it reads as derived rather
+   than as an empty field someone forgot to complete. */
+.readonly-field {
+  background: var(--surface-hover, #f8fafc) !important;
+  color: var(--text-color-secondary) !important;
+  cursor: not-allowed;
+}
+
+/* ── List tables ──────────────────────────────────────────────────────────
+   Headers were wrapping ("Issued To", "Expected Return", "Requested By" all
+   broke to two lines), which pushed every row taller and squeezed the columns
+   until GP-20260813-0001 split across two lines too. Hold headings and
+   timestamps on one line and let the table scroll instead. */
+:host ::ng-deep .p-datatable thead th {
+  white-space: nowrap;
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th,
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  padding: 7px 9px !important;
+}
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  font-size: 0.84rem;
+  vertical-align: middle;
+  line-height: 1.35;
+}
+:host ::ng-deep .p-datatable .nowrap,
+:host ::ng-deep .p-datatable .nowrap * { white-space: nowrap; }
+
+/* The items table is a form, not a list — keep its own roomier sizing. */
+:host ::ng-deep .items-table .p-datatable-tbody > tr > td { font-size: 13.5px; }
+
+.pass-no { font-weight: 700; white-space: nowrap; }
+
+/* Approve / Reject / PDF sat as bare siblings, so the PDF icon dropped onto
+   its own line under the buttons. */
+.action-buttons { flex-wrap: nowrap; align-items: center; }
+:host ::ng-deep .action-buttons .p-button { height: auto !important; font-size: 13px !important; }
