@@ -34,6 +34,10 @@ export class HodDashboard implements OnInit {
   departments: any[] = [];
   selectedDeptId: number | null = null;
 
+  // An HOD can answer for several departments, so the switcher is no longer
+  // admin-only — it appears for anyone holding more than one.
+  get showDeptSwitcher(): boolean { return this.isAdmin || this.departments.length > 1; }
+
   // KPI drill-down popup (server-paginated)
   showListDialog = false;
   listLoading = false;
@@ -57,6 +61,8 @@ export class HodDashboard implements OnInit {
     const dept = typeof window !== 'undefined' ? localStorage.getItem('departmentId') : null;
     this.selectedDeptId = dept && dept !== 'null' ? Number(dept) : null;
 
+    // Admins pick from every department; everyone else gets the ones they are
+    // responsible for, which the dashboard response itself carries.
     if (this.isAdmin) {
       this.assets.getDepartments().subscribe({ next: (d: any) => setTimeout(() => { this.departments = d || []; this.cdr.markForCheck(); }) });
     }
@@ -65,11 +71,13 @@ export class HodDashboard implements OnInit {
 
   load() {
     this.loading = true;
-    const q = this.isAdmin && this.selectedDeptId ? `?departmentId=${this.selectedDeptId}` : '';
+    const q = this.selectedDeptId ? `?departmentId=${this.selectedDeptId}` : '';
     this.http.get<any>(`${environment.apiUrl}/hod-dashboard${q}`).subscribe({
       next: (res) => setTimeout(() => {
         this.departmentName = res?.departmentName || '';
         this.data = res?.data || null;
+        if (!this.isAdmin) this.departments = res?.departments || [];
+        if (!this.selectedDeptId) this.selectedDeptId = res?.departmentId ?? null;
         this.loading = false;
         this.cdr.markForCheck();
       }),
@@ -95,7 +103,7 @@ export class HodDashboard implements OnInit {
   private listParams(limit: number): string {
     const parts = [`key=${this.listKey}`, `page=${this.listPage}`, `limit=${limit}`];
     if (this.listSearch.trim()) parts.push(`search=${encodeURIComponent(this.listSearch.trim())}`);
-    if (this.isAdmin && this.selectedDeptId) parts.push(`departmentId=${this.selectedDeptId}`);
+    if (this.selectedDeptId) parts.push(`departmentId=${this.selectedDeptId}`);
     return parts.join('&');
   }
 

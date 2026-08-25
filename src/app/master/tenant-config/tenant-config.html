@@ -27,7 +27,13 @@
             @for (config of getConfigsByGroup(group); track config.key) {
               <div class="config-item">
                 <div class="config-info">
+                  <!-- The label alone made a key unfindable by name: someone
+                       looking for EXTERNAL_PO_MODE saw only its sentence. Both
+                       are shown so the screen reads and is searchable. -->
                   <div class="config-key">{{ config.label || config.key }}</div>
+                  @if (config.label) {
+                    <div class="config-key-name">{{ config.key }}</div>
+                  }
                   @if (config.description) {
                     <div class="config-description">{{ config.description }}</div>
                   }

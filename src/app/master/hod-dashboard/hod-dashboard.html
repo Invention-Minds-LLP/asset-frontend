@@ -4,7 +4,7 @@
       <h2>{{ departmentName || 'Department' }} — Assignment Dashboard</h2>
       <p-tag value="HOD" severity="info"></p-tag>
     </div>
-    <div class="hd-field" *ngIf="isAdmin">
+    <div class="hd-field" *ngIf="showDeptSwitcher">
       <label>Department</label>
       <p-select [options]="departments" optionLabel="name" optionValue="id" [(ngModel)]="selectedDeptId"
         [filter]="true" appendTo="body" placeholder="Select" (onChange)="onDeptChange()" styleClass="hd-select"></p-select>

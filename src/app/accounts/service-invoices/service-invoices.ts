@@ -87,8 +87,8 @@ export class ServiceInvoices implements OnInit {
   ngOnInit() {
     this.load();
     this.loadStats();
-    this.assetSvc.getVendors().subscribe({ next: d => this.vendors = d });
-    this.assetSvc.getAllAssetsForDropdown().subscribe({ next: d => this.assets = d });
+    this.assetSvc.getVendors().subscribe({ next: d => { this.vendors = d; this.cdr.detectChanges(); }});
+    this.assetSvc.getAllAssetsForDropdown().subscribe({ next: d => { this.assets = d; this.cdr.detectChanges(); }});
   }
 
   load() {
@@ -97,13 +97,13 @@ export class ServiceInvoices implements OnInit {
     if (this.filters.status) f.status = this.filters.status;
     if (this.filters.vendorId) f.vendorId = this.filters.vendorId;
     this.svc.getAll(f).subscribe({
-      next: d => { this.invoices = d.data; this.total = d.pagination.total; this.loading = false; },
-      error: () => this.loading = false
+      next: d => { this.invoices = d.data; this.total = d.pagination.total; this.loading = false; this.cdr.detectChanges(); },
+      error: () => { this.loading = false; this.cdr.detectChanges(); }
     });
   }
 
   loadStats() {
-    this.svc.getStats().subscribe({ next: d => this.stats = d });
+    this.svc.getStats().subscribe({ next: d => { this.stats = d; this.cdr.detectChanges(); }});
   }
 
   openNew() {
@@ -117,7 +117,7 @@ export class ServiceInvoices implements OnInit {
   }
 
   viewDetail(row: any) {
-    this.svc.getById(row.id).subscribe({ next: d => { this.selectedInvoice = d; this.showDetailDialog = true; } });
+    this.svc.getById(row.id).subscribe({ next: d => { this.selectedInvoice = d; this.showDetailDialog = true; this.cdr.detectChanges(); } });
   }
 
   get calcGstAmt(): number {
@@ -143,16 +143,15 @@ export class ServiceInvoices implements OnInit {
       next: () => {
         this.msg.add({ severity: 'success', summary: 'Created', detail: 'Service invoice created' });
         this.showCreateDialog = false;
-        this.load(); this.loadStats();
-      },
-      error: (e) => this.msg.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed' })
+        this.load(); this.loadStats(); this.cdr.detectChanges(); },
+      error: (e) => { this.msg.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed' }); this.cdr.detectChanges(); }
     });
   }
 
   approveInvoice(row: any) {
     this.svc.approve(row.id).subscribe({
-      next: () => { this.msg.add({ severity: 'success', summary: 'Approved' }); this.load(); this.loadStats(); },
-      error: (e) => this.msg.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed' })
+      next: () => { this.msg.add({ severity: 'success', summary: 'Approved' }); this.load(); this.loadStats(); this.cdr.detectChanges(); },
+      error: (e) => { this.msg.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed' }); this.cdr.detectChanges(); }
     });
   }
 
@@ -167,9 +166,8 @@ export class ServiceInvoices implements OnInit {
       next: () => {
         this.msg.add({ severity: 'info', summary: 'Rejected' });
         this.showRejectDialog = false;
-        this.load(); this.loadStats();
-      },
-      error: (e) => this.msg.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed' })
+        this.load(); this.loadStats(); this.cdr.detectChanges(); },
+      error: (e) => { this.msg.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed' }); this.cdr.detectChanges(); }
     });
   }
 
@@ -185,9 +183,8 @@ export class ServiceInvoices implements OnInit {
       next: () => {
         this.msg.add({ severity: 'success', summary: 'Marked as Paid' });
         this.showPayDialog = false;
-        this.load(); this.loadStats();
-      },
-      error: (e) => this.msg.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed' })
+        this.load(); this.loadStats(); this.cdr.detectChanges(); },
+      error: (e) => { this.msg.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed' }); this.cdr.detectChanges(); }
     });
   }
 
@@ -195,8 +192,8 @@ export class ServiceInvoices implements OnInit {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
     this.svc.uploadDoc(id, input.files[0]).subscribe({
-      next: () => { this.msg.add({ severity: 'success', summary: 'Document uploaded' }); this.viewDetail({ id }); },
-      error: (e) => this.msg.add({ severity: 'error', summary: 'Upload failed', detail: e?.error?.message || 'Failed' })
+      next: () => { this.msg.add({ severity: 'success', summary: 'Document uploaded' }); this.viewDetail({ id }); this.cdr.detectChanges(); },
+      error: (e) => { this.msg.add({ severity: 'error', summary: 'Upload failed', detail: e?.error?.message || 'Failed' }); this.cdr.detectChanges(); }
     });
   }
 

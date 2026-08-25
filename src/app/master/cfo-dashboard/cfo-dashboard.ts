@@ -124,6 +124,9 @@ export class CfoDashboard implements OnInit {
   }
 
   loadBranchStats() {
+    // Management-only endpoint — skip silently for other roles (no 403 noise)
+    const role = localStorage.getItem('role') || '';
+    if (!['ADMIN', 'CEO_COO', 'CFO', 'FINANCE', 'OPERATIONS'].includes(role)) { this.branchStats = []; return; }
     this.loadingBranchStats = true;
     this.analytics.getBranchDashboard().subscribe({
       next: (data) => {

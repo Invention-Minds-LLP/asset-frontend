@@ -1048,3 +1048,43 @@ input[pInputText],
   text-transform: uppercase;
   color: #0d9488;
 }
+
+/* Application-of-income flag — charitable entities only */
+.application-flag {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  padding: 0.75rem 0.9rem;
+  margin: 0.5rem 0;
+  border-radius: 6px;
+  background: var(--yellow-50, #fffbeb);
+  border-left: 3px solid #d97706;
+}
+.application-flag label { display: flex; flex-direction: column; gap: 0.15rem; cursor: pointer; }
+.application-flag strong { font-size: 0.86rem; }
+.application-flag span { font-size: 0.79rem; color: var(--text-color-secondary); line-height: 1.5; }
+
+/* Advance-paid order picker — closes the loop between money out and asset in */
+.advance-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.8rem 0.9rem;
+  margin: 0.5rem 0;
+  border-radius: 8px;
+  background: var(--blue-50, #eff6ff);
+  border-left: 3px solid var(--primary-color, #3b82f6);
+}
+.advance-head { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.84rem; line-height: 1.5; }
+.advance-head i { margin-top: 0.15rem; }
+.advance-head strong { font-weight: 650; }
+
+.advance-linked {
+  padding: 0.55rem 0.7rem;
+  border-radius: 6px;
+  background: var(--surface-0, #fff);
+  font-size: 0.83rem;
+}
+.advance-linked-main { display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; }
+.advance-linked-main .src { font-size: 0.75rem; color: var(--text-color-secondary); }
+.advance-linked-sub { font-size: 0.76rem; color: var(--text-color-secondary); margin-top: 0.2rem; }

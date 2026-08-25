@@ -33,6 +33,8 @@ import { ToastModule } from "primeng/toast";
 import { QRCodeComponent } from "angularx-qrcode";
 import { AssetQr } from "../asset-qr/asset-qr";
 import { QuickActionsService } from "../../services/quick-actions/quick-actions";
+import { InstitutionProfileService } from "../../services/institution-profile/institution-profile.service";
+import { PurchaseOrderService } from "../../services/purchase-order/purchase-order";
 import { printQrLabels } from "../qr-label-print";
 
 type FlowStatus = "NONE" | "PENDING" | "ACKNOWLEDGED" | "REJECTED";
@@ -121,6 +123,81 @@ export class AssetsForm implements OnInit {
     { label: "Lease", value: "LEASE" },
     { label: "Rental / On-Hire", value: "RENTAL" },
   ];
+
+  // Where the money came from. Two unrelated rules read this one field:
+  // charitable entities cannot depreciate an asset whose cost was claimed as
+  // application of income, and grant-funded assets carry conditions.
+  fundingSources = [
+    { label: "Own income", value: "OWN_INCOME" },
+    { label: "Corpus / capital fund", value: "CORPUS" },
+    { label: "Grant", value: "GRANT" },
+    { label: "Donation", value: "DONATION" },
+    { label: "Loan / borrowed", value: "LOAN" },
+    { label: "Internal accrual", value: "INTERNAL_ACCRUAL" },
+  ];
+
+  // The application-of-income tick only makes sense for a charitable entity
+  // that has the rule switched on — hidden everywhere else.
+  showApplicationOfIncome = false;
+
+  // ── Advance-paid orders ───────────────────────────────────────────────
+  // When a store user creates an asset by hand, offer the orders this vendor
+  // has already been paid an advance on. Money out with nothing on the
+  // register behind it is the gap this closes.
+  advanceOrders: any[] = [];
+  unreconciledAdvances = 0;
+  selectedAdvanceOrderId: number | null = null;
+  linkedAdvanceOrder: any = null;
+
+  onVendorChangeLoadAdvances() {
+    this.advanceOrders = [];
+    this.selectedAdvanceOrderId = null;
+    this.linkedAdvanceOrder = null;
+    if (!this.asset?.vendorId) return;
+
+    this.poService.getAdvancePaidOrders(this.asset.vendorId).subscribe({
+      next: (res: any) => {
+        this.advanceOrders = res?.data ?? [];
+        this.unreconciledAdvances = res?.unreconciled ?? 0;
+        this.cdr.detectChanges();
+      },
+      // Silent: a tenant without the PO module simply has none of these
+      error: () => {},
+    });
+  }
+
+  // Fills what the order already knows, so the store user is not re-typing
+  // details that exist elsewhere. Nothing already entered is overwritten.
+  applyAdvanceOrder() {
+    this.linkedAdvanceOrder = this.advanceOrders.find(o => o.orderId === this.selectedAdvanceOrderId) ?? null;
+    if (!this.linkedAdvanceOrder) return;
+
+    const p = this.linkedAdvanceOrder.prefill ?? {};
+    if (p.purchaseOrderNo) this.asset.purchaseOrderNo = p.purchaseOrderNo;
+    if (p.purchaseOrderDate) this.asset.purchaseOrderDate = new Date(p.purchaseOrderDate);
+    if (p.assetCategoryId && !this.asset.assetCategoryId) this.asset.assetCategoryId = p.assetCategoryId;
+    if (p.purchaseCost && !this.asset.purchaseCost) this.asset.purchaseCost = p.purchaseCost;
+    if (p.description && !this.asset.assetName) this.asset.assetName = p.description;
+
+    this.toast(
+      'success',
+      `Linked to ${this.linkedAdvanceOrder.poNumber}` +
+      (this.linkedAdvanceOrder.indent ? ` (indent ${this.linkedAdvanceOrder.indent.indentNumber})` : '')
+    );
+    this.cdr.detectChanges();
+  }
+
+  // Asked once per form load. Failure is silent and simply leaves the tick
+  // hidden — an unreachable profile must not block asset creation.
+  private loadInstitutionPosture() {
+    this.institutionProfileService.get().subscribe({
+      next: (res: any) => {
+        this.showApplicationOfIncome = !!res?.applyIncomeApplicationRule;
+        this.cdr.detectChanges();
+      },
+      error: () => {},
+    });
+  }
 
   donationConditions = [
     { label: "New", value: "NEW" },
@@ -250,6 +327,13 @@ export class AssetsForm implements OnInit {
     assetPhoto: "",
     rfidCode: "",
     modeOfProcurement: "",
+
+    // funding — read by the charitable depreciation rule and grant conditions
+    fundingSource: null as string | null,
+    costClaimedAsApplication: false,
+    grantReference: "",
+    grantAuthority: "",
+    grantConditions: "",
 
     // purchase
     invoiceNumber: "",
@@ -698,7 +782,9 @@ export class AssetsForm implements OnInit {
     private cdr: ChangeDetectorRef,
     private moduleAccessService: ModuleAccessService,
     private poolService: AssetPoolService,
-    private quickActions: QuickActionsService
+    private quickActions: QuickActionsService,
+    private institutionProfileService: InstitutionProfileService,
+    private poService: PurchaseOrderService
   ) { }
 
   ngOnInit() {
@@ -714,6 +800,7 @@ export class AssetsForm implements OnInit {
     this.loadModuleAccess();
     this.evaluateAccessRights();
     this.loadDropdowns();
+    this.loadInstitutionPosture();
     this.checkEditMode();
   }
 
@@ -1094,12 +1181,15 @@ export class AssetsForm implements OnInit {
           this.activeTab = 0;
         }
       },
-      error: () => {
+      error: (err) => {
         setTimeout(() => {
           this.saving = false;
           this.savingDuplicate = false;
         });
-        this.toast("error", "Failed to save");
+        // Surface the server's reason (duplicate serial / reference, missing serial
+        // for the category) instead of a bare "Failed to save".
+        this.toast("error", err?.error?.message || "Failed to save");
+        this.cdr.markForCheck();
       }
     });
   }
@@ -1128,6 +1218,12 @@ export class AssetsForm implements OnInit {
       assetCategoryId: a.assetCategoryId,
       assetSubTypeId: a.assetSubTypeId,
       modeOfProcurement: a.modeOfProcurement,
+      // funding is a property of the batch, not of the individual unit
+      fundingSource: a.fundingSource,
+      costClaimedAsApplication: a.costClaimedAsApplication,
+      grantReference: a.grantReference,
+      grantAuthority: a.grantAuthority,
+      grantConditions: a.grantConditions,
 
       // intangible details (if applicable)
       intangibleSubType: a.intangibleSubType,
@@ -1200,7 +1296,10 @@ export class AssetsForm implements OnInit {
 
     this.assetAPI.updateAsset(this.asset.id, this.asset).subscribe({
       next: () => this.toast("success", message),
-      error: () => this.toast("error", "Failed to update")
+      error: (err) => {
+        this.toast("error", err?.error?.message || "Failed to update");
+        this.cdr.markForCheck();
+      }
     });
   }
 
@@ -1258,7 +1357,10 @@ export class AssetsForm implements OnInit {
     // the Asset record. Send the full asset object — matches existing section-save
     // pattern (see updateSection) and avoids accidentally blanking unrelated fields.
     this.assetAPI.updateAsset(this.asset.id, this.asset).subscribe({
-      error: () => this.toast("error", "Failed to update voucher / revenue details"),
+      error: (err) => {
+        this.toast("error", err?.error?.message || "Failed to update voucher / revenue details");
+        this.cdr.markForCheck();
+      },
     });
 
     // If depreciation does NOT exist → CREATE

@@ -12,7 +12,7 @@
     <div class="ho-header">
       <div>
         <h1><i class="pi pi-globe"></i> Head Office</h1>
-        <p class="ho-sub">All branches — asset health, risk and everything expiring soon</p>
+        <p class="ho-sub">All branches — asset health, risk and money signals</p>
       </div>
       <div class="ho-live" *ngIf="generatedAt">
         <span class="pulse"></span> LIVE
@@ -26,21 +26,175 @@
 
     <ng-container *ngIf="!loading && !error && health">
 
-      <!-- KPI strip -->
+      <!-- KPI strip — every tile clicks open its data -->
       <div class="ho-kpis">
-        <div class="kpi"><span class="kpi-label">Branches</span><span class="kpi-value">{{ totals.branches }}</span></div>
-        <div class="kpi"><span class="kpi-label">Total Assets</span><span class="kpi-value">{{ totals.assets | number }}</span></div>
-        <div class="kpi"><span class="kpi-label">Gross Value</span><span class="kpi-value">{{ money(totals.grossValue) }}</span></div>
-        <div class="kpi" [class.kpi-bad]="overdueTotal > 0">
-          <span class="kpi-label">Already Lapsed</span><span class="kpi-value">{{ overdueTotal }}</span>
-          <span class="kpi-note">warranty / AMC / calibration…</span>
+        <div class="kpi kpi-c-blue kpi-click" (click)="openTile('branches')">
+          <div class="kpi-ico"><i class="pi pi-building-columns"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Branches
+              <i class="pi pi-info-circle kpi-i" pTooltip="Count of active branches. Click for the branch list with assets and value." tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-value">{{ totals.branches }}</span>
+          </div>
         </div>
-        <div class="kpi" [class.kpi-warn]="next30Total > 0">
-          <span class="kpi-label">Expiring ≤ 30 days</span><span class="kpi-value">{{ next30Total }}</span>
+        <div class="kpi kpi-c-blue kpi-click" (click)="openTile('assets')">
+          <div class="kpi-ico"><i class="pi pi-box"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Total Assets
+              <i class="pi pi-info-circle kpi-i" pTooltip="Parent assets only — sub-assets are counted under their parent, matching the Assets master list. Click for the per-branch split." tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-value">{{ totals.assets | number }}</span>
+          </div>
         </div>
-        <div class="kpi" [class.kpi-bad]="totals.openTickets > 0">
-          <span class="kpi-label">Open Tickets</span><span class="kpi-value">{{ totals.openTickets }}</span>
-          <span class="kpi-note" *ngIf="totals.slaBreached > 0"><i class="pi pi-exclamation-triangle"></i> {{ totals.slaBreached }} past SLA</span>
+        <div class="kpi kpi-c-green kpi-click" (click)="openTile('value')">
+          <div class="kpi-ico"><i class="pi pi-indian-rupee"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Gross Value
+              <i class="pi pi-info-circle kpi-i" pTooltip="Sum of purchase cost (plus donation value) of all assets including sub-assets. Click for the per-branch split." tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-value">{{ money(totals.grossValue) }}</span>
+          </div>
+        </div>
+        <div class="kpi kpi-c-red kpi-click" [class.kpi-bad]="idleUnassigned?.count > 0" (click)="openTile('idle')">
+          <div class="kpi-ico"><i class="pi pi-box"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Idle &gt; 100 days
+              <i class="pi pi-info-circle kpi-i" pTooltip="Assets sitting IN STORE for more than 100 days that are not assigned to any department — bought but never deployed. Click for the list with values." tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-value">{{ idleUnassigned?.count ?? 0 }}</span>
+            <span class="kpi-note">{{ money(idleUnassigned?.value ?? 0) }} unused</span>
+          </div>
+        </div>
+        <div class="kpi kpi-c-amber kpi-click" [class.kpi-warn]="next30Total > 0" (click)="openTile('expiring')">
+          <div class="kpi-ico"><i class="pi pi-clock"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Expiring ≤ 30 days
+              <i class="pi pi-info-circle kpi-i" pTooltip="Coverage and schedules due within 30 days. Click for the full list — including anything already lapsed." tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-value">{{ next30Total }}</span>
+            <span class="kpi-note" *ngIf="overdueTotal > 0">+ {{ overdueTotal }} already lapsed</span>
+          </div>
+        </div>
+        <div class="kpi kpi-c-red kpi-click" [class.kpi-bad]="valueAtRisk > 0" (click)="openTile('risk')">
+          <div class="kpi-ico"><i class="pi pi-shield"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Value at Coverage Risk
+              <i class="pi pi-info-circle kpi-i" pTooltip="Purchase value of assets whose warranty, AMC or insurance is lapsed or lapses within 30 days — each asset counted once. Click for the asset list." tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-value">{{ money(valueAtRisk) }}</span>
+            <span class="kpi-note">cover lapsing ≤ 30d</span>
+          </div>
+        </div>
+        <div class="kpi kpi-c-blue kpi-click" (click)="openTile('pos')">
+          <div class="kpi-ico"><i class="pi pi-shopping-cart"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">POs — last 30 days
+              <i class="pi pi-info-circle kpi-i" pTooltip="Purchase orders raised in the last 30 days across the organization, with total ordered value. Click for the PO list." tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-value">{{ posLast30?.count ?? 0 }}</span>
+            <span class="kpi-note">{{ money(posLast30?.value ?? 0) }} ordered</span>
+          </div>
+        </div>
+        <div class="kpi kpi-c-green kpi-click" (click)="openTile('fybuy')">
+          <div class="kpi-ico"><i class="pi pi-cart-plus"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Bought {{ fyPurchases?.fyLabel || 'this FY' }}
+              <i class="pi pi-info-circle kpi-i" pTooltip="Assets purchased in the current financial year (by purchase date) with their total value, plus inventory items (spare parts + consumables) added this FY. Click for the list." tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-value">{{ fyPurchases?.assetCount ?? 0 }}</span>
+            <span class="kpi-note">{{ money(fyPurchases?.assetValue ?? 0) }} · {{ fyPurchases?.inventoryCount ?? 0 }} inventory</span>
+          </div>
+        </div>
+        <div class="kpi kpi-c-amber kpi-click" [class.kpi-warn]="eolNextFy?.count > 0" (click)="openTile('eolnext')">
+          <div class="kpi-ico"><i class="pi pi-hourglass"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">EOL {{ eolNextFy?.fyLabel || 'next FY' }}
+              <i class="pi pi-info-circle kpi-i" pTooltip="Assets whose expected useful life ends DURING the next financial year (depreciation start + expected life, falling back to the asset's own lifetime field). Early replacement-budget signal. Click for the list." tooltipPosition="top"></i>
+            </span>
+            <span class="kpi-value">{{ eolNextFy?.count ?? 0 }}</span>
+            <span class="kpi-note">{{ money(eolNextFy?.value ?? 0) }} to replace</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Portfolio at a glance -->
+      <div class="glance-row glance-two">
+        <div class="glance-card">
+          <div class="glance-title">Value by branch
+            <i class="pi pi-info-circle kpi-i" pTooltip="Each branch's share of the total gross asset value. Top 5 branches are shown individually; the rest are grouped as Others. The legend scrolls when there are many branches." tooltipPosition="top"></i>
+          </div>
+          <div class="donut-wrap">
+            <svg viewBox="0 0 140 140" width="132" height="132" role="img" aria-label="Gross value share by branch">
+              <circle cx="70" cy="70" r="54" fill="none" stroke="var(--ring-track)" stroke-width="20"/>
+              <g transform="rotate(-90 70 70)">
+                <circle *ngFor="let s of valueDonut" cx="70" cy="70" r="54" fill="none"
+                        [attr.stroke]="s.color" stroke-width="20"
+                        [attr.stroke-dasharray]="s.dash" [attr.stroke-dashoffset]="s.offset">
+                  <title>{{ s.name }}: {{ money(s.value) }} ({{ s.pct }}%)</title>
+                </circle>
+              </g>
+              <text x="70" y="66" text-anchor="middle" class="donut-num">{{ money(totals.grossValue) }}</text>
+              <text x="70" y="82" text-anchor="middle" class="donut-sub">gross value</text>
+            </svg>
+            <div class="donut-legend">
+              <div *ngFor="let s of valueDonut" class="dl-item">
+                <span class="dl-dot" [style.background]="s.color"></span>
+                <span class="dl-name">{{ s.name }}</span>
+                <b>{{ s.pct }}%</b>
+                <span class="dl-val">{{ money(s.value) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glance-card">
+          <div class="glance-title">Assets by category
+            <i class="pi pi-info-circle kpi-i" pTooltip="Parent-asset counts by category across all branches — top 6 categories, the rest grouped as Other." tooltipPosition="top"></i>
+          </div>
+          <div class="gbar" *ngFor="let c of categoryBars">
+            <span class="gbar-lbl">{{ c.name }}</span>
+            <div class="gbar-track"><div class="gbar-fill" [style.width.%]="c.pct"></div></div>
+            <b class="gbar-val">{{ c.count }}</b>
+          </div>
+        </div>
+      </div>
+
+      <!-- Executive briefing -->
+      <div class="ho-brief" *ngIf="briefing.length">
+        <div class="brief-head">
+          <span class="brief-title"><i class="pi pi-sparkles"></i> Executive Briefing
+            <i class="pi pi-info-circle kpi-i" pTooltip="Auto-written from live data every refresh — rule-based (no AI), so every sentence is traceable to a number on this page. Ordered by severity. Use the copy button to paste it into the management group." tooltipPosition="right"></i>
+          </span>
+          <button class="ho-refresh brief-copy" (click)="copyBriefing()"
+                  [title]="briefingCopied ? 'Copied!' : 'Copy briefing for the management meeting'">
+            <i class="pi" [class.pi-copy]="!briefingCopied" [class.pi-check]="briefingCopied"></i>
+          </button>
+        </div>
+        <div class="brief-lines">
+          <div class="brief-line" *ngFor="let b of briefing" [class]="'brief-line sev-' + b.severity">
+            <i class="pi" [class]="'pi ' + b.icon"></i>
+            <span>{{ b.text }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Critical equipment down -->
+      <div class="ho-critical" *ngIf="criticalDown.length">
+        <div class="crit-head"><i class="pi pi-power-off"></i> Critical equipment down
+          <i class="pi pi-info-circle kpi-i" pTooltip="Assets classified HIGH or LIFE SUPPORT criticality that are currently marked not-working or under maintenance. 'Down' time is measured from their oldest open ticket. Revenue loss ≈ downtime (capped at each asset's planned operating hours per day) × its ₹/hour rate from the Asset Rate Card; assets without a rate card show no estimate." tooltipPosition="right"></i>
+          <span class="crit-loss-total" *ngIf="criticalLossTotal > 0">≈ {{ money(criticalLossTotal) }} revenue lost</span>
+        </div>
+        <div class="crit-items">
+          <div class="crit-item" *ngFor="let c of criticalDown">
+            <span class="crit-tag" [class.crit-life]="c.criticality === 'LIFE_SUPPORT'">{{ c.criticality === 'LIFE_SUPPORT' ? 'LIFE SUPPORT' : 'HIGH' }}</span>
+            <b>{{ c.assetId }}</b> {{ c.assetName }}
+            <span class="crit-meta">{{ c.branchName }} · {{ c.department }}</span>
+            <span class="crit-down" *ngIf="c.downSince"><i class="pi pi-clock"></i> down {{ hoursDown(c.downSince) }}</span>
+            <span class="crit-loss" *ngIf="c.estLoss > 0"
+                  [pTooltip]="'≈ ' + money(c.hourlyRate) + '/hr from the asset rate card'" tooltipPosition="top">
+              ≈ {{ money(c.estLoss) }} lost
+            </span>
+          </div>
         </div>
       </div>
 
@@ -56,11 +210,16 @@
       </div>
 
       <!-- Branch health row -->
-      <h2 class="ho-section-title"><i class="pi pi-heart"></i> Asset health by branch</h2>
+      <h2 class="ho-section-title"><i class="pi pi-heart"></i> Asset health by branch
+        <i class="pi pi-info-circle kpi-i" pTooltip="Health score = 100 minus: not-working share of active assets (up to −40), SLA-breached tickets (−4 each, max −20), assets without cover (up to −25) and open-ticket load (up to −15). FAIRNESS: shares use a floor of 25 assets, so a small branch (e.g. 4 buses) isn't destroyed by one vehicle in service. Grades: A ≥ 85 · B ≥ 70 · C ≥ 50 · D below." tooltipPosition="right"></i>
+      </h2>
       <div class="ho-health">
         <div class="hb-card" *ngFor="let b of branches; trackBy: trackBranch" [style.--accent]="branchColor(b)">
           <div class="hb-top">
-            <div class="hb-name"><span class="dot"></span>{{ b.name }}</div>
+            <div>
+              <div class="hb-name"><span class="dot"></span>{{ b.name }}</div>
+              <span class="hb-sla" *ngIf="b.slaBreached > 0"><i class="pi pi-exclamation-triangle"></i> SLA BREACHED ×{{ b.slaBreached }}</span>
+            </div>
             <svg viewBox="0 0 64 64" width="58" height="58" role="img"
                  [attr.aria-label]="b.name + ' health ' + b.healthScore + ' of 100'">
               <circle cx="32" cy="32" r="26" fill="none" stroke="var(--ring-track)" stroke-width="6"/>
@@ -76,91 +235,364 @@
             <div><b>{{ money(b.grossValue) }}</b><span>Value</span></div>
             <div [class.bad]="down(b) > 0"><b>{{ down(b) }}</b><span>Down</span></div>
             <div [class.bad]="b.openTickets > 0"><b>{{ b.openTickets }}</b><span>Tickets</span></div>
-            <div [class.bad]="b.slaBreached > 0"><b>{{ b.slaBreached }}</b><span>SLA</span></div>
             <div [class.warn]="b.uncovered > 0"><b>{{ b.uncovered }}</b><span>Uncovered</span></div>
             <div><b>{{ money(b.maintenanceSpend || 0) }}</b><span>Maintenance</span></div>
             <div><b>{{ money(b.componentCost || 0) }}</b><span>Components</span></div>
+            <div [class.bad]="branchOverdue(b, ['PM_DUE']) > 0"><b>{{ branchOverdue(b, ['PM_DUE']) }}</b><span>PM overdue</span></div>
+            <div [class.bad]="branchOverdue(b, ['CALIBRATION']) > 0"><b>{{ branchOverdue(b, ['CALIBRATION']) }}</b><span>Cal overdue</span></div>
           </div>
         </div>
       </div>
 
-      <!-- Expiry radar -->
-      <h2 class="ho-section-title"><i class="pi pi-clock"></i> Expiry radar
-        <span class="ho-muted">next 90 days + lapsed — click a number for the asset list</span>
-      </h2>
-
-      <div class="radar-branch-chips" *ngIf="branches.length > 1">
-        <button class="rb-chip" [class.rb-active]="radarBranchId === null" (click)="setRadarBranch(null)">All Branches</button>
-        <button class="rb-chip" *ngFor="let b of branches" [class.rb-active]="radarBranchId === b.id"
-                [style.--accent]="branchColor(b)" (click)="setRadarBranch(b.id)">
-          <span class="dot"></span>{{ b.name }}
-        </button>
-        <button class="rb-chip" *ngIf="unassignedBranch" [class.rb-active]="radarBranchId === 'unassigned'"
-                (click)="setRadarBranch('unassigned')">Unassigned</button>
-      </div>
-
-      <div class="radar-wrap">
-        <table class="radar">
+      <!-- Replace-vs-Repair money list -->
+      <div class="ho-panel ho-money" *ngIf="moneyList.length">
+        <h2 class="ho-section-title"><i class="pi pi-sync"></i> Replace or keep repairing?
+          <i class="pi pi-info-circle kpi-i" pTooltip="Maintenance spent = all repair-ticket costs + PM/maintenance history costs for the asset (lifetime). Burn/yr = that spend divided by the asset's age. Life used = asset age vs expected useful life. 'Pays back in' = purchase cost ÷ yearly burn. Listed when spend crosses 50% of purchase cost; red bar at 75%." tooltipPosition="right"></i>
+          <span class="ho-muted">assets whose lifetime maintenance is ≥ 50% of purchase cost</span>
+        </h2>
+        <table class="money-table">
           <thead>
             <tr>
-              <th class="rt-type">Type</th>
-              <th *ngFor="let bk of buckets" [class.rt-overdue]="bk.key === 'overdue'">{{ bk.label }}</th>
-              <th>Total</th>
+              <th style="text-align:left">Asset</th>
+              <th style="text-align:left">Branch</th>
+              <th>Purchase</th>
+              <th>Maint. spent</th>
+              <th style="width:200px">Spend vs cost</th>
+              <th>Life used</th>
+              <th>Burn / yr</th>
+              <th>Replacement pays back in</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let t of expiryTypes">
-              <td class="rt-type"><i class="pi" [class]="'pi ' + t.icon"></i> {{ t.label }}</td>
-              <td *ngFor="let bk of buckets"
-                  class="rt-cell"
-                  [class.rt-zero]="cellCount(t.key, bk.key) === 0"
-                  [class.rt-hot]="bk.key === 'overdue' && cellCount(t.key, bk.key) > 0"
-                  [class.rt-warm]="bk.key === 'd30' && cellCount(t.key, bk.key) > 0"
-                  (click)="openCell(t, bk)">
-                {{ cellCount(t.key, bk.key) || '—' }}
+            <tr *ngFor="let m of moneyList">
+              <td style="text-align:left"><b>{{ m.assetId }}</b><div class="money-name">{{ m.assetName }}</div></td>
+              <td style="text-align:left">{{ m.branchName }}</td>
+              <td>{{ money(m.purchaseCost) }}</td>
+              <td class="money-spend">{{ money(m.maintSpend) }}</td>
+              <td>
+                <div class="money-track">
+                  <div class="money-fill" [style.width.%]="m.ratioPct > 100 ? 100 : m.ratioPct"
+                       [class.money-over]="m.ratioPct >= 75"></div>
+                </div>
+                <span class="money-pct" [class.money-pct-hot]="m.ratioPct >= 75">{{ m.ratioPct }}%</span>
               </td>
-              <td class="rt-total">{{ typeTotal(t.key) || '—' }}</td>
+              <td>
+                <span *ngIf="m.lifeYears">{{ m.ageYears }}y / {{ m.lifeYears }}y
+                  <span class="money-pct" [class.money-pct-hot]="(m.lifeUsedPct ?? 0) >= 75">({{ m.lifeUsedPct }}%)</span>
+                </span>
+                <span *ngIf="!m.lifeYears">{{ m.ageYears }}y / —</span>
+              </td>
+              <td>{{ money(m.annualBurn) }}</td>
+              <td><span class="money-payback" *ngIf="m.paybackMonths">≈ {{ m.paybackMonths }} months</span><span *ngIf="!m.paybackMonths">—</span></td>
             </tr>
           </tbody>
-          <tfoot>
-            <tr>
-              <td class="rt-type">Total</td>
-              <td *ngFor="let bk of buckets" class="rt-total">{{ bucketTotal(bk.key) || '—' }}</td>
-              <td class="rt-total">{{ radarBranchId === null ? items.length : (bucketTotal('overdue') + bucketTotal('d30') + bucketTotal('d60') + bucketTotal('d90')) }}</td>
-            </tr>
-          </tfoot>
         </table>
+      </div>
+
+      <!-- Risk cards: repeat issues + unprotected critical assets -->
+      <div class="leak-row">
+        <div class="leak-card leak-clickable" [class.leak-hot]="leakage?.repeatOffenders?.length > 0" (click)="openTile('repeat')">
+          <div class="leak-label"><i class="pi pi-replay"></i> Same issue repeating (90d)
+            <i class="pi pi-info-circle kpi-i" pTooltip="Assets where the SAME issue type was raised 3 or more times in the last 90 days — the repair isn't holding. Click for the list with issue and count." tooltipPosition="top"></i>
+          </div>
+          <div class="leak-value">{{ leakage?.repeatOffenders?.length ?? 0 }}</div>
+          <div class="leak-sub" *ngIf="leakage?.repeatOffenders?.length">worst: {{ leakage.repeatOffenders[0].assetId }} — “{{ leakage.repeatOffenders[0].issueType }}” ×{{ leakage.repeatOffenders[0].tickets }}</div>
+          <div class="leak-sub" *ngIf="!leakage?.repeatOffenders?.length">no repeating issue found</div>
+        </div>
+        <div class="leak-card leak-clickable" [class.leak-hot]="unprotectedCritical?.count > 0" (click)="openTile('unprotected')">
+          <div class="leak-label"><i class="pi pi-shield"></i> Unprotected critical assets
+            <i class="pi pi-info-circle kpi-i" pTooltip="HIGH / LIFE-SUPPORT assets with NO active warranty, NO AMC/CMC and no internal-service (support matrix) arrangement — a breakdown would have zero cover. Click for the list." tooltipPosition="top"></i>
+          </div>
+          <div class="leak-value">{{ unprotectedCritical?.count ?? 0 }}</div>
+          <div class="leak-sub">no warranty · no AMC/CMC · no internal service</div>
+        </div>
+        <div class="leak-card leak-clickable" [class.leak-hot]="slaBreach?.total > 0" (click)="openTile('sla')">
+          <div class="leak-label"><i class="pi pi-exclamation-triangle"></i> SLA breached (open)
+            <i class="pi pi-info-circle kpi-i" pTooltip="Open tickets past their SLA. The note counts L3/critical-priority breaches. Click for the ticket list." tooltipPosition="top"></i>
+          </div>
+          <div class="leak-value">{{ slaBreach?.total ?? 0 }}</div>
+          <div class="leak-sub" *ngIf="slaBreach?.l3 > 0">{{ slaBreach.l3 }} of them L3 / critical priority</div>
+          <div class="leak-sub" *ngIf="!slaBreach?.l3">no L3-priority breach</div>
+        </div>
+      </div>
+
+      <!-- Needs management approval -->
+      <div class="ho-panel" *ngIf="(approval35?.count ?? 0) > 0 || (lifetime50?.count ?? 0) > 0">
+        <h2 class="ho-section-title"><i class="pi pi-verified"></i> Needs management approval / planning
+          <i class="pi pi-info-circle kpi-i" pTooltip="Policy triggers: (1) assets whose maintenance spend crossed 35% of purchase cost — further services need management approval; (2) assets past 50% of expected life — replacement planning. Management receives an in-app notification for both, daily at 08:15." tooltipPosition="right"></i>
+          <span class="ho-muted">management is auto-notified daily at 08:15</span>
+        </h2>
+        <div class="appr-grid">
+          <div class="appr-col" *ngIf="approval35?.count > 0">
+            <div class="appr-head"><i class="pi pi-wrench"></i> Maintenance ≥ 35% of cost <span class="appr-count">{{ approval35.count }}</span></div>
+            <table class="appr-table">
+              <thead><tr><th>Asset</th><th>Branch</th><th style="text-align:right">Spent / Cost</th><th style="text-align:right">%</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let a of approval35.items.slice(0, 8)">
+                  <td><b>{{ a.assetId }}</b><div class="appr-name">{{ a.assetName }}</div></td>
+                  <td class="appr-branch">{{ a.branchName }}</td>
+                  <td style="text-align:right; white-space:nowrap">{{ money(a.maintSpend) }} <span class="appr-of">/ {{ money(a.purchaseCost) }}</span></td>
+                  <td style="text-align:right"><span class="appr-chip" [class.appr-chip-hot]="a.ratioPct >= 75">{{ a.ratioPct }}%</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="appr-more" *ngIf="approval35.count > 8">+ {{ approval35.count - 8 }} more…</div>
+          </div>
+          <div class="appr-col" *ngIf="lifetime50?.count > 0">
+            <div class="appr-head"><i class="pi pi-hourglass"></i> Over 50% of expected life <span class="appr-count">{{ lifetime50.count }}</span></div>
+            <table class="appr-table">
+              <thead><tr><th>Asset</th><th>Branch</th><th style="text-align:right">Age / Life</th><th style="text-align:right">Used</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let a of lifetime50.items.slice(0, 8)">
+                  <td><b>{{ a.assetId }}</b><div class="appr-name">{{ a.assetName }}</div></td>
+                  <td class="appr-branch">{{ a.branchName }}</td>
+                  <td style="text-align:right; white-space:nowrap">{{ a.ageYears }}y <span class="appr-of">/ {{ a.lifeYears }}y</span></td>
+                  <td style="text-align:right"><span class="appr-chip" [class.appr-chip-hot]="a.usedPct >= 90">{{ a.usedPct }}%</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="appr-more" *ngIf="lifetime50.count > 8">+ {{ lifetime50.count - 8 }} more…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vendor accountability -->
+      <div class="ho-panel" *ngIf="vendorAccountability.length">
+        <h2 class="ho-section-title"><i class="pi pi-star"></i> Vendor accountability
+          <i class="pi pi-info-circle kpi-i" pTooltip="Repair tickets and costs grouped by the vendor who SUPPLIED the asset — which vendor's equipment breaks most and costs most per repair. Top 6 by total repair cost." tooltipPosition="right"></i>
+          <span class="ho-muted">whose assets break most — by lifetime repair cost</span>
+        </h2>
+        <div class="vend-row" *ngFor="let v of vendorAccountability">
+          <span class="vend-name">{{ v.vendorName }}</span>
+          <div class="vend-track"><div class="vend-fill" [style.width.%]="vendorBarW(v)"></div></div>
+          <span class="vend-facts">
+            <b>{{ money(v.repairCost) }}</b> · {{ v.tickets }} ticket{{ v.tickets === 1 ? '' : 's' }} on
+            {{ v.assetsAffected }} asset{{ v.assetsAffected === 1 ? '' : 's' }} · avg {{ money(v.avgCost) }}/repair
+          </span>
+        </div>
+      </div>
+
+      <!-- Next-FY capex forecast -->
+      <div class="ho-panel" *ngIf="capexForecast?.branches?.length">
+        <h2 class="ho-section-title"><i class="pi pi-wallet"></i> Capex signal — {{ capexForecast.fyLabel }}
+          <i class="pi pi-info-circle kpi-i" pTooltip="End-of-life = depreciation start date + expected useful life reaching its end before next financial year closes (falls back to the asset's own expected-lifetime field). Plus leases/rentals ending in the same window. Values are at current purchase cost — treat as an early planning signal, not a quotation." tooltipPosition="right"></i>
+          <span class="ho-muted">assets reaching end-of-life or lease/rental end, at current cost</span>
+          <span class="capex-total">≈ {{ money(capexTotal) }}</span>
+        </h2>
+        <div class="capex-rows">
+          <div class="capex-row" *ngFor="let b of capexForecast.branches">
+            <span class="capex-branch">{{ b.branchName }}</span>
+            <div class="capex-bars">
+              <span class="capex-part" *ngIf="b.eolCount">{{ b.eolCount }} end-of-life · {{ money(b.eolValue) }}</span>
+              <span class="capex-part capex-lease" *ngIf="b.leaseCount">{{ b.leaseCount }} lease/rental ending · {{ money(b.leaseValue) }}</span>
+            </div>
+            <span class="capex-sum">{{ money(b.total) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additions trend + Activity feed -->
+      <div class="ho-bottom">
+        <div class="ho-panel">
+          <h2 class="ho-section-title"><i class="pi pi-chart-line"></i> Asset additions — last 12 months
+            <i class="pi pi-info-circle kpi-i" pTooltip="Assets counted by their purchase date, one line per branch. Hover a point for the month's exact count." tooltipPosition="right"></i>
+          </h2>
+          <div class="line-legend">
+            <span *ngFor="let b of branches">
+              <span class="lg-dot" [style.background]="branchColor(b)"></span>{{ b.name }}
+            </span>
+          </div>
+          <svg viewBox="0 0 640 180" class="ho-linechart" preserveAspectRatio="none" role="img"
+               aria-label="Monthly asset additions per branch, last 12 months">
+            <g *ngFor="let b of branches">
+              <polyline [attr.points]="linePoints(b)" fill="none"
+                        [attr.stroke]="branchColor(b)" stroke-width="2"
+                        stroke-linejoin="round" stroke-linecap="round"/>
+              <circle *ngFor="let d of lineDots(b)" [attr.cx]="d.x" [attr.cy]="d.y" r="4"
+                      [attr.fill]="branchColor(b)" class="ho-line-dot">
+                <title>{{ b.name }} · {{ monthLabel(d.m.ym) }}: {{ d.m.count }} assets</title>
+              </circle>
+            </g>
+          </svg>
+          <div class="line-months">
+            <span *ngFor="let m of health.months">{{ monthLabel(m) }}</span>
+          </div>
+        </div>
+
+        <div class="ho-panel">
+          <h2 class="ho-section-title"><i class="pi pi-history"></i> Latest activity
+            <i class="pi pi-info-circle kpi-i" pTooltip="The 20 most recent events merged across branches: assets added, approved transfers/returns, tickets raised and disposal movements." tooltipPosition="right"></i>
+            <span class="ho-muted">across all branches</span>
+          </h2>
+          <div class="ho-feed">
+            <div class="feed-item" *ngFor="let a of activity">
+              <i class="pi feed-icon" [class]="'pi feed-icon ' + activityIcon(a.kind)" [attr.data-kind]="a.kind"></i>
+              <div class="feed-body">
+                <div class="feed-text">{{ a.text }}</div>
+                <div class="feed-meta">{{ a.branch }} · {{ relTime(a.at) }}</div>
+              </div>
+            </div>
+            <div class="feed-empty" *ngIf="!activity.length">No recent activity.</div>
+          </div>
+        </div>
       </div>
 
     </ng-container>
   </ng-container>
 
-  <!-- Cell drill-down -->
-  <p-dialog [(visible)]="showCellDialog" [modal]="true" [style]="{width: '780px', maxWidth: '95vw'}"
-            [header]="cellTitle" [dismissableMask]="true">
-    <p-table [value]="cellItems" [paginator]="cellItems.length > 12" [rows]="12" styleClass="p-datatable-sm">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Asset</th>
-          <th>Branch</th>
-          <th>Due date</th>
-          <th>Days</th>
-          <th>Reference</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-i>
-        <tr>
-          <td>
-            <a [routerLink]="['/assets/edit', i.assetDbId]" class="ho-asset-link">{{ i.assetId || '#' + i.assetDbId }}</a>
-            <div class="ho-asset-name">{{ i.assetName }}</div>
-          </td>
-          <td>{{ i.branchName }}</td>
-          <td>{{ i.dueDate | date:'dd MMM yyyy' }}</td>
-          <td><p-tag [value]="daysUntil(i.dueDate) < 0 ? (-daysUntil(i.dueDate)) + 'd overdue' : daysUntil(i.dueDate) + 'd'"
-                     [severity]="dueSeverity(i.dueDate)"></p-tag></td>
-          <td>{{ i.reference || '—' }}</td>
-        </tr>
-      </ng-template>
-    </p-table>
+  <!-- Universal drill-down dialog (KPI tiles + risk cards) -->
+  <p-dialog [(visible)]="showTileDialog" [modal]="true" [style]="{width: '820px', maxWidth: '95vw'}"
+            [header]="tileTitle" [dismissableMask]="true">
+    <div class="dlg-bar">
+      <button class="dlg-back" (click)="showTileDialog = false"><i class="pi pi-arrow-left"></i> Back</button>
+      <a *ngIf="tileViewRoute" class="dlg-view" [routerLink]="[tileViewRoute]" (click)="showTileDialog = false">
+        <i class="pi pi-external-link"></i> View page
+      </a>
+    </div>
+
+    <ng-container [ngSwitch]="tileKind">
+
+      <!-- Branches / assets / value: per-branch summary -->
+      <p-table *ngSwitchCase="'branches'" [value]="branches" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header"><tr><th>Branch</th><th style="text-align:right">Assets</th><th style="text-align:right">Gross value</th><th style="text-align:right">Health</th></tr></ng-template>
+        <ng-template pTemplate="body" let-b>
+          <tr><td><b>{{ b.name }}</b></td><td style="text-align:right">{{ b.assetCount | number }}</td>
+              <td style="text-align:right">{{ money(b.grossValue) }}</td><td style="text-align:right">{{ b.healthScore }} ({{ b.grade }})</td></tr>
+        </ng-template>
+      </p-table>
+      <p-table *ngSwitchCase="'assets'" [value]="branches" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header"><tr><th>Branch</th><th style="text-align:right">Assets</th><th style="text-align:right">Active</th></tr></ng-template>
+        <ng-template pTemplate="body" let-b>
+          <tr><td><b>{{ b.name }}</b></td><td style="text-align:right">{{ b.assetCount | number }}</td><td style="text-align:right">{{ b.activeAssets | number }}</td></tr>
+        </ng-template>
+      </p-table>
+      <p-table *ngSwitchCase="'value'" [value]="branches" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header"><tr><th>Branch</th><th style="text-align:right">Gross value</th><th style="text-align:right">Net block</th></tr></ng-template>
+        <ng-template pTemplate="body" let-b>
+          <tr><td><b>{{ b.name }}</b></td><td style="text-align:right">{{ money(b.grossValue) }}</td><td style="text-align:right">{{ money(b.netBlock) }}</td></tr>
+        </ng-template>
+      </p-table>
+
+      <!-- Idle >100d unassigned -->
+      <p-table *ngSwitchCase="'idle'" [value]="idleUnassigned?.items || []" [paginator]="(idleUnassigned?.items?.length || 0) > 10" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header"><tr><th>Asset</th><th>Branch</th><th style="text-align:right">Days in store</th><th style="text-align:right">Value</th></tr></ng-template>
+        <ng-template pTemplate="body" let-i>
+          <tr><td><b>{{ i.assetId }}</b><div class="ho-asset-name">{{ i.assetName }}</div></td>
+              <td>{{ i.branchName }}</td><td style="text-align:right">{{ i.days }}</td>
+              <td style="text-align:right; font-weight:700">{{ money(i.purchaseCost) }}</td></tr>
+        </ng-template>
+      </p-table>
+
+      <!-- Expiring ≤30 (incl. lapsed) -->
+      <p-table *ngSwitchCase="'expiring'" [value]="expiring30Items" [paginator]="expiring30Items.length > 10" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header"><tr><th>Type</th><th>Asset</th><th>Branch</th><th>Due</th><th>Days</th></tr></ng-template>
+        <ng-template pTemplate="body" let-i>
+          <tr><td>{{ typeLabel(i.type) }}</td>
+              <td><b>{{ i.assetId }}</b><div class="ho-asset-name">{{ i.assetName }}</div></td>
+              <td>{{ i.branchName }}</td><td>{{ i.dueDate | date:'dd MMM yyyy' }}</td>
+              <td><p-tag [value]="daysUntil(i.dueDate) < 0 ? (-daysUntil(i.dueDate)) + 'd overdue' : daysUntil(i.dueDate) + 'd'" [severity]="dueSeverity(i.dueDate)"></p-tag></td></tr>
+        </ng-template>
+      </p-table>
+
+      <!-- Value at risk -->
+      <p-table *ngSwitchCase="'risk'" [value]="riskItems" [paginator]="riskItems.length > 10" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header"><tr><th>Cover</th><th>Asset</th><th>Branch</th><th>Due</th><th style="text-align:right">Asset value</th></tr></ng-template>
+        <ng-template pTemplate="body" let-i>
+          <tr><td>{{ typeLabel(i.type) }}</td>
+              <td><b>{{ i.assetId }}</b><div class="ho-asset-name">{{ i.assetName }}</div></td>
+              <td>{{ i.branchName }}</td><td>{{ i.dueDate | date:'dd MMM yyyy' }}</td>
+              <td style="text-align:right; font-weight:700">{{ money(i.assetValue || 0) }}</td></tr>
+        </ng-template>
+      </p-table>
+
+      <!-- POs last 30 days -->
+      <p-table *ngSwitchCase="'pos'" [value]="posLast30?.items || []" [paginator]="(posLast30?.items?.length || 0) > 10" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header"><tr><th>PO No.</th><th>Vendor</th><th>Status</th><th>Raised</th><th style="text-align:right">Amount</th></tr></ng-template>
+        <ng-template pTemplate="body" let-p>
+          <tr><td><b>{{ p.poNumber }}</b></td><td>{{ p.vendorName }}</td>
+              <td><p-tag [value]="p.status" severity="secondary"></p-tag></td>
+              <td>{{ p.createdAt | date:'dd MMM' }}</td>
+              <td style="text-align:right; font-weight:700">{{ money(p.totalAmount) }}</td></tr>
+        </ng-template>
+      </p-table>
+
+      <!-- New additions 30 days -->
+      <div *ngSwitchCase="'additions'">
+        <p class="ho-muted" style="margin-top:0">
+          {{ newAdditions30?.assetCount }} assets ({{ money(newAdditions30?.assetValue || 0) }}) ·
+          {{ newAdditions30?.spareParts }} spare parts · {{ newAdditions30?.consumables }} consumables.
+          Inventory list: <a [routerLink]="['/master']" (click)="showTileDialog = false">Inventory Master</a>
+        </p>
+        <p-table [value]="newAdditions30?.items || []" [paginator]="(newAdditions30?.items?.length || 0) > 10" [rows]="10" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header"><tr><th>Asset</th><th>Branch</th><th>Added</th><th style="text-align:right">Cost</th></tr></ng-template>
+          <ng-template pTemplate="body" let-a>
+            <tr><td><b>{{ a.assetId }}</b><div class="ho-asset-name">{{ a.assetName }}</div></td>
+                <td>{{ a.branchName }}</td><td>{{ a.createdAt | date:'dd MMM' }}</td>
+                <td style="text-align:right">{{ money(a.purchaseCost) }}</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Bought this FY -->
+      <div *ngSwitchCase="'fybuy'">
+        <p class="ho-muted" style="margin-top:0">
+          {{ fyPurchases?.assetCount }} assets bought ({{ money(fyPurchases?.assetValue || 0) }}) ·
+          {{ fyPurchases?.spareParts }} spare parts · {{ fyPurchases?.consumables }} consumables added this FY.
+          Inventory list: <a [routerLink]="['/master']" (click)="showTileDialog = false">Inventory Master</a>
+        </p>
+        <p-table [value]="fyPurchases?.items || []" [paginator]="(fyPurchases?.items?.length || 0) > 10" [rows]="10" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header"><tr><th>Asset</th><th>Branch</th><th>Purchased</th><th style="text-align:right">Cost</th></tr></ng-template>
+          <ng-template pTemplate="body" let-a>
+            <tr><td><b>{{ a.assetId }}</b><div class="ho-asset-name">{{ a.assetName }}</div></td>
+                <td>{{ a.branchName }}</td><td>{{ a.purchaseDate | date:'dd MMM yyyy' }}</td>
+                <td style="text-align:right">{{ money(a.purchaseCost) }}</td></tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- EOL next FY -->
+      <p-table *ngSwitchCase="'eolnext'" [value]="eolNextFy?.items || []" [paginator]="(eolNextFy?.items?.length || 0) > 10" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header"><tr><th>Asset</th><th>Branch</th><th>Life ends</th><th style="text-align:right">Replacement value</th></tr></ng-template>
+        <ng-template pTemplate="body" let-a>
+          <tr><td><b>{{ a.assetId }}</b><div class="ho-asset-name">{{ a.assetName }}</div></td>
+              <td>{{ a.branchName }}</td><td>{{ a.eolDate | date:'dd MMM yyyy' }}</td>
+              <td style="text-align:right; font-weight:700">{{ money(a.purchaseCost) }}</td></tr>
+        </ng-template>
+      </p-table>
+
+      <!-- Repeat same-issue offenders -->
+      <p-table *ngSwitchCase="'repeat'" [value]="leakage?.repeatOffenders || []" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header"><tr><th>Asset</th><th>Branch</th><th>Issue</th><th style="text-align:right">Times (90d)</th><th style="text-align:right">Spent</th></tr></ng-template>
+        <ng-template pTemplate="body" let-r>
+          <tr><td><b>{{ r.assetId }}</b><div class="ho-asset-name">{{ r.assetName }}</div></td>
+              <td>{{ r.branchName }}</td><td>{{ r.issueType }}</td>
+              <td style="text-align:right; font-weight:800">×{{ r.tickets }}</td>
+              <td style="text-align:right">{{ money(r.spend) }}</td></tr>
+        </ng-template>
+      </p-table>
+
+      <!-- Unprotected critical assets -->
+      <p-table *ngSwitchCase="'unprotected'" [value]="unprotectedCritical?.items || []" [paginator]="(unprotectedCritical?.items?.length || 0) > 10" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header"><tr><th>Asset</th><th>Criticality</th><th>Branch</th><th>Department</th><th style="text-align:right">Value</th></tr></ng-template>
+        <ng-template pTemplate="body" let-u>
+          <tr><td><b>{{ u.assetId }}</b><div class="ho-asset-name">{{ u.assetName }}</div></td>
+              <td><p-tag [value]="u.criticality === 'LIFE_SUPPORT' ? 'LIFE SUPPORT' : 'HIGH'" [severity]="u.criticality === 'LIFE_SUPPORT' ? 'danger' : 'warn'"></p-tag></td>
+              <td>{{ u.branchName }}</td><td>{{ u.department }}</td>
+              <td style="text-align:right">{{ money(u.purchaseCost) }}</td></tr>
+        </ng-template>
+      </p-table>
+
+      <!-- SLA breached open tickets -->
+      <p-table *ngSwitchCase="'sla'" [value]="slaBreach?.items || []" [paginator]="(slaBreach?.items?.length || 0) > 10" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header"><tr><th>Ticket</th><th>Asset</th><th>Branch</th><th>Priority</th><th>Raised</th></tr></ng-template>
+        <ng-template pTemplate="body" let-t>
+          <tr><td><b>{{ t.ticketId }}</b><div class="ho-asset-name">{{ t.issueType }}</div></td>
+              <td>{{ t.assetId }} {{ t.assetName }}</td><td>{{ t.branchName }}</td>
+              <td><p-tag [value]="t.priority" [severity]="t.isL3 ? 'danger' : 'warn'"></p-tag></td>
+              <td>{{ t.createdAt | date:'dd MMM' }}</td></tr>
+        </ng-template>
+      </p-table>
+
+    </ng-container>
   </p-dialog>
 </div>

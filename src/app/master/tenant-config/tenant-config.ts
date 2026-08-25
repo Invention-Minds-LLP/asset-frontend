@@ -27,7 +27,14 @@ export class TenantConfig implements OnInit {
   loading = false;
   saving: { [key: string]: boolean } = {};
 
-  configGroups: string[] = ['GENERAL', 'PROCUREMENT', 'STORE', 'WORKORDER', 'RCA', 'ANALYTICS'];
+  // Preferred order for the groups we know about. Anything else is appended
+  // rather than dropped — a hardcoded whitelist here silently hid every
+  // ACCOUNTS key from the screen while they sat perfectly well in the database.
+  private readonly groupOrder: string[] = [
+    'GENERAL', 'PROCUREMENT', 'STORE', 'WORKORDER', 'ACCOUNTS', 'RCA', 'ANALYTICS',
+  ];
+
+  configGroups: string[] = [];
 
   constructor(
     private configService: TenantConfigService,
@@ -45,6 +52,7 @@ export class TenantConfig implements OnInit {
     this.configService.getAll().subscribe({
       next: (data: any) => {
         this.configs = Array.isArray(data) ? data : (data?.data ?? []);
+        this.configGroups = this.deriveGroups(this.configs);
         this.loading = false;
         setTimeout(() => this.cdr.detectChanges());
       },
@@ -53,6 +61,17 @@ export class TenantConfig implements OnInit {
         setTimeout(() => this.cdr.detectChanges());
       }
     });
+  }
+
+  /**
+   * Every group that actually has keys, known ones first in their usual order
+   * and anything new after. Nothing in the database goes unrendered.
+   */
+  private deriveGroups(configs: any[]): string[] {
+    const present = [...new Set(configs.map(c => c.group).filter(Boolean))] as string[];
+    const known = this.groupOrder.filter(g => present.includes(g));
+    const unknown = present.filter(g => !this.groupOrder.includes(g)).sort();
+    return [...known, ...unknown];
   }
 
   getConfigsByGroup(group: string): any[] {
@@ -115,6 +134,7 @@ export class TenantConfig implements OnInit {
       PROCUREMENT: 'pi pi-shopping-cart',
       STORE: 'pi pi-warehouse',
       WORKORDER: 'pi pi-wrench',
+      ACCOUNTS: 'pi pi-calculator',
       RCA: 'pi pi-search',
       ANALYTICS: 'pi pi-chart-bar',
     };

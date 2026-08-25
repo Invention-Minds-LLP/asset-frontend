@@ -41,4 +41,20 @@ export class Employees {
   deleteEmployee(id: number): Observable<any> {
     return this.http.delete(`${this.base}/${id}`);
   }
+
+  /** Extra departments this employee is responsible for, beyond their own. */
+  getEmployeeDepartments(id: number): Observable<{ departmentIds: number[]; maxDepartments: number }> {
+    return this.http.get<{ departmentIds: number[]; maxDepartments: number }>(`${this.base}/${id}/departments`);
+  }
+
+  setEmployeeDepartments(id: number, departmentIds: number[]): Observable<any> {
+    return this.http.put(`${this.base}/${id}/departments`, { departmentIds });
+  }
+
+  /** Departments the signed-in user is responsible for. */
+  getMyDepartments(): Observable<{ departments: any[]; primaryDepartmentId: number | null; hasBroadAccess: boolean }> {
+    return this.http.get<{ departments: any[]; primaryDepartmentId: number | null; hasBroadAccess: boolean }>(
+      `${this.base}/my-departments`
+    );
+  }
 }

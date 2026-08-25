@@ -15,6 +15,15 @@
 
 .config-info { flex: 1; min-width: 0; }
 .config-key { font-size: 0.9rem; font-weight: 500; color: var(--text-color); }
+
+/* The raw key under its label, so a key can be found by name as well as read. */
+.config-key-name {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+  font-size: 0.71rem;
+  letter-spacing: 0.02em;
+  color: var(--text-color-secondary);
+  margin-top: 0.15rem;
+}
 .config-description { font-size: 0.8rem; color: var(--text-color-secondary); margin-top: 0.15rem; }
 
 .config-control { flex-shrink: 0; margin-left: 1.5rem; }

@@ -146,6 +146,56 @@
                             <label>Mode of Procurement *</label>
                         </p-floatlabel>
 
+                        <!-- FUNDING SOURCE — drives the charitable
+                             double-deduction rule and grant conditions -->
+                        <div class="two-fields">
+                            <p-floatlabel variant="on">
+                                <p-select [options]="fundingSources" optionLabel="label" optionValue="value"
+                                    name="fundingSource" [(ngModel)]="asset.fundingSource" appendTo="body"
+                                    [disabled]="!canEditBasicDetails" [showClear]="true">
+                                </p-select>
+                                <label>Funding Source</label>
+                            </p-floatlabel>
+
+                            @if (asset.fundingSource === 'GRANT') {
+                                <p-floatlabel variant="on">
+                                    <input pInputText name="grantReference" [(ngModel)]="asset.grantReference"
+                                        [disabled]="!canEditBasicDetails" />
+                                    <label>Grant / Sanction Reference</label>
+                                </p-floatlabel>
+                            }
+                        </div>
+
+                        @if (asset.fundingSource === 'GRANT') {
+                            <div class="two-fields">
+                                <p-floatlabel variant="on">
+                                    <input pInputText name="grantAuthority" [(ngModel)]="asset.grantAuthority"
+                                        [disabled]="!canEditBasicDetails" />
+                                    <label>Funding Authority</label>
+                                </p-floatlabel>
+                                <p-floatlabel variant="on">
+                                    <input pInputText name="grantConditions" [(ngModel)]="asset.grantConditions"
+                                        [disabled]="!canEditBasicDetails" />
+                                    <label>Conditions on use / disposal</label>
+                                </p-floatlabel>
+                            </div>
+                        }
+
+                        @if (showApplicationOfIncome) {
+                            <div class="application-flag">
+                                <p-checkbox name="costClaimedAsApplication" [(ngModel)]="asset.costClaimedAsApplication"
+                                    [binary]="true" [disabled]="!canEditBasicDetails" inputId="claimedAsApplication">
+                                </p-checkbox>
+                                <label for="claimedAsApplication">
+                                    <strong>Cost claimed as application of income</strong>
+                                    <span>
+                                        Tick where this asset's cost was already claimed as application of income in the
+                                        year of purchase. Depreciation is then excluded from every run — claiming both
+                                        would be the same money twice.
+                                    </span>
+                                </label>
+                            </div>
+                        }
 
                         <!-- ===================== -->
                         <!-- PURCHASE CONDITIONAL -->
@@ -195,9 +245,47 @@
                             <p-floatlabel variant="on" class="full-field">
                                 <p-select [options]="vendors" optionLabel="name" optionValue="id"
                                     [(ngModel)]="asset.vendorId" name="vendorId" [required]="!asset.isLegacyAsset"
-                                    appendTo="body" [disabled]="!canEditBasicDetails" [filter]="true"></p-select>
+                                    appendTo="body" [disabled]="!canEditBasicDetails" [filter]="true"
+                                    (onChange)="onVendorChangeLoadAdvances()"></p-select>
                                 <label>Vendor {{ asset.isLegacyAsset ? '' : '*' }}</label>
                             </p-floatlabel>
+
+                            <!-- Orders this vendor has already been paid an advance on.
+                                 An advance with nothing booked against it is money at
+                                 risk, so linking here closes that loop. -->
+                            @if (advanceOrders.length) {
+                                <div class="advance-picker">
+                                    <div class="advance-head">
+                                        <i class="pi pi-link"></i>
+                                        <span>
+                                            <strong>{{ advanceOrders.length }} order(s) with an advance paid to this vendor</strong>
+                                            @if (unreconciledAdvances) {
+                                                — {{ unreconciledAdvances }} with nothing booked yet
+                                            }
+                                        </span>
+                                    </div>
+                                    <p-select [options]="advanceOrders" optionLabel="label" optionValue="orderId"
+                                        [(ngModel)]="selectedAdvanceOrderId" name="advanceOrder"
+                                        (onChange)="applyAdvanceOrder()" [showClear]="true"
+                                        placeholder="Link this asset to one of them"
+                                        appendTo="body" [style]="{'width':'100%'}"></p-select>
+                                    @if (linkedAdvanceOrder) {
+                                        <div class="advance-linked">
+                                            <div class="advance-linked-main">
+                                                Linked to <strong>{{ linkedAdvanceOrder.poNumber }}</strong>
+                                                <span class="src">{{ linkedAdvanceOrder.source === 'EXTERNAL' ? 'raised outside the system' : 'raised here' }}</span>
+                                            </div>
+                                            @if (linkedAdvanceOrder.indent) {
+                                                <div class="advance-linked-sub">
+                                                    Indent {{ linkedAdvanceOrder.indent.indentNumber }}
+                                                    @if (linkedAdvanceOrder.indent.raisedBy) { · raised by {{ linkedAdvanceOrder.indent.raisedBy }} }
+                                                    @if (linkedAdvanceOrder.indent.raisedAt) { · {{ linkedAdvanceOrder.indent.raisedAt | date:'mediumDate' }} }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
 
                             <!-- Warranty -->
                             <!-- <div class="two-fields">
