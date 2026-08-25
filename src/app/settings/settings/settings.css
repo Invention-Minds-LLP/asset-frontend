@@ -177,8 +177,21 @@
 /* force PrimeNG controls full width */
 .field,
 :host ::ng-deep .p-inputtext,
-:host ::ng-deep .p-select {
+:host ::ng-deep .p-select,
+:host ::ng-deep .p-multiselect {
   width: 100% !important;
+}
+
+/* A control that carries a hint under it: the two stay one field, so the
+   form's own 18px gap doesn't push the hint away from what it explains. */
+.stack-field { display: flex; flex-direction: column; gap: 6px; }
+
+/* Chips wrap instead of stretching the control past the form width. */
+:host ::ng-deep .p-multiselect .p-multiselect-label {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  white-space: normal;
 }
 
 /* fix FloatLabel overlap on PrimeNG Select */

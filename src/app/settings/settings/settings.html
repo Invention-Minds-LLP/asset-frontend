@@ -218,9 +218,24 @@
 
             <p-floatlabel variant="on" class="field">
               <p-select inputId="departmentId" [options]="departmentOptions" optionLabel="label" optionValue="value"
-                formControlName="departmentId" [loading]="loadingDepartments" appendTo="body" [filter]="true"></p-select>
+                formControlName="departmentId" [loading]="loadingDepartments" appendTo="body" [filter]="true"
+                (onChange)="onPrimaryDepartmentChange()"></p-select>
               <label for="departmentId">Department</label>
             </p-floatlabel>
+
+            <div class="field stack-field" *ngIf="canAssignDepartments">
+              <p-floatlabel variant="on">
+                <p-multiSelect inputId="additionalDepartmentIds" [options]="additionalDepartmentOptions"
+                  optionLabel="label" optionValue="value" formControlName="additionalDepartmentIds"
+                  [loading]="loadingDepartments" appendTo="body" [filter]="true" display="chip"
+                  [showToggleAll]="false" [showClear]="true"></p-multiSelect>
+                <label for="additionalDepartmentIds">Also Responsible For</label>
+              </p-floatlabel>
+              <small class="outsource-hint">
+                <i class="pi pi-info-circle"></i>
+                Extra departments this employee runs. Their own department is always included.
+              </small>
+            </div>
 
             <p-floatlabel variant="on" class="field">
               <p-select inputId="role" [options]="roleOptions" optionLabel="name" optionValue="value"

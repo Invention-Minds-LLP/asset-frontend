@@ -17,6 +17,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabel } from 'primeng/floatlabel';
 import { TableModule } from 'primeng/table';
 import { Select } from 'primeng/select';
+import { MultiSelectModule } from 'primeng/multiselect';
 
 import { Assets } from '../../services/assets/assets';
 import { Branches } from '../../services/branches/branches';
@@ -43,6 +44,7 @@ type ThemeMode = 'light' | 'dark';
     FloatLabel,
     TableModule,
     Select,
+    MultiSelectModule,
     TabViewModule,
     FormsModule,
     CheckboxModule,
@@ -88,6 +90,11 @@ export class Settings {
   ];
 
   employeeForm!: FormGroup
+  // Mirrors the guard on the department endpoints — no point offering a field
+  // whose save would come back 403.
+  canAssignDepartments = ['ADMIN', 'CEO_COO', 'OPERATIONS'].includes(
+    ((typeof window !== 'undefined' && localStorage.getItem('role')) || '').toUpperCase()
+  );
   departments: any[] = [];
   departmentOptions: { label: string; value: number }[] = [];
   loadingDepartments = false;
@@ -165,6 +172,9 @@ export class Settings {
       email:         ['', [Validators.email]],
       phone:         [''],
       reportingToId: [null as number | null],
+      // Departments this employee answers for besides their own. Saved through
+      // a separate call — it is not a column on Employee.
+      additionalDepartmentIds: [[] as number[]],
       // Contract / agency staff (e.g. outsourced security). Set at creation
       // only — see the note in editEmployee().
       isOutsourced:  [false],
@@ -393,6 +403,21 @@ export class Settings {
 
   editingEmployeeId: number | null = null;
 
+  /** The primary department is implicit, so it is never offered as an extra. */
+  get additionalDepartmentOptions() {
+    const primary = Number(this.employeeForm?.get('departmentId')?.value);
+    return this.departmentOptions.filter((o) => o.value !== primary);
+  }
+
+  /** Drop the new primary from the extras so it is not listed twice. */
+  onPrimaryDepartmentChange() {
+    const primary = Number(this.employeeForm.get('departmentId')?.value);
+    const extras: number[] = this.employeeForm.get('additionalDepartmentIds')?.value ?? [];
+    if (extras.includes(primary)) {
+      this.employeeForm.patchValue({ additionalDepartmentIds: extras.filter((d) => d !== primary) });
+    }
+  }
+
   /** Populate form to edit an existing employee. Called from the table's edit button. */
   editEmployee(row: any) {
     this.editingEmployeeId = row.id;
@@ -405,8 +430,20 @@ export class Settings {
       email:         row.email ?? '',
       phone:         row.phone ?? '',
       reportingToId: row.reportingToId ?? null,
+      additionalDepartmentIds: [],
       isOutsourced:  row.isOutsourced ?? false,
     });
+
+    // Held outside the Employee row, so it needs its own fetch.
+    if (this.canAssignDepartments) {
+      this.employeeApi.getEmployeeDepartments(row.id).subscribe({
+        next: (res) => setTimeout(() => {
+          this.employeeForm.patchValue({ additionalDepartmentIds: res?.departmentIds ?? [] });
+          this.cdr.detectChanges();
+        }),
+        error: () => {},
+      });
+    }
     // Switch to the Employee Creation section so the form is visible
     this.activeSection = 'employee';
     // Disable Employee ID in edit mode — changing it would break the User FK
@@ -449,15 +486,35 @@ export class Settings {
       : this.employeeApi.createEmployee(payload);
 
     const wasEdit = !!this.editingEmployeeId;
+    const extraDepartments: number[] = (v.additionalDepartmentIds ?? [])
+      .map(Number)
+      .filter((d: number) => d !== payload.departmentId);
 
     call.subscribe({
-      next: () => {
-        setTimeout(() => {
+      next: (saved: any) => {
+        const finish = () => setTimeout(() => {
           this.toastMsg('success', 'Success', wasEdit ? 'Employee updated' : 'Employee created');
           this.clearEmployeeForm();
           this.loadEmployees();
           this.cdr.detectChanges();
         });
+
+        // Second call because responsibility is not a column on Employee. Skip
+        // it on create when nothing was picked, so the common path is one call.
+        const employeeId = this.editingEmployeeId ?? saved?.id;
+        if (this.canAssignDepartments && employeeId && (wasEdit || extraDepartments.length)) {
+          this.employeeApi.setEmployeeDepartments(employeeId, extraDepartments).subscribe({
+            next: finish,
+            error: () => setTimeout(() => {
+              // The employee itself saved — say so rather than implying a rollback.
+              this.toastMsg('warn', 'Partly saved', 'Employee saved, but the department list did not');
+              this.loadEmployees();
+              this.cdr.detectChanges();
+            }),
+          });
+        } else {
+          finish();
+        }
       },
       error: (err) => this.toastMsg('error', 'Failed', err?.error?.message ?? (wasEdit ? 'Update failed' : 'Creation failed')),
     });
@@ -465,7 +522,7 @@ export class Settings {
 
   clearEmployeeForm() {
     this.editingEmployeeId = null;
-    this.employeeForm.reset({ role: 'EXECUTIVE', departmentId: null, reportingToId: null, isOutsourced: false });
+    this.employeeForm.reset({ role: 'EXECUTIVE', departmentId: null, reportingToId: null, additionalDepartmentIds: [], isOutsourced: false });
     this.employeeForm.get('employeeID')?.enable();
     this.employeeForm.get('isOutsourced')?.enable();
   }
