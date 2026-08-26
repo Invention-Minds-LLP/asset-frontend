@@ -3,11 +3,11 @@ const isLan = typeof window !== 'undefined' && window.location.hostname.startsWi
 
 export const environment = {
   production: false,
-  apiUrl: isLan
-    ? 'http://192.168.14.36:3001/api'
-    : '/api'
+  // apiUrl: isLan
+  //   ? 'http://192.168.14.36:3001/api'
+  //   : '/api'
    // Served behind Nginx, which reverse-proxies /api to the backend on the same host.
-  //  apiUrl: '/api'
+   apiUrl: '/api'
   //  apiUrl: 'http://localhost:3001/api'
     // apiUrl:'https://smart-assets-812956739285.us-east4.run.app/api'
 
