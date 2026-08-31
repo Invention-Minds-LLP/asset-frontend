@@ -6,6 +6,27 @@
   <title>Smart Assets</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!--
+    LEGACY QR STICKERS
+    Asset labels printed before the app moved behind nginx carry the frontend's
+    own port in the URL, e.g. http://192.168.14.36:4200/assets/scan/ABC123.
+    That port still serves the app, but not /api or /uploads, so the page would
+    load and then fail to fetch anything. The stickers are physical and cannot
+    be reprinted, so the page sends itself to the canonical origin instead.
+
+    Runs before Angular boots, so no request is wasted and nothing flashes on
+    screen. localhost is excluded so `ng serve` still works for development.
+  -->
+  <script>
+    (function () {
+      var loc = window.location;
+      var isDev = loc.hostname === 'localhost' || loc.hostname === '127.0.0.1';
+      if (loc.port === '4200' && !isDev) {
+        loc.replace(loc.protocol + '//' + loc.hostname + loc.pathname + loc.search + loc.hash);
+      }
+    })();
+  </script>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
