@@ -349,11 +349,44 @@ export class FinancialDashboard implements OnInit {
       // Scope the cache key by category AND branch so tree months don't collide.
       const key = `${node.data.categoryId ?? 'all'}-${node.data.branchId ?? 'all'}-${node.data.year}-${node.data.month}`;
       if (this.expandedMonthAssets.has(key)) {
-        // Already loaded
-        node.children = this.buildAssetChildNodes(this.expandedMonthAssets.get(key)!);
+        // Already loaded — render from cache, keeping the load-more row so a
+        // month that was only partly fetched can still be continued.
+        this.renderMonthChildren(node, key);
         return;
       }
       this.loadMonthlyAssets(node, key, 1);
+    }
+  }
+
+  /**
+   * Draw a month's asset rows from what has been fetched so far, and re-add the
+   * "load more" row whenever fewer are on screen than the server reported.
+   *
+   * Both the first load and every "load more" go through here, so the rows
+   * accumulate instead of each page replacing the last -- which is why the list
+   * used to stay stuck at 25 no matter how many times it was clicked.
+   */
+  private renderMonthChildren(node: TreeNode, key: string) {
+    const loaded = this.expandedMonthAssets.get(key) ?? [];
+    const pagination: any = this.expandedMonthPagination.get(key);
+    node.children = this.buildAssetChildNodes(loaded);
+
+    if (pagination && loaded.length < pagination.total) {
+      const perPage = pagination.limit || 25;
+      node.children.push({
+        data: {
+          label: `Showing ${loaded.length} of ${pagination.total} — Click to load more`,
+          level: 'load_more',
+          nodeRef: node,
+          key,
+          // Derived from what is loaded, not from the click, so it stays right
+          // after a collapse and re-expand.
+          nextPage: Math.floor(loaded.length / perPage) + 1,
+          total: 0,
+          assetCount: 0,
+        },
+        leaf: true,
+      });
     }
   }
 
@@ -372,25 +405,12 @@ export class FinancialDashboard implements OnInit {
     }).subscribe({
       next: (res) => {
         setTimeout(() => {
-          const assets = res.assets || [];
-          this.expandedMonthAssets.set(key, assets);
+          const incoming = res.assets || [];
+          // Page 1 starts fresh; later pages add to what is already showing.
+          const existing = page > 1 ? (this.expandedMonthAssets.get(key) ?? []) : [];
+          this.expandedMonthAssets.set(key, [...existing, ...incoming]);
           this.expandedMonthPagination.set(key, res.pagination);
-          node.children = this.buildAssetChildNodes(assets);
-          if (res.pagination.total > 25) {
-            // Add a "load more" pseudo node
-            node.children.push({
-              data: {
-                label: `Showing ${assets.length} of ${res.pagination.total} — Click to load more`,
-                level: 'load_more',
-                nodeRef: node,
-                key,
-                nextPage: page + 1,
-                total: 0,
-                assetCount: 0,
-              },
-              leaf: true,
-            });
-          }
+          this.renderMonthChildren(node, key);
           this.expandedMonthLoading.delete(key);
           this.cdr.detectChanges();
         });
