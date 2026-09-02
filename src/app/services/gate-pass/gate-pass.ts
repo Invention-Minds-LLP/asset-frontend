@@ -46,6 +46,14 @@ export class GatePassService {
     return this.http.get<any>(`${this.apiUrl}/scan/${encodeURIComponent(gatePassNo.trim())}`);
   }
 
+  /**
+   * Assets already committed to a live gate pass. Derived from open passes, not
+   * from Asset.status — condition belongs to the ticket module.
+   */
+  getAssetsOnPass(): Observable<{ assetId: number; gatePassNo: string }[]> {
+    return this.http.get<{ assetId: number; gatePassNo: string }[]>(`${this.apiUrl}/assets-on-pass`);
+  }
+
   getOverdue(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/overdue`);
   }
@@ -114,6 +122,15 @@ export class GatePassService {
    */
   securityClear(id: number, payload: { vehicleNo?: string; vehicleType?: string; courierDetails?: string } = {}): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${id}/security-clear`, payload);
+  }
+
+  /**
+   * Fill in the transport whoever cleared the pass could not know — the label
+   * desk is the last chance to record it. Open to the security executive, and
+   * only while the pass is SECURITY_CLEARED.
+   */
+  setTransport(id: number, payload: { vehicleNo?: string; vehicleType?: string; courierDetails?: string }): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/${id}/transport`, payload);
   }
 
   /** The parcel actually leaves. Everything was captured at clearance. */

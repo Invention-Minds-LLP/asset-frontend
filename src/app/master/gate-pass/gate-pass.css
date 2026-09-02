@@ -282,6 +282,14 @@ input[pInputText],
 
 .pass-no { font-weight: 700; white-space: nowrap; }
 
+/* Secondary line under a cell value — matches the security console, where the
+   same "time, then who did it" pairing is already used. */
+.sub { display: block; font-size: 0.72rem; color: #64748b; line-height: 1.25; white-space: nowrap; }
+
+/* Status/type/approval pills stay on one line. A wrapped label turned the tag
+   into a three-line blob that drove the height of the entire row. */
+:host ::ng-deep .p-datatable td .p-tag { white-space: nowrap; }
+
 /* Approve / Reject / PDF sat as bare siblings, so the PDF icon dropped onto
    its own line under the buttons. */
 .action-buttons { flex-wrap: nowrap; align-items: center; }

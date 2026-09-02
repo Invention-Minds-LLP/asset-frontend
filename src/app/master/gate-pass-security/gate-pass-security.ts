@@ -175,9 +175,13 @@ export class GatePassSecurity implements OnInit {
   // able to stop goods leaving, or security will simply work around the system.
   gateOutWarn = { open: false, row: null as any, saving: false };
 
+  // Leaving all three transport fields blank is allowed here — the label desk
+  // fills them in. Hand-carry is an explicit choice rather than blankness, so
+  // that desk can tell "no vehicle" from "not asked yet".
   vehicleTypeOptions = [
     { label: 'Hospital Vehicle', value: 'HOSPITAL_VEHICLE' },
     { label: 'Outside Vehicle', value: 'OUTSIDE_VEHICLE' },
+    { label: 'Hand Carried (no vehicle)', value: 'HAND_CARRIED' },
   ];
 
   openClear(row: any) {

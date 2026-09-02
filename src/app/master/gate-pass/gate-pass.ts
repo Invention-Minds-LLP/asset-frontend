@@ -110,6 +110,8 @@ export class GatePass implements OnInit {
   // Kept so picking a carrier can auto-fill their ID, phone and department.
   private employeeById = new Map<number, any>();
   private assetById = new Map<number, any>();
+  /** assetId → the pass already holding it, so it can be kept out of the picker. */
+  private assetHeldBy = new Map<number, string>();
 
   constructor(
     private gatePassService: GatePassService,
@@ -192,19 +194,47 @@ export class GatePass implements OnInit {
    * which should never leave on a gate pass anyway.
    */
   loadAssets() {
+    // Two independent fetches; whichever lands last rebuilds the list, so the
+    // options are correct regardless of ordering.
+    this.fetchAssets();
+    this.gatePassService.getAssetsOnPass().subscribe({
+      next: (rows) => {
+        this.assetHeldBy = new Map((rows || []).map(r => [r.assetId, r.gatePassNo]));
+        this.buildAssetOptions();
+      },
+      error: () => this.buildAssetOptions(),
+    });
+  }
+
+  private rawAssets: any[] = [];
+
+  private buildAssetOptions() {
+    // An asset already on a live pass is left out entirely: offering it only to
+    // reject the save is a worse experience than never showing it.
+    //
+    // Anything already chosen on this form stays, though — when editing a draft
+    // its own items are "held" by that same draft, and dropping them would blank
+    // the selection the user is looking at.
+    const mine = new Set(
+      (this.form?.items ?? []).map(i => i.assetId).filter((x): x is number => x != null)
+    );
+    const usable = (this.rawAssets || []).filter(a => !this.assetHeldBy.has(a.id) || mine.has(a.id));
+    this.assetOptions = usable.map(a => ({
+      label: `${a.assetId} - ${a.assetName}${a.department?.name ? ` · ${a.department.name}` : ''}`,
+      value: a.id,
+    }));
+    this.cdr.detectChanges();
+  }
+
+  private fetchAssets() {
     this.assetsService.getAllAssetsForDropdown().subscribe({
       next: (res: any[]) => {
         setTimeout(() => {
           // Keep the department against each asset so the one-department rule
           // can be checked here, before the server rejects the submission.
-          this.assetById = new Map((res || []).map(a => [a.id, a]));
-          // Department is shown in the label: a pass may only cover one
-          // department, so the requester needs to see it while choosing.
-          this.assetOptions = (res || []).map(a => ({
-            label: `${a.assetId} - ${a.assetName}${a.department?.name ? ` · ${a.department.name}` : ''}`,
-            value: a.id,
-          }));
-          this.cdr.detectChanges();
+          this.rawAssets = res || [];
+          this.assetById = new Map(this.rawAssets.map(a => [a.id, a]));
+          this.buildAssetOptions();
         });
       },
       error: () => {}
@@ -371,6 +401,8 @@ export class GatePass implements OnInit {
           }))
         : [{ assetId: null, description: '', make: '', model: '', quantity: 1, remarks: '' }],
     };
+    // The draft's own assets are held by this pass — re-run so they stay listed.
+    this.buildAssetOptions();
   }
 
   // ── Lifecycle actions ──────────────────────────────────────────────────────
@@ -493,14 +525,18 @@ export class GatePass implements OnInit {
   /**
    * Approval runs in two stages, so the raw status is ambiguous to a reader —
    * "PENDING_APPROVAL" doesn't say *whose*. These labels do.
+   *
+   * Kept to two words. These render inside a pill, and a longer phrase wrapped
+   * onto three lines and ballooned the tag into a blob that set the height of
+   * the whole row. The full wording lives in statusHint() as a tooltip instead.
    */
   statusLabel(s: string): string {
     const m: Record<string, string> = {
       DRAFT: 'DRAFT',
       PENDING_APPROVAL: 'AWAITING HOD',
-      PENDING_OPS_APPROVAL: 'AWAITING OPERATIONS',
+      PENDING_OPS_APPROVAL: 'AWAITING OPS',
       APPROVED: 'APPROVED',
-      SECURITY_CLEARED: 'CLEARED — AWAITING EXIT',
+      SECURITY_CLEARED: 'AWAITING EXIT',
       REJECTED: 'REJECTED',
       ISSUED: 'ISSUED',
       RETURNED: 'RETURNED',
@@ -508,6 +544,23 @@ export class GatePass implements OnInit {
       CANCELLED: 'CANCELLED',
     };
     return m[s] ?? s;
+  }
+
+  /** The sentence the pill is too small to carry. */
+  statusHint(s: string): string {
+    const m: Record<string, string> = {
+      DRAFT: 'Not submitted yet',
+      PENDING_APPROVAL: 'Waiting for the department HOD to approve',
+      PENDING_OPS_APPROVAL: 'Approved by the HOD, waiting for Operations',
+      APPROVED: 'Approved — security has not checked it at the desk yet',
+      SECURITY_CLEARED: 'Cleared by security and still on site, awaiting exit',
+      REJECTED: 'Rejected — see the rejection reason on the pass',
+      ISSUED: 'Gated out — the items have left the premises',
+      RETURNED: 'Items brought back and received at the gate',
+      CLOSED: 'Closed, nothing further expected',
+      CANCELLED: 'Cancelled before it left',
+    };
+    return m[s] ?? '';
   }
 
   getStatusSeverity(s: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {

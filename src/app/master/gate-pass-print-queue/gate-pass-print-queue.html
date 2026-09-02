@@ -41,12 +41,22 @@
             </td>
             <td class="ellipsis-cell" appOverflowTooltip>{{ row.issuedTo }}</td>
             <td class="ellipsis-cell" appOverflowTooltip>
-              {{ row.vehicleNo || '—' }}
-              <small class="sub">{{ row.vehicleType || '' }}</small>
+              <p-tag *ngIf="needsTransport(row)" value="Not recorded" severity="warn"
+                pTooltip="Cleared without a vehicle — record it before printing" tooltipPosition="top" />
+              <span *ngIf="!needsTransport(row)">
+                {{ transportSummary(row) }}
+                <small class="sub">{{ row.vehicleType || '' }}</small>
+              </span>
             </td>
             <td class="nowrap">{{ row.securityClearedAt | date:'dd MMM, HH:mm' }}</td>
             <td>
               <div class="action-buttons">
+                <p-button [label]="needsTransport(row) ? 'Add Vehicle' : 'Vehicle'"
+                  icon="pi pi-truck"
+                  [severity]="needsTransport(row) ? 'warn' : 'secondary'"
+                  [text]="!needsTransport(row)" size="small"
+                  (onClick)="openTransport(row)"
+                  pTooltip="Record the vehicle, courier or hand-carry for this parcel" tooltipPosition="top" />
                 <p-button label="Print Label" icon="pi pi-print" severity="success" size="small"
                   (onClick)="printLabel(row)" pTooltip="Generate the 4x6 stick-on label" tooltipPosition="top" />
               </div>
@@ -101,4 +111,50 @@
     </p-tabPanel>
 
   </p-tabView>
+
+  <!-- ── Transport the clearing officer couldn't know ── -->
+  <p-dialog header="Vehicle / Courier Details" [(visible)]="transportDialog.open" [modal]="true"
+            [style]="{width:'560px'}" [draggable]="false">
+    <div *ngIf="transportDialog.row">
+      <p class="dialog-lead">
+        <strong>{{ transportDialog.row.gatePassNo }}</strong> · {{ transportDialog.row.issuedTo || '—' }}
+      </p>
+
+      <dl class="dialog-facts">
+        <div><dt>Carried By</dt><dd>{{ transportDialog.row.carriedBy || '—' }}</dd></div>
+        <div><dt>Destination</dt><dd>{{ transportDialog.row.toAddress || '—' }}</dd></div>
+        <div><dt>Cleared By</dt><dd>{{ transportDialog.row.securityClearedBy?.name || '—' }}</dd></div>
+      </dl>
+
+      <div class="dialog-grid">
+        <p-floatlabel variant="on">
+          <input pInputText [(ngModel)]="transportDialog.vehicleNo" name="labelVehicleNo" />
+          <label>Vehicle No</label>
+        </p-floatlabel>
+        <p-floatlabel variant="on">
+          <p-select [options]="vehicleTypeOptions" optionLabel="label" optionValue="value"
+                    [(ngModel)]="transportDialog.vehicleType" name="labelVehicleType"
+                    [showClear]="true" appendTo="body" />
+          <label>Vehicle Type</label>
+        </p-floatlabel>
+        <p-floatlabel variant="on" class="span-2">
+          <input pInputText [(ngModel)]="transportDialog.courierDetails" name="labelCourier" />
+          <label>Courier details (company / AWB, if sent by courier)</label>
+        </p-floatlabel>
+      </div>
+
+      <p class="dialog-note">
+        The pass was cleared by someone who couldn't see how the parcel would leave.
+        Record the vehicle number, the courier, or pick <strong>Hand Carried</strong> if it
+        is being walked out. The label can't be printed until one of these is on the pass.
+      </p>
+    </div>
+
+    <div class="dialog-actions">
+      <p-button label="Cancel" severity="secondary" [text]="true"
+                (onClick)="transportDialog.open = false" [disabled]="transportDialog.saving" />
+      <p-button label="Save Details" icon="pi pi-check" severity="success"
+                (onClick)="saveTransport()" [loading]="transportDialog.saving" />
+    </div>
+  </p-dialog>
 </div>

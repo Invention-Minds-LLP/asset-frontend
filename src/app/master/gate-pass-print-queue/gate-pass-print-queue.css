@@ -57,3 +57,33 @@
 .tab-note { display: block; margin-top: 8px; color: #64748b; font-size: 0.8rem; }
 
 .sub { display: block; font-size: 0.72rem; color: #64748b; line-height: 1.25; white-space: nowrap; }
+
+/* Transport dialog — kept identical to the security console's clear dialog, so
+   the two screens that capture the same three fields look the same. */
+.dialog-lead { margin: 0 0 14px; font-size: 0.95rem; }
+
+.dialog-facts { display: grid; gap: 8px; margin: 0 0 16px; }
+.dialog-facts > div { display: grid; grid-template-columns: 130px 1fr; gap: 10px; }
+.dialog-facts dt {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-color-secondary); padding-top: 2px;
+}
+.dialog-facts dd { margin: 0; font-size: 0.9rem; }
+
+.dialog-note { margin: 0; font-size: 0.82rem; color: var(--text-color-secondary); }
+
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+.dialog-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; margin-bottom: 16px;
+}
+.dialog-grid .span-2 { grid-column: 1 / -1; }
+:host ::ng-deep .dialog-grid input[pInputText],
+:host ::ng-deep .dialog-grid .p-inputtext,
+:host ::ng-deep .dialog-grid .p-select {
+  width: 100% !important;
+  height: 42px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+}
+@media (max-width: 560px) { .dialog-grid { grid-template-columns: 1fr; } }
