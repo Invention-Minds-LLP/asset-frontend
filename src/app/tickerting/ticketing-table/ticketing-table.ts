@@ -332,6 +332,14 @@ export class TicketingTable {
     this.router.navigate(['/ticket/edit', asset]);
   }
 
+  // Whole row opens the ticket so users don't have to scroll to the View button.
+  // Ignore the click when the user was selecting text to copy (e.g. a ticket ID).
+  openTicketFromRow(ticketId: string | null | undefined) {
+    if (!ticketId) return;
+    if (window.getSelection()?.toString()) return;
+    this.viewWarranty(ticketId);
+  }
+
   // Raise a formal Root Cause Analysis for this ticket. Opens the RCA page with
   // the ticket preselected rather than duplicating the whole capture form here.
   addRca(t: any) {

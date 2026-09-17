@@ -90,7 +90,8 @@
                     </ng-template>
 
                     <ng-template pTemplate="body" let-ticketing let-i="rowIndex">
-                        <tr>
+                        <tr class="clickable-row" tabindex="0" (click)="openTicketFromRow(ticketing.ticketId)"
+                            (keydown.enter)="openTicketFromRow(ticketing.ticketId)">
                             <td class="status-cell" [pTooltip]="statusLabel(ticketing.status)" tooltipPosition="right">
                                 <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(ticketing.status) }">
                                 </span>
@@ -107,7 +108,7 @@
                             <td class="raised-on">{{ ticketing.createdAt | date:'dd-MMM-yyyy hh:mm a' }}</td>
                             @if (showPriority) { <td>{{ ticketing.priority }}</td> }
 
-                            <td class="actions-cell">
+                            <td class="actions-cell" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
                                 <button pButton type="button" label="view" class="view-btn"
                                     (click)="viewWarranty(ticketing.ticketId)">
                                 </button>
@@ -164,7 +165,8 @@
                     </ng-template>
 
                     <ng-template pTemplate="body" let-t let-i="rowIndex">
-                        <tr>
+                        <tr class="clickable-row" tabindex="0" (click)="openTicketFromRow(t.ticketId)"
+                            (keydown.enter)="openTicketFromRow(t.ticketId)">
                             <td class="status-cell" [pTooltip]="statusLabel(t.status)" tooltipPosition="right">
                                 <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(t.status) }">
                                 </span>
@@ -179,7 +181,7 @@
                             <td>{{ serviceTypeLabel(t.serviceType) }}</td>
                             <td class="raised-on">{{ t.createdAt | date:'dd-MMM-yyyy hh:mm a' }}</td>
                             <td>{{ t.updatedAt | date:'dd-MMM-yyyy' }}</td>
-                            <td class="actions-cell">
+                            <td class="actions-cell" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
                                 <button pButton type="button" label="view" class="view-btn"
                                     (click)="viewWarranty(t.ticketId)">
                                 </button>
@@ -232,7 +234,8 @@
                     </ng-template>
 
                     <ng-template pTemplate="body" let-t let-i="rowIndex">
-                        <tr>
+                        <tr class="clickable-row" tabindex="0" (click)="openTicketFromRow(t.ticketId)"
+                            (keydown.enter)="openTicketFromRow(t.ticketId)">
                             <td class="status-cell" [pTooltip]="statusLabel(t.status)" tooltipPosition="right">
                                 <span class="dot" [ngStyle]="{ 'background-color': getStatusColor(t.status) }">
                                 </span>
@@ -247,7 +250,7 @@
                             <td>{{ serviceTypeLabel(t.serviceType) }}</td>
                             <td class="raised-on">{{ t.createdAt | date:'dd-MMM-yyyy hh:mm a' }}</td>
                             <td>{{ t.updatedAt | date:'dd-MMM-yyyy' }}</td>
-                            <td class="actions-cell">
+                            <td class="actions-cell" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
                                 <button pButton type="button" label="view" class="view-btn"
                                     (click)="viewWarranty(t.ticketId)">
                                 </button>
@@ -289,7 +292,8 @@
                     </ng-template>
 
                     <ng-template pTemplate="body" let-r>
-                        <tr>
+                        <tr class="clickable-row" tabindex="0" (click)="openTicketFromRow(r.ticket?.ticketId)"
+                            (keydown.enter)="openTicketFromRow(r.ticket?.ticketId)">
                             <td>{{ r.id }}</td>
                             <td>{{ r.ticket?.ticketId }}</td>
                             <td>{{ r.ticket?.asset?.assetId }} - {{ r.ticket?.asset?.assetName }}</td>
@@ -310,7 +314,7 @@
                             <td>{{ r.requestedBy?.name }}</td>
                             <td>{{ r.comment }}</td>
                             <td>{{ r.createdAt | date:'dd-MMM-yyyy' }}</td>
-                            <td class="actions-cell">
+                            <td class="actions-cell" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
                                 <button pButton label="Approve" class="small-btn"
                                     (click)="approveTransferRow(r)"></button>
                                 <button pButton label="Reject" class="small-btn p-button-danger"

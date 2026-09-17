@@ -220,6 +220,60 @@
 }
 .kb-detail-row strong { color: #374151; min-width: 100px; }
 
+/* Active asset location (read-only, from the location table) */
+.asset-location {
+    border: 1px solid var(--table-border-color);
+    background: var(--surface-card);
+    border-radius: 8px;
+    padding: .75rem 1rem;
+}
+.asset-location-header {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: .6rem;
+}
+.asset-location-header .pi { color: #3EAF3F; }
+.asset-location-since {
+    margin-left: auto;
+    font-size: .75rem;
+    font-weight: 400;
+    color: var(--text-color-secondary);
+}
+.asset-location-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: .6rem 1rem;
+}
+.asset-location-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.asset-location-label {
+    font-size: .72rem;
+    color: var(--text-color-secondary);
+}
+.asset-location-value {
+    font-size: .88rem;
+    color: var(--text-color);
+    overflow-wrap: anywhere;
+}
+.asset-location-raised {
+    margin-top: .6rem;
+    padding-top: .5rem;
+    border-top: 1px dashed var(--table-border-color);
+    font-size: .8rem;
+    color: var(--text-color-secondary);
+}
+.asset-location-empty {
+    font-size: .82rem;
+    color: var(--text-color-secondary);
+}
+
 /* ─── Responsive ─────────────────────────────────────────────────────────
    This form is reached from the QR scan on a phone, so it has to hold up at
    narrow widths: stack the paired fields, drop the percentage gutters, and

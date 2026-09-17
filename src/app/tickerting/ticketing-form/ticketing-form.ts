@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 import { Ticketing } from '../../services/tickerting/ticketing';
 import { Assets } from '../../services/assets/assets';
 import { KnowledgeBaseService } from '../../services/knowledge-base/knowledge-base';
+import { Location } from '../../services/location/location';
 import { ActivatedRoute } from '@angular/router';
 import { ChangeDetectorRef } from '@angular/core';
 import { MessageService } from 'primeng/api';
@@ -138,9 +139,34 @@ export class TicketingForm {
 
   private kbSuggestTimer: any;
 
+  // Active (approved) AssetLocation row for the selected asset. Asset.currentLocation
+  // is a free-text field that goes stale, so the ticket reads the location table.
+  activeLocation: any = null;
+  locationRows: { label: string; value: string }[] = [];
+  locationLoading = false;
+  locationMissing = false;
+  // Edit mode: where the ticket was raised, when the asset has since moved.
+  raisedAtLocation = '';
+  private locationRequestAssetId: number | null = null;
+
+  private placementTypeLabels: Record<string, string> = {
+    ROOM: 'Inside a room', CORRIDOR: 'Corridor / Hallway', ENTRANCE: 'Entrance / Lobby',
+    RECEPTION: 'Reception', STAIRWELL: 'Staircase / Stairwell', LIFT_LOBBY: 'Lift / Lift Lobby',
+    WARD: 'Ward / Bay', PARKING: 'Parking', PERIMETER: 'Perimeter / Boundary Wall',
+    ROOFTOP: 'Rooftop / Terrace', GATE: 'Gate / Barrier', RACK: 'Server / Network Rack',
+    DUCT: 'Cable Duct / Shaft', MOUNTED: 'Wall / Ceiling Mounted', AREA: 'Open Area / Zone',
+    OUTDOOR: 'Outdoor / Open Ground',
+  };
+
+  private mountTypeLabels: Record<string, string> = {
+    WALL: 'Wall', CEILING: 'Ceiling', POLE: 'Pole / Mast', DESK: 'Desk / Table',
+    FLOOR: 'Floor Stand', RACK: 'Rack Mount', PEDESTAL: 'Pedestal', TRIPOD: 'Tripod',
+    GANTRY: 'Overhead Gantry / Beam', BRACKET: 'Bracket / Arm', CONCEALED: 'Concealed / In-wall',
+  };
+
   constructor(private ticketService: Ticketing, private assetService: Assets, private route: ActivatedRoute,
     private cdr: ChangeDetectorRef, private toastService: MessageService, private fb: FormBuilder,
-    private kbService: KnowledgeBaseService, private msg: MessageService) { }
+    private kbService: KnowledgeBaseService, private msg: MessageService, private locationService: Location) { }
 
   ngOnInit() {
     // reactive forms
@@ -184,6 +210,8 @@ export class TicketingForm {
           this.ticket.location = data.location;
           this.ticket.photoOfIssue = data.photoOfIssue || '';
           this.cdr.markForCheck();
+          // Show where the asset is now; the ticket keeps the location it was raised with.
+          this.loadActiveLocation(data.asset.id, false);
           // Surface prior fixes for this asset as soon as the ticket opens — the
           // technician shouldn't have to retype anything to get them.
           this.fetchKbSuggestions();
@@ -288,13 +316,110 @@ export class TicketingForm {
   }
   issueChange() {
     const selectedAsset = this.assets.find(asset => asset.id === this.ticket.assetId);
-    // Only prefill location from the asset when it actually has one — otherwise
-    // keep whatever the user typed so the required Location field isn't silently
-    // blanked (which made Save fail with no feedback).
-    if (selectedAsset?.currentLocation) {
-      this.ticket.location = selectedAsset.currentLocation;
+    if (selectedAsset) {
+      this.loadActiveLocation(selectedAsset.id, true);
+    } else {
+      this.resetActiveLocation();
     }
     this.fetchKbSuggestions();
+  }
+
+  private resetActiveLocation() {
+    this.locationRequestAssetId = null;
+    this.activeLocation = null;
+    this.locationRows = [];
+    this.locationLoading = false;
+    this.locationMissing = false;
+    this.raisedAtLocation = '';
+  }
+
+  // Ticket.location is a required text column, so the card's summary is what gets
+  // saved. The Location input is only shown when the asset has no active location.
+  // prefill=false (existing ticket): keep the saved location unless it's blank.
+  private loadActiveLocation(assetDbId: number, prefill: boolean) {
+    this.resetActiveLocation();
+    this.locationRequestAssetId = assetDbId;
+    this.locationLoading = true;
+    this.cdr.markForCheck();
+
+    this.locationService.getCurrentLocation(assetDbId).subscribe({
+      next: (loc: any) => {
+        // User may have switched asset while this was in flight.
+        if (this.locationRequestAssetId !== assetDbId) return;
+        this.activeLocation = loc;
+        this.locationRows = this.buildLocationRows(loc);
+        this.locationLoading = false;
+        const summary = this.locationSummary(loc);
+        const saved = String(this.ticket.location ?? '').trim();
+        if (summary && (prefill || !saved)) {
+          this.ticket.location = summary;
+        } else if (!prefill && saved && saved !== summary) {
+          this.raisedAtLocation = saved;
+        }
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        if (this.locationRequestAssetId !== assetDbId) return;
+        this.locationLoading = false;
+        this.locationMissing = true;
+        // No location row (404) — fall back to the asset's free-text location, and
+        // only when it has one, so the required Location field isn't blanked.
+        const selectedAsset = this.assets.find(a => a.id === assetDbId);
+        if (prefill && selectedAsset?.currentLocation) {
+          this.ticket.location = selectedAsset.currentLocation;
+        }
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  // "Block A" / "Floor 2" / "Room 204" — skip the prefix when the value already says it
+  // ("Ground Floor", "ICU Room 3").
+  private withPrefix(prefix: string, value: any): string {
+    const v = String(value ?? '').trim();
+    if (!v) return '';
+    return v.toLowerCase().includes(prefix.toLowerCase()) ? v : `${prefix} ${v}`;
+  }
+
+  private locationSummary(loc: any): string {
+    const parts = [
+      loc?.branch?.name,
+      this.withPrefix('Block', loc?.block),
+      this.withPrefix('Floor', loc?.floor),
+      this.withPrefix('Room', loc?.room),
+    ].filter(Boolean);
+    const spot = String(loc?.placementLabel ?? '').trim();
+    return [parts.join(', '), spot].filter(Boolean).join(' — ');
+  }
+
+  // Only the fields that were actually filled in on the asset's Location tab.
+  private buildLocationRows(loc: any): { label: string; value: string }[] {
+    const text = (v: any) => String(v ?? '').trim();
+    const branch = [text(loc?.branch?.name), text(loc?.branch?.city)].filter(Boolean).join(', ');
+    const gps = loc?.latitude != null && loc?.longitude != null ? `${loc.latitude}, ${loc.longitude}` : '';
+    const responsible = loc?.employeeResponsible
+      ? [text(loc.employeeResponsible.employeeID), text(loc.employeeResponsible.name)].filter(Boolean).join(' - ')
+      : '';
+    const placementType = text(loc?.placementType);
+    const mountType = text(loc?.mountType);
+
+    const rows = [
+      { label: 'Branch', value: branch },
+      { label: 'Block', value: text(loc?.block) },
+      { label: 'Floor', value: text(loc?.floor) },
+      { label: 'Room', value: text(loc?.room) },
+      { label: 'Department', value: text(loc?.departmentSnapshot) },
+      { label: 'Placement', value: placementType ? (this.placementTypeLabels[placementType] || placementType) : '' },
+      { label: 'Mounted On', value: mountType ? (this.mountTypeLabels[mountType] || mountType) : '' },
+      { label: 'Rack', value: text(loc?.rackCode) },
+      { label: 'Rack Position', value: text(loc?.rackUnit) },
+      { label: 'Port', value: text(loc?.portRef) },
+      { label: 'Coverage Area', value: text(loc?.coverageArea) },
+      { label: 'Exact Spot', value: text(loc?.placementLabel) },
+      { label: 'GPS', value: gps },
+      { label: 'Responsible', value: responsible },
+    ];
+    return rows.filter(r => r.value);
   }
 
   onDescriptionChange() {
@@ -428,6 +553,7 @@ export class TicketingForm {
               });
             }
             form.resetForm();
+            this.resetActiveLocation();
           },
           error: (err: any) => {
             setTimeout(() => { this.submitting = false; this.cdr.detectChanges(); });
@@ -468,6 +594,7 @@ export class TicketingForm {
       id: null,
       photoOfIssue: ''
     }
+    this.resetActiveLocation();
   }
   selectedReportFiles: File[] = [];
 

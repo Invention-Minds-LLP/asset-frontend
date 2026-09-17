@@ -120,14 +120,45 @@
                 </div>
                 }
 
+                @if (locationLoading || activeLocation || locationMissing) {
+                <div class="asset-location">
+                    <div class="asset-location-header">
+                        <i class="pi pi-map-marker"></i>
+                        <span>{{ isEditMode ? "Asset's current location" : 'Where this asset is' }}</span>
+                        @if (activeLocation?.approvedAt || activeLocation?.createdAt) {
+                        <span class="asset-location-since">since {{ (activeLocation.approvedAt || activeLocation.createdAt) | date:'dd-MMM-yyyy' }}</span>
+                        }
+                    </div>
+                    @if (locationLoading) {
+                    <div class="asset-location-empty">Loading location…</div>
+                    } @else if (locationMissing) {
+                    <div class="asset-location-empty">No approved location is recorded for this asset. Please type where it is below.</div>
+                    } @else {
+                    <div class="asset-location-grid">
+                        @for (row of locationRows; track row.label) {
+                        <div class="asset-location-item">
+                            <span class="asset-location-label">{{ row.label }}</span>
+                            <span class="asset-location-value">{{ row.value }}</span>
+                        </div>
+                        }
+                    </div>
+                    @if (raisedAtLocation) {
+                    <div class="asset-location-raised">Ticket was raised at: {{ raisedAtLocation }}</div>
+                    }
+                    }
+                </div>
+                }
+
+                <!-- Only when the asset has no recorded location — otherwise the card above fills it. -->
+                @if (locationMissing) {
                 <div class="column-one">
-                    <!-- <p-floatlabel variant="on" class="half-width">
+                    <p-floatlabel variant="on" class="half-width">
                         <input pInputText id="building" name="building" autocomplete="off" [(ngModel)]="ticket.location"
                             required #locationCtrl="ngModel" [ngClass]="{'ng-invalid': invaild(locationCtrl)}"
                             (ngModelChange)="locationChange($event)" />
                         <label for="building">Location</label>
                         <div class="error-msg" *ngIf="showError(locationCtrl)">Location is required</div>
-                    </p-floatlabel> -->
+                    </p-floatlabel>
                     <!-- <p-floatlabel variant="on" class="half-width">
                         <p-select [(ngModel)]="ticket.status" inputId="status" name="status"
                             [options]="getFilteredStatusOptions()" required #statusCtrl="ngModel"
@@ -136,6 +167,7 @@
                         <div class="error-msg" *ngIf="showError(statusCtrl)">Status is required</div>
                     </p-floatlabel> -->
                 </div>
+                }
 
                 <div *ngIf="ticket.photoOfIssue === ''">
                     <app-drag-and-drop (fileSelected)="onFilesSelected($event)"></app-drag-and-drop>
