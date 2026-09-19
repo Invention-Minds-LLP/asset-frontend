@@ -97,6 +97,16 @@
   width: 10%;
 }
 
+/* Shown under Asset Name when the name came from the item master — explains why
+   Nature / Type / Category below it are read-only. */
+.from-item-note {
+  display: block;
+  margin: -8px 0 4px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--text-color-secondary);
+}
+
 /* ================= INPUT BOX FIXES ================= */
 
 input[pInputText],

@@ -14,6 +14,7 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { DatePickerModule } from 'primeng/datepicker';
 import { MessageService } from 'primeng/api';
 import { AssetIndentService } from '../../services/asset-indent/asset-indent.service';
+import { ItemMaster } from '../../services/item-master/item-master';
 import { Tooltip, TooltipModule } from 'primeng/tooltip';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
@@ -79,13 +80,32 @@ export class AssetIndent implements OnInit {
   showDetailDialog = false;
   selectedIndent: any = null;
 
+  // Item master — what can be requested. Maintained by Admin/Finance in
+  // Master Settings → Items; everyone else picks from it.
+  items: any[] = [];
+
   constructor(
     private service: AssetIndentService,
+    private itemService: ItemMaster,
     private msg: MessageService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  ngOnInit() { this.load(); }
+  ngOnInit() { this.load(); this.loadItems(); }
+
+  loadItems() {
+    this.itemService.getItems().subscribe({
+      next: data => { this.items = data || []; this.cdr.detectChanges(); },
+      error: () => this.toast('error', 'Failed to load items')
+    });
+  }
+
+  // Carry the item's category onto the indent — the backend has always accepted
+  // assetCategoryId, and Purchase Orders show it alongside the name.
+  onItemPicked(name: string) {
+    const item = this.items.find(i => i.name === name);
+    this.form.assetCategoryId = item?.assetCategoryId ?? null;
+  }
 
   load() {
     this.loading = true;
@@ -98,7 +118,7 @@ export class AssetIndent implements OnInit {
   }
 
   emptyForm() {
-    return { assetName: '', justification: '', quantity: 1, urgency: 'NORMAL', estimatedBudget: null, requiredByDate: null, specifications: '' };
+    return { assetName: '', assetCategoryId: null, justification: '', quantity: 1, urgency: 'NORMAL', estimatedBudget: null, requiredByDate: null, specifications: '' };
   }
 
   openCreate() { this.form = this.emptyForm(); this.showCreateDialog = true; }

@@ -11,7 +11,7 @@
     <p-floatlabel variant="on" class="lookup-field">
       <input pInputText [(ngModel)]="lookupNo" name="lookupNo" (keyup.enter)="lookup()"
              autocapitalize="characters" spellcheck="false" />
-      <label>Gate Pass No (e.g. GP-20260813-0007)</label>
+      <label>Gate Pass No (e.g. GP-FY2026-27-0007)</label>
     </p-floatlabel>
     <p-button label="Check" icon="pi pi-search" (onClick)="lookup()" [loading]="loading" />
     <p-button *ngIf="pass || notFound" label="Clear" severity="secondary" [text]="true" (onClick)="clear()" />

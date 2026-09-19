@@ -234,6 +234,78 @@
       </p-table>
     </p-tabPanel>
 
+    <!-- ── Items (asset name master) ─────────────────────────────────────────── -->
+    <p-tabPanel header="Items">
+      <div class="tab-toolbar">
+        <p-button *ngIf="canEditItems" label="Add Item" icon="pi pi-plus" (onClick)="openItemForm()" />
+        <small *ngIf="!canEditItems" class="empty-msg">Only Admin and Finance can add or change items.</small>
+      </div>
+
+      @if (showItemForm) {
+        <div class="inline-form card">
+          <h4>{{ editingItemId ? 'Edit Item' : 'New Item' }}</h4>
+          <div class="form-row">
+            <p-floatlabel variant="on">
+              <input pInputText id="itemName" [(ngModel)]="itemForm.name" />
+              <label for="itemName">Item Name (e.g. Dell Latitude 5420)</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+              <p-select id="itemCategory" [options]="categories" optionLabel="name" optionValue="id"
+                [(ngModel)]="itemForm.assetCategoryId" [filter]="true" appendTo="body" />
+              <label for="itemCategory">Category</label>
+            </p-floatlabel>
+          </div>
+          <div class="form-row">
+            <p-floatlabel variant="on">
+              <p-select id="itemNature" [options]="itemNatureOptions" optionLabel="label" optionValue="value"
+                [(ngModel)]="itemForm.nature" appendTo="body" />
+              <label for="itemNature">Nature</label>
+            </p-floatlabel>
+            <!-- Fixed/Movable is meaningless for a licence or software. -->
+            <p-floatlabel variant="on" *ngIf="itemForm.nature !== 'INTANGIBLE'">
+              <p-select id="itemType" [options]="itemTypeOptions" optionLabel="label" optionValue="value"
+                [(ngModel)]="itemForm.type" appendTo="body" [showClear]="true" />
+              <label for="itemType">Type</label>
+            </p-floatlabel>
+          </div>
+
+          <div class="form-actions">
+            <p-button label="Save" icon="pi pi-check" (onClick)="saveItem()" [loading]="savingItem" />
+            <p-button label="Cancel" icon="pi pi-times" severity="secondary" (onClick)="showItemForm = false" />
+          </div>
+        </div>
+      }
+
+      <p-table [value]="items" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>#</th>
+            <th>Item Name</th>
+            <th>Category</th>
+            <th>Nature</th>
+            <th>Type</th>
+            <th *ngIf="canEditItems" style="width:120px">Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-it let-i="rowIndex">
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 280px;"><strong>{{ it.name }}</strong></td>
+            <td class="ellipsis-cell" appOverflowTooltip>{{ it.assetCategory?.name || '—' }}</td>
+            <td>{{ it.nature | titlecase }}</td>
+            <td>{{ (it.type | titlecase) || '—' }}</td>
+            <td *ngIf="canEditItems">
+              <p-button icon="pi pi-pencil" severity="info" [text]="true" size="small" pTooltip="Edit" tooltipPosition="top" (onClick)="openItemForm(it)" />
+              <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small" pTooltip="Deactivate" tooltipPosition="top" (onClick)="deleteItem(it)" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="empty-msg">No items found. Add the names that can be captured as assets or requested on an indent.</td></tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+
     <!-- ── Vendors ──────────────────────────────────────────────────────────── -->
     <p-tabPanel header="Vendors">
       <div class="tab-toolbar">
@@ -396,3 +468,5 @@
     </p-tabPanel>
   </p-tabView>
 </div>
+
+<p-confirmdialog [style]="{ width: '440px' }" />

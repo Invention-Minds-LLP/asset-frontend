@@ -13,9 +13,11 @@ import { TextareaModule } from 'primeng/textarea';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { CheckboxModule } from 'primeng/checkbox';
-import { MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { Assets } from '../../services/assets/assets';
 import { Branches } from '../../services/branches/branches';
+import { ItemMaster } from '../../services/item-master/item-master';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
 
 @Component({
@@ -36,11 +38,12 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
     TagModule,
     TooltipModule,
     CheckboxModule,
+    ConfirmDialogModule,
     OverflowTooltipDirective
   ],
   templateUrl: './master-settings.html',
   styleUrl: './master-settings.css',
-  providers: [MessageService]
+  providers: [MessageService, ConfirmationService]
 })
 export class MasterSettings implements OnInit {
   // ── Departments ──────────────────────────────────────────────────────────
@@ -112,13 +115,37 @@ export class MasterSettings implements OnInit {
     { label: 'Other', value: 'OTHER' },
   ];
 
+  // ── Items (asset name master) ────────────────────────────────────────────
+  // The approved list of names the asset form and indent form pick from.
+  items: any[] = [];
+  itemForm: { name: string; nature: string; type?: string | null; assetCategoryId?: number | null } =
+    { name: '', nature: 'TANGIBLE', type: null, assetCategoryId: null };
+  editingItemId: number | null = null;
+  showItemForm = false;
+  savingItem = false;
+  // Only ADMIN/FINANCE may maintain the master; the server enforces this too.
+  canEditItems = ['ADMIN', 'FINANCE'].includes(
+    ((typeof window !== 'undefined' && localStorage.getItem('role')) || '').toUpperCase()
+  );
+  // Mirrors the asset form's own option lists, so a picked item fills them in.
+  itemNatureOptions = [
+    { label: 'Tangible', value: 'TANGIBLE' },
+    { label: 'Intangible', value: 'INTANGIBLE' },
+  ];
+  itemTypeOptions = [
+    { label: 'Fixed', value: 'FIXED' },
+    { label: 'Movable', value: 'MOVABLE' },
+  ];
+
   loading = false;
   savingVendor = false;
 
   constructor(
     private assetsService: Assets,
     private branchesService: Branches,
+    private itemService: ItemMaster,
     private messageService: MessageService,
+    private confirmationService: ConfirmationService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -132,6 +159,80 @@ export class MasterSettings implements OnInit {
     this.loadCategories();
     this.loadSubTypes();
     this.loadVendors();
+    this.loadItems();
+  }
+
+  // ── Items ──────────────────────────────────────────────────────────────────
+  loadItems() {
+    this.itemService.getItems().subscribe({
+      next: i => { setTimeout(() => { this.items = i; this.cdr.detectChanges(); }); },
+      error: () => this.toast('error', 'Failed to load items')
+    });
+  }
+
+  openItemForm(item?: any) {
+    if (item) {
+      this.editingItemId = item.id;
+      this.itemForm = {
+        name: item.name,
+        nature: item.nature || 'TANGIBLE',
+        type: item.type ?? null,
+        assetCategoryId: item.assetCategoryId ?? null,
+      };
+    } else {
+      this.editingItemId = null;
+      this.itemForm = { name: '', nature: 'TANGIBLE', type: null, assetCategoryId: null };
+    }
+    this.showItemForm = true;
+  }
+
+  saveItem() {
+    if (!this.itemForm.name.trim()) { this.toast('warn', 'Item name is required'); return; }
+    if (!this.itemForm.assetCategoryId) { this.toast('warn', 'Select a category for this item'); return; }
+    this.savingItem = true;
+    const payload: any = {
+      name: this.itemForm.name.trim(),
+      nature: this.itemForm.nature || 'TANGIBLE',
+      // Fixed/Movable only applies to something physical.
+      type: this.itemForm.nature === 'INTANGIBLE' ? null : (this.itemForm.type || null),
+      assetCategoryId: Number(this.itemForm.assetCategoryId),
+    };
+    const call = this.editingItemId
+      ? this.itemService.updateItem(this.editingItemId, payload)
+      : this.itemService.createItem(payload);
+
+    call.subscribe({
+      next: () => {
+        setTimeout(() => {
+          this.toast('success', this.editingItemId ? 'Item updated' : 'Item created');
+          this.showItemForm = false;
+          this.loadItems();
+          this.savingItem = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: err => {
+        setTimeout(() => { this.savingItem = false; this.cdr.detectChanges(); });
+        this.toast('error', err?.error?.message || 'Failed to save item');
+      }
+    });
+  }
+
+  deleteItem(item: any) {
+    this.confirmationService.confirm({
+      header: 'Deactivate item',
+      message: `"${item.name}" will no longer be offered when capturing an asset or raising an indent. Assets already using this name keep it.`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Deactivate',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.itemService.deleteItem(item.id).subscribe({
+          next: () => { setTimeout(() => { this.toast('success', 'Item deactivated'); this.loadItems(); this.cdr.detectChanges(); }); },
+          error: err => this.toast('error', err?.error?.message || 'Failed to delete item')
+        });
+      }
+    });
   }
 
   // ── Departments ──────────────────────────────────────────────────────────

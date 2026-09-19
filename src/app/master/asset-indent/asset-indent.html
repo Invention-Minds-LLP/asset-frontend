@@ -77,8 +77,12 @@
 <!-- Create Dialog -->
 <p-dialog header="New Asset Indent" [(visible)]="showCreateDialog" [modal]="true" [style]="{width:'560px'}">
   <div class="form-grid">
+    <!-- Picked from the item master; Admin/Finance maintain the list. -->
     <p-floatlabel variant="on" class="full-field">
-      <input pInputText [(ngModel)]="form.assetName" name="assetName" class="text-area"/>
+      <p-select [options]="items" optionLabel="name" optionValue="name" name="assetName"
+        [(ngModel)]="form.assetName" [filter]="true" filterBy="name" appendTo="body"
+        (onChange)="onItemPicked($event.value)" class="select-area"
+        emptyFilterMessage="No matching item. Ask Admin/Finance to add it in Master Settings → Items." />
       <label>Asset Name *</label>
     </p-floatlabel>
 

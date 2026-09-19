@@ -35,6 +35,7 @@ import { AssetQr } from "../asset-qr/asset-qr";
 import { QuickActionsService } from "../../services/quick-actions/quick-actions";
 import { InstitutionProfileService } from "../../services/institution-profile/institution-profile.service";
 import { PurchaseOrderService } from "../../services/purchase-order/purchase-order";
+import { ItemMaster } from "../../services/item-master/item-master";
 import { printQrLabels } from "../qr-label-print";
 
 type FlowStatus = "NONE" | "PENDING" | "ACKNOWLEDGED" | "REJECTED";
@@ -177,7 +178,12 @@ export class AssetsForm implements OnInit {
     if (p.purchaseOrderDate) this.asset.purchaseOrderDate = new Date(p.purchaseOrderDate);
     if (p.assetCategoryId && !this.asset.assetCategoryId) this.asset.assetCategoryId = p.assetCategoryId;
     if (p.purchaseCost && !this.asset.purchaseCost) this.asset.purchaseCost = p.purchaseCost;
-    if (p.description && !this.asset.assetName) this.asset.assetName = p.description;
+    // The PO line description is free text and may not be an item in the master;
+    // keep it selectable so the Asset Name dropdown doesn't come up empty.
+    if (p.description && !this.asset.assetName) {
+      this.asset.assetName = p.description;
+      this.keepCurrentNameSelectable();
+    }
 
     this.toast(
       'success',
@@ -259,6 +265,10 @@ export class AssetsForm implements OnInit {
   vendors: any[] = [];
   categories: any[] = [];
   subTypes: any[] = [];
+  // Item master — Asset Name is picked from this list, not typed. Assets saved
+  // before the master existed keep their name: loadItems() adds it as an option
+  // so opening an old asset can't silently blank the name.
+  items: any[] = [];
   // Co-supervisors (excludes the primary in asset.supervisorId) for shift-wise duty.
   additionalSupervisorIds: number[] = [];
   savingSupervisors = false;
@@ -784,7 +794,8 @@ export class AssetsForm implements OnInit {
     private poolService: AssetPoolService,
     private quickActions: QuickActionsService,
     private institutionProfileService: InstitutionProfileService,
-    private poService: PurchaseOrderService
+    private poService: PurchaseOrderService,
+    private itemService: ItemMaster
   ) { }
 
   ngOnInit() {
@@ -837,6 +848,8 @@ export class AssetsForm implements OnInit {
         this.categories = res || [];
       }
     });
+
+    this.loadItems();
 
     // Sub-types are department-owned; the dropdown is loaded per the asset's
     // department once the asset is loaded (loadSubTypesForAsset).
@@ -1041,6 +1054,8 @@ export class AssetsForm implements OnInit {
     }
 
     this.asset = asset;
+    // The loaded name may predate the item master — keep it selectable.
+    this.keepCurrentNameSelectable();
     if (this.asset?.assetId) {
       this.loadSubAssets();
       this.loadInsuranceHistory();
@@ -1055,6 +1070,59 @@ export class AssetsForm implements OnInit {
     console.log(this.asset)
   }
 
+
+  // ================================
+  // ITEM MASTER (Asset Name)
+  // ================================
+  // Names come from the item master (Master Settings → Items), maintained by
+  // Admin/Finance. Picking one fills Nature, Type and Category to match.
+  loadItems() {
+    this.itemService.getItems().subscribe({
+      next: (res: any[]) => {
+        this.items = res || [];
+        this.keepCurrentNameSelectable();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        // A failed lookup must not strand the form with an unselectable name.
+        this.keepCurrentNameSelectable();
+      }
+    });
+  }
+
+  // An asset captured before the master existed (or whose item was since
+  // deactivated) still has to display its own name in the dropdown.
+  private keepCurrentNameSelectable() {
+    const name = String(this.asset?.assetName ?? '').trim();
+    if (!name) return;
+    if (this.items.some(i => i.name === name)) return;
+    this.items = [{ id: null, name, legacy: true }, ...this.items];
+  }
+
+  // True when the chosen name is a real master item, i.e. Nature/Type/Category
+  // are owned by the item and must not be edited here — otherwise two assets of
+  // the same item drift apart, which is what the master exists to stop.
+  // A legacy name (captured before the master, so not in it) has no item to
+  // inherit from, so those fields stay editable for it.
+  get isMasterItemSelected(): boolean {
+    const name = String(this.asset?.assetName ?? '').trim();
+    if (!name) return false;
+    const item = this.items.find(i => i.name === name);
+    return !!item && !item.legacy;
+  }
+
+  onItemPicked(name: string) {
+    const item = this.items.find(i => i.name === name);
+    if (!item || item.legacy) return;
+    if (item.nature) this.asset.assetNature = item.nature;
+    if (item.type) this.asset.assetType = item.type;
+    if (item.assetCategoryId) {
+      this.asset.assetCategoryId = item.assetCategoryId;
+      // Same follow-on work as choosing the category by hand (depreciation
+      // defaults, serial-required rule, SLA options).
+      this.onCategoryChange();
+    }
+  }
 
   // ================================
   // PHASE 1 SAVE BASIC DETAILS

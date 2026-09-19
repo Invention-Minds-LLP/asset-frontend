@@ -36,18 +36,30 @@
                             <strong style="font-family:monospace; color:#1e3a8a;">{{ asset.storeAssetId }}</strong>
                         </div>
 
-                        <!-- ASSET NAME -->
+                        <!-- ASSET NAME — picked from the item master (Master Settings → Items) -->
                         <p-floatlabel variant="on" class="full-field">
-                            <input pInputText name="assetName" [(ngModel)]="asset.assetName" required
-                                [disabled]="!canEditAssetName" />
+                            <p-select [options]="items" optionLabel="name" optionValue="name" name="assetName"
+                                [(ngModel)]="asset.assetName" required [filter]="true" filterBy="name"
+                                appendTo="body" (onChange)="onItemPicked($event.value)"
+                                [disabled]="!canEditAssetName"
+                                emptyFilterMessage="No matching item. Ask Admin/Finance to add it in Master Settings → Items.">
+                            </p-select>
                             <label>Asset Name *</label>
                         </p-floatlabel>
+                        @if (isMasterItemSelected) {
+                        <small class="from-item-note">
+                            Nature, Type and Category come from this item. To change them, edit the item in
+                            Master Settings → Items.
+                        </small>
+                        }
 
                         <!-- ASSET NATURE (Tangible / Intangible) -->
+                        <!-- Nature/Type/Category are set by the chosen item — read-only so they
+                             can't drift away from the master. -->
                         <p-floatlabel variant="on" class="full-field">
                             <p-select [options]="assetNatureOptions" optionLabel="label" optionValue="value"
                                 name="assetNature" [(ngModel)]="asset.assetNature" required appendTo="body"
-                                [disabled]="!canEditBasicDetails">
+                                [disabled]="!canEditBasicDetails || isMasterItemSelected">
                             </p-select>
                             <label>Asset Nature *</label>
                         </p-floatlabel>
@@ -57,7 +69,7 @@
                             <p-floatlabel variant="on" *ngIf="asset.assetNature === 'TANGIBLE'">
                                 <p-select [options]="assetTypes" optionLabel="label" optionValue="value"
                                     name="assetType" [(ngModel)]="asset.assetType" [filter]="true" required
-                                    appendTo="body" [disabled]="!canEditBasicDetails">
+                                    appendTo="body" [disabled]="!canEditBasicDetails || isMasterItemSelected">
                                 </p-select>
                                 <label>Asset Type *</label>
                             </p-floatlabel>
@@ -66,7 +78,7 @@
                                 <p-select [options]="categories" optionLabel="name" optionValue="id"
                                     name="assetCategoryId" [(ngModel)]="asset.assetCategoryId" [filter]="true" required
                                     (onChange)="onCategoryChange()"
-                                    appendTo="body" [disabled]="!canEditBasicDetails">
+                                    appendTo="body" [disabled]="!canEditBasicDetails || isMasterItemSelected">
                                 </p-select>
                                 <label>Category *</label>
                             </p-floatlabel>
