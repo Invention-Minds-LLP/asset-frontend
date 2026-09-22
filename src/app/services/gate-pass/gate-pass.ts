@@ -155,6 +155,8 @@ export class GatePassService {
 
   /** Fetch the PDF as a blob (for triggering native download via blob URL). */
   downloadPdf(id: number): Observable<Blob> {
+      const url = `${this.apiUrl}/${id}/pdf`;
+      console.log("PDF API URL:", url);
     return this.http.get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' });
   }
 
