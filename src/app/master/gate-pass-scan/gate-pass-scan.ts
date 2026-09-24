@@ -97,20 +97,30 @@ export class GatePassScan implements OnInit {
 
   verdictTitle(): string {
     switch (this.pass?.status) {
-      case 'APPROVED':         return 'Approved — cleared to leave';
-      case 'ISSUED':           return 'Already issued — this pass has been used';
-      case 'RETURNED':         return 'Returned — items are back';
-      case 'CLOSED':           return 'Closed — this pass is finished';
-      case 'REJECTED':         return 'Rejected — do not release';
-      case 'CANCELLED':        return 'Cancelled — do not release';
-      case 'PENDING_APPROVAL': return 'Not yet approved — do not release';
-      case 'DRAFT':            return 'Draft — not submitted, do not release';
-      default:                 return 'Unknown status — check with the security supervisor';
+      case 'SECURITY_CLEARED':     return 'Cleared to leave — security checked';
+      case 'APPROVED':             return 'Approved — cleared to leave';
+      case 'ISSUED':               return 'Already issued — this pass has been used';
+      case 'RETURNED':             return 'Returned — items are back';
+      case 'CLOSED':               return 'Closed — this pass is finished';
+      case 'REJECTED':             return 'Rejected — do not release';
+      case 'CANCELLED':            return 'Cancelled — do not release';
+      case 'PENDING_OPS_APPROVAL': return 'Not yet approved — do not release';
+      case 'PENDING_APPROVAL':     return 'Not yet approved — do not release';
+      case 'DRAFT':                return 'Draft — not submitted, do not release';
+      // Name the status rather than hiding it: the next one added to the backend
+      // should be visible here, not silently read as "unknown".
+      default:                     return this.pass?.status
+        ? `Unrecognised status (${this.pass.status}) — check with the security supervisor`
+        : 'Unknown status — check with the security supervisor';
     }
   }
 
   verdictDetail(): string {
     switch (this.pass?.status) {
+      // Security has already checked the vehicle and items — this is the state a
+      // pass is normally in when it reaches the gate.
+      case 'SECURITY_CLEARED':
+        return 'Vehicle and items verified. Check the list below, then record the gate-out.';
       case 'APPROVED':
         return 'Check the items against the list below, then record the gate-out.';
       case 'ISSUED':
@@ -129,6 +139,8 @@ export class GatePassScan implements OnInit {
         return 'This pass was called off. Nothing may leave on it.';
       case 'PENDING_APPROVAL':
         return 'Still waiting for the department head. Send the carrier back — nothing leaves yet.';
+      case 'PENDING_OPS_APPROVAL':
+        return 'The department head approved this, but operations has not. Send the carrier back — nothing leaves yet.';
       case 'DRAFT':
         return 'Never submitted for approval. Send the carrier back to the requester.';
       default:
@@ -137,8 +149,11 @@ export class GatePassScan implements OnInit {
   }
 
   /** Drives the banner colour — green go, red stop, grey finished. */
+  // Anything unrecognised stays 'stop' — at a gate, the safe default is to hold
+  // the parcel rather than wave through a status this screen doesn't know.
   verdictTone(): 'ok' | 'stop' | 'done' {
     switch (this.pass?.status) {
+      case 'SECURITY_CLEARED':
       case 'APPROVED':  return 'ok';
       case 'RETURNED':
       case 'CLOSED':
