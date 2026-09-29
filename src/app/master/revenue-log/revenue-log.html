@@ -205,7 +205,7 @@
         <div class="rate-card-bar">
           <div class="rate-card-item">
             <span class="rate-card-label">Avg Revenue/Unit <i class="pi pi-info-circle info-icon" pTooltip="Average revenue generated per procedure or unit" tooltipPosition="top"></i></span>
-            <span class="rate-card-value">{{ formatCurrency(rateCard.avgRevenuePerUnit) }}</span>
+            <span class="rate-card-value">{{ formatCurrency(rateCard.avgRevenuePerUnit) }}@if (unitOption(rateCard.revenueUnit); as u) {<span class="rate-unit"> / {{ u.per }}</span>}</span>
           </div>
           <div class="rate-card-item">
             <span class="rate-card-label">Planned Hours/Day <i class="pi pi-info-circle info-icon" pTooltip="Target operating hours per day for this asset" tooltipPosition="top"></i></span>
@@ -512,7 +512,7 @@
           </div>
           <div class="rate-card-item">
             <span class="rate-card-label">Revenue/Unit</span>
-            <span class="rate-card-value">{{ formatCurrency(rateCard.avgRevenuePerUnit) }}</span>
+            <span class="rate-card-value">{{ formatCurrency(rateCard.avgRevenuePerUnit) }}@if (unitOption(rateCard.revenueUnit); as u) {<span class="rate-unit"> / {{ u.per }}</span>}</span>
           </div>
           <div class="rate-card-item">
             <span class="rate-card-label">Target OEE</span>
@@ -703,7 +703,18 @@
           <label>Revenue Per Unit (₹)</label>
           <p-inputnumber [(ngModel)]="rateCardForm.revenuePerUnit" [min]="0" mode="currency" currency="INR" locale="en-IN" placeholder="e.g. 5000"></p-inputnumber>
         </div>
+        <div class="rc-field">
+          <label>Revenue Unit <i class="pi pi-info-circle info-icon" pTooltip="What the rate is charged per. Decides which log field drives the estimated revenue." tooltipPosition="top"></i></label>
+          <p-select [options]="revenueUnitOptions" optionLabel="label" optionValue="value"
+            [(ngModel)]="rateCardForm.revenueUnit" appendTo="body"></p-select>
+        </div>
       </div>
+      @if (unitOption(rateCardForm.revenueUnit); as u) {
+        <div class="rc-derived">
+          <span class="rc-derived-label">Estimated revenue</span>
+          <span class="rc-derived-value">= {{ u.hint }}</span>
+        </div>
+      }
     </section>
 
     <section class="rc-section">

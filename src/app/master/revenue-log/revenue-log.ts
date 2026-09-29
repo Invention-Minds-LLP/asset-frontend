@@ -69,6 +69,19 @@ export class RevenueLog implements OnInit {
 
   calibrationInfo: any = null;
 
+  // Mirrors REVENUE_UNITS in revenue-log.controller.ts; `per` is the short suffix for display.
+  revenueUnitOptions = [
+    { label: 'Per Hour', value: 'PER_HOUR', per: 'hour', hint: 'Hours Used × rate' },
+    { label: 'Per Use', value: 'PER_USE', per: 'use', hint: 'Procedure Count × rate' },
+    { label: 'Per Procedure', value: 'PER_PROCEDURE', per: 'procedure', hint: 'Procedure Count × rate' },
+    { label: 'Per Test', value: 'PER_TEST', per: 'test', hint: 'Procedure Count × rate' },
+    { label: 'Per Day', value: 'PER_DAY', per: 'day', hint: 'rate once for each day the asset is used' },
+  ];
+
+  unitOption(unit: string | null | undefined) {
+    return this.revenueUnitOptions.find(o => o.value === unit) ?? null;
+  }
+
   maxHoursOptions = [
     { label: '8 hrs', value: 8 },
     { label: '12 hrs', value: 12 },
@@ -254,6 +267,7 @@ export class RevenueLog implements OnInit {
   emptyRateCardForm() {
     return {
       revenuePerUnit: null as number | null,
+      revenueUnit: 'PER_USE' as string, // backend default
       maxHoursPerDay: 24 as number | null,
       shiftsPerDay: 1 as number | null,
       shiftDurationHours: 8 as number | null,
@@ -341,6 +355,7 @@ export class RevenueLog implements OnInit {
       const n = (v: any) => (v == null ? null : Number(v));
       this.rateCardForm = {
         revenuePerUnit: n(this.rateCard.avgRevenuePerUnit),
+        revenueUnit: this.rateCard.revenueUnit || 'PER_USE',
         maxHoursPerDay: n(this.rateCard.maxHoursPerDay),
         shiftsPerDay: n(this.rateCard.shiftsPerDay),
         shiftDurationHours: n(this.rateCard.shiftDurationHours),
@@ -489,8 +504,11 @@ export class RevenueLog implements OnInit {
     const rate = Number(this.rateCard?.avgRevenuePerUnit ?? 0);
     if (!rate) return null;
     const unit = this.rateCard.revenueUnit;
-    if (unit === 'PER_HOUR' || unit === 'PER_DAY') {
+    if (unit === 'PER_HOUR') {
       return this.logForm.hoursUsed ? this.logForm.hoursUsed * rate : null;
+    }
+    if (unit === 'PER_DAY') {
+      return this.logForm.hoursUsed ? rate : null; // day rate charged once for any day used
     }
     if (unit === 'PER_USE' || unit === 'PER_PROCEDURE' || unit === 'PER_TEST') {
       return this.logForm.procedureCount != null ? this.logForm.procedureCount * rate : null;
