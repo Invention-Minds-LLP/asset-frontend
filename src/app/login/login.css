@@ -58,9 +58,13 @@
   color: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.04);
   background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(4px);
   animation: float 20s ease-in-out infinite;
 }
+/* These eight carried backdrop-filter: blur(4px) while also animating their
+   transform, which makes the browser re-sample and re-blur the backdrop behind
+   each one every frame — eight times over, for the whole time the page is open.
+   At 4px, over a near-flat #0a0e1a ground behind a 2%-white fill, it bought
+   nothing you can see. The float stays; only the per-frame blur is gone. */
 .asset-1 { top: 8%; left: 5%; animation-delay: 0s; animation-duration: 18s; }
 .asset-2 { top: 20%; right: 8%; animation-delay: -3s; animation-duration: 22s; }
 .asset-3 { top: 60%; left: 3%; animation-delay: -6s; animation-duration: 20s; }
@@ -105,7 +109,10 @@
   overflow: hidden;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px);
+  /* No backdrop-filter here either. Both children — the showcase gradient and
+     the white form panel — are fully opaque and cover this box edge to edge, so
+     a blur(20px) over ~1000x600 was being recomputed every frame (the orbs and
+     icons behind it move) to tint pixels nothing can see. */
   box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
   position: relative;
   z-index: 10;
@@ -119,12 +126,12 @@
 
 /* ── Left: Showcase Panel ── */
 .showcase-panel {
-  flex: 1.1;
+  flex: 1.15;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2.5rem;
+  padding: 2.25rem 1.75rem;
   position: relative;
   overflow: hidden;
 }
@@ -140,121 +147,383 @@
 .showcase-content {
   position: relative;
   z-index: 2;
-  text-align: center;
-}
-
-/* ── 3D Rotating Cube ── */
-.cube-scene {
-  width: 120px;
-  height: 120px;
-  perspective: 600px;
-  margin: 0 auto 2rem;
-}
-.cube {
   width: 100%;
-  height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-  animation: cubeRotate 12s ease-in-out infinite;
-}
-.cube-face {
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  border-radius: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
-}
-.cube-face i { font-size: 1.8rem; }
-.cube-front  { background: rgba(37, 99, 235, 0.3); transform: translateZ(60px); }
-.cube-back   { background: rgba(16, 185, 129, 0.3); transform: rotateY(180deg) translateZ(60px); }
-.cube-right  { background: rgba(245, 158, 11, 0.3); transform: rotateY(90deg) translateZ(60px); }
-.cube-left   { background: rgba(139, 92, 246, 0.3); transform: rotateY(-90deg) translateZ(60px); }
-.cube-top    { background: rgba(236, 72, 153, 0.3); transform: rotateX(90deg) translateZ(60px); }
-.cube-bottom { background: rgba(14, 165, 233, 0.3); transform: rotateX(-90deg) translateZ(60px); }
-
-@keyframes cubeRotate {
-  0%   { transform: rotateX(-15deg) rotateY(0deg); }
-  25%  { transform: rotateX(5deg) rotateY(90deg); }
-  50%  { transform: rotateX(-10deg) rotateY(180deg); }
-  75%  { transform: rotateX(10deg) rotateY(270deg); }
-  100% { transform: rotateX(-15deg) rotateY(360deg); }
 }
 
+.showcase-head { margin-bottom: 0.9rem; }
 .showcase-title {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 800;
   background: linear-gradient(135deg, #fff 0%, #93c5fd 50%, #10b981 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: -0.5px;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.3rem;
 }
 .showcase-subtitle {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.82rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 2rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
-/* ── Feature Pills ── */
-.feature-pills {
-  display: flex;
-  gap: 0.6rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 2rem;
+/* ═══════════════════════════════════════════════════════════════
+   THE LIFECYCLE STAGE
+   Eight scenes — request, procure, tag, operate, audit, value,
+   retire, plan — on one 48s loop, six seconds each.
+
+   Timing is the whole trick here. Every scene starts at a multiple
+   of 6s, and every animation *inside* a scene runs on a duration
+   that divides 6s evenly and carries no delay. So an inner
+   animation is always at phase zero the moment its scene fades in,
+   however long the page has been open, and the staggered reveals
+   below (.in-*, .rise-*) encode their offset as a percentage of
+   the scene rather than as animation-delay — which would drift,
+   because a delay only shifts the first iteration.
+
+   Nothing here runs on a timer: the only TypeScript involved is
+   the pin, which holds one scene still.
+   ═══════════════════════════════════════════════════════════════ */
+
+.stage { width: 100%; }
+.stage-svg { display: block; width: 100%; height: auto; }
+
+/* ── A scene ──
+   No fill-mode on purpose: during its delay, and after each pass,
+   the group falls back to the base opacity: 0 below. With "both"
+   the delayed scenes would all sit visible on the 0% frame until
+   their turn came round. */
+.act {
+  opacity: 0;
+  transform-box: fill-box;
+  animation: saAct 48s ease-in-out infinite;
 }
-.pill {
+.act-2 { animation-delay: 6s; }
+.act-3 { animation-delay: 12s; }
+.act-4 { animation-delay: 18s; }
+.act-5 { animation-delay: 24s; }
+.act-6 { animation-delay: 30s; }
+.act-7 { animation-delay: 36s; }
+.act-8 { animation-delay: 42s; }
+
+@keyframes saAct {
+  0%          { opacity: 0; transform: translateY(8px); }
+  1.6%, 11%   { opacity: 1; transform: none; }
+  12.5%, 100% { opacity: 0; transform: translateY(-6px); }
+}
+
+/* ── Staggered reveals inside a scene ──
+   The number is the percentage of the six seconds at which the
+   element arrives, so .in-40 lands 2.4s in. Shared across scenes. */
+.in-10, .in-25, .in-40, .in-55, .in-70,
+.rise-10, .rise-25, .rise-40, .rise-55, .rise-70 {
+  transform-box: fill-box;
+  animation-duration: 6s;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+.in-10, .in-25, .in-40, .in-55, .in-70 { transform-origin: 50% 50%; }
+.in-10 { animation-name: saIn10; }
+.in-25 { animation-name: saIn25; }
+.in-40 { animation-name: saIn40; }
+.in-55 { animation-name: saIn55; }
+.in-70 { animation-name: saIn70; }
+
+@keyframes saIn10 { 0%, 10% { opacity: 0; transform: translateY(7px) scale(0.94); } 18%, 100% { opacity: 1; transform: none; } }
+@keyframes saIn25 { 0%, 25% { opacity: 0; transform: translateY(7px) scale(0.94); } 33%, 100% { opacity: 1; transform: none; } }
+@keyframes saIn40 { 0%, 40% { opacity: 0; transform: translateY(7px) scale(0.94); } 48%, 100% { opacity: 1; transform: none; } }
+@keyframes saIn55 { 0%, 55% { opacity: 0; transform: translateY(7px) scale(0.94); } 63%, 100% { opacity: 1; transform: none; } }
+@keyframes saIn70 { 0%, 70% { opacity: 0; transform: translateY(7px) scale(0.94); } 78%, 100% { opacity: 1; transform: none; } }
+
+/* Bars grow out of their baseline rather than fading in place */
+.rise-10, .rise-25, .rise-40, .rise-55, .rise-70 { transform-origin: 50% 100%; }
+.rise-10 { animation-name: saRise10; }
+.rise-25 { animation-name: saRise25; }
+.rise-40 { animation-name: saRise40; }
+.rise-55 { animation-name: saRise55; }
+.rise-70 { animation-name: saRise70; }
+
+@keyframes saRise10 { 0%, 10% { opacity: 0; transform: scaleY(0.04); } 22%, 100% { opacity: 1; transform: none; } }
+@keyframes saRise25 { 0%, 25% { opacity: 0; transform: scaleY(0.04); } 37%, 100% { opacity: 1; transform: none; } }
+@keyframes saRise40 { 0%, 40% { opacity: 0; transform: scaleY(0.04); } 52%, 100% { opacity: 1; transform: none; } }
+@keyframes saRise55 { 0%, 55% { opacity: 0; transform: scaleY(0.04); } 67%, 100% { opacity: 1; transform: none; } }
+@keyframes saRise70 { 0%, 70% { opacity: 0; transform: scaleY(0.04); } 82%, 100% { opacity: 1; transform: none; } }
+
+/* ── Scene text ── */
+.s-tag   { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; fill: rgba(255, 255, 255, 0.42); }
+.s-t     { font-size: 13px; font-weight: 600; fill: #e2e8f0; }
+.s-sub   { font-size: 11px; fill: rgba(255, 255, 255, 0.5); }
+.s-ok    { font-size: 11px; fill: #34d399; }
+.s-num   { font-size: 16px; font-weight: 700; fill: #ffffff; }
+.s-step  { font-size: 11px; font-weight: 700; fill: #93c5fd; }
+.s-stamp { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; fill: #34d399; }
+.s-eol   { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; fill: #fbbf24; }
+
+/* ── Shared motion ── */
+.pulse { animation: saPulse 3s ease-in-out infinite; }
+@keyframes saPulse { 0%, 100% { opacity: 0.28; } 50% { opacity: 0.62; } }
+
+.blink { animation: saBlink 1.5s ease-in-out infinite; }
+@keyframes saBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+.wheel, .gear, .a7-recycle {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+.wheel { animation: saSpin 1s linear infinite; }
+.gear-a { animation: saSpin 6s linear infinite; }
+.gear-b { animation: saSpin 3s linear infinite reverse; }
+.a7-recycle { animation: saSpin 6s linear infinite; }
+@keyframes saSpin { to { transform: rotate(360deg); } }
+
+/* ── Scene 1 · the indent carried to the approvers ── */
+.a1-doc {
+  transform-box: fill-box;
+  animation: saIndent 6s cubic-bezier(0.2, 0.9, 0.3, 1) infinite both;
+}
+@keyframes saIndent {
+  0%        { opacity: 0; transform: translate(-58px, 72px) scale(0.8); }
+  12%       { opacity: 1; }
+  34%, 100% { opacity: 1; transform: none; }
+}
+
+/* ── Scene 2 · the delivery ── */
+.a2-truck {
+  transform-box: fill-box;
+  animation: saTruck 6s cubic-bezier(0.3, 0, 0.2, 1) infinite both;
+}
+@keyframes saTruck {
+  0%        { transform: translateX(-200px); }
+  46%, 100% { transform: translateX(160px); }
+}
+.a2-shutter {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: saShutter 6s ease-in-out infinite both;
+}
+@keyframes saShutter {
+  0%, 30%   { transform: scaleY(1); }
+  46%, 100% { transform: scaleY(0.07); }
+}
+
+/* ── Scene 3 · tagging, and the scan that proves it ── */
+.a3-beam {
+  transform-box: fill-box;
+  animation: saBeam 3s ease-in-out infinite both;
+}
+@keyframes saBeam {
+  0%        { opacity: 0; transform: translateY(0); }
+  10%       { opacity: 0.85; }
+  44%       { opacity: 0.85; transform: translateY(122px); }
+  54%, 100% { opacity: 0; transform: translateY(122px); }
+}
+.a3-pin {
+  transform-box: fill-box;
+  animation: saPin 6s cubic-bezier(0.3, 1.5, 0.5, 1) infinite both;
+}
+@keyframes saPin {
+  0%, 48%   { opacity: 0; transform: translateY(-34px); }
+  60%, 100% { opacity: 1; transform: none; }
+}
+
+/* ── Scene 4 · the uptime trace drawing itself ── */
+.a4-line {
+  stroke-dasharray: 170;
+  stroke-dashoffset: 170;
+  animation: saDraw 6s ease-out infinite both;
+}
+@keyframes saDraw {
+  0%, 15%   { stroke-dashoffset: 170; }
+  58%, 100% { stroke-dashoffset: 0; }
+}
+
+/* ── Scene 5 · the auditor walking the row ── */
+.a5-auditor {
+  transform-box: fill-box;
+  animation: saWalk 6s linear infinite both;
+}
+@keyframes saWalk {
+  0%   { transform: translateX(8px); }
+  100% { transform: translateX(430px); }
+}
+
+/* ── Scene 6 · the year closing ── */
+.a6-stamp {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: saStamp 6s cubic-bezier(0.3, 1.4, 0.4, 1) infinite both;
+}
+@keyframes saStamp {
+  0%, 78%   { opacity: 0; transform: scale(1.5) rotate(-10deg); }
+  88%, 100% { opacity: 1; transform: scale(1) rotate(-3.5deg); }
+}
+
+/* ── Scene 7 · the asset leaving through the gate ── */
+.a7-barrier {
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+  animation: saBarrier 6s ease-in-out infinite both;
+}
+@keyframes saBarrier {
+  0%, 26%   { transform: rotate(0deg); }
+  38%, 78%  { transform: rotate(-62deg); }
+  90%, 100% { transform: rotate(0deg); }
+}
+.a7-asset {
+  transform-box: fill-box;
+  animation: saLeave 6s ease-in-out infinite both;
+}
+@keyframes saLeave {
+  0%, 30%   { opacity: 1; transform: translateX(0); }
+  74%       { opacity: 1; transform: translateX(266px); }
+  86%, 100% { opacity: 0; transform: translateX(300px); }
+}
+
+/* ── Caption ──
+   Real text under the scene, on the same clock, so the story still
+   reads with the picture ignored or the motion switched off. The
+   fixed height stops the panel jumping between scenes. */
+.stage-caption {
+  position: relative;
+  min-height: 92px;
+  margin: 1rem 0 0.6rem;
+}
+.cap {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: saAct 48s ease-in-out infinite;
+}
+.cap:nth-child(2) { animation-delay: 6s; }
+.cap:nth-child(3) { animation-delay: 12s; }
+.cap:nth-child(4) { animation-delay: 18s; }
+.cap:nth-child(5) { animation-delay: 24s; }
+.cap:nth-child(6) { animation-delay: 30s; }
+.cap:nth-child(7) { animation-delay: 36s; }
+.cap:nth-child(8) { animation-delay: 42s; }
+
+.cap h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.35;
+  margin-bottom: 0.35rem;
+}
+.cap p {
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+/* ── Lifecycle rail ──
+   The whole lifecycle stays on screen even while one scene plays,
+   so the panel reads as a cycle rather than a slideshow. */
+.rail-track {
+  position: relative;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-bottom: 0.55rem;
+}
+.rail-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  background: linear-gradient(90deg, #2563eb, #10b981);
+  animation: saProgress 48s linear infinite;
+}
+@keyframes saProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+.rail-steps {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+}
+.rail-step {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: 20px;
+  gap: 6px;
+  padding: 6px 2px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+}
+.rail-step:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
+
+.rail-node {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
   font-size: 0.72rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.38);
+  animation: saNode 48s linear infinite;
+}
+.rail-name {
+  font-size: 0.56rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  animation: pillFade 0.6s ease-out backwards;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  animation: saNodeName 48s linear infinite;
 }
-.pill i { font-size: 0.75rem; }
-.pill-1 { animation-delay: 0.3s; }
-.pill-2 { animation-delay: 0.5s; }
-.pill-3 { animation-delay: 0.7s; }
+.rail-step:hover .rail-node { border-color: rgba(147, 197, 253, 0.4); color: rgba(255, 255, 255, 0.75); }
 
-@keyframes pillFade {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+.rail-step:nth-child(2) .rail-node, .rail-step:nth-child(2) .rail-name { animation-delay: 6s; }
+.rail-step:nth-child(3) .rail-node, .rail-step:nth-child(3) .rail-name { animation-delay: 12s; }
+.rail-step:nth-child(4) .rail-node, .rail-step:nth-child(4) .rail-name { animation-delay: 18s; }
+.rail-step:nth-child(5) .rail-node, .rail-step:nth-child(5) .rail-name { animation-delay: 24s; }
+.rail-step:nth-child(6) .rail-node, .rail-step:nth-child(6) .rail-name { animation-delay: 30s; }
+.rail-step:nth-child(7) .rail-node, .rail-step:nth-child(7) .rail-name { animation-delay: 36s; }
+.rail-step:nth-child(8) .rail-node, .rail-step:nth-child(8) .rail-name { animation-delay: 42s; }
+
+/* Lit for its own twelve-and-a-half percent, idle for the rest —
+   and idle again during the delay, since there is no fill-mode. */
+@keyframes saNode {
+  0%, 12.2% {
+    background: rgba(37, 99, 235, 0.9);
+    border-color: rgba(147, 197, 253, 0.6);
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
+  }
+  12.5%, 100% {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.38);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+@keyframes saNodeName {
+  0%, 12.2%   { color: rgba(255, 255, 255, 0.85); }
+  12.5%, 100% { color: rgba(255, 255, 255, 0.3); }
 }
 
-/* ── Stats Ribbon ── */
-.stats-ribbon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+/* ── Held on one scene ──
+   The scene's own inner animations keep running, so a pinned scene
+   is still alive; only the march between scenes stops. */
+.stage.pinned .act,
+.stage.pinned .cap { animation: none; opacity: 0; }
+.stage.pinned .act.is-active,
+.stage.pinned .cap.is-active { opacity: 1; transform: none; }
+.stage.pinned .rail-node,
+.stage.pinned .rail-name,
+.stage.pinned .rail-fill { animation: none; }
+.stage.pinned .rail-fill { transform: scaleX(0); }
+.stage.pinned .rail-step.is-active .rail-node {
+  background: rgba(37, 99, 235, 0.9);
+  border-color: rgba(147, 197, 253, 0.6);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
 }
-.stat-item { text-align: center; }
-.stat-number { display: block; font-size: 1rem; font-weight: 700; color: #fff; }
-.stat-label { font-size: 0.65rem; color: rgba(255, 255, 255, 0.4); text-transform: uppercase; letter-spacing: 1px; }
-.stat-divider { width: 1px; height: 30px; background: rgba(255, 255, 255, 0.1); }
+.stage.pinned .rail-step.is-active .rail-name { color: rgba(255, 255, 255, 0.85); }
 
 /* ── Right: Form Panel ── */
 .form-panel {
@@ -427,24 +696,16 @@
 @media (max-width: 900px) {
   .login-container {
     flex-direction: column;
-    max-width: 480px;
+    max-width: 520px;
     min-height: auto;
   }
-  .showcase-panel {
-    padding: 2rem 1.5rem;
-  }
-  .cube-scene { width: 80px; height: 80px; margin-bottom: 1rem; }
-  .cube-face { width: 80px; height: 80px; }
-  .cube-face i { font-size: 1.2rem; }
-  .cube-front  { transform: translateZ(40px); }
-  .cube-back   { transform: rotateY(180deg) translateZ(40px); }
-  .cube-right  { transform: rotateY(90deg) translateZ(40px); }
-  .cube-left   { transform: rotateY(-90deg) translateZ(40px); }
-  .cube-top    { transform: rotateX(90deg) translateZ(40px); }
-  .cube-bottom { transform: rotateX(-90deg) translateZ(40px); }
+  .showcase-panel { padding: 1.75rem 1.25rem; }
   .showcase-title { font-size: 1.5rem; }
-  .stats-ribbon { gap: 1rem; padding: 0.75rem 1rem; }
-  .feature-pills { gap: 0.4rem; }
+  /* Eight labels will not fit across a phone-width panel; the lit node
+     still says where in the lifecycle the scene sits. */
+  .rail-name { display: none; }
+  .rail-node { width: 26px; height: 26px; }
+  .stage-caption { min-height: 104px; }
 }
 
 @media (max-width: 480px) {
@@ -458,4 +719,46 @@
     background: #fff;
     border-radius: 0;
   }
+}
+
+/* ── Reduced motion ──
+   Everything stops and the panel becomes a still illustration of the
+   first scene. The rail keeps working, so the lifecycle is still
+   walkable — by click or arrow key — just not on its own. */
+@media (prefers-reduced-motion: reduce) {
+  .login-container,
+  .grid-line, .floating-asset, .glow-orb,
+  .act, .cap, .rail-fill, .rail-node, .rail-name,
+  .in-10, .in-25, .in-40, .in-55, .in-70,
+  .rise-10, .rise-25, .rise-40, .rise-55, .rise-70,
+  .pulse, .blink, .wheel, .gear, .a7-recycle,
+  .a1-doc, .a2-truck, .a2-shutter, .a3-beam, .a3-pin,
+  .a4-line, .a5-auditor, .a6-stamp, .a7-barrier, .a7-asset {
+    animation: none !important;
+  }
+  .submit-btn { transition: none; }
+
+  .act, .cap { opacity: 0; }
+  .act-1, .cap:nth-child(1) { opacity: 1; }
+  .rail-step:nth-child(1) .rail-node {
+    background: rgba(37, 99, 235, 0.9);
+    border-color: rgba(147, 197, 253, 0.6);
+    color: #fff;
+  }
+  .rail-step:nth-child(1) .rail-name { color: rgba(255, 255, 255, 0.85); }
+  .rail-fill { transform: scaleX(0); }
+
+  /* Whatever a reveal would have animated to, it simply is */
+  .in-10, .in-25, .in-40, .in-55, .in-70,
+  .rise-10, .rise-25, .rise-40, .rise-55, .rise-70 { opacity: 1; transform: none; }
+  .a1-doc, .a3-pin, .a6-stamp, .a7-asset { opacity: 1; transform: none; }
+  .a4-line { stroke-dashoffset: 0; }
+  .a3-beam { opacity: 0; }
+
+  /* Park the travelling parts mid-scene rather than off-stage, so a
+     pinned scene is still a picture of something happening. */
+  .a2-truck { transform: translateX(120px); }
+  .a2-shutter { transform: scaleY(0.07); }
+  .a5-auditor { transform: translateX(200px); }
+  .a7-barrier { transform: rotate(-62deg); }
 }

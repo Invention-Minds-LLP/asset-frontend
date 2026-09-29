@@ -1,0 +1,28 @@
+<div class="dt-list">
+  @for (e of entries; track $index; let i = $index) {
+    <div class="dt-row">
+      <p-select [options]="typeOptions" [(ngModel)]="e.type" (ngModelChange)="emit()"
+                placeholder="Reason..." appendTo="body" class="dt-type"></p-select>
+      <p-inputnumber [(ngModel)]="e.minutes" (ngModelChange)="emit()" [min]="1" [max]="1440"
+                     suffix=" min" placeholder="Minutes" class="dt-minutes"></p-inputnumber>
+      <input pInputText [(ngModel)]="e.remarks" (ngModelChange)="emit()" placeholder="Remarks (optional)" class="dt-remarks" />
+      <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small" (onClick)="remove(i)"
+                ariaLabel="Remove downtime entry"></p-button>
+      @if (classification(e); as c) {
+        <p-tag [value]="c.label" [severity]="c.severity" class="dt-tag"></p-tag>
+      }
+    </div>
+  }
+
+  <div class="dt-footer">
+    <p-button label="Add downtime" icon="pi pi-plus" [text]="true" size="small" (onClick)="add()"></p-button>
+    @if (entries.length) {
+      <span class="dt-totals">
+        Planned {{ totals.plannedHours | number: '1.0-2' }} h · Unplanned {{ totals.unplannedHours | number: '1.0-2' }} h
+      </span>
+    }
+  </div>
+  @if (standardStartupMinutes > 0) {
+    <small class="dt-hint"><i class="pi pi-info-circle"></i> Standard warm-up for this asset: {{ standardStartupMinutes }} min. Start-up time beyond that counts as loss.</small>
+  }
+</div>

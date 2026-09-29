@@ -15,6 +15,11 @@ import { MessageService } from 'primeng/api';
 import { Assets } from '../../services/assets/assets';
 import { RevenueLogService } from '../../services/revenue-log/revenue-log';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
+import { DowntimeEntries, DowntimeEntry, splitDowntime, calibrationPrefillEntries } from '../../shared/downtime-entries/downtime-entries';
+
+/** YYYY-MM-DD of a local date (toISOString would shift picked dates to the previous day east of UTC). */
+const localDateStr = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 @Component({
   selector: 'app-my-assets',
@@ -23,7 +28,7 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, TooltipModule, DialogModule, InputNumberModule,
     DatePickerModule, SelectModule, TextareaModule,
-    OverflowTooltipDirective,
+    OverflowTooltipDirective, DowntimeEntries,
   ],
   templateUrl: './my-assets.html',
   styleUrl: './my-assets.css',
@@ -50,15 +55,8 @@ export class MyAssets implements OnInit {
   shiftLabel2 = 'Afternoon Shift (2 PM – 10 PM)';
   shiftLabel3 = 'Night Shift (10 PM – 6 AM)';
 
-  downtimeTypeOptions = [
-    { label: 'Planned',           value: 'PLANNED' },
-    { label: 'Unplanned',         value: 'UNPLANNED' },
-    { label: 'Maintenance',       value: 'MAINTENANCE' },
-    { label: 'Calibration',       value: 'CALIBRATION' },
-    { label: 'No Demand',         value: 'NO_DEMAND' },
-    { label: 'Power Outage',      value: 'POWER_OUTAGE' },
-    { label: 'Staff Unavailable', value: 'STAFF_UNAVAILABLE' },
-  ];
+  // Selected asset's rate card — drives max hours/day and the standard warm-up allowance.
+  rateCard: any = null;
 
   conditionOptions = [
     { label: 'Good',            value: 'GOOD' },
@@ -118,9 +116,7 @@ export class MyAssets implements OnInit {
       shift2Hours: null as number | null,
       shift3Hours: null as number | null,
       revenueGenerated: null as number | null,
-      downtimeHours: null as number | null,
-      downtimeType: null as string | null,
-      downtimeRemarks: '',
+      downtimeEntries: [] as DowntimeEntry[],
       conditionAfterUse: null as string | null,
       remarks: '',
     };
@@ -129,7 +125,46 @@ export class MyAssets implements OnInit {
   openRevenueLog(asset: any) {
     this.selectedAsset = asset;
     this.logForm = this.emptyLogForm();
+    this.rateCard = null;
     this.showLogDialog = true;
+    this.rlService.getRateCard(asset.id).subscribe({
+      next: (res: any) => { setTimeout(() => { this.rateCard = res; this.cdr.detectChanges(); this.loadCalibrationPrefill(); }); },
+      error: () => { this.loadCalibrationPrefill(); } // no rate card yet — defaults apply
+    });
+  }
+
+  get standardStartupMinutes(): number {
+    return Number(this.rateCard?.standardStartupMinutes ?? 0);
+  }
+
+  get maxHoursPerDay(): number {
+    return Number(this.rateCard?.maxHoursPerDay ?? 24);
+  }
+
+  get capacityExceeded(): boolean {
+    const s = splitDowntime(this.logForm.downtimeEntries, this.standardStartupMinutes);
+    return Number(this.logForm.hoursUsed ?? 0) + s.plannedHours + s.unplannedHours > this.maxHoursPerDay + 0.001;
+  }
+
+  /** Pre-fill calibration + warm-up downtime when a calibration was recorded on the log date. */
+  loadCalibrationPrefill() {
+    if (!this.selectedAsset?.id) return;
+    if (this.logForm.downtimeEntries.some(e => e.type === 'CALIBRATION')) return;
+    const day = this.logForm.logDate instanceof Date ? this.logForm.logDate : new Date(this.logForm.logDate);
+    this.rlService.getCalibrationInfo(this.selectedAsset.id, day).subscribe({
+      next: (info: any) => {
+        setTimeout(() => {
+          if (this.logForm.downtimeEntries.some(e => e.type === 'CALIBRATION')) return;
+          const rows = calibrationPrefillEntries(info, this.standardStartupMinutes);
+          if (rows.length) {
+            this.logForm.downtimeEntries.push(...rows);
+            this.messageService.add({ severity: 'info', summary: 'Calibration found', detail: 'Calibration downtime pre-filled — adjust if needed' });
+          }
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
+    });
   }
 
   // Auto-sum shift hours into Hours Used so the user only enters per-shift split.
@@ -146,11 +181,20 @@ export class MyAssets implements OnInit {
       this.messageService.add({ severity: 'warn', summary: 'Missing', detail: 'Hours used is required' });
       return;
     }
+    if (this.capacityExceeded) {
+      this.messageService.add({ severity: 'warn', summary: 'Too many hours', detail: `Hours used + downtime exceeds this asset's ${this.maxHoursPerDay} hours/day` });
+      return;
+    }
+    if (this.logForm.downtimeEntries.some(e => (e.type && !e.minutes) || (!e.type && e.minutes))) {
+      this.messageService.add({ severity: 'warn', summary: 'Incomplete downtime', detail: 'Each downtime row needs a reason and minutes' });
+      return;
+    }
     this.savingLog = true;
     const payload = {
       ...this.logForm,
+      downtimeEntries: this.logForm.downtimeEntries.filter(e => e.type && e.minutes),
       logDate: this.logForm.logDate instanceof Date
-        ? this.logForm.logDate.toISOString().slice(0, 10)
+        ? localDateStr(this.logForm.logDate)
         : this.logForm.logDate,
     };
     this.rlService.upsertDailyLog(this.selectedAsset.id, payload).subscribe({

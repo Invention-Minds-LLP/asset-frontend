@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, signal } from '@angular/core';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
@@ -9,6 +9,89 @@ import { Auth } from '../services/auth/auth';
 import { FormsModule, NgForm, NgModel } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
+
+/**
+ * One scene of the showcase animation. The eight of them are the asset
+ * lifecycle end to end — raised, bought, tagged, run, audited, valued, retired
+ * — closing on the act that is the point of keeping all of it: the planning
+ * the other seven make possible.
+ */
+interface LifecycleStage {
+  key: string;
+  /** PrimeIcon for the rail node. */
+  icon: string;
+  /** Short rail label; must stay short — eight of them share the panel width. */
+  step: string;
+  /** Caption headline for the scene. */
+  title: string;
+  /** What the scene means for whoever is signing in. */
+  line: string;
+}
+
+/**
+ * Scene order is the lifecycle order, and the CSS timing is derived from the
+ * count: a scene owns 6s, so the loop is stages.length * 6s. Adding a stage
+ * here alone will NOT retime the animation — the 48s cycle and the per-scene
+ * delays in login.css have to move with it.
+ */
+const LIFECYCLE: LifecycleStage[] = [
+  {
+    key: 'request',
+    icon: 'pi-file-edit',
+    step: 'Request',
+    title: 'A need is raised — and answered the same day',
+    line: 'Indent to department head to finance to CFO, every approval time-stamped and nothing waiting in an inbox.',
+  },
+  {
+    key: 'procure',
+    icon: 'pi-truck',
+    step: 'Procure',
+    title: 'Ordered, delivered, matched',
+    line: 'Purchase order, goods receipt and invoice reconciled at the gate — before the asset is even tagged.',
+  },
+  {
+    key: 'tag',
+    icon: 'pi-qrcode',
+    step: 'Tag',
+    title: 'Tagged once, findable forever',
+    line: 'A QR code binds owner, cost centre, floor and warranty to the asset on day one, so nothing goes untraceable.',
+  },
+  {
+    key: 'operate',
+    icon: 'pi-cog',
+    step: 'Operate',
+    title: 'Kept running, not merely recorded',
+    line: 'Preventive schedules, work orders, calibration and AMC cover — so a breakdown never becomes an unplanned budget line.',
+  },
+  {
+    key: 'audit',
+    icon: 'pi-search',
+    step: 'Audit',
+    title: 'A physical count that matches the books',
+    line: 'Scan-based audits, variance flags and a trail an external auditor can sign without a week of spreadsheets.',
+  },
+  {
+    key: 'value',
+    icon: 'pi-indian-rupee',
+    step: 'Value',
+    title: 'Every rupee of value, tracked to the books',
+    line: 'Depreciation runs, the fixed-asset schedule and a financial year that closes on evidence, not estimates.',
+  },
+  {
+    key: 'retire',
+    icon: 'pi-trash',
+    step: 'Retire',
+    title: 'Retired cleanly, value recovered',
+    line: 'Disposal approval, gate pass, e-waste compliance — and the write-off posted the day the asset leaves the gate.',
+  },
+  {
+    key: 'plan',
+    icon: 'pi-chart-line',
+    step: 'Plan',
+    title: 'And management plans the next cycle on evidence',
+    line: 'Utilisation, total cost of ownership and repair-versus-replace turn seven stages of history into next year’s budget.',
+  },
+];
 
 @Component({
   selector: 'app-login',
@@ -42,6 +125,39 @@ export class Login {
     '/cctv.svg'
   ];
 
+  lifecycle = LIFECYCLE;
+
+  /**
+   * The scene the visitor has held still, 1-based, or null while the loop runs
+   * itself. Everything about the animation is CSS keyframes — nothing here runs
+   * a timer — so this only ever switches between "let it cycle" and "hold this
+   * one", which is also what makes the panel usable under reduced motion.
+   */
+  pinnedStage = signal<number | null>(null);
+
+  /** Clicking the held scene again hands it back to the loop. */
+  pickStage(step: number): void {
+    this.pinnedStage.set(this.pinnedStage() === step ? null : step);
+  }
+
+  /** Arrow keys walk the lifecycle rail, as a toolbar of steps should. */
+  onStageKeydown(event: KeyboardEvent, index: number): void {
+    const keys = ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'];
+    if (!keys.includes(event.key)) return;
+    event.preventDefault();
+
+    const last = LIFECYCLE.length - 1;
+    let next: number;
+    if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = last;
+    else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = index === last ? 0 : index + 1;
+    else next = index === 0 ? last : index - 1;
+
+    this.pinnedStage.set(next + 1);
+    const rail = (event.currentTarget as HTMLElement).parentElement;
+    (rail?.children[next] as HTMLElement | undefined)?.focus();
+  }
+
   passwordFieldType = 'password';
   currentYear = new Date().getFullYear();
   employeeId: string = '';
@@ -54,7 +170,6 @@ export class Login {
   }
   onSubmit(): void {
     if (!this.employeeId || !this.password) {
-      alert('Please enter Employee ID and Password');
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Please enter Employee ID and Password' });
       return;
     }

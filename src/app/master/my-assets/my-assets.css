@@ -395,3 +395,5 @@
   border-radius: 0 0 6px 6px;
   flex-shrink: 0;
 }
+
+.capacity-error { color: #dc2626; display: flex; align-items: center; gap: 0.25rem; margin-top: 0.35rem; }

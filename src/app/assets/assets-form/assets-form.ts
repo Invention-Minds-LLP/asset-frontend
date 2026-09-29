@@ -26,7 +26,7 @@ import { Auth } from "../../services/auth/auth";
 import { ModuleAccessService } from "../../services/module-access/module-access";
 
 // router + toast
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, RouterLink } from "@angular/router";
 import { MessageService } from "primeng/api";
 import { WarrantyForm } from "../../warranty/warranty-form/warranty-form";
 import { ToastModule } from "primeng/toast";
@@ -47,6 +47,7 @@ type PendingRole = "HOD" | "SUPERVISOR" | "END_USER" | null;
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     InputTextModule,
     FloatLabelModule,
     SelectModule,
@@ -83,6 +84,7 @@ export class AssetsForm implements OnInit {
   updatingLocation = false;
   submittingTransfer = false;
   updatingDepreciation = false;
+  savingRevenueTracking = false;
   submitting = false;
   editingSpec = false;
   savingSpec = false;
@@ -1104,6 +1106,13 @@ export class AssetsForm implements OnInit {
   // the same item drift apart, which is what the master exists to stop.
   // A legacy name (captured before the master, so not in it) has no item to
   // inherit from, so those fields stay editable for it.
+  // A saved asset's category correction goes through Reclassify (CFO-approved,
+  // from the current financial year) — offered to the roles that can raise it.
+  get canReclassify(): boolean {
+    const r = String(this.role || '').toUpperCase();
+    return !!this.asset?.id && (r === 'FINANCE' || r === 'CFO');
+  }
+
   get isMasterItemSelected(): boolean {
     const name = String(this.asset?.assetName ?? '').trim();
     if (!name) return false;
@@ -1401,6 +1410,26 @@ export class AssetsForm implements OnInit {
     if (!this.depreciationForm.salvageValue && this.depreciationCostBasis > 0) {
       this.depreciationForm.salvageValue = this.computedResidualValue;
     }
+  }
+
+  // Saves the Revenue Tracking flag on its own — it must not depend on the depreciation
+  // form, which is hidden for RENTAL assets and disabled until method/life are filled.
+  saveRevenueTracking() {
+    this.savingRevenueTracking = true;
+    this.assetAPI.updateAsset(this.asset.id, this.asset).subscribe({
+      next: () => {
+        this.savingRevenueTracking = false;
+        this.toast("success", this.asset.isRevenueLogApplicable
+          ? "Revenue logging enabled for this asset"
+          : "Revenue logging disabled for this asset");
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.savingRevenueTracking = false;
+        this.toast("error", err?.error?.message || "Failed to update revenue tracking");
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   saveDepreciation() {

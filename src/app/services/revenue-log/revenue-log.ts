@@ -35,4 +35,14 @@ export class RevenueLogService {
     return this.http.get(`${this.base}/leaderboard?${q.toString()}`);
   }
   getShiftAnalysis(assetId: number): Observable<any> { return this.http.get(`${this.base}/shift-analysis/${assetId}`); }
+  /** `day` is a local date; calibrations recorded during that local day are returned in `onDate`. */
+  getCalibrationInfo(assetId: number, day?: Date): Observable<any> {
+    let q = '';
+    if (day) {
+      const from = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+      const to = new Date(from.getFullYear(), from.getMonth(), from.getDate() + 1);
+      q = `?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`;
+    }
+    return this.http.get(`${this.base}/calibration-info/${assetId}${q}`);
+  }
 }

@@ -1,5 +1,6 @@
 <div class="page-container">
   <p-toast />
+  <p-confirmDialog />
 
   <div class="page-header">
     <div>
@@ -62,6 +63,12 @@
           <label>Standard Procedure</label>
         </p-floatlabel>
       </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-inputnumber [(ngModel)]="scheduleForm.estimatedDurationMinutes" name="estDuration" [min]="0" [max]="1440" suffix=" min" />
+          <label>Estimated Duration (downtime)</label>
+        </p-floatlabel>
+      </div>
       <div class="field full-width">
         <p-floatlabel variant="on">
           <textarea pTextarea [(ngModel)]="scheduleForm.notes" name="schNotes" rows="2"></textarea>
@@ -117,6 +124,18 @@
         <p-floatlabel variant="on">
           <input pInputText [(ngModel)]="historyForm.certificateNo" name="certNo" />
           <label>Certificate No</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-inputnumber [(ngModel)]="historyForm.actualDurationMinutes" name="actDuration" [min]="0" [max]="1440" suffix=" min" />
+          <label>Actual Duration (asset down)</label>
+        </p-floatlabel>
+      </div>
+      <div class="field">
+        <p-floatlabel variant="on">
+          <p-inputnumber [(ngModel)]="historyForm.startupMinutes" name="startupMin" [min]="0" [max]="600" suffix=" min" />
+          <label>Warm-up After (start-up)</label>
         </p-floatlabel>
       </div>
       <div class="field full-width">
@@ -306,6 +325,8 @@
             <th>Calibrated By</th>
             <th>Vendor</th>
             <th>Certificate No</th>
+            <th>Duration</th>
+            <th>Warm-up</th>
             <th>Remarks</th>
             <th>Logged By</th>
             <th></th>
@@ -318,6 +339,8 @@
             <td>{{ row.calibratedByName || '—' }}</td>
             <td>{{ row.vendor?.name || '—' }}</td>
             <td>{{ row.certificateNo || '—' }}</td>
+            <td>{{ row.actualDurationMinutes != null ? row.actualDurationMinutes + ' min' : '—' }}</td>
+            <td>{{ row.startupMinutes != null ? row.startupMinutes + ' min' : '—' }}</td>
             <td class="remarks-cell">{{ row.remarks || '—' }}</td>
             <td>{{ row.createdBy?.name || '—' }}</td>
             <td>
@@ -329,7 +352,7 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="8" class="text-center">{{ historyAssetId ? 'No history found for this asset' : 'Select an asset and click Load History' }}</td></tr>
+          <tr><td colspan="10" class="text-center">{{ historyAssetId ? 'No history found for this asset' : 'Select an asset and click Load History' }}</td></tr>
         </ng-template>
       </p-table>
     </p-tabPanel>

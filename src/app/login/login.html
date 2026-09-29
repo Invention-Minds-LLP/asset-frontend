@@ -24,46 +24,476 @@
 
   <!-- Main content -->
   <div class="login-container">
-    <!-- Left: 3D Asset showcase -->
+    <!-- Left: the asset lifecycle, playing out one scene at a time -->
     <div class="showcase-panel">
       <div class="showcase-content">
-        <!-- 3D rotating cube -->
-        <div class="cube-scene">
-          <div class="cube">
-            <div class="cube-face cube-front"><i class="pi pi-server"></i><span>Track</span></div>
-            <div class="cube-face cube-back"><i class="pi pi-chart-line"></i><span>Analyze</span></div>
-            <div class="cube-face cube-right"><i class="pi pi-wrench"></i><span>Maintain</span></div>
-            <div class="cube-face cube-left"><i class="pi pi-shield"></i><span>Protect</span></div>
-            <div class="cube-face cube-top"><i class="pi pi-chart-bar"></i><span>Optimize</span></div>
-            <div class="cube-face cube-bottom"><i class="pi pi-check-circle"></i><span>Comply</span></div>
-          </div>
+        <div class="showcase-head">
+          <h1 class="showcase-title">Smart Assets</h1>
+          <p class="showcase-subtitle">One asset, cradle to grave — and the plan that comes out of it</p>
         </div>
 
-        <h1 class="showcase-title">Smart Assets</h1>
-        <p class="showcase-subtitle">Enterprise Asset Intelligence Platform</p>
+        <!-- Eight scenes on a 48s loop, six seconds each, driven entirely by CSS
+             keyframes: no timers, nothing to change-detect, and the whole thing
+             sits still under prefers-reduced-motion. Clicking a step on the rail
+             holds that scene; clicking it again hands it back to the loop. -->
+        <div class="stage" [class.pinned]="pinnedStage() !== null">
+          <svg class="stage-svg" viewBox="0 0 520 290" preserveAspectRatio="xMidYMid meet" aria-hidden="true"
+            focusable="false">
+            <defs>
+              <linearGradient id="saFloor" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#475569" stop-opacity="0" />
+                <stop offset="0.5" stop-color="#64748b" stop-opacity="0.75" />
+                <stop offset="1" stop-color="#475569" stop-opacity="0" />
+              </linearGradient>
+            </defs>
 
-        <!-- Feature pills -->
-        <div class="feature-pills">
-          <div class="pill pill-1"><i class="pi pi-bolt"></i> Real-time Tracking</div>
-          <div class="pill pill-2"><i class="pi pi-chart-pie"></i> Decision Engine</div>
-          <div class="pill pill-3"><i class="pi pi-indian-rupee"></i> TCO Analytics</div>
-        </div>
+            <!-- The one thing every scene stands on -->
+            <rect x="0" y="264" width="520" height="1.5" fill="url(#saFloor)" />
 
-        <!-- Stats ribbon -->
-        <div class="stats-ribbon">
-          <div class="stat-item">
-            <span class="stat-number">99.9%</span>
-            <span class="stat-label">Uptime SLA</span>
+            <!-- ── 1 · Request & approve ─────────────────────────────────── -->
+            <g class="act act-1" [class.is-active]="pinnedStage() === 1">
+              <!-- Someone at a desk, raising the indent -->
+              <rect x="30" y="230" width="104" height="7" rx="3.5" fill="#334155" />
+              <rect x="42" y="237" width="6" height="27" fill="#334155" />
+              <rect x="116" y="237" width="6" height="27" fill="#334155" />
+              <circle cx="74" cy="158" r="15" fill="#8ea3c0" />
+              <rect x="54" y="180" width="40" height="50" rx="12" fill="#8ea3c0" />
+              <rect x="92" y="204" width="38" height="26" rx="3" fill="#0f172a" stroke="#475569" />
+              <rect class="pulse" x="95" y="207" width="32" height="20" rx="2" fill="#3b82f6" />
+
+              <!-- The indent itself, carried up to the approval chain -->
+              <g class="a1-doc">
+                <rect x="150" y="116" width="76" height="60" rx="7" fill="rgba(59,130,246,0.10)" stroke="#3b82f6"
+                  stroke-opacity="0.55" />
+                <rect x="161" y="129" width="42" height="4.5" rx="2.25" fill="#93c5fd" opacity="0.9" />
+                <rect x="161" y="140" width="54" height="4.5" rx="2.25" fill="#93c5fd" opacity="0.55" />
+                <rect x="161" y="151" width="34" height="4.5" rx="2.25" fill="#93c5fd" opacity="0.55" />
+                <text class="s-tag" x="161" y="170">INDENT</text>
+              </g>
+
+              <g class="in-25">
+                <rect x="252" y="56" width="238" height="52" rx="12" fill="rgba(255,255,255,0.045)"
+                  stroke="rgba(255,255,255,0.10)" />
+                <circle cx="280" cy="82" r="14" fill="rgba(59,130,246,0.20)" />
+                <text class="s-step" x="280" y="87" text-anchor="middle">1</text>
+                <text class="s-t" x="304" y="78">Department head</text>
+                <text class="s-ok" x="304" y="95">Approved · 10:42</text>
+                <circle cx="464" cy="82" r="13" fill="rgba(16,185,129,0.16)" />
+                <path d="M458 82 l4.5 4.5 L472 76" fill="none" stroke="#10b981" stroke-width="2.4"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </g>
+
+              <g class="in-40">
+                <rect x="252" y="122" width="238" height="52" rx="12" fill="rgba(255,255,255,0.045)"
+                  stroke="rgba(255,255,255,0.10)" />
+                <circle cx="280" cy="148" r="14" fill="rgba(59,130,246,0.20)" />
+                <text class="s-step" x="280" y="153" text-anchor="middle">2</text>
+                <text class="s-t" x="304" y="144">Finance</text>
+                <text class="s-ok" x="304" y="161">Budget confirmed</text>
+                <circle cx="464" cy="148" r="13" fill="rgba(16,185,129,0.16)" />
+                <path d="M458 148 l4.5 4.5 L472 142" fill="none" stroke="#10b981" stroke-width="2.4"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </g>
+
+              <g class="in-55">
+                <rect x="252" y="188" width="238" height="52" rx="12" fill="rgba(255,255,255,0.045)"
+                  stroke="rgba(255,255,255,0.10)" />
+                <circle cx="280" cy="214" r="14" fill="rgba(59,130,246,0.20)" />
+                <text class="s-step" x="280" y="219" text-anchor="middle">3</text>
+                <text class="s-t" x="304" y="210">CFO</text>
+                <text class="s-ok" x="304" y="227">Released to buy</text>
+                <circle cx="464" cy="214" r="13" fill="rgba(16,185,129,0.16)" />
+                <path d="M458 214 l4.5 4.5 L472 208" fill="none" stroke="#10b981" stroke-width="2.4"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </g>
+            </g>
+
+            <!-- ── 2 · Procure & receive ─────────────────────────────────── -->
+            <g class="act act-2" [class.is-active]="pinnedStage() === 2">
+              <g class="in-10">
+                <rect x="26" y="44" width="168" height="76" rx="10" fill="rgba(255,255,255,0.05)"
+                  stroke="rgba(255,255,255,0.10)" />
+                <text class="s-tag" x="42" y="67">PURCHASE ORDER</text>
+                <text class="s-num" x="42" y="90">PO-2431</text>
+                <text class="s-sub" x="42" y="108">3 lines · ₹4,20,000</text>
+              </g>
+
+              <g class="in-70">
+                <rect x="26" y="134" width="168" height="66" rx="10" fill="rgba(16,185,129,0.08)"
+                  stroke="rgba(16,185,129,0.30)" />
+                <circle cx="52" cy="167" r="13" fill="rgba(16,185,129,0.18)" />
+                <path d="M46 167 l4.5 4.5 L60 161" fill="none" stroke="#10b981" stroke-width="2.4"
+                  stroke-linecap="round" stroke-linejoin="round" />
+                <text class="s-t" x="74" y="163">Goods received</text>
+                <text class="s-ok" x="74" y="180">3 of 3 matched</text>
+              </g>
+
+              <!-- The store, with its shutter coming up as the truck pulls in -->
+              <polygon points="326,92 512,92 496,62 342,62" fill="rgba(59,130,246,0.22)" />
+              <rect x="326" y="92" width="186" height="172" fill="rgba(255,255,255,0.04)"
+                stroke="rgba(255,255,255,0.09)" />
+              <rect x="464" y="112" width="34" height="26" rx="3" fill="rgba(255,255,255,0.06)" />
+              <rect class="pulse" x="360" y="150" width="82" height="114" fill="#f59e0b" />
+              <rect class="a2-shutter" x="360" y="150" width="82" height="114" fill="#111a2e"
+                stroke="rgba(255,255,255,0.10)" />
+
+              <g class="a2-truck">
+                <rect x="0" y="190" width="108" height="52" rx="6" fill="rgba(139,92,246,0.30)"
+                  stroke="rgba(167,139,250,0.45)" />
+                <rect x="10" y="202" width="88" height="6" rx="3" fill="rgba(255,255,255,0.14)" />
+                <path d="M108 204 h30 l14 18 v20 h-44 z" fill="rgba(59,130,246,0.34)" stroke="rgba(147,197,253,0.40)" />
+                <rect x="114" y="209" width="24" height="15" rx="2" fill="rgba(255,255,255,0.18)" />
+                <circle class="wheel" cx="30" cy="248" r="11" fill="#0f172a" stroke="#64748b" stroke-width="3" />
+                <circle class="wheel" cx="124" cy="248" r="11" fill="#0f172a" stroke="#64748b" stroke-width="3" />
+              </g>
+            </g>
+
+            <!-- ── 3 · Tag & deploy ──────────────────────────────────────── -->
+            <g class="act act-3" [class.is-active]="pinnedStage() === 3">
+              <!-- Where it will live -->
+              <text class="s-tag" x="24" y="118">FLOOR 3 · FINANCE</text>
+              <rect x="24" y="128" width="132" height="112" rx="8" fill="rgba(255,255,255,0.035)"
+                stroke="rgba(255,255,255,0.09)" />
+              <g stroke="rgba(255,255,255,0.10)">
+                <line x1="24" y1="165" x2="156" y2="165" />
+                <line x1="24" y1="202" x2="156" y2="202" />
+                <line x1="68" y1="128" x2="68" y2="240" />
+                <line x1="112" y1="128" x2="112" y2="240" />
+              </g>
+              <rect x="69" y="166" width="42" height="35" fill="rgba(34,211,238,0.14)" />
+              <g class="a3-pin">
+                <circle cx="90" cy="142" r="11" fill="#22d3ee" opacity="0.85" />
+                <path d="M82 150 L98 150 L90 168 Z" fill="#22d3ee" opacity="0.85" />
+                <circle cx="90" cy="142" r="4" fill="#0a0e1a" />
+              </g>
+
+              <!-- The asset, getting its tag and a scan to prove it took -->
+              <rect x="182" y="112" width="132" height="126" rx="10" fill="rgba(255,255,255,0.05)"
+                stroke="rgba(255,255,255,0.13)" />
+              <rect x="196" y="128" width="104" height="9" rx="4.5" fill="rgba(255,255,255,0.10)" />
+              <rect x="196" y="146" width="72" height="9" rx="4.5" fill="rgba(255,255,255,0.07)" />
+              <circle cx="290" cy="150" r="6" fill="#10b981" opacity="0.7" />
+              <rect x="196" y="170" width="104" height="26" rx="5" fill="rgba(255,255,255,0.04)" />
+              <g class="in-40">
+                <rect x="260" y="198" width="44" height="44" rx="5" fill="#e2e8f0" />
+                <g fill="#0a0e1a">
+                  <rect x="266" y="204" width="12" height="12" />
+                  <rect x="286" y="204" width="12" height="12" />
+                  <rect x="266" y="224" width="12" height="12" />
+                  <rect x="286" y="224" width="5" height="5" />
+                  <rect x="294" y="224" width="5" height="5" />
+                  <rect x="286" y="232" width="5" height="5" />
+                  <rect x="280" y="218" width="5" height="5" />
+                </g>
+              </g>
+              <rect class="a3-beam" x="182" y="112" width="132" height="3" fill="#22d3ee" />
+
+              <!-- And the record the scan writes -->
+              <rect x="340" y="108" width="164" height="130" rx="10" fill="rgba(255,255,255,0.045)"
+                stroke="rgba(255,255,255,0.10)" />
+              <text class="s-tag" x="358" y="133">ASSET RECORD</text>
+              <g class="in-55">
+                <text class="s-num" x="358" y="157">SA-EQ-00417</text>
+              </g>
+              <g class="in-70">
+                <text class="s-sub" x="358" y="182">Owner · R. Menon</text>
+                <text class="s-sub" x="358" y="202">Cost centre · FIN-03</text>
+                <text class="s-sub" x="358" y="222">Warranty · 24 months</text>
+              </g>
+            </g>
+
+            <!-- ── 4 · Operate & maintain ────────────────────────────────── -->
+            <g class="act act-4" [class.is-active]="pinnedStage() === 4">
+              <rect x="26" y="112" width="140" height="128" rx="10" fill="rgba(255,255,255,0.05)"
+                stroke="rgba(255,255,255,0.12)" />
+              <circle class="gear gear-a" cx="78" cy="160" r="22" fill="none" stroke="#10b981" stroke-width="9"
+                stroke-dasharray="7 7" opacity="0.6" />
+              <circle cx="78" cy="160" r="6" fill="none" stroke="#10b981" stroke-width="3" opacity="0.45" />
+              <circle class="gear gear-b" cx="124" cy="202" r="15" fill="none" stroke="#34d399" stroke-width="7"
+                stroke-dasharray="6 6" opacity="0.5" />
+              <rect x="40" y="222" width="52" height="8" rx="4" fill="rgba(255,255,255,0.10)" />
+              <circle class="blink" cx="150" cy="126" r="4.5" fill="#10b981" />
+
+              <rect x="186" y="96" width="148" height="148" rx="10" fill="rgba(255,255,255,0.045)"
+                stroke="rgba(255,255,255,0.10)" />
+              <text class="s-tag" x="204" y="121">PM CHECKLIST</text>
+              <g class="in-25">
+                <rect x="204" y="132" width="17" height="17" rx="4" fill="rgba(16,185,129,0.16)"
+                  stroke="rgba(16,185,129,0.5)" />
+                <path d="M208 141 l3.6 3.6 L218 136" fill="none" stroke="#10b981" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+                <text class="s-sub" x="231" y="145">Filters cleaned</text>
+              </g>
+              <g class="in-40">
+                <rect x="204" y="160" width="17" height="17" rx="4" fill="rgba(16,185,129,0.16)"
+                  stroke="rgba(16,185,129,0.5)" />
+                <path d="M208 169 l3.6 3.6 L218 164" fill="none" stroke="#10b981" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+                <text class="s-sub" x="231" y="173">Calibration valid</text>
+              </g>
+              <g class="in-55">
+                <rect x="204" y="188" width="17" height="17" rx="4" fill="rgba(16,185,129,0.16)"
+                  stroke="rgba(16,185,129,0.5)" />
+                <path d="M208 197 l3.6 3.6 L218 192" fill="none" stroke="#10b981" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+                <text class="s-sub" x="231" y="201">Safety check done</text>
+              </g>
+              <g class="in-70">
+                <rect x="204" y="216" width="17" height="17" rx="4" fill="rgba(16,185,129,0.16)"
+                  stroke="rgba(16,185,129,0.5)" />
+                <path d="M208 225 l3.6 3.6 L218 220" fill="none" stroke="#10b981" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+                <text class="s-sub" x="231" y="229">Work order closed</text>
+              </g>
+
+              <rect x="354" y="96" width="150" height="86" rx="10" fill="rgba(255,255,255,0.045)"
+                stroke="rgba(255,255,255,0.10)" />
+              <text class="s-tag" x="370" y="119">UPTIME · 90 DAYS</text>
+              <text class="s-num" x="370" y="145">99.4%</text>
+              <polyline class="a4-line" points="370,170 392,162 414,166 436,152 458,156 480,147" fill="none"
+                stroke="#10b981" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+
+              <g class="in-70">
+                <rect x="354" y="196" width="150" height="48" rx="10" fill="rgba(59,130,246,0.10)"
+                  stroke="rgba(59,130,246,0.30)" />
+                <path d="M378 207 l13 -5 l13 5 v12 c0 9 -6 14 -13 17 c-7 -3 -13 -8 -13 -17 z"
+                  fill="rgba(59,130,246,0.30)" stroke="#60a5fa" stroke-width="1.4" />
+                <text class="s-t" x="414" y="216">In warranty</text>
+                <text class="s-sub" x="414" y="232">14 months left</text>
+              </g>
+            </g>
+
+            <!-- ── 5 · Audit & verify ────────────────────────────────────── -->
+            <g class="act act-5" [class.is-active]="pinnedStage() === 5">
+              <g class="in-70">
+                <rect x="168" y="34" width="184" height="54" rx="12" fill="rgba(245,158,11,0.10)"
+                  stroke="rgba(245,158,11,0.32)" />
+                <text class="s-num" x="260" y="60" text-anchor="middle">128 / 128 verified</text>
+                <text class="s-sub" x="260" y="78" text-anchor="middle">0 variances · trail locked</text>
+              </g>
+
+              <g class="in-10">
+                <rect x="52" y="150" width="84" height="96" rx="8" fill="rgba(255,255,255,0.05)"
+                  stroke="rgba(255,255,255,0.11)" />
+                <rect x="64" y="166" width="58" height="7" rx="3.5" fill="rgba(255,255,255,0.10)" />
+                <rect x="64" y="182" width="38" height="7" rx="3.5" fill="rgba(255,255,255,0.07)" />
+                <rect x="64" y="212" width="26" height="26" rx="3" fill="#cbd5e1" opacity="0.7" />
+                <circle cx="120" cy="228" r="11" fill="rgba(16,185,129,0.20)" />
+                <path d="M115 228 l3.8 3.8 L127 223" fill="none" stroke="#10b981" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </g>
+              <g class="in-25">
+                <rect x="156" y="150" width="84" height="96" rx="8" fill="rgba(255,255,255,0.05)"
+                  stroke="rgba(255,255,255,0.11)" />
+                <rect x="168" y="166" width="58" height="7" rx="3.5" fill="rgba(255,255,255,0.10)" />
+                <rect x="168" y="182" width="38" height="7" rx="3.5" fill="rgba(255,255,255,0.07)" />
+                <rect x="168" y="212" width="26" height="26" rx="3" fill="#cbd5e1" opacity="0.7" />
+                <circle cx="224" cy="228" r="11" fill="rgba(16,185,129,0.20)" />
+                <path d="M219 228 l3.8 3.8 L231 223" fill="none" stroke="#10b981" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </g>
+              <g class="in-40">
+                <rect x="260" y="150" width="84" height="96" rx="8" fill="rgba(255,255,255,0.05)"
+                  stroke="rgba(255,255,255,0.11)" />
+                <rect x="272" y="166" width="58" height="7" rx="3.5" fill="rgba(255,255,255,0.10)" />
+                <rect x="272" y="182" width="38" height="7" rx="3.5" fill="rgba(255,255,255,0.07)" />
+                <rect x="272" y="212" width="26" height="26" rx="3" fill="#cbd5e1" opacity="0.7" />
+                <circle cx="328" cy="228" r="11" fill="rgba(16,185,129,0.20)" />
+                <path d="M323 228 l3.8 3.8 L335 223" fill="none" stroke="#10b981" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </g>
+              <g class="in-55">
+                <rect x="364" y="150" width="84" height="96" rx="8" fill="rgba(255,255,255,0.05)"
+                  stroke="rgba(255,255,255,0.11)" />
+                <rect x="376" y="166" width="58" height="7" rx="3.5" fill="rgba(255,255,255,0.10)" />
+                <rect x="376" y="182" width="38" height="7" rx="3.5" fill="rgba(255,255,255,0.07)" />
+                <rect x="376" y="212" width="26" height="26" rx="3" fill="#cbd5e1" opacity="0.7" />
+                <circle cx="432" cy="228" r="11" fill="rgba(16,185,129,0.20)" />
+                <path d="M427 228 l3.8 3.8 L439 223" fill="none" stroke="#10b981" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </g>
+
+              <!-- Drawn after the racks so the auditor walks in front of them -->
+              <g class="a5-auditor">
+                <circle cx="0" cy="182" r="13" fill="#8ea3c0" />
+                <rect x="-18" y="202" width="36" height="46" rx="11" fill="#8ea3c0" />
+                <rect x="14" y="206" width="26" height="9" rx="4.5" fill="#8ea3c0" />
+                <rect x="38" y="198" width="16" height="24" rx="4" fill="#0f172a" stroke="#f59e0b"
+                  stroke-width="1.6" />
+                <path class="pulse" d="M54 210 l30 -12 v24 z" fill="#f59e0b" />
+                <rect x="-13" y="248" width="9" height="16" rx="3" fill="#8ea3c0" />
+                <rect x="4" y="248" width="9" height="16" rx="3" fill="#8ea3c0" />
+              </g>
+            </g>
+
+            <!-- ── 6 · Value & depreciate ────────────────────────────────── -->
+            <g class="act act-6" [class.is-active]="pinnedStage() === 6">
+              <g class="a6-stamp">
+                <rect x="34" y="32" width="152" height="46" rx="8" fill="rgba(16,185,129,0.10)"
+                  stroke="rgba(16,185,129,0.45)" stroke-width="1.6" />
+                <text class="s-stamp" x="110" y="61" text-anchor="middle">FY 2025-26 CLOSED</text>
+              </g>
+
+              <g class="in-70">
+                <rect x="296" y="30" width="192" height="58" rx="12" fill="rgba(255,255,255,0.05)"
+                  stroke="rgba(255,255,255,0.12)" />
+                <text class="s-tag" x="314" y="53">NET BOOK VALUE</text>
+                <text class="s-num" x="314" y="77">₹2,84,500</text>
+                <text class="s-sub" x="470" y="77" text-anchor="end">WDV 15%</text>
+              </g>
+
+              <line x1="30" y1="240" x2="480" y2="240" stroke="rgba(255,255,255,0.12)" />
+              <g class="rise-10">
+                <rect x="44" y="90" width="52" height="150" rx="5" fill="rgba(59,130,246,0.42)" />
+              </g>
+              <g class="rise-25">
+                <rect x="116" y="112" width="52" height="128" rx="5" fill="rgba(79,110,240,0.40)" />
+              </g>
+              <g class="rise-40">
+                <rect x="188" y="132" width="52" height="108" rx="5" fill="rgba(99,92,238,0.38)" />
+              </g>
+              <g class="rise-55">
+                <rect x="260" y="152" width="52" height="88" rx="5" fill="rgba(119,80,236,0.36)" />
+              </g>
+              <g class="rise-70">
+                <rect x="332" y="168" width="52" height="72" rx="5" fill="rgba(139,92,246,0.34)" />
+                <rect x="404" y="182" width="52" height="58" rx="5" fill="rgba(139,92,246,0.26)" />
+              </g>
+              <g class="s-tag">
+                <text x="70" y="258" text-anchor="middle">FY22</text>
+                <text x="142" y="258" text-anchor="middle">FY23</text>
+                <text x="214" y="258" text-anchor="middle">FY24</text>
+                <text x="286" y="258" text-anchor="middle">FY25</text>
+                <text x="358" y="258" text-anchor="middle">FY26</text>
+                <text x="430" y="258" text-anchor="middle">FY27</text>
+              </g>
+            </g>
+
+            <!-- ── 7 · Retire & recover ──────────────────────────────────── -->
+            <g class="act act-7" [class.is-active]="pinnedStage() === 7">
+              <!-- Kept left of the gate: the raised barrier sweeps up and to
+                   the right, straight through where this used to sit. -->
+              <g class="in-25">
+                <rect x="26" y="40" width="160" height="66" rx="10" fill="rgba(255,255,255,0.05)"
+                  stroke="rgba(255,255,255,0.11)" />
+                <text class="s-tag" x="44" y="63">GATE PASS</text>
+                <text class="s-num" x="44" y="85">GP-0788</text>
+                <text class="s-sub" x="44" y="100">Security verified</text>
+              </g>
+              <g class="in-70">
+                <rect x="360" y="40" width="148" height="60" rx="12" fill="rgba(16,185,129,0.09)"
+                  stroke="rgba(16,185,129,0.32)" />
+                <text class="s-tag" x="376" y="63">VALUE RECOVERED</text>
+                <text class="s-num" x="376" y="87">₹18,000</text>
+              </g>
+
+              <!-- The scrap end of the line -->
+              <rect x="418" y="150" width="76" height="10" rx="4" fill="#475569" />
+              <rect x="442" y="140" width="28" height="8" rx="4" fill="#475569" />
+              <path d="M422 162 h68 l-8 84 h-52 z" fill="rgba(16,185,129,0.12)" stroke="rgba(16,185,129,0.34)" />
+              <circle class="a7-recycle" cx="456" cy="200" r="18" fill="none" stroke="#10b981" stroke-width="3"
+                stroke-dasharray="13 9" opacity="0.65" />
+              <polygon points="456,191 465,207 447,207" fill="none" stroke="#10b981" stroke-width="2"
+                opacity="0.65" />
+
+              <!-- The gate it has to clear on the way out -->
+              <text class="s-tag" x="238" y="112" text-anchor="end">GATE</text>
+              <rect x="246" y="130" width="12" height="134" rx="3" fill="#475569" />
+              <rect x="240" y="120" width="24" height="14" rx="4" fill="#64748b" />
+              <rect class="a7-barrier" x="258" y="148" width="126" height="9" rx="4.5" fill="#f59e0b"
+                opacity="0.7" />
+
+              <g class="a7-asset">
+                <rect x="46" y="128" width="46" height="22" rx="11" fill="rgba(245,158,11,0.18)"
+                  stroke="rgba(245,158,11,0.55)" />
+                <text class="s-eol" x="69" y="143" text-anchor="middle">EOL</text>
+                <rect x="40" y="150" width="104" height="96" rx="9" fill="rgba(255,255,255,0.045)"
+                  stroke="rgba(255,255,255,0.11)" />
+                <rect x="54" y="166" width="62" height="8" rx="4" fill="rgba(255,255,255,0.08)" />
+                <rect x="54" y="182" width="44" height="8" rx="4" fill="rgba(255,255,255,0.06)" />
+                <rect x="54" y="212" width="26" height="26" rx="3" fill="#cbd5e1" opacity="0.5" />
+              </g>
+            </g>
+
+            <!-- ── 8 · Plan the next cycle ───────────────────────────────── -->
+            <g class="act act-8" [class.is-active]="pinnedStage() === 8">
+              <rect x="24" y="44" width="300" height="200" rx="12" fill="rgba(255,255,255,0.045)"
+                stroke="rgba(255,255,255,0.11)" />
+              <text class="s-tag" x="42" y="68">CAPEX FORECAST · FY 2026-27</text>
+              <line x1="42" y1="216" x2="306" y2="216" stroke="rgba(255,255,255,0.12)" />
+              <g class="rise-10">
+                <rect x="52" y="164" width="38" height="52" rx="4" fill="rgba(59,130,246,0.32)" />
+              </g>
+              <g class="rise-25">
+                <rect x="104" y="142" width="38" height="74" rx="4" fill="rgba(59,130,246,0.42)" />
+              </g>
+              <g class="rise-40">
+                <rect x="156" y="152" width="38" height="64" rx="4" fill="rgba(59,130,246,0.38)" />
+              </g>
+              <g class="rise-55">
+                <rect x="208" y="112" width="38" height="104" rx="4" fill="rgba(16,185,129,0.42)" />
+              </g>
+              <g class="rise-70">
+                <rect x="260" y="88" width="38" height="128" rx="4" fill="rgba(16,185,129,0.55)" />
+              </g>
+              <g class="s-tag">
+                <text x="71" y="234" text-anchor="middle">Q1</text>
+                <text x="123" y="234" text-anchor="middle">Q2</text>
+                <text x="175" y="234" text-anchor="middle">Q3</text>
+                <text x="227" y="234" text-anchor="middle">Q4</text>
+                <text x="279" y="234" text-anchor="middle">Q5</text>
+              </g>
+
+              <g class="in-10">
+                <text class="s-tag" x="344" y="40">DECISION ENGINE</text>
+              </g>
+              <g class="in-25">
+                <rect x="344" y="52" width="164" height="56" rx="11" fill="rgba(255,255,255,0.05)"
+                  stroke="rgba(255,255,255,0.11)" />
+                <circle cx="370" cy="80" r="12" fill="rgba(245,158,11,0.20)" />
+                <text class="s-t" x="392" y="76">Replace 6 laptops</text>
+                <text class="s-sub" x="392" y="93">₹4.2L · plan for Q3</text>
+              </g>
+              <g class="in-40">
+                <rect x="344" y="118" width="164" height="56" rx="11" fill="rgba(255,255,255,0.05)"
+                  stroke="rgba(255,255,255,0.11)" />
+                <circle cx="370" cy="146" r="12" fill="rgba(59,130,246,0.22)" />
+                <text class="s-t" x="392" y="142">Extend 3 AMCs</text>
+                <text class="s-sub" x="392" y="159">saves ₹1.1L a year</text>
+              </g>
+              <g class="in-55">
+                <rect x="344" y="184" width="164" height="56" rx="11" fill="rgba(255,255,255,0.05)"
+                  stroke="rgba(255,255,255,0.11)" />
+                <circle cx="370" cy="212" r="12" fill="rgba(16,185,129,0.22)" />
+                <text class="s-t" x="392" y="208">Redeploy 12 idle</text>
+                <text class="s-sub" x="392" y="225">no new spend</text>
+              </g>
+            </g>
+          </svg>
+
+          <!-- The captions are real text, so the story survives with the scene muted -->
+          <div class="stage-caption">
+            @for (s of lifecycle; track s.key; let i = $index) {
+            <div class="cap" [class.is-active]="pinnedStage() === i + 1">
+              <h3>{{ s.title }}</h3>
+              <p>{{ s.line }}</p>
+            </div>
+            }
           </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <span class="stat-number">End-to-End</span>
-            <span class="stat-label">Asset Lifecycle</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <span class="stat-number">24/7</span>
-            <span class="stat-label">Monitoring</span>
+
+          <div class="rail">
+            <div class="rail-track"><span class="rail-fill"></span></div>
+            <div class="rail-steps" role="toolbar" aria-label="Asset lifecycle stages">
+              @for (s of lifecycle; track s.key; let i = $index) {
+              <button type="button" class="rail-step" [class.is-active]="pinnedStage() === i + 1"
+                [attr.aria-pressed]="pinnedStage() === i + 1" [attr.tabindex]="i === 0 ? 0 : -1"
+                [attr.aria-label]="'Hold the ' + s.step + ' stage: ' + s.title" (click)="pickStage(i + 1)"
+                (keydown)="onStageKeydown($event, i)">
+                <span class="rail-node"><i class="pi {{ s.icon }}"></i></span>
+                <span class="rail-name">{{ s.step }}</span>
+              </button>
+              }
+            </div>
           </div>
         </div>
       </div>
