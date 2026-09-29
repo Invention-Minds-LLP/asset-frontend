@@ -15,11 +15,13 @@ import { TextareaModule } from 'primeng/textarea';
 import { DialogModule } from 'primeng/dialog';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TooltipModule } from 'primeng/tooltip';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { CalibrationService } from '../../services/calibration/calibration';
 import { Assets } from '../../services/assets/assets';
 import { DatePicker } from "primeng/datepicker";
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
+import { InputNumberModule } from 'primeng/inputnumber';
 
 @Component({
   selector: 'app-calibration',
@@ -42,11 +44,13 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
     CheckboxModule,
     DatePicker,
     TooltipModule,
-    OverflowTooltipDirective
+    OverflowTooltipDirective,
+    InputNumberModule,
+    ConfirmDialogModule
 ],
   templateUrl: './calibration.html',
   styleUrl: './calibration.css',
-  providers: [MessageService]
+  providers: [MessageService, ConfirmationService]
 })
 export class Calibration implements OnInit {
   schedules: any[] = [];
@@ -103,6 +107,7 @@ export class Calibration implements OnInit {
     private calibrationService: CalibrationService,
     private assetsService: Assets,
     private messageService: MessageService,
+    private confirmationService: ConfirmationService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -116,7 +121,7 @@ export class Calibration implements OnInit {
   }
 
   getEmptyScheduleForm() {
-    return { assetId: null as number | null, frequencyValue: 1, frequencyUnit: 'MONTHS', nextDueAt: '', vendorId: null as number | null, reminderDays: 7, notes: '', standardProcedure: '' };
+    return { assetId: null as number | null, frequencyValue: 1, frequencyUnit: 'MONTHS', nextDueAt: '', vendorId: null as number | null, reminderDays: 7, notes: '', standardProcedure: '', estimatedDurationMinutes: null as number | null };
   }
 
   getEmptyTemplateForm() {
@@ -124,7 +129,7 @@ export class Calibration implements OnInit {
   }
 
   getEmptyHistoryForm() {
-    return { assetId: null as number | null, scheduleId: null as number | null, calibratedAt: '', result: 'PASS', calibratedByType: 'INTERNAL', calibratedByName: '', vendorId: null as number | null, certificateNo: '', remarks: '' };
+    return { assetId: null as number | null, scheduleId: null as number | null, calibratedAt: '', result: 'PASS', calibratedByType: 'INTERNAL', calibratedByName: '', vendorId: null as number | null, certificateNo: '', remarks: '', actualDurationMinutes: null as number | null, startupMinutes: null as number | null };
   }
 
   getEmptyItem() {
@@ -221,15 +226,25 @@ export class Calibration implements OnInit {
     this.scheduleForm = {
       assetId: row.assetId, frequencyValue: row.frequencyValue, frequencyUnit: row.frequencyUnit,
       nextDueAt: row.nextDueAt ? row.nextDueAt.slice(0, 10) : '', vendorId: row.vendorId ?? null,
-      reminderDays: row.reminderDays ?? 7, notes: row.notes || '', standardProcedure: row.standardProcedure || ''
+      reminderDays: row.reminderDays ?? 7, notes: row.notes || '', standardProcedure: row.standardProcedure || '',
+      estimatedDurationMinutes: row.estimatedDurationMinutes ?? null
     };
   }
 
   deleteSchedule(row: any) {
-    if (!confirm('Delete this calibration schedule?')) return;
-    this.calibrationService.deleteSchedule(row.id).subscribe({
-      next: () => { setTimeout(() => { this.toast('success', 'Deleted'); this.loadSchedules(); this.cdr.detectChanges(); }); },
-      error: () => this.toast('error', 'Failed to delete')
+    this.confirmationService.confirm({
+      message: `Delete the calibration schedule for ${row.asset?.assetName ?? 'this asset'}?`,
+      header: 'Delete Schedule',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.calibrationService.deleteSchedule(row.id).subscribe({
+          next: () => { setTimeout(() => { this.toast('success', 'Deleted'); this.loadSchedules(); this.cdr.detectChanges(); }); },
+          error: () => { this.toast('error', 'Failed to delete'); this.cdr.markForCheck(); }
+        });
+      }
     });
   }
 
@@ -268,10 +283,19 @@ export class Calibration implements OnInit {
   }
 
   deleteTemplate(row: any) {
-    if (!confirm('Delete this template?')) return;
-    this.calibrationService.deleteTemplate(row.id).subscribe({
-      next: () => { setTimeout(() => { this.toast('success', 'Deleted'); this.loadTemplates(); this.cdr.detectChanges(); }); },
-      error: () => this.toast('error', 'Failed')
+    this.confirmationService.confirm({
+      message: `Delete the template "${row.name}"?`,
+      header: 'Delete Template',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.calibrationService.deleteTemplate(row.id).subscribe({
+          next: () => { setTimeout(() => { this.toast('success', 'Deleted'); this.loadTemplates(); this.cdr.detectChanges(); }); },
+          error: () => { this.toast('error', 'Failed'); this.cdr.markForCheck(); }
+        });
+      }
     });
   }
 

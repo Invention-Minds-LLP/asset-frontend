@@ -116,11 +116,11 @@
       <div class="grid-2">
         <div class="field">
           <label>Date <span class="req">*</span></label>
-          <p-datepicker [(ngModel)]="logForm.logDate" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
+          <p-datepicker [(ngModel)]="logForm.logDate" (ngModelChange)="loadCalibrationPrefill()" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
         </div>
         <div class="field">
-          <label>Total Hours Used <span class="req">*</span></label>
-          <p-inputnumber [(ngModel)]="logForm.hoursUsed" [min]="0" [max]="24" [minFractionDigits]="1" placeholder="e.g. 8.5"></p-inputnumber>
+          <label>Total Hours Used <span class="req">*</span> <small>(max {{ maxHoursPerDay }} h/day)</small></label>
+          <p-inputnumber [(ngModel)]="logForm.hoursUsed" [min]="0" [max]="maxHoursPerDay" [minFractionDigits]="1" placeholder="e.g. 8.5"></p-inputnumber>
           <small class="hint"><i class="pi pi-info-circle"></i> Auto-fills from shifts below</small>
         </div>
       </div>
@@ -180,25 +180,11 @@
     <section class="log-section">
       <div class="section-head muted">
         <i class="pi pi-exclamation-triangle"></i>
-        <span>Downtime <small>(if any)</small></span>
+        <span>Downtime <small>(if any — add one row per event: calibration, warm-up, breakdown…)</small></span>
       </div>
-      <div class="grid-2">
-        <div class="field">
-          <label>Downtime Hours</label>
-          <p-inputnumber [(ngModel)]="logForm.downtimeHours" [min]="0" [max]="24" [minFractionDigits]="1" placeholder="0.0" suffix=" h"></p-inputnumber>
-        </div>
-        <div class="field">
-          <label>Reason</label>
-          <p-select [options]="downtimeTypeOptions" [(ngModel)]="logForm.downtimeType"
-                    placeholder="Select reason..." [showClear]="true" appendTo="body"></p-select>
-        </div>
-      </div>
-      @if (logForm.downtimeHours) {
-        <div class="field full">
-          <label>Downtime Remarks</label>
-          <textarea pTextarea [(ngModel)]="logForm.downtimeRemarks" rows="2"
-                    placeholder="Briefly describe what caused the downtime..."></textarea>
-        </div>
+      <app-downtime-entries [entries]="logForm.downtimeEntries" [standardStartupMinutes]="standardStartupMinutes"></app-downtime-entries>
+      @if (capacityExceeded) {
+        <small class="hint capacity-error"><i class="pi pi-exclamation-circle"></i> Hours used + downtime exceeds {{ maxHoursPerDay }} h/day for this asset</small>
       }
     </section>
 
@@ -228,6 +214,6 @@
     <p-button label="Cancel" severity="secondary" [text]="true"
               (onClick)="showLogDialog = false" [disabled]="savingLog"></p-button>
     <p-button label="Save Log" icon="pi pi-check" (onClick)="saveLog()"
-              [loading]="savingLog" [disabled]="!logForm.hoursUsed"></p-button>
+              [loading]="savingLog" [disabled]="!logForm.hoursUsed || capacityExceeded"></p-button>
   </div>
 </p-dialog>

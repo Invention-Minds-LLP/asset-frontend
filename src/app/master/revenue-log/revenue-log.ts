@@ -17,6 +17,11 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { MessageService } from 'primeng/api';
 import { RevenueLogService } from '../../services/revenue-log/revenue-log';
 import { Assets } from '../../services/assets/assets';
+import { DowntimeEntries, DowntimeEntry, splitDowntime, calibrationPrefillEntries } from '../../shared/downtime-entries/downtime-entries';
+
+/** YYYY-MM-DD of a local date (toISOString would shift picked dates to the previous day east of UTC). */
+const localDateStr = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 @Component({
   selector: 'app-revenue-log',
@@ -24,7 +29,7 @@ import { Assets } from '../../services/assets/assets';
   imports: [
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, SelectModule, DialogModule, InputNumberModule, TooltipModule,
-    InputTextModule, DatePickerModule, TextareaModule, ProgressBarModule,
+    InputTextModule, DatePickerModule, TextareaModule, ProgressBarModule, DowntimeEntries,
   ],
   templateUrl: './revenue-log.html',
   styleUrl: './revenue-log.css',
@@ -62,14 +67,13 @@ export class RevenueLog implements OnInit {
   savingRateCard = false;
   rateCardForm = this.emptyRateCardForm();
 
-  downtimeTypeOptions = [
-    { label: 'Planned', value: 'PLANNED' },
-    { label: 'Unplanned', value: 'UNPLANNED' },
-    { label: 'Maintenance', value: 'MAINTENANCE' },
-    { label: 'Calibration', value: 'CALIBRATION' },
-    { label: 'No Demand', value: 'NO_DEMAND' },
-    { label: 'Power Outage', value: 'POWER_OUTAGE' },
-    { label: 'Staff Unavailable', value: 'STAFF_UNAVAILABLE' },
+  calibrationInfo: any = null;
+
+  maxHoursOptions = [
+    { label: '8 hrs', value: 8 },
+    { label: '12 hrs', value: 12 },
+    { label: '16 hrs', value: 16 },
+    { label: '24 hrs', value: 24 },
   ];
 
   conditionOptions = [
@@ -158,6 +162,7 @@ export class RevenueLog implements OnInit {
     this.selectedAssetId = assetId;
     this.loadingDetail = true;
     this.rateCard = null;
+    this.calibrationInfo = null;
     this.utilization = null;
     this.oeeData = null;
     this.revenueSummary = null;
@@ -197,6 +202,36 @@ export class RevenueLog implements OnInit {
       next: (res: any) => { setTimeout(() => { this.shiftData = res.data ?? res; this.cdr.detectChanges(); }); checkDone(); },
       error: () => { checkDone(); }
     });
+    this.loadCalibrationInfo();
+  }
+
+  /** Typical calibration time for the asset, and pre-fill of that day's calibration downtime. */
+  loadCalibrationInfo() {
+    if (!this.selectedAssetId) return;
+    const day = this.logForm.logDate instanceof Date ? this.logForm.logDate : new Date(this.logForm.logDate);
+    this.rlService.getCalibrationInfo(this.selectedAssetId, day).subscribe({
+      next: (res: any) => {
+        setTimeout(() => {
+          this.calibrationInfo = res;
+          this.prefillCalibrationDowntime(res);
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {}
+    });
+  }
+
+  private prefillCalibrationDowntime(info: any) {
+    if (this.logForm.downtimeEntries.some(e => e.type === 'CALIBRATION')) return; // user already entered it
+    const rows = calibrationPrefillEntries(info, this.standardStartupMinutes);
+    if (rows.length) {
+      this.logForm.downtimeEntries.push(...rows);
+      this.messageService.add({ severity: 'info', summary: 'Calibration found', detail: 'Calibration downtime pre-filled from the calibration record — adjust if needed' });
+    }
+  }
+
+  onLogDateChange() {
+    this.loadCalibrationInfo();
   }
 
   // ── Log Entry ──────────────────────────────────────────────────────────────
@@ -210,9 +245,7 @@ export class RevenueLog implements OnInit {
       shift2Hours: null as number | null,
       shift3Hours: null as number | null,
       revenueGenerated: null as number | null,
-      downtimeHours: null as number | null,
-      downtimeType: null as string | null,
-      downtimeRemarks: '',
+      downtimeEntries: [] as DowntimeEntry[],
       conditionAfterUse: null as string | null,
       remarks: '',
     };
@@ -221,16 +254,44 @@ export class RevenueLog implements OnInit {
   emptyRateCardForm() {
     return {
       revenuePerUnit: null as number | null,
-      plannedHoursPerDay: null as number | null,
-      targetOee: null as number | null,
-      targetUtilization: null as number | null,
-      costPerHour: null as number | null,
+      maxHoursPerDay: 24 as number | null,
+      shiftsPerDay: 1 as number | null,
+      shiftDurationHours: 8 as number | null,
+      standardStartupMinutes: 0 as number | null,
+      targetOeeScore: null as number | null,
+      targetUtilizationPct: null as number | null,
     };
+  }
+
+  /** Planned hours = shifts × shift length, capped at max hours per day (same rule as the backend). */
+  get derivedPlannedHours(): number | null {
+    const f = this.rateCardForm;
+    if (!f.shiftsPerDay || !f.shiftDurationHours) return null;
+    return Math.min(f.shiftsPerDay * f.shiftDurationHours, f.maxHoursPerDay ?? 24);
+  }
+
+  get standardStartupMinutes(): number {
+    return Number(this.rateCard?.standardStartupMinutes ?? 0);
+  }
+
+  get maxHoursPerDay(): number {
+    return Number(this.rateCard?.maxHoursPerDay ?? 24);
+  }
+
+  get downtimeSplit() {
+    return splitDowntime(this.logForm.downtimeEntries, this.standardStartupMinutes);
+  }
+
+  /** Hours used + downtime can't exceed the asset's max hours per day. */
+  get capacityExceeded(): boolean {
+    const s = this.downtimeSplit;
+    return Number(this.logForm.hoursUsed ?? 0) + s.plannedHours + s.unplannedHours > this.maxHoursPerDay + 0.001;
   }
 
   openLogEntry() {
     this.logForm = this.emptyLogForm();
     this.showLogDialog = true;
+    this.loadCalibrationInfo();
   }
 
   saveLog() {
@@ -238,11 +299,20 @@ export class RevenueLog implements OnInit {
       this.messageService.add({ severity: 'warn', summary: 'Missing', detail: 'Asset and hours used are required' });
       return;
     }
+    if (this.capacityExceeded) {
+      this.messageService.add({ severity: 'warn', summary: 'Too many hours', detail: `Hours used + downtime exceeds this asset's ${this.maxHoursPerDay} hours/day` });
+      return;
+    }
+    if (this.logForm.downtimeEntries.some(e => (e.type && !e.minutes) || (!e.type && e.minutes))) {
+      this.messageService.add({ severity: 'warn', summary: 'Incomplete downtime', detail: 'Each downtime row needs a reason and minutes' });
+      return;
+    }
     this.savingLog = true;
     const payload = {
       ...this.logForm,
+      downtimeEntries: this.logForm.downtimeEntries.filter(e => e.type && e.minutes),
       logDate: this.logForm.logDate instanceof Date
-        ? this.logForm.logDate.toISOString().slice(0, 10)
+        ? localDateStr(this.logForm.logDate)
         : this.logForm.logDate
     };
     this.rlService.upsertDailyLog(this.selectedAssetId, payload).subscribe({
@@ -255,10 +325,10 @@ export class RevenueLog implements OnInit {
           this.cdr.detectChanges();
         });
       },
-      error: () => {
+      error: (e: any) => {
         setTimeout(() => {
           this.savingLog = false;
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to save daily log' });
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed to save daily log' });
           this.cdr.detectChanges();
         });
       }
@@ -267,12 +337,16 @@ export class RevenueLog implements OnInit {
 
   openRateCard() {
     if (this.rateCard) {
+      // Decimal columns arrive as strings — coerce for p-inputnumber.
+      const n = (v: any) => (v == null ? null : Number(v));
       this.rateCardForm = {
-        revenuePerUnit: this.rateCard.revenuePerUnit ?? null,
-        plannedHoursPerDay: this.rateCard.plannedHoursPerDay ?? null,
-        targetOee: this.rateCard.targetOee ?? null,
-        targetUtilization: this.rateCard.targetUtilization ?? null,
-        costPerHour: this.rateCard.costPerHour ?? null,
+        revenuePerUnit: n(this.rateCard.avgRevenuePerUnit),
+        maxHoursPerDay: n(this.rateCard.maxHoursPerDay),
+        shiftsPerDay: n(this.rateCard.shiftsPerDay),
+        shiftDurationHours: n(this.rateCard.shiftDurationHours),
+        standardStartupMinutes: n(this.rateCard.standardStartupMinutes),
+        targetOeeScore: n(this.rateCard.targetOeeScore),
+        targetUtilizationPct: n(this.rateCard.targetUtilizationPct),
       };
     } else {
       this.rateCardForm = this.emptyRateCardForm();
@@ -283,7 +357,11 @@ export class RevenueLog implements OnInit {
   saveRateCard() {
     if (!this.selectedAssetId) return;
     this.savingRateCard = true;
-    this.rlService.upsertRateCard(this.selectedAssetId, this.rateCardForm).subscribe({
+    const f = this.rateCardForm;
+    if (f.shiftsPerDay && f.shiftDurationHours && f.shiftsPerDay * f.shiftDurationHours > (f.maxHoursPerDay ?? 24)) {
+      this.messageService.add({ severity: 'warn', summary: 'Check shifts', detail: `Shifts × duration exceeds max hours; planned hours will be capped at ${f.maxHoursPerDay}` });
+    }
+    this.rlService.upsertRateCard(this.selectedAssetId, { ...f, plannedHoursPerDay: this.derivedPlannedHours ?? undefined }).subscribe({
       next: () => {
         setTimeout(() => {
           this.showRateCardDialog = false;
@@ -293,10 +371,10 @@ export class RevenueLog implements OnInit {
           this.cdr.detectChanges();
         });
       },
-      error: () => {
+      error: (e: any) => {
         setTimeout(() => {
           this.savingRateCard = false;
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to save rate card' });
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed to save rate card' });
           this.cdr.detectChanges();
         });
       }
@@ -308,13 +386,15 @@ export class RevenueLog implements OnInit {
       next: () => {
         setTimeout(() => {
           const log = this.dailyLogs.find(l => l.id === logId);
-          if (log) log.verified = true;
+          if (log) log.status = 'VERIFIED';
+          this.dailyLogs = [...this.dailyLogs];
           this.messageService.add({ severity: 'success', summary: 'Verified', detail: 'Log entry verified' });
           this.cdr.detectChanges();
         });
       },
-      error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to verify log' });
+      error: (e: any) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed to verify log' });
+        this.cdr.markForCheck();
       }
     });
   }
@@ -328,8 +408,9 @@ export class RevenueLog implements OnInit {
           this.cdr.detectChanges();
         });
       },
-      error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete log' });
+      error: (e: any) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: e?.error?.message || 'Failed to delete log' });
+        this.cdr.markForCheck();
       }
     });
   }
@@ -338,7 +419,7 @@ export class RevenueLog implements OnInit {
   loadLeaderboard(period: 7 | 15 | 30) {
     this.leaderboardPeriod = period;
     this.loadingLeaderboard = true;
-    this.rlService.getLeaderboard({ days: period }).subscribe({
+    this.rlService.getLeaderboard({ period }).subscribe({
       next: (res: any) => {
         setTimeout(() => {
           this.leaderboardData = res.data ?? res ?? [];
@@ -403,31 +484,54 @@ export class RevenueLog implements OnInit {
     return 'danger';
   }
 
+  // Preview getters mirror upsertDailyLog in revenue-log.controller.ts.
   get estimatedRevenue(): number | null {
-    if (!this.rateCard?.revenuePerUnit || !this.logForm.procedureCount) return null;
-    return this.rateCard.revenuePerUnit * this.logForm.procedureCount;
+    const rate = Number(this.rateCard?.avgRevenuePerUnit ?? 0);
+    if (!rate) return null;
+    const unit = this.rateCard.revenueUnit;
+    if (unit === 'PER_HOUR' || unit === 'PER_DAY') {
+      return this.logForm.hoursUsed ? this.logForm.hoursUsed * rate : null;
+    }
+    if (unit === 'PER_USE' || unit === 'PER_PROCEDURE' || unit === 'PER_TEST') {
+      return this.logForm.procedureCount != null ? this.logForm.procedureCount * rate : null;
+    }
+    return null;
+  }
+
+  private get plannedHours(): number | null {
+    const planned = Number(this.rateCard?.plannedHoursPerDay ?? 0);
+    return planned > 0 ? planned : null;
+  }
+
+  // Planned downtime shrinks planned production time; only unplanned downtime hurts availability.
+  private get productionHours(): { production: number; available: number } | null {
+    const planned = this.plannedHours;
+    if (planned == null || !this.logForm.hoursUsed) return null;
+    const s = this.downtimeSplit;
+    const production = Math.max(planned - s.plannedHours, 0);
+    if (production <= 0) return null; // whole day was planned downtime → no OEE
+    return { production, available: Math.max(production - s.unplannedHours, 0) };
   }
 
   get calcAvailability(): number | null {
-    if (!this.rateCard?.plannedHoursPerDay || !this.logForm.hoursUsed) return null;
-    const downtime = this.logForm.downtimeHours ?? 0;
-    const planned = this.rateCard.plannedHoursPerDay;
-    if (planned <= 0) return null;
-    return Math.min(100, ((planned - downtime) / planned) * 100);
+    const p = this.productionHours;
+    if (!p) return null;
+    return Math.min(100, (p.available / p.production) * 100);
   }
 
   get calcPerformance(): number | null {
-    if (!this.rateCard?.plannedHoursPerDay || !this.logForm.hoursUsed) return null;
-    const planned = this.rateCard.plannedHoursPerDay;
-    if (planned <= 0) return null;
-    return Math.min(100, (this.logForm.hoursUsed / planned) * 100);
+    const p = this.productionHours;
+    if (!p) return null;
+    if (p.available <= 0) return 0;
+    return Math.min(100, (this.logForm.hoursUsed! / p.available) * 100);
   }
 
   get calcOee(): number | null {
     const a = this.calcAvailability;
     const p = this.calcPerformance;
     if (a == null || p == null) return null;
-    return (a / 100) * (p / 100) * 100;
+    const q = Number(this.rateCard?.qualityPassRatePct ?? 98);
+    return (a * p * q) / 10000;
   }
 
   onTabChange(tab: 'dashboard' | 'asset-detail' | 'log-entry' | 'leaderboard') {

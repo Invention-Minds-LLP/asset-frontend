@@ -1,0 +1,49 @@
+.dt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.dt-row {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.2fr) 130px minmax(140px, 1.5fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dt-row .dt-tag {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.dt-row :is(.dt-type, .dt-minutes, .dt-remarks) {
+  width: 100%;
+  min-width: 0;
+}
+
+.dt-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dt-totals {
+  font-size: 0.85rem;
+  color: var(--text-color-secondary);
+}
+
+.dt-hint {
+  color: var(--text-color-secondary);
+}
+
+@media (max-width: 640px) {
+  .dt-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dt-row .dt-remarks {
+    grid-column: 1 / -1;
+  }
+}

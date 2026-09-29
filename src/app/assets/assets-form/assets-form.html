@@ -83,6 +83,11 @@
                                 <label>Category *</label>
                             </p-floatlabel>
                         </div>
+                        @if (canReclassify) {
+                        <a class="reclassify-link" [routerLink]="['/reclassification']" [queryParams]="{ assetId: asset.id }">
+                            <i class="pi pi-arrow-right-arrow-left"></i> Wrong category? Reclassify from this financial year
+                        </a>
+                        }
 
                         <!-- STORE — warehouse the asset is parked in while IN_STORE -->
                         <div class="two-fields">
@@ -2026,6 +2031,8 @@
                             Enables daily revenue logging and shows it on the user's My Assets page.
                         </small>
                     </label>
+                    <button pButton type="button" label="Save" icon="pi pi-check" class="revenue-save-btn"
+                        [loading]="savingRevenueTracking" (click)="saveRevenueTracking()"></button>
                 </div>
 
                 <!-- Voucher Details (moved from Basic Details) -->
@@ -2188,6 +2195,9 @@
                             </span>
                         </div>
 
+                        <!-- Booked = what approved depreciation runs have charged; it only
+                             changes when a batch run is approved. Projected = an estimate to
+                             today, for reference — it is never saved. -->
                         <div class="summary-grid">
                             <div class="summary-item">
                                 <span class="summary-label">Purchase Cost:</span>
@@ -2195,12 +2205,33 @@
                             </div>
 
                             <div class="summary-item">
-                                <span class="summary-label">Book Value:</span>
+                                <span class="summary-label">Book Value (booked):</span>
+                                <p class="summary-value">
+                                    {{ depreciationResult.bookedBookValue != null ? (depreciationResult.bookedBookValue | number:'1.2-2') : '—' }}
+                                </p>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Accumulated Depreciation (booked):</span>
+                                <p class="summary-value">
+                                    {{ depreciationResult.bookedAccumulatedDepreciation != null ? (depreciationResult.bookedAccumulatedDepreciation | number:'1.2-2') : '—' }}
+                                </p>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Booked Up To:</span>
+                                <p class="summary-value">
+                                    {{ depreciationResult.bookedUpTo ? (depreciationResult.bookedUpTo | date:'dd MMM yyyy') : 'Not yet run' }}
+                                </p>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Book Value (projected to today):</span>
                                 <p class="summary-value">{{ depreciationResult.bookValue | number:'1.2-2' }}</p>
                             </div>
 
                             <div class="summary-item">
-                                <span class="summary-label">Depreciation Till Date:</span>
+                                <span class="summary-label">Depreciation Till Date (projected):</span>
                                 <p class="summary-value">{{ depreciationResult.depreciationTillDate | number:'1.2-2' }}
                                 </p>
                             </div>

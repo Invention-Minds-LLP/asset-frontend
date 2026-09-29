@@ -219,12 +219,46 @@
             <span class="rate-card-label">Target Utilization <i class="pi pi-info-circle info-icon" pTooltip="Targeted utilization percentage for this asset" tooltipPosition="top"></i></span>
             <span class="rate-card-value">{{ formatPct(rateCard.targetUtilizationPct) }}</span>
           </div>
+          <div class="rate-card-item">
+            <span class="rate-card-label">Max Hours/Day <i class="pi pi-info-circle info-icon" pTooltip="Most hours this asset can physically run in a day (8 / 16 / 24)" tooltipPosition="top"></i></span>
+            <span class="rate-card-value">{{ rateCard.maxHoursPerDay ?? '--' }} hrs · {{ rateCard.shiftsPerDay ?? '--' }} shift(s)</span>
+          </div>
+          <div class="rate-card-item">
+            <span class="rate-card-label">Standard Warm-up <i class="pi pi-info-circle info-icon" pTooltip="Start-up time after any stop that counts as planned. Anything longer counts as loss." tooltipPosition="top"></i></span>
+            <span class="rate-card-value">{{ rateCard.standardStartupMinutes ?? 0 }} min</span>
+          </div>
         </div>
       } @else {
         <div class="no-rate-card">
           <i class="pi pi-credit-card"></i>
           <p>No rate card configured for this asset.</p>
           <p-button label="Set Up Rate Card" icon="pi pi-plus" (onClick)="openRateCard()" size="small"></p-button>
+        </div>
+      }
+
+      <!-- Calibration time -->
+      @if (calibrationInfo && (calibrationInfo.estimatedDurationMinutes != null || calibrationInfo.sampleSize > 0)) {
+        <div class="section-header">
+          <span class="section-title"><i class="pi pi-sliders-h"></i> Calibration Time</span>
+          <i class="pi pi-info-circle info-icon" pTooltip="Calibration is planned downtime and is excluded from OEE. Averages come from recorded calibrations." tooltipPosition="top"></i>
+        </div>
+        <div class="rate-card-bar">
+          <div class="rate-card-item">
+            <span class="rate-card-label">Estimated (schedule)</span>
+            <span class="rate-card-value">{{ calibrationInfo.estimatedDurationMinutes != null ? calibrationInfo.estimatedDurationMinutes + ' min' : '--' }}</span>
+          </div>
+          <div class="rate-card-item">
+            <span class="rate-card-label">Average Actual</span>
+            <span class="rate-card-value">{{ calibrationInfo.avgActualDurationMinutes != null ? calibrationInfo.avgActualDurationMinutes + ' min' : '--' }}</span>
+          </div>
+          <div class="rate-card-item">
+            <span class="rate-card-label">Average Warm-up After</span>
+            <span class="rate-card-value">{{ calibrationInfo.avgStartupMinutes != null ? calibrationInfo.avgStartupMinutes + ' min' : '--' }}</span>
+          </div>
+          <div class="rate-card-item">
+            <span class="rate-card-label">Based On</span>
+            <span class="rate-card-value">{{ calibrationInfo.sampleSize }} record(s)</span>
+          </div>
         </div>
       }
 
@@ -340,8 +374,11 @@
           @if (downtimeData?.breakdown?.length) {
             <div class="section-header">
               <span class="section-title"><i class="pi pi-clock"></i> Downtime Analysis</span>
-              <i class="pi pi-info-circle info-icon" pTooltip="Downtime hours grouped by type with percentage distribution" tooltipPosition="top"></i>
+              <i class="pi pi-info-circle info-icon" pTooltip="Downtime hours grouped by type. Planned downtime (calibration, PM, standard warm-up) is excluded from OEE." tooltipPosition="top"></i>
             </div>
+            <p class="downtime-split">
+              Planned {{ downtimeData.plannedDowntimeHours ?? 0 }} hrs (excluded from OEE) · Unplanned {{ downtimeData.unplannedDowntimeHours ?? 0 }} hrs
+            </p>
             <div class="downtime-grid">
               @for (dt of downtimeData.breakdown; track dt.type) {
                 <div class="downtime-row">
@@ -415,7 +452,16 @@
               <td>{{ log.patientsServed ?? '--' }}</td>
               <td style="font-weight: 600;">{{ formatCurrency(log.revenueGenerated ?? log.estimatedRevenue) }}</td>
               <td><span class="score-pill" [class]="getOeeClass(log.oeeScore)">{{ formatPct(log.oeeScore) }}</span></td>
-              <td>{{ log.downtimeHours != null ? (log.downtimeHours + ' hrs') : '--' }}</td>
+              <td>
+                @if (log.plannedDowntimeHours != null || log.unplannedDowntimeHours != null) {
+                  <span [pTooltip]="'Planned ' + (log.plannedDowntimeHours ?? 0) + ' h · Unplanned ' + (log.unplannedDowntimeHours ?? 0) + ' h'" tooltipPosition="top">
+                    {{ log.downtimeHours }} hrs
+                    @if (log.unplannedDowntimeHours > 0) { <small class="downtime-unplanned">({{ log.unplannedDowntimeHours }} unplanned)</small> }
+                  </span>
+                } @else {
+                  {{ log.downtimeHours != null ? (log.downtimeHours + ' hrs') : '--' }}
+                }
+              </td>
               <td>
                 @if (log.status === 'VERIFIED') {
                   <p-tag value="Verified" severity="success"></p-tag>
@@ -484,11 +530,11 @@
         <div class="form-row">
           <div class="form-field">
             <label>Date</label>
-            <p-datepicker [(ngModel)]="logForm.logDate" dateFormat="dd/mm/yy" [showIcon]="true"></p-datepicker>
+            <p-datepicker [(ngModel)]="logForm.logDate" (ngModelChange)="onLogDateChange()" dateFormat="dd/mm/yy" [showIcon]="true"></p-datepicker>
           </div>
           <div class="form-field">
-            <label>Hours Used</label>
-            <p-inputnumber [(ngModel)]="logForm.hoursUsed" [min]="0" [max]="24" [minFractionDigits]="1" placeholder="e.g. 8.5"></p-inputnumber>
+            <label>Hours Used <small>(max {{ maxHoursPerDay }} h/day)</small></label>
+            <p-inputnumber [(ngModel)]="logForm.hoursUsed" [min]="0" [max]="maxHoursPerDay" [minFractionDigits]="1" placeholder="e.g. 8.5"></p-inputnumber>
           </div>
         </div>
 
@@ -528,23 +574,14 @@
           </div>
         </div>
 
-        <!-- Row 5: Downtime -->
+        <!-- Row 5: Downtime (one row per event) -->
         <div class="form-row">
           <div class="form-field">
-            <label>Downtime Hours</label>
-            <p-inputnumber [(ngModel)]="logForm.downtimeHours" [min]="0" [max]="24" [minFractionDigits]="1" placeholder="0.0"></p-inputnumber>
-          </div>
-          <div class="form-field">
-            <label>Downtime Type</label>
-            <p-select [options]="downtimeTypeOptions" [(ngModel)]="logForm.downtimeType" placeholder="Select type..." [showClear]="true"></p-select>
-          </div>
-        </div>
-
-        <!-- Row 6: Downtime Remarks -->
-        <div class="form-row">
-          <div class="form-field">
-            <label>Downtime Remarks</label>
-            <textarea pTextarea [(ngModel)]="logForm.downtimeRemarks" rows="2" placeholder="Describe reason for downtime..."></textarea>
+            <label>Downtime <small>(calibration, warm-up, breakdown…)</small></label>
+            <app-downtime-entries [entries]="logForm.downtimeEntries" [standardStartupMinutes]="standardStartupMinutes"></app-downtime-entries>
+            @if (capacityExceeded) {
+              <small class="capacity-error"><i class="pi pi-exclamation-circle"></i> Hours used + downtime exceeds {{ maxHoursPerDay }} h/day for this asset</small>
+            }
           </div>
         </div>
 
@@ -594,7 +631,7 @@
         <!-- Submit -->
         <div style="margin-top: 0.75rem;">
           <p-button label="Submit Daily Log" icon="pi pi-check" (onClick)="saveLog()"
-            [loading]="savingLog" [disabled]="!logForm.hoursUsed"></p-button>
+            [loading]="savingLog" [disabled]="!logForm.hoursUsed || capacityExceeded"></p-button>
         </div>
       </div>
     } @else {
@@ -655,28 +692,61 @@
 </div>
 
 <!-- ═══════════════════════ RATE CARD DIALOG ═══════════════════════ -->
-<p-dialog header="Rate Card Configuration" [(visible)]="showRateCardDialog" [modal]="true" [style]="{'width': '500px'}">
-  <div class="form-grid">
-    <div class="form-field">
-      <label>Revenue Per Unit (INR)</label>
-      <p-inputnumber [(ngModel)]="rateCardForm.revenuePerUnit" [min]="0" mode="currency" currency="INR" locale="en-IN" placeholder="e.g. 5000"></p-inputnumber>
-    </div>
-    <div class="form-field">
-      <label>Planned Hours Per Day</label>
-      <p-inputnumber [(ngModel)]="rateCardForm.plannedHoursPerDay" [min]="0" [max]="24" [minFractionDigits]="1" placeholder="e.g. 8.0"></p-inputnumber>
-    </div>
-    <div class="form-field">
-      <label>Target OEE (%)</label>
-      <p-inputnumber [(ngModel)]="rateCardForm.targetOee" [min]="0" [max]="100" [minFractionDigits]="1" placeholder="e.g. 85.0"></p-inputnumber>
-    </div>
-    <div class="form-field">
-      <label>Target Utilization (%)</label>
-      <p-inputnumber [(ngModel)]="rateCardForm.targetUtilization" [min]="0" [max]="100" [minFractionDigits]="1" placeholder="e.g. 80.0"></p-inputnumber>
-    </div>
-    <div class="form-field">
-      <label>Cost Per Hour (INR)</label>
-      <p-inputnumber [(ngModel)]="rateCardForm.costPerHour" [min]="0" mode="currency" currency="INR" locale="en-IN" placeholder="e.g. 1000"></p-inputnumber>
-    </div>
+<p-dialog header="Rate Card Configuration" [(visible)]="showRateCardDialog" [modal]="true"
+  [style]="{'width': '600px', 'maxWidth': '95vw'}" styleClass="rate-card-dialog">
+  <div class="rc-form">
+
+    <section class="rc-section">
+      <div class="rc-section-title"><i class="pi pi-indian-rupee"></i> Revenue</div>
+      <div class="rc-grid">
+        <div class="rc-field">
+          <label>Revenue Per Unit (₹)</label>
+          <p-inputnumber [(ngModel)]="rateCardForm.revenuePerUnit" [min]="0" mode="currency" currency="INR" locale="en-IN" placeholder="e.g. 5000"></p-inputnumber>
+        </div>
+      </div>
+    </section>
+
+    <section class="rc-section">
+      <div class="rc-section-title"><i class="pi pi-clock"></i> Capacity</div>
+      <div class="rc-grid">
+        <div class="rc-field">
+          <label>Max Hours / Day <i class="pi pi-info-circle info-icon" pTooltip="Most hours this asset can physically run in a day" tooltipPosition="top"></i></label>
+          <p-select [options]="maxHoursOptions" [(ngModel)]="rateCardForm.maxHoursPerDay" appendTo="body"></p-select>
+        </div>
+        <div class="rc-field">
+          <label>Standard Warm-up (min) <i class="pi pi-info-circle info-icon" pTooltip="Start-up time after any stop (e.g. after calibration) that counts as planned. Longer start-ups count as loss." tooltipPosition="top"></i></label>
+          <p-inputnumber [(ngModel)]="rateCardForm.standardStartupMinutes" [min]="0" [max]="600" suffix=" min" placeholder="e.g. 15"></p-inputnumber>
+        </div>
+        <div class="rc-field">
+          <label>Shifts / Day</label>
+          <p-inputnumber [(ngModel)]="rateCardForm.shiftsPerDay" [min]="1" [max]="3" placeholder="1"></p-inputnumber>
+        </div>
+        <div class="rc-field">
+          <label>Shift Duration</label>
+          <p-inputnumber [(ngModel)]="rateCardForm.shiftDurationHours" [min]="1" [max]="24" [minFractionDigits]="1" suffix=" hrs" placeholder="8.0"></p-inputnumber>
+        </div>
+      </div>
+      <div class="rc-derived">
+        <span class="rc-derived-label">Planned hours / day</span>
+        <span class="rc-derived-value">{{ derivedPlannedHours != null ? (derivedPlannedHours | number: '1.0-2') + ' hrs' : '--' }}</span>
+        <span class="rc-derived-hint">shifts × duration, capped at max</span>
+      </div>
+    </section>
+
+    <section class="rc-section">
+      <div class="rc-section-title"><i class="pi pi-bullseye"></i> Targets</div>
+      <div class="rc-grid">
+        <div class="rc-field">
+          <label>Target OEE</label>
+          <p-inputnumber [(ngModel)]="rateCardForm.targetOeeScore" [min]="0" [max]="100" [minFractionDigits]="1" suffix=" %" placeholder="e.g. 85.0"></p-inputnumber>
+        </div>
+        <div class="rc-field">
+          <label>Target Utilization</label>
+          <p-inputnumber [(ngModel)]="rateCardForm.targetUtilizationPct" [min]="0" [max]="100" [minFractionDigits]="1" suffix=" %" placeholder="e.g. 80.0"></p-inputnumber>
+        </div>
+      </div>
+    </section>
+
   </div>
   <ng-template #footer>
     <p-button label="Cancel" [text]="true" (onClick)="showRateCardDialog = false"></p-button>
@@ -690,11 +760,11 @@
     <div class="form-row">
       <div class="form-field">
         <label>Date</label>
-        <p-datepicker [(ngModel)]="logForm.logDate" dateFormat="dd/mm/yy" [showIcon]="true"></p-datepicker>
+        <p-datepicker [(ngModel)]="logForm.logDate" (ngModelChange)="onLogDateChange()" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"></p-datepicker>
       </div>
       <div class="form-field">
-        <label>Hours Used</label>
-        <p-inputnumber [(ngModel)]="logForm.hoursUsed" [min]="0" [max]="24" [minFractionDigits]="1" placeholder="e.g. 8.5"></p-inputnumber>
+        <label>Hours Used <small>(max {{ maxHoursPerDay }} h/day)</small></label>
+        <p-inputnumber [(ngModel)]="logForm.hoursUsed" [min]="0" [max]="maxHoursPerDay" [minFractionDigits]="1" placeholder="e.g. 8.5"></p-inputnumber>
       </div>
     </div>
     <div class="form-row">
@@ -713,19 +783,16 @@
         <p-inputnumber [(ngModel)]="logForm.revenueGenerated" [min]="0" mode="currency" currency="INR" locale="en-IN"></p-inputnumber>
       </div>
       <div class="form-field">
-        <label>Downtime Hours</label>
-        <p-inputnumber [(ngModel)]="logForm.downtimeHours" [min]="0" [max]="24" [minFractionDigits]="1"></p-inputnumber>
+        <label>Condition After Use</label>
+        <p-select [options]="conditionOptions" [(ngModel)]="logForm.conditionAfterUse" placeholder="Select..." appendTo="body"></p-select>
       </div>
     </div>
-    <div class="form-row">
-      <div class="form-field">
-        <label>Downtime Type</label>
-        <p-select [options]="downtimeTypeOptions" [(ngModel)]="logForm.downtimeType" placeholder="Select..." [showClear]="true"></p-select>
-      </div>
-      <div class="form-field">
-        <label>Condition After Use</label>
-        <p-select [options]="conditionOptions" [(ngModel)]="logForm.conditionAfterUse" placeholder="Select..."></p-select>
-      </div>
+    <div class="form-field">
+      <label>Downtime <small>(calibration, warm-up, breakdown…)</small></label>
+      <app-downtime-entries [entries]="logForm.downtimeEntries" [standardStartupMinutes]="standardStartupMinutes"></app-downtime-entries>
+      @if (capacityExceeded) {
+        <small class="capacity-error"><i class="pi pi-exclamation-circle"></i> Hours used + downtime exceeds {{ maxHoursPerDay }} h/day for this asset</small>
+      }
     </div>
     <div class="form-field">
       <label>Remarks</label>
@@ -734,6 +801,6 @@
   </div>
   <ng-template #footer>
     <p-button label="Cancel" [text]="true" (onClick)="showLogDialog = false"></p-button>
-    <p-button label="Save Log" icon="pi pi-check" (onClick)="saveLog()" [loading]="savingLog" [disabled]="!logForm.hoursUsed"></p-button>
+    <p-button label="Save Log" icon="pi pi-check" (onClick)="saveLog()" [loading]="savingLog" [disabled]="!logForm.hoursUsed || capacityExceeded"></p-button>
   </ng-template>
 </p-dialog>

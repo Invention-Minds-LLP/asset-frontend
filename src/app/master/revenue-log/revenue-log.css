@@ -118,6 +118,32 @@
 .form-field { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; }
 .form-field label { font-size: 0.85rem; font-weight: 500; color: var(--text-color-secondary); }
 .form-field.half { flex: 0 0 48%; }
+/* Flex children default to min-width:auto, so PrimeNG inputs overflowed the dialog */
+.form-field { min-width: 0; }
+.form-field ::ng-deep :is(.p-inputnumber, .p-select, .p-datepicker),
+.form-field ::ng-deep .p-inputnumber-input { width: 100%; }
+
+/* ── Rate card dialog ── */
+::ng-deep .rate-card-dialog .p-dialog-content { overflow-x: hidden; }
+.rc-form { display: flex; flex-direction: column; gap: 1.25rem; }
+.rc-section { display: flex; flex-direction: column; gap: 0.75rem; }
+.rc-section + .rc-section { padding-top: 1.25rem; border-top: 1px solid var(--surface-border); }
+.rc-section-title { display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-color); }
+.rc-section-title .pi { font-size: 0.9rem; color: #00A23D; }
+.rc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem 1rem; }
+.rc-field { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+.rc-field label { font-size: 0.85rem; font-weight: 500; color: var(--text-color-secondary); display: flex; align-items: center; gap: 0.25rem; white-space: nowrap; }
+.rc-field ::ng-deep :is(.p-inputnumber, .p-select),
+.rc-field ::ng-deep .p-inputnumber-input { width: 100%; }
+.rc-derived { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; padding: 0.6rem 0.85rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; }
+.rc-derived-label { font-size: 0.85rem; color: var(--text-color-secondary); }
+.rc-derived-value { font-size: 1rem; font-weight: 700; color: #166534; }
+.rc-derived-hint { font-size: 0.78rem; color: var(--text-color-secondary); margin-left: auto; }
+@media (max-width: 560px) {
+  .rc-grid { grid-template-columns: 1fr; }
+  .rc-field label { white-space: normal; }
+  .rc-derived-hint { margin-left: 0; }
+}
 .calc-preview { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 0.75rem 1rem; margin-top: 0.5rem; }
 .calc-preview-title { font-size: 0.82rem; font-weight: 600; color: #166534; margin-bottom: 0.5rem; }
 .calc-preview-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: #166534; margin-bottom: 0.2rem; }
@@ -176,3 +202,9 @@
   color: #cbd5e1;
   border-color: #3f3f46;
 }
+
+/* ── Downtime / capacity ── */
+.downtime-split { margin: 0 0 0.5rem; font-size: 0.85rem; color: var(--text-color-secondary); }
+.downtime-unplanned { color: #dc2626; margin-left: 0.25rem; }
+.capacity-error { color: #dc2626; display: flex; align-items: center; gap: 0.25rem; margin-top: 0.35rem; }
+.capacity-error .pi { font-size: 0.85rem; }
