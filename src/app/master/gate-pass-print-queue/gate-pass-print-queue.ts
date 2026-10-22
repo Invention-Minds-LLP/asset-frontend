@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -42,6 +43,7 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
   providers: [MessageService]
 })
 export class GatePassPrintQueue implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   toPrintRows: any[] = [];   // cleared, no label yet
   printedRows: any[] = [];   // cleared, label already printed
   loading = false;
@@ -168,7 +170,7 @@ export class GatePassPrintQueue implements OnInit {
     return items.length > 1 ? `${first} +${items.length - 1}` : first;
   }
 
-  printLabel(row: any) {
+  async printLabel(row: any) {
     // The server refuses a label with no transport on it. Ask for it here rather
     // than bouncing the executive off a 400 they can't act on.
     if (this.needsTransport(row)) {
@@ -177,6 +179,7 @@ export class GatePassPrintQueue implements OnInit {
       return;
     }
 
+    if (!(await this.downloadGate.verify(`Gate pass label ${row.gatePassNo} (PDF)`))) return;
     this.gatePassService.downloadLabel(row.id).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);

@@ -762,3 +762,11 @@
   color: var(--text-muted) !important;
   font-size: 0.9rem;
 }
+
+/* ── Download Logs (DPDP) ── */
+.dl-intro { margin: -4px 0 14px; font-size: 0.875rem; opacity: 0.8; }
+.dl-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+.dl-filters input[name="dlSearch"] { flex: 1 1 240px; }
+.dl-filters label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+.dl-muted { opacity: 0.65; }
+.dl-reason { white-space: normal; max-width: 320px; }

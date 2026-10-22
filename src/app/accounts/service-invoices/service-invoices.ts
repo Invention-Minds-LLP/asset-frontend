@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -30,6 +31,7 @@ import { environment } from '../../../environment/environment.prod';
   styleUrl: './service-invoices.css'
 })
 export class ServiceInvoices implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   invoices: any[] = [];
   total = 0;
   loading = false;
@@ -195,6 +197,13 @@ export class ServiceInvoices implements OnInit {
       next: () => { this.msg.add({ severity: 'success', summary: 'Document uploaded' }); this.viewDetail({ id }); this.cdr.detectChanges(); },
       error: (e) => { this.msg.add({ severity: 'error', summary: 'Upload failed', detail: e?.error?.message || 'Failed' }); this.cdr.detectChanges(); }
     });
+  }
+
+  async openInvoiceDocument(inv: any) {
+    const url = this.getFileUrl(inv?.fileUrl);
+    if (!url) return;
+    if (!(await this.downloadGate.verify(`Service invoice ${inv.invoiceNo || '#' + inv.id} document (file)`))) return;
+    window.open(url, '_blank', 'noopener');
   }
 
   getFileUrl(url: string | null): string | null {

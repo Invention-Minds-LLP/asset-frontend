@@ -47,6 +47,11 @@
           <i class="pi pi-database"></i>
           Master Data
         </button>
+
+        <button *ngIf="canSee('downloads')" class="nav-item" [class.active]="activeSection==='downloads'" (click)="setSection('downloads')">
+          <i class="pi pi-download"></i>
+          Download Logs
+        </button>
       </nav>
     </aside>
 
@@ -388,7 +393,8 @@
                     <th>Username</th>
                     <th style="width: 120px;">Role</th>
                     <th style="width: 200px;">Last Login</th>
-                    <th style="width: 140px; text-align:center;">Actions</th>
+                    <th style="width: 130px;">2FA</th>
+                    <th style="width: 170px; text-align:center;">Actions</th>
                   </tr>
                 </ng-template>
 
@@ -399,9 +405,17 @@
                     <td><span class="cell-name">{{ row.username }}</span></td>
                     <td><span class="role-pill" [class]="'role-' + (row.role || '').toLowerCase()">{{ row.role }}</span></td>
                     <td>{{ row.lastLogin ? (row.lastLogin | date:'medium') : '—' }}</td>
+                    <td>
+                      <p-tag *ngIf="!row.mfaRequired" value="Exempt" severity="secondary"></p-tag>
+                      <p-tag *ngIf="row.mfaRequired && row.mfaEnrolled" value="Enabled" severity="success"></p-tag>
+                      <p-tag *ngIf="row.mfaRequired && !row.mfaEnrolled" value="Pending setup" severity="warn"></p-tag>
+                    </td>
                     <td style="text-align:center;">
                       <button pButton icon="pi pi-pencil" class="row-btn edit"
                               pTooltip="Edit" tooltipPosition="top" (click)="editUser(row)"></button>
+                      <button *ngIf="isUserAdmin && row.mfaEnrolled" pButton icon="pi pi-mobile" class="row-btn edit"
+                              pTooltip="Reset Google Authenticator" tooltipPosition="top"
+                              (click)="confirmResetMfa($event, row)"></button>
                       <button pButton icon="pi pi-trash" class="row-btn delete"
                               pTooltip="Delete" tooltipPosition="top" (click)="deleteUser(row.id)"></button>
                     </td>
@@ -410,7 +424,7 @@
 
                 <ng-template pTemplate="emptymessage">
                   <tr>
-                    <td colspan="6" class="empty-msg">
+                    <td colspan="7" class="empty-msg">
                       <i class="pi pi-id-card" style="font-size:1.8rem;color:#cbd5e1;display:block;margin-bottom:8px;"></i>
                       No users found
                     </td>
@@ -420,6 +434,55 @@
             </div>
           </div>
         </ng-container>
+        <!-- DOWNLOAD LOGS (DPDP) -->
+        <ng-container *ngIf="activeSection==='downloads'">
+          <h2 class="page-title">Download Logs</h2>
+          <p class="dl-intro">Every download, export and print, with who did it and why. Verified by email OTP and captcha.</p>
+
+          <form class="dl-filters" (ngSubmit)="loadDownloadLogs(1)">
+            <input pInputText name="dlSearch" [(ngModel)]="downloadLogsSearch" placeholder="Search employee, file or reason" />
+            <label>From <input pInputText type="date" name="dlFrom" [(ngModel)]="downloadLogsFrom" /></label>
+            <label>To <input pInputText type="date" name="dlTo" [(ngModel)]="downloadLogsTo" /></label>
+            <button pButton type="submit" icon="pi pi-search" label="Search"></button>
+          </form>
+
+          <div class="table-card">
+            <p-table [value]="downloadLogs" [loading]="downloadLogsLoading" [lazy]="true" [paginator]="true"
+              [rows]="downloadLogsPageSize" [totalRecords]="downloadLogsTotal"
+              [first]="(downloadLogsPage - 1) * downloadLogsPageSize" (onLazyLoad)="onDownloadLogsPage($event)"
+              [scrollable]="true" scrollHeight="520px" [rowHover]="true" [stripedRows]="true" styleClass="settings-table">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width: 170px;">When</th>
+                  <th style="width: 190px;">Employee</th>
+                  <th style="width: 110px;">Role</th>
+                  <th>What</th>
+                  <th>Reason</th>
+                  <th style="width: 130px;">IP</th>
+                  <th style="width: 110px;">Served</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-r>
+                <tr>
+                  <td>{{ r.createdAt | date:'medium' }}</td>
+                  <td><span class="cell-id">{{ r.employeeID }}</span><br /><small>{{ r.name }}</small></td>
+                  <td><span class="role-pill" [class]="'role-' + (r.role || '').toLowerCase()">{{ r.role }}</span></td>
+                  <td>{{ r.label }}<br /><small class="dl-muted">{{ r.page }}</small></td>
+                  <td class="dl-reason">{{ r.reason }}</td>
+                  <td>{{ r.ipAddress || '—' }}</td>
+                  <td>
+                    <p-tag *ngIf="r.servedAt" value="Server file" severity="success"></p-tag>
+                    <p-tag *ngIf="!r.servedAt" value="In-browser" severity="secondary"></p-tag>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr><td colspan="7" class="empty-msg">No downloads recorded</td></tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </ng-container>
+
         <!-- MASTER DATA -->
         <ng-container *ngIf="activeSection==='master'">
           <h2 class="page-title">Master Data</h2>

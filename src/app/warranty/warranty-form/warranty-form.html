@@ -286,7 +286,9 @@
                         <label class="field-label">Upload Contract Document (PDF/Image)</label>
                         <input class="file-input" type="file" (change)="onContractFileChange($event)" />
                         <small class="help-text" *ngIf="contractForm.document">
-                            Uploaded: <a [href]="contractForm.document" target="_blank">View Document</a>
+                            Uploaded: <a role="button" tabindex="0" style="cursor: pointer"
+                                (click)="openUploadedFile(contractForm.document, 'Service contract ' + (contractForm.contractNumber || '') + ' document (file)')"
+                                (keydown.enter)="openUploadedFile(contractForm.document, 'Service contract ' + (contractForm.contractNumber || '') + ' document (file)')">View Document</a>
                         </small>
                     </div>
                 </div>
@@ -591,7 +593,9 @@
                             </td>
                             <td class="ellipsis">{{ h.notes || '-' }}</td>
                             <td>
-                                <a *ngIf="h.serviceReport" [href]="h.serviceReport" target="_blank">Download</a>
+                                <a *ngIf="h.serviceReport" role="button" tabindex="0" style="cursor: pointer"
+                                    (click)="openUploadedFile(h.serviceReport, 'Service visit report (file)')"
+                                    (keydown.enter)="openUploadedFile(h.serviceReport, 'Service visit report (file)')">Download</a>
                                 <span *ngIf="!h.serviceReport">-</span>
                             </td>
                         </tr>

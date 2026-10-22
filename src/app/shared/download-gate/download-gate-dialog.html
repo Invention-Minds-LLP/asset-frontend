@@ -1,0 +1,105 @@
+<p-dialog
+  [visible]="visible()"
+  [modal]="true"
+  [closable]="true"
+  [closeOnEscape]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '400px', maxWidth: 'calc(100vw - 32px)' }"
+  (onHide)="cancel()"
+  styleClass="dgate">
+  <ng-template pTemplate="header">
+    <span class="dgate__title"><i class="pi pi-shield"></i> Verify to download</span>
+  </ng-template>
+
+  <p class="dgate__line">
+    You are downloading <b>{{ label() }}</b>. Every download is recorded with your name and reason.
+  </p>
+
+  @if (phase() === 'otp') {
+    <p class="dgate__step">
+      Step 1 of 2 · Email code <span class="dgate__muted">(unlocks downloads for 60 minutes)</span>
+    </p>
+    @if (sending()) {
+      <p class="dgate__muted"><i class="pi pi-spin pi-spinner"></i> Sending code…</p>
+    } @else if (sentTo()) {
+      <p class="dgate__muted">Code sent to <b>{{ sentTo() }}</b></p>
+    }
+    @if (error()) { <p class="dgate__error">{{ error() }}</p> }
+
+    <form (ngSubmit)="submitOtp()">
+      <input
+        pInputText
+        class="dgate__code"
+        name="otp"
+        [ngModel]="otp()"
+        (ngModelChange)="otp.set($event)"
+        inputmode="numeric"
+        maxlength="6"
+        autocomplete="one-time-code"
+        placeholder="6-digit code"
+        [disabled]="!sentTo()"
+        required />
+      <div class="dgate__actions">
+        <button type="button" class="dgate__link" [disabled]="sending()" (click)="sendOtp()">Resend code</button>
+        <span class="dgate__spacer"></span>
+        <p-button type="button" label="Cancel" severity="secondary" [text]="true" (onClick)="cancel()" />
+        <p-button
+          type="submit"
+          [label]="busy() ? 'Verifying…' : 'Next'"
+          [disabled]="busy() || !sentTo() || otp().trim().length !== 6" />
+      </div>
+    </form>
+  } @else {
+    <p class="dgate__step">{{ needsOtp() ? 'Step 2 of 2 · ' : '' }}Picture check and reason</p>
+
+    <div class="dgate__prompt">
+      <span>{{ captcha()?.prompt || 'Loading picture…' }}</span>
+      <button type="button" class="dgate__icon" title="New picture" aria-label="New picture" (click)="loadCaptcha()">
+        <i class="pi pi-refresh"></i>
+      </button>
+    </div>
+
+    <div class="dgate__grid">
+      @if (captcha(); as c) {
+        <img [src]="c.image" alt="" width="304" height="304" draggable="false" />
+        <div class="dgate__tiles" [style.grid-template-columns]="'repeat(' + c.grid + ', 1fr)'">
+          @for (t of tiles(); track t) {
+            <button
+              type="button"
+              class="dgate__tile"
+              [class.dgate__tile--on]="selected().has(t)"
+              (click)="toggleTile(t)"
+              [attr.aria-pressed]="selected().has(t)"
+              [attr.aria-label]="'Tile ' + (t + 1)">
+              @if (selected().has(t)) { <i class="pi pi-check"></i> }
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="dgate__grid-ph"><i class="pi pi-spin pi-spinner"></i></div>
+      }
+    </div>
+
+    @if (error()) { <p class="dgate__error">{{ error() }}</p> }
+
+    <form (ngSubmit)="submitAuthorize()">
+      <label class="dgate__label" for="dgate-reason">Reason for this download *</label>
+      <textarea
+        id="dgate-reason"
+        class="dgate__textarea"
+        name="reason"
+        [ngModel]="reason()"
+        (ngModelChange)="reason.set($event)"
+        rows="3"
+        maxlength="500"
+        placeholder="e.g. Quarterly asset register for statutory audit"
+        required></textarea>
+      <div class="dgate__actions">
+        <span class="dgate__spacer"></span>
+        <p-button type="button" label="Cancel" severity="secondary" [text]="true" (onClick)="cancel()" />
+        <p-button type="submit" [label]="busy() ? 'Checking…' : 'Download'" [disabled]="!canAuthorize()" />
+      </div>
+    </form>
+  }
+</p-dialog>

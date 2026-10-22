@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -21,6 +22,7 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
   providers: [MessageService]
 })
 export class InsuranceManagement implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   activeTab = 0;
 
   // Stats
@@ -132,14 +134,16 @@ export class InsuranceManagement implements OnInit {
     });
   }
 
-  exportPoliciesCsv() {
+  async exportPoliciesCsv() {
+    if (!(await this.downloadGate.verify('Insurance policies (CSV)'))) return;
     this.insuranceService.exportPoliciesCsv().subscribe({
       next: (blob) => this.downloadBlob(blob, 'insurance-policies.csv'),
       error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Export failed' })
     });
   }
 
-  exportClaimsCsv() {
+  async exportClaimsCsv() {
+    if (!(await this.downloadGate.verify('Insurance claims (CSV)'))) return;
     this.insuranceService.exportClaimsCsv().subscribe({
       next: (blob) => this.downloadBlob(blob, 'insurance-claims.csv'),
       error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Export failed' })

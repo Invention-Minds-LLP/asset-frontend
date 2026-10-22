@@ -34,6 +34,17 @@ export class Auth {
     return this.http.post<any>(`${this.apiUrl}/login`, { employeeId, password }, { withCredentials: true });
   }
 
+  // Second login step (DPDP Google Authenticator). Same response shape as a
+  // successful login(): { token, user }.
+  challengeMfa(challengeToken: string, code: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login/challenge/mfa`, { challengeToken, code }, { withCredentials: true });
+  }
+
+  // Admin: clear a user's authenticator so they re-enrol at next login.
+  resetMfa(userId: number): Observable<any> {
+    return this.http.put<any>(`${this.base}/${userId}/reset-mfa`, {});
+  }
+
   isLoggedIn(): boolean {
     return !!this.accessToken;
   }
@@ -80,6 +91,8 @@ export class Auth {
   clearSession() {
     this.accessToken = null;
     localStorage.clear();
+    // The 60-min download grant must not survive into another user's session.
+    try { sessionStorage.removeItem('downloadGrant'); } catch {}
   }
 
   logout() {

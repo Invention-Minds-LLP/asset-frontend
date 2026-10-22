@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -30,6 +31,7 @@ import { BranchFeatures } from '../../services/branch-features/branch-features';
   providers: [MessageService]
 })
 export class Dashboard implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   loading = false;
   stats: any = {};
   branchId: number | null = null;
@@ -217,11 +219,13 @@ export class Dashboard implements OnInit {
 
   // ── CSV Export ──
 
-  exportTableToCsv(data: any[], columns: { field: string; header: string }[], filename: string) {
+  async exportTableToCsv(data: any[], columns: { field: string; header: string }[], filename: string) {
     if (!data.length) {
       this.toast('warn', 'No data to export');
       return;
     }
+    const label = filename.replace(/_+/g, ' ').trim().replace(/^\w/, c => c.toUpperCase()) || 'Dashboard table';
+    if (!(await this.downloadGate.verify(`${label} (CSV)`))) return;
     const headers = columns.map(c => c.header).join(',');
     const rows = data.map(row => columns.map(c => {
       const val = row[c.field] ?? '';

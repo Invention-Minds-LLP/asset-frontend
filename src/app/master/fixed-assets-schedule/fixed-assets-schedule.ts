@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -19,10 +20,14 @@ import { Branches } from '../../services/branches/branches';
   providers: [MessageService]
 })
 export class FixedAssetsSchedule implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   rows: any[] = [];
   grandTotal: any = null;
   loading = false;
   fyLabel = '';
+  // Set when the year is finalized — its figures come from the frozen
+  // year-end snapshot and will not change.
+  finalizedAt: string | null = null;
 
   selectedYear: number = new Date().getMonth() >= 3 ? new Date().getFullYear() : new Date().getFullYear() - 1;
   yearOptions: { label: string; value: number }[] = [];
@@ -100,6 +105,7 @@ export class FixedAssetsSchedule implements OnInit {
           this.rows = res.rows || [];
           this.grandTotal = res.grandTotal || null;
           this.fyLabel = res.fyLabel || '';
+          this.finalizedAt = res.finalized ? (res.finalizedAt || '') : null;
           this.loading = false;
           this.cdr.detectChanges();
         });
@@ -114,7 +120,8 @@ export class FixedAssetsSchedule implements OnInit {
     });
   }
 
-  exportExcel() {
+  async exportExcel() {
+    if (!(await this.downloadGate.verify(`Fixed assets schedule FY ${this.selectedYear}-${String(this.selectedYear + 1).slice(2)} (Excel)`))) return;
     this.reportsService.exportReport('fixed-assets-schedule', 'excel', this.withBranch({ fiscalYear: this.selectedYear })).subscribe({
       next: (blob: Blob) => {
         const file = new Blob([blob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -137,7 +144,8 @@ export class FixedAssetsSchedule implements OnInit {
    * followed by a subtotal, with a grand total at the bottom (Layout A).
    * The summary "Export Excel" button stays available for the rolled-up view.
    */
-  exportCombinedExcel() {
+  async exportCombinedExcel() {
+    if (!(await this.downloadGate.verify(`Fixed assets schedule with asset breakdown FY ${this.selectedYear}-${String(this.selectedYear + 1).slice(2)} (Excel)`))) return;
     this.reportsService.exportReport('fixed-assets-schedule', 'combined', this.withBranch({ fiscalYear: this.selectedYear })).subscribe({
       next: (blob: Blob) => {
         const file = new Blob([blob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -161,11 +169,12 @@ export class FixedAssetsSchedule implements OnInit {
   }
 
   /** Download the per-category asset breakdown as an Excel file. */
-  exportCategoryDetailExcel() {
+  async exportCategoryDetailExcel() {
     if (!this.detailRows.length) {
       this.messageService.add({ severity: 'warn', summary: 'Nothing to export', detail: 'No assets in this category' });
       return;
     }
+    if (!(await this.downloadGate.verify(`Asset breakdown ${this.detailCategory} (Excel)`))) return;
     this.reportsService.exportReport(
       'fixed-assets-schedule/category-detail',
       'excel',
@@ -189,11 +198,12 @@ export class FixedAssetsSchedule implements OnInit {
   }
 
   /** Print the per-category asset breakdown as a clean standalone document. */
-  printCategoryDetail() {
+  async printCategoryDetail() {
     if (!this.detailRows.length) {
       this.messageService.add({ severity: 'warn', summary: 'Nothing to print', detail: 'No assets in this category' });
       return;
     }
+    if (!(await this.downloadGate.verify(`Asset breakdown ${this.detailCategory} (Print)`))) return;
 
     const esc = (s: any) => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
     const t = this.detailTotals;

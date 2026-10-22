@@ -1,4 +1,5 @@
-import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -25,6 +26,7 @@ import { printQrLabels } from '../../assets/qr-label-print';
   providers: [MessageService]
 })
 export class QuickActionsPage implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   // ── Shared asset list ────────────────────────────────────────────────────
   assetOptions: { label: string; value: number }[] = [];
   assetsLoading = false;
@@ -185,9 +187,10 @@ export class QuickActionsPage implements OnInit {
    * Print the QR grid in a fresh window — captures each rendered canvas as an image
    * and lays them out cleanly with asset ID + name labels, no host-page chrome.
    */
-  printQR(): void {
+  async printQR(): Promise<void> {
     const cards = Array.from(document.querySelectorAll('#qr-print-area .qr-card')) as HTMLElement[];
     if (cards.length === 0) return;
+    if (!(await this.downloadGate.verify(`QR codes for ${cards.length} asset(s) (Print)`))) return;
 
     // QR only — no asset code/name text. The QR alone carries the asset identity.
     const tiles = cards.map(card => {
@@ -227,9 +230,10 @@ export class QuickActionsPage implements OnInit {
    * Reuses the already-rendered grid canvases; qrData already includes
    * every sub-asset of the selected assets (expanded server-side).
    */
-  printLabels(): void {
+  async printLabels(): Promise<void> {
     const cards = Array.from(document.querySelectorAll('#qr-print-area .qr-card')) as HTMLElement[];
     if (cards.length === 0) return;
+    if (!(await this.downloadGate.verify(`QR labels for ${cards.length} asset(s) (Print)`))) return;
 
     const tiles = cards.map(card => {
       const canvas = card.querySelector('canvas') as HTMLCanvasElement | null;

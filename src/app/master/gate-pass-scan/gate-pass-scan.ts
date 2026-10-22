@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -37,6 +38,7 @@ import { GatePassService } from '../../services/gate-pass/gate-pass';
   providers: [MessageService]
 })
 export class GatePassScan implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   lookupNo = '';
   pass: any = null;
   loading = false;
@@ -173,8 +175,9 @@ export class GatePassScan implements OnInit {
     return it.asset?.assetName || it.description || makeModel || '—';
   }
 
-  downloadPdf() {
+  async downloadPdf() {
     if (!this.pass) return;
+    if (!(await this.downloadGate.verify(`Gate pass ${this.pass.gatePassNo} (PDF)`))) return;
     this.gatePassService.downloadPdf(this.pass.id).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);

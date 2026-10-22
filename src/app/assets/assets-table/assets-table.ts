@@ -1,4 +1,5 @@
-import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -44,6 +45,7 @@ type FilterField = string;
 })
 
 export class AssetsTable implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   darkMode = false;
 
   // Permission flags — driven by getMyAccess → assets module sub-items
@@ -731,8 +733,9 @@ export class AssetsTable implements OnInit {
     });
   }
 
-  exportCSV() {
+  async exportCSV() {
     console.log("clicked");
+    if (!(await this.downloadGate.verify('Asset register (CSV)'))) return;
     this.assetService.exportCsv().subscribe({
       next: (blob) => { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'assets.csv'; a.click(); URL.revokeObjectURL(url); },
       error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Export failed' })

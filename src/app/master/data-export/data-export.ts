@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -36,6 +37,7 @@ interface ExportGroup {
   styleUrls: ['./data-export.css'],
 })
 export class DataExport implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   // ── Shared filters ────────────────────────────────────────────────────────
   startDate = '';
   endDate   = '';
@@ -295,8 +297,9 @@ export class DataExport implements OnInit {
     return p;
   }
 
-  export(item: ExportItem): void {
+  async export(item: ExportItem): Promise<void> {
     if (this.loading[item.report]) return;
+    if (!(await this.downloadGate.verify(`${item.label} (Excel)`))) return;
     this.loading[item.report] = true;
     delete this.errorMsg[item.report];
 

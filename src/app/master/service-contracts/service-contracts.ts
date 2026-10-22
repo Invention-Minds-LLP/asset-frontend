@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -27,6 +28,7 @@ import { TooltipModule } from 'primeng/tooltip';
   providers: [MessageService]
 })
 export class ServiceContracts implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   userRole = localStorage.getItem('role') || '';
 
   isRole(...roles: string[]): boolean { return roles.includes(this.userRole); }
@@ -251,7 +253,8 @@ export class ServiceContracts implements OnInit {
     });
   }
 
-  exportCsv() {
+  async exportCsv() {
+    if (!(await this.downloadGate.verify('Service contracts (CSV)'))) return;
     this.scService.exportCsv().subscribe({
       next: (blob) => { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'service-contracts.csv'; a.click(); URL.revokeObjectURL(url); },
       error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Export failed' })

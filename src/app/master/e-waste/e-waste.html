@@ -141,7 +141,8 @@
           <span>Recycler-Issued Certificate</span>
         </div>
         <div class="cert-upload-actions">
-          <a *ngIf="recyclerCertUrl" [href]="recyclerCertUrl" target="_blank" class="cert-view-link">
+          <a *ngIf="recyclerCertUrl" role="button" tabindex="0" class="cert-view-link" style="cursor: pointer"
+             (click)="openRecyclerCert()" (keydown.enter)="openRecyclerCert()">
             <i class="pi pi-eye"></i> View Certificate
           </a>
           <label class="cert-upload-btn" [class.loading]="certUploading">

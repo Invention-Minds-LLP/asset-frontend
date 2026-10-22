@@ -1,0 +1,83 @@
+/* Layout, table and dialog styles come from depreciation-audit.css (see styleUrls). */
+
+.fy-range {
+  font-size: 0.72rem;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.sel-count {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.apply-field { justify-content: flex-end; }
+.check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem !important;
+  color: var(--text-color, #1f2937) !important;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-color-secondary, #6b7280);
+  margin: 0.5rem 0 0;
+}
+
+.review-actions {
+  margin-top: 0.75rem;
+  align-items: center;
+}
+
+.issues {
+  border: 1px solid #fcd34d;
+  background: #fffbeb;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  margin: 0.9rem 0;
+}
+.issues-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #b45309;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.issues ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.2rem;
+  font-size: 0.82rem;
+  color: #92400e;
+}
+
+.reason-box {
+  font-size: 0.86rem;
+  background: var(--surface-50, #f8fafc);
+  border: 1px solid var(--surface-border, #e5e7eb);
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
+  margin: 0 0 0.8rem;
+}
+
+.gl-warn { color: #d97706; font-weight: 600; }
+
+/* Assets that can't be picked right now (depreciation already run, pending, …). */
+.row-blocked td { opacity: 0.55; }
+.blocked-note {
+  display: block;
+  font-size: 0.72rem;
+  color: #b45309;
+  margin-top: 0.15rem;
+}
+:host ::ng-deep .gl-retry { margin: 0 0 0.8rem; }
+.muted-dash { color: var(--text-color-secondary, #9ca3af); }
+
+.consequence {
+  margin: 0 0 0.75rem;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}

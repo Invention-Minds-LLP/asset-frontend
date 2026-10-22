@@ -7,6 +7,11 @@
       @if (fyLabel) {
         <span class="fy-badge">{{ fyLabel }}</span>
       }
+      @if (finalizedAt !== null) {
+        <span class="fy-final-badge" title="This year is finalized. Figures are frozen and will not change.">
+          <i class="pi pi-lock"></i> Finalized{{ finalizedAt ? ' · ' + (finalizedAt | date:'dd MMM yyyy') : '' }}
+        </span>
+      }
     </div>
     <div class="header-actions">
       <p-select [options]="branchOptions" optionLabel="name" optionValue="id" [(ngModel)]="branchId"

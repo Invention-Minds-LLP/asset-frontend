@@ -16,10 +16,14 @@ import { NotificationsService } from './services/notifications/notifications';
 import { Auth } from './services/auth/auth';
 import { TrialBanner } from './shared/trial-banner/trial-banner';
 import { environment } from '../environment/environment.prod';
+import { NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { DownloadGateDialog } from './shared/download-gate/download-gate-dialog';
+import { ScreenProtectionService } from './shared/screen-protection/screen-protection.service';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule, InputSwitchModule, Sidebar, RouterOutlet, ToastModule, BadgeModule, OverlayPanelModule, ButtonModule, ConfirmDialogModule, TrialBanner],
+  imports: [CommonModule, FormsModule, InputSwitchModule, Sidebar, RouterOutlet, ToastModule, BadgeModule, OverlayPanelModule, ButtonModule, ConfirmDialogModule, TrialBanner, DownloadGateDialog],
   templateUrl: './app.html',
   styleUrl: './app.css',
   standalone: true,
@@ -35,7 +39,15 @@ export class App implements OnInit, OnDestroy {
     private confirmationService: ConfirmationService,
     private location: Location,
     private auth: Auth,
-  ) {}
+    private screenProtection: ScreenProtectionService,
+  ) {
+    // DPDP: no copy / no screenshots, app-wide. Login/logout change the viewer,
+    // so the watermark is re-checked on every navigation.
+    this.screenProtection.start();
+    this.router.events
+      .pipe(filter((e) => e instanceof NavigationEnd))
+      .subscribe(() => this.screenProtection.refreshWatermark(this.auth.isLoggedIn()));
+  }
 
   goBack() {
     this.location.back();

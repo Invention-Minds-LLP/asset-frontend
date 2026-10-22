@@ -28,7 +28,8 @@ import { Auth } from '../../services/auth/auth';
 import { TabViewModule } from 'primeng/tabview';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
-type SettingsSection = 'profile' | 'reset' | 'user' | 'employee' | 'table' | 'master';
+import { DownloadGateService, DownloadLogRow } from '../../shared/download-gate/download-gate.service';
+type SettingsSection = 'profile' | 'reset' | 'user' | 'employee' | 'table' | 'master' | 'downloads';
 type ThemeMode = 'light' | 'dark';
 
 
@@ -73,7 +74,74 @@ export class Settings {
   visibleSections = new Set<SettingsSection>(['profile', 'reset', 'user', 'employee', 'table', 'master']);
 
   canSee(section: SettingsSection): boolean {
+    // DPDP download audit + 2FA reset mirror the server guard (ADMIN / CEO_COO).
+    if (section === 'downloads') return this.isUserAdmin;
     return this.visibleSections.has(section);
+  }
+
+  readonly isUserAdmin = ['ADMIN', 'CEO_COO'].includes(
+    ((typeof window !== 'undefined' && localStorage.getItem('role')) || '').toUpperCase()
+  );
+
+  // ===== Download Logs (DPDP) =====
+  downloadLogs: DownloadLogRow[] = [];
+  downloadLogsTotal = 0;
+  downloadLogsPage = 1;
+  readonly downloadLogsPageSize = 25;
+  downloadLogsLoading = false;
+  downloadLogsSearch = '';
+  downloadLogsFrom = '';
+  downloadLogsTo = '';
+
+  loadDownloadLogs(page = 1) {
+    this.downloadLogsLoading = true;
+    this.downloadGate
+      .getLogs({
+        page,
+        pageSize: this.downloadLogsPageSize,
+        search: this.downloadLogsSearch.trim() || undefined,
+        from: this.downloadLogsFrom || undefined,
+        to: this.downloadLogsTo || undefined,
+      })
+      .subscribe({
+        next: (r) => {
+          this.downloadLogs = r.data;
+          this.downloadLogsTotal = r.total;
+          this.downloadLogsPage = r.page;
+          this.downloadLogsLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.downloadLogsLoading = false;
+          this.toastMsg('error', 'Failed', err?.error?.message ?? 'Could not load download logs');
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  onDownloadLogsPage(e: { first?: number | null; rows?: number | null }) {
+    const page = Math.floor((e.first ?? 0) / (e.rows || this.downloadLogsPageSize)) + 1;
+    if (page !== this.downloadLogsPage) this.loadDownloadLogs(page);
+  }
+
+  // ===== Google Authenticator reset (DPDP) =====
+  confirmResetMfa(event: Event, row: any) {
+    this.confirmationService.confirm({
+      target: event.target as EventTarget,
+      message: `Reset Google Authenticator for ${row.employeeID}? They will scan a new QR code at next login.`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Reset',
+      rejectLabel: 'Cancel',
+      accept: () => {
+        this.usersApi.resetMfa(row.id).subscribe({
+          next: (r) => {
+            this.toastMsg('success', '2FA reset', r?.message ?? 'Two-step verification reset');
+            this.loadUsers();
+          },
+          error: (err) => this.toastMsg('error', 'Failed', err?.error?.message ?? 'Could not reset 2FA'),
+        });
+      },
+    });
   }
 
 
@@ -161,6 +229,7 @@ export class Settings {
     private router: Router,
     private moduleAccessService: ModuleAccessService,
     private cdr: ChangeDetectorRef,
+    private downloadGate: DownloadGateService,
   ) {
     // preload (table uses it)
     this.employeeForm = this.fb.group({
@@ -250,6 +319,7 @@ export class Settings {
     this.activeSection = section;
     if (section === 'table') this.loadEmployees();
     if (section === 'master') this.loadMasterData();
+    if (section === 'downloads') this.loadDownloadLogs(1);
   }
 
   // ── Master Data ──────────────────────────────────────────────────────────

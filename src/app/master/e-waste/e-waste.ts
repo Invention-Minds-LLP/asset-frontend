@@ -2,6 +2,7 @@ import {
   Component, OnInit, AfterViewInit, OnDestroy,
   ViewChild, ElementRef, ChangeDetectorRef, inject
 } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -40,6 +41,7 @@ export class EWaste implements OnInit, AfterViewInit, OnDestroy {
   private eWasteService = inject(EWasteService);
   private messageService = inject(MessageService);
   private cdr = inject(ChangeDetectorRef);
+  private downloadGate = inject(DownloadGateService);
 
   userRole = localStorage.getItem('role') || '';
   employeeId = Number(localStorage.getItem('employeeDbId') || 0);
@@ -115,6 +117,14 @@ export class EWaste implements OnInit, AfterViewInit, OnDestroy {
       }
     });
     input.value = ''; // reset so same file can be re-uploaded
+  }
+
+  async openRecyclerCert() {
+    const url = this.recyclerCertUrl;
+    if (!url) return;
+    const assetRef = this.selectedRecord?.asset?.assetId;
+    if (!(await this.downloadGate.verify(`Recycler e-waste certificate${assetRef ? ' ' + assetRef : ''} (file)`))) return;
+    window.open(url, '_blank', 'noopener');
   }
 
   get recyclerCertUrl(): string | null {
@@ -291,7 +301,9 @@ export class EWaste implements OnInit, AfterViewInit, OnDestroy {
     return map[status] ?? 'secondary';
   }
 
-  printCertificate() {
+  async printCertificate() {
+    const assetRef = this.selectedRecord?.asset?.assetId;
+    if (!(await this.downloadGate.verify(`E-waste disposal certificate${assetRef ? ' ' + assetRef : ''} (Print)`))) return;
     this.showCertificate = true;
     this.cdr.detectChanges();
     setTimeout(() => {

@@ -33,4 +33,9 @@ export class ReconciliationService {
   exportUrl(id: number): string {
     return `${BASE}/${id}/export`;
   }
+
+  /** Snapshot CSV as a blob (the DPDP download ticket is attached to blob requests). */
+  exportCsv(id: number): Observable<Blob> {
+    return this.http.get(this.exportUrl(id), { responseType: 'blob' });
+  }
 }

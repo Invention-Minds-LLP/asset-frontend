@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -29,6 +30,7 @@ import { ReconciliationService } from '../../services/reconciliation/reconciliat
   styleUrl: './reconciliation.css',
 })
 export class Reconciliation implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   snapshots: any[] = [];
   total = 0;
   loading = false;
@@ -142,8 +144,19 @@ export class Reconciliation implements OnInit {
     });
   }
 
-  exportSnapshot(row: any) {
-    window.open(this.svc.exportUrl(row.id), '_blank');
+  async exportSnapshot(row: any) {
+    if (!(await this.downloadGate.verify(`Reconciliation snapshot #${row.id}${row.scope ? ' ' + row.scope : ''} (CSV)`))) return;
+    this.svc.exportCsv(row.id).subscribe({
+      next: (blob) => {
+        const asOf = row.asOfDate ? String(row.asOfDate).split('T')[0] : '';
+        const name = ['reconciliation', row.scope, row.scopeId, asOf].filter(v => v != null && v !== '').join('_') || `reconciliation_${row.id}`;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${name}.csv`; a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.msg.add({ severity: 'error', summary: 'Failed', detail: 'Snapshot export failed' }),
+    });
   }
 
   statusSeverity(status: string): 'success' | 'warn' | 'info' | 'danger' | 'secondary' {
