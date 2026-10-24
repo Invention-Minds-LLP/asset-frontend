@@ -501,28 +501,31 @@
 
     <!-- Right: Login Form -->
     <div class="form-panel">
-      <div class="form-card">
+      <div class="form-card" [class.form-card--mfa]="!!challenge()">
         @if (challenge(); as ch) {
         <!-- DPDP: Google Authenticator step (password already verified) -->
-        <div class="form-header">
-          <div class="brand-mark">
-            <img src="./sa_logo_trim.png" alt="Smart Assets" class="brand-logo" />
-          </div>
+        <!-- Compact layout: no logo, QR beside the steps, so the setup step fits
+             a laptop screen without scrolling. -->
+        <div class="form-header form-header--mfa">
           @if (ch.step === 'mfa_setup') {
           <h2>Set up Google Authenticator</h2>
           <p>Your account needs a code from your phone at every sign-in.</p>
           } @else {
+          <div class="mfa-icon"><i class="pi pi-mobile"></i></div>
           <h2>Two-step verification</h2>
           <p>Enter the 6-digit code from Google Authenticator.</p>
           }
         </div>
 
         @if (ch.step === 'mfa_setup' && ch.mfaSetup) {
-        <ol class="mfa-steps">
-          <li>Install <b>Google Authenticator</b> on your phone.</li>
-          <li>Tap <b>+</b> → <b>Scan a QR code</b> and scan this:</li>
-        </ol>
-        <img class="mfa-qr" [src]="ch.mfaSetup.qrDataUrl" alt="Authenticator setup QR code" />
+        <div class="mfa-setup">
+          <img class="mfa-qr" [src]="ch.mfaSetup.qrDataUrl" alt="Authenticator setup QR code" />
+          <ol class="mfa-steps">
+            <li>Install <b>Google Authenticator</b> on your phone.</li>
+            <li>Tap <b>+</b> → <b>Scan a QR code</b>.</li>
+            <li>Scan this code, then enter the 6 digits below.</li>
+          </ol>
+        </div>
         <p class="mfa-manual">Can't scan? Enter this key: <code>{{ ch.mfaSetup.manualKey }}</code></p>
         }
 

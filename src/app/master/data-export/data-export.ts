@@ -206,6 +206,8 @@ export class DataExport implements OnInit {
         { label: 'Asset Master (multi-sheet)', report: 'asset-master',         filename: 'Asset_Master',        needsCategory: true, needsDepartment: true, needsBranch: true, multiSheet: true },
         { label: 'Asset Movement Log',         report: 'asset-movement-log',   filename: 'Asset_Movement_Log',  multiSheet: true },
         { label: 'Physical Audit Records',     report: 'physical-audit',       filename: 'Physical_Audit' },
+        { label: 'QR Not Stickered Assets (to-do list)', report: 'qr-not-stickered', filename: 'QR_Not_Stickered_Assets', needsCategory: true, needsDepartment: true, needsBranch: true, multiSheet: true },
+        { label: 'QR Stickered Assets',        report: 'qr-stickered',         filename: 'QR_Stickered_Assets',  needsCategory: true, needsDepartment: true, needsBranch: true, multiSheet: true },
         { label: 'Asset Utilisation',          report: 'asset-utilisation',    filename: 'Asset_Utilisation' },
         { label: 'Disposal & E-Waste',         report: 'disposal-ewaste',      filename: 'Disposal_EWaste',     multiSheet: true },
       ],

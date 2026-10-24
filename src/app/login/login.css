@@ -763,10 +763,41 @@
   .a7-barrier { transform: rotate(-62deg); }
 }
 
-/* ── Google Authenticator step (DPDP) ── */
-.mfa-steps { margin: 0 0 12px 1.2rem; padding: 0; font-size: 0.875rem; line-height: 1.6; }
-.mfa-qr { display: block; width: 184px; height: 184px; margin: 0 auto 8px; border-radius: 8px; background: #fff; padding: 6px; }
-.mfa-manual { margin: 0 0 16px; font-size: 0.8rem; text-align: center; word-break: break-all; }
-.mfa-manual code { -webkit-user-select: all; user-select: all; font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; }
-.mfa-back { display: block; margin: 12px auto 0; border: 0; background: transparent; cursor: pointer; font-size: 0.85rem; color: inherit; opacity: 0.8; }
-.mfa-back:hover { opacity: 1; text-decoration: underline; }
+/* ── Google Authenticator step (DPDP) ──
+   Kept compact so the setup step (QR + key + code) fits a 768px-tall laptop
+   screen without the page scrolling: no logo, QR beside the steps, tighter
+   panel padding. */
+.form-panel:has(.form-card--mfa) { padding: 1.75rem 2rem; }
+.form-card--mfa { max-width: 380px; }
+.form-header--mfa { margin-bottom: 1rem; }
+.form-header--mfa h2 { font-size: 1.3rem; }
+.mfa-icon {
+  width: 48px; height: 48px; margin: 0 auto 0.75rem; border-radius: 14px;
+  display: grid; place-items: center; background: #eff6ff; color: #2563eb; font-size: 1.4rem;
+}
+.mfa-setup { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+.mfa-qr {
+  flex: none; width: 140px; height: 140px; border-radius: 10px; background: #fff;
+  padding: 4px; border: 1px solid #e2e8f0;
+}
+.mfa-steps { margin: 0 0 0 1.1rem; padding: 0; font-size: 0.82rem; line-height: 1.5; color: #334155; }
+.mfa-steps li + li { margin-top: 4px; }
+.mfa-manual {
+  margin: 0 0 14px; padding: 6px 10px; border-radius: 8px; background: #f8fafc;
+  font-size: 0.75rem; color: #64748b; text-align: center; word-break: break-all;
+}
+.mfa-manual code {
+  -webkit-user-select: all; user-select: all; color: #0f172a;
+  font-family: ui-monospace, Consolas, monospace; font-size: 0.75rem;
+}
+.form-card--mfa .input-group { margin-bottom: 0.6rem; }
+.form-card--mfa .input-group input { letter-spacing: 0.3em; font-weight: 600; }
+.form-card--mfa .input-group input::placeholder { letter-spacing: normal; font-weight: 400; }
+.mfa-back { display: block; margin: 10px auto 0; border: 0; background: transparent; cursor: pointer; font-size: 0.82rem; color: #64748b; }
+.mfa-back:hover { color: #0f172a; text-decoration: underline; }
+
+/* Phones: stack the QR above the steps. */
+@media (max-width: 420px) {
+  .mfa-setup { flex-direction: column; }
+  .mfa-qr { width: 160px; height: 160px; }
+}
