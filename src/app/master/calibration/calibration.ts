@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -53,6 +54,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
   providers: [MessageService, ConfirmationService]
 })
 export class Calibration implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   schedules: any[] = [];
   dueCalibrations: any[] = [];
   templates: any[] = [];
@@ -391,7 +393,8 @@ export class Calibration implements OnInit {
     });
   }
 
-  downloadHistoryPdf(id: number) {
+  async downloadHistoryPdf(id: number) {
+    if (!(await this.downloadGate.verify(`Calibration report #${id} (PDF)`))) return;
     this.calibrationService.getHistoryPdf(id).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);

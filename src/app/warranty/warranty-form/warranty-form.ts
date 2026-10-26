@@ -1,4 +1,5 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule, Validators } from '@angular/forms';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -33,6 +34,7 @@ import { Assets } from '../../services/assets/assets';
    styleUrl: './warranty-form.css'
 })
 export class WarrantyForm {
+  private downloadGate = inject(DownloadGateService);
    @Input() assetId!: string; // ✅ alphanumeric Asset.assetId from parent
 
    isLoading = false;
@@ -595,6 +597,13 @@ export class WarrantyForm {
          complete: () => (this.isLoading = false),
       });
    }
+   /** Open an uploaded file (contract document / service report) behind the DPDP download gate. */
+   async openUploadedFile(url: string | null | undefined, label: string) {
+     if (!url) return;
+     if (!(await this.downloadGate.verify(label.replace(/\s+/g, ' ').trim()))) return;
+     window.open(url, '_blank', 'noopener');
+   }
+
    onContractFileChange(event: any) {
       const file = event.target?.files?.[0];
       this.contractFile = file || null;

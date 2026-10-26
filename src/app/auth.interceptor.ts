@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { Auth } from './services/auth/auth';
+import { currentDownloadGrant, takeDownloadTicket } from './shared/download-gate/download-grant.store';
 
 export const AuthInterceptor: HttpInterceptorFn = (
   req: HttpRequest<any>,
@@ -23,10 +24,24 @@ export const AuthInterceptor: HttpInterceptorFn = (
 
   const token = isExternal ? (localStorage.getItem('authToken') || '') : auth.getToken();
 
+  // DPDP download gate: file responses (blob) carry the 60-min email-OTP grant
+  // and the single-use captcha/reason ticket. The ticket is taken here, so it
+  // rides on exactly one request.
+  const downloadHeaders: Record<string, string> = {};
+  if (req.responseType === 'blob') {
+    const grant = currentDownloadGrant();
+    const ticket = takeDownloadTicket();
+    if (grant) downloadHeaders['X-Download-Grant'] = grant;
+    if (ticket) downloadHeaders['X-Download-Ticket'] = ticket;
+  }
+
   // withCredentials so the httpOnly refresh + CSRF cookies flow to the API.
   const authReq = req.clone({
     withCredentials: true,
-    ...(token && !isAuthEndpoint ? { setHeaders: { Authorization: `Bearer ${token}` } } : {}),
+    setHeaders: {
+      ...downloadHeaders,
+      ...(token && !isAuthEndpoint ? { Authorization: `Bearer ${token}` } : {}),
+    },
   });
 
   return next(authReq).pipe(
@@ -70,9 +85,11 @@ export const AuthInterceptor: HttpInterceptorFn = (
       return auth.refresh().pipe(
         switchMap(() => {
           const fresh = auth.getToken();
+          // Re-send the same download headers: an expired access token never
+          // reaches the gate's single-use stamp, so the ticket is still valid.
           const retried = req.clone({
             withCredentials: true,
-            ...(fresh ? { setHeaders: { Authorization: `Bearer ${fresh}` } } : {}),
+            setHeaders: { ...downloadHeaders, ...(fresh ? { Authorization: `Bearer ${fresh}` } : {}) },
           });
           return next(retried);
         }),

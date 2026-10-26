@@ -1,0 +1,212 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-lock"></i> Financial Year Close</h2>
+    <p-button label="Refresh" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="load()"></p-button>
+  </div>
+
+  <p class="page-sub">
+    Finance submits a completed year; the CFO then finalizes or rejects it. A submitted year is
+    <strong>locked</strong> — no asset, depreciation or accounting entry can be dated into it. On finalization the
+    year's Fixed Assets Schedule is frozen. The CFO can <strong>undo a finalization within 24 hours</strong> if an
+    amendment is needed; <strong>after that it is permanent</strong>.
+  </p>
+
+  <div *ngIf="loading" class="section-loading">
+    <p-progressSpinner [style]="{width: '40px', height: '40px'}" strokeWidth="4"></p-progressSpinner>
+  </div>
+
+  <div *ngIf="!loading && years.length === 0" class="empty-state">
+    <i class="pi pi-inbox"></i>
+    <p class="empty-title">No financial years to show</p>
+    <p class="empty-hint">Years appear here once assets have been recorded.</p>
+  </div>
+
+  <p-table *ngIf="!loading && years.length > 0" [value]="years" styleClass="p-datatable-sm audit-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Financial Year</th>
+        <th>Status</th>
+        <th>Readiness</th>
+        <th>Finance</th>
+        <th>CFO</th>
+        <th style="text-align:right">Depreciation</th>
+        <th style="text-align:right">Net Block (Closing)</th>
+        <th></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-y>
+      <tr [class.row-final]="y.status === 'FINALIZED'">
+        <td>
+          <strong>{{ y.fyLabel }}</strong>
+          <div class="fy-range">{{ y.fyStart | date:'dd MMM yyyy' }} – {{ y.fyEnd | date:'dd MMM yyyy' }}</div>
+        </td>
+        <td>
+          <p-tag [value]="statusLabel(y)" [severity]="statusSeverity(y.status)"
+                 [icon]="y.status === 'FINALIZED' || y.status === 'PENDING_CFO' ? 'pi pi-lock' : ''"></p-tag>
+        </td>
+        <td>
+          <span *ngIf="y.status === 'FINALIZED'" class="ready ok"><i class="pi pi-check"></i> Closed</span>
+          <ng-container *ngIf="y.status !== 'FINALIZED'">
+            <span *ngIf="!y.ended" class="ready muted"><i class="pi pi-clock"></i> Year in progress</span>
+            <span *ngIf="y.ended && y.pendingDrafts > 0" class="ready warn">
+              <i class="pi pi-exclamation-triangle"></i> {{ y.pendingDrafts }} draft depreciation row(s)
+            </span>
+            <span *ngIf="y.ended && y.pendingDrafts === 0" class="ready ok"><i class="pi pi-check"></i> No pending drafts</span>
+          </ng-container>
+        </td>
+        <td>
+          <span class="appr ok" *ngIf="y.submittedAt">
+            <i class="pi pi-send"></i> {{ y.submittedBy?.name || 'Finance' }}
+            <span class="when">{{ y.submittedAt | date:'dd MMM yyyy' }}</span>
+          </span>
+          <span *ngIf="!y.submittedAt" class="muted-dash">—</span>
+        </td>
+        <td>
+          <span class="appr ok" *ngIf="y.status === 'FINALIZED'">
+            <i class="pi pi-check-circle"></i> {{ y.approvedBy?.name || 'CFO' }}
+            <span class="when">{{ y.approvedAt | date:'dd MMM yyyy' }}</span>
+          </span>
+          <div class="undo-window" *ngIf="inUndoWindow(y)">
+            <i class="pi pi-history"></i> Can be undone until {{ y.undoUntil | date:'dd MMM, HH:mm' }}
+          </div>
+          <span class="appr wait" *ngIf="y.status === 'PENDING_CFO'"><i class="pi pi-clock"></i> Pending</span>
+          <span class="reject-note" *ngIf="y.status === 'REJECTED' && !y.undoneAt">
+            Rejected by {{ y.rejectedBy?.name || 'CFO' }}: {{ y.rejectionReason || '—' }}
+          </span>
+          <span class="reject-note" *ngIf="y.status === 'REJECTED' && y.undoneAt">
+            Finalization undone by {{ y.undoneBy?.name || 'CFO' }} on {{ y.undoneAt | date:'dd MMM yyyy' }}: {{ y.undoReason || '—' }}
+          </span>
+          <span *ngIf="y.status === 'OPEN'" class="muted-dash">—</span>
+        </td>
+        <td style="text-align:right">{{ y.totals ? formatCurrency(y.totals.depForYear) : '—' }}</td>
+        <td style="text-align:right">{{ y.totals ? formatCurrency(y.totals.netBlockClosing) : '—' }}</td>
+        <td class="actions">
+          <p-button label="Preview" icon="pi pi-eye" size="small" severity="secondary" [outlined]="true"
+                    (onClick)="openPreview(y)"></p-button>
+          <p-button *ngIf="canSubmit(y)" label="Submit" icon="pi pi-send" size="small"
+                    [disabled]="y.pendingDrafts > 0" (onClick)="openAction('submit', y)"></p-button>
+          <ng-container *ngIf="canCfoAct(y)">
+            <p-button label="Finalize" icon="pi pi-lock" size="small" severity="success" (onClick)="openAction('approve', y)"></p-button>
+            <p-button label="Reject" icon="pi pi-times" size="small" severity="danger" [outlined]="true" (onClick)="openAction('reject', y)"></p-button>
+          </ng-container>
+          <p-button *ngIf="canUndo(y)" label="Undo" icon="pi pi-history" size="small" severity="warn" [outlined]="true"
+                    (onClick)="openAction('undo', y)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Preview — the Fixed Assets Schedule figures that finalization freezes -->
+<p-dialog [header]="'Year Position — ' + (previewData?.fyLabel || '')" [(visible)]="previewVisible" [modal]="true"
+  [style]="{width: '94vw', maxWidth: '1120px'}" [draggable]="false">
+  <div *ngIf="previewLoading" class="section-loading">
+    <p-progressSpinner [style]="{width: '36px', height: '36px'}" strokeWidth="4"></p-progressSpinner>
+  </div>
+
+  <div *ngIf="previewData && !previewLoading">
+    <p *ngIf="previewData.frozen" class="frozen-note">
+      <i class="pi pi-lock"></i> Finalized — these are the frozen figures and will not change.
+    </p>
+
+    <div *ngIf="previewData.issues?.length" class="issues">
+      <div class="issues-title"><i class="pi pi-exclamation-triangle"></i> Not ready to submit</div>
+      <ul><li *ngFor="let i of previewData.issues">{{ i }}</li></ul>
+    </div>
+
+    <div class="detail-summary">
+      <span><span class="ds-label">Closing gross block</span> <span class="ds-value">{{ formatCurrency(previewData.grandTotal?.closingGross) }}</span></span>
+      <span><span class="ds-label">Depreciation for the year</span> <span class="ds-value">{{ formatCurrency(previewData.grandTotal?.periodDep) }}</span></span>
+      <span><span class="ds-label">Closing net block</span> <span class="ds-value">{{ formatCurrency(previewData.grandTotal?.netCurrent) }}</span></span>
+    </div>
+
+    <!-- Where the year's depreciation comes from. Estimated lines have no approved
+         batch run for the year; their schedule estimate is what gets frozen. -->
+    <p class="source-note" *ngIf="previewData.depSourceCounts">
+      Depreciation source:
+      <strong>{{ previewData.depSourceCounts.LOG }}</strong> asset(s) from approved depreciation runs ·
+      <strong [class.warn-text]="previewData.depSourceCounts.COMPUTED > 0">{{ previewData.depSourceCounts.COMPUTED }}</strong> estimated (no approved run for the year) ·
+      <strong>{{ previewData.depSourceCounts.NONE }}</strong> without depreciation
+      <ng-container *ngIf="previewData.depSourceCounts.POOL"> · <strong>{{ previewData.depSourceCounts.POOL }}</strong> pool balance(s)</ng-container>
+    </p>
+
+    <p-table [value]="previewData.rows" styleClass="p-datatable-sm dep-detail-table" [scrollable]="true" scrollHeight="50vh">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="min-width:180px">Category</th>
+          <th style="text-align:right">Opening Gross</th>
+          <th style="text-align:right">Additions</th>
+          <th style="text-align:right">Deletions</th>
+          <th style="text-align:right">Closing Gross</th>
+          <th style="text-align:right">Depreciation</th>
+          <th style="text-align:right">Closing Acc. Dep.</th>
+          <th style="text-align:right">Net Block</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-r>
+        <tr>
+          <td>{{ r.category }}</td>
+          <td style="text-align:right">{{ formatCurrency(r.openingGross) }}</td>
+          <td style="text-align:right">{{ formatCurrency(r.additions) }}</td>
+          <td style="text-align:right">{{ formatCurrency(r.deletions) }}</td>
+          <td style="text-align:right">{{ formatCurrency(r.closingGross) }}</td>
+          <td style="text-align:right; font-weight:600">{{ formatCurrency(r.periodDep) }}</td>
+          <td style="text-align:right">{{ formatCurrency(r.closingDep) }}</td>
+          <td style="text-align:right">{{ formatCurrency(r.netCurrent) }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <tr class="total-row">
+          <td>Total</td>
+          <td style="text-align:right">{{ formatCurrency(previewData.grandTotal?.openingGross) }}</td>
+          <td style="text-align:right">{{ formatCurrency(previewData.grandTotal?.additions) }}</td>
+          <td style="text-align:right">{{ formatCurrency(previewData.grandTotal?.deletions) }}</td>
+          <td style="text-align:right">{{ formatCurrency(previewData.grandTotal?.closingGross) }}</td>
+          <td style="text-align:right">{{ formatCurrency(previewData.grandTotal?.periodDep) }}</td>
+          <td style="text-align:right">{{ formatCurrency(previewData.grandTotal?.closingDep) }}</td>
+          <td style="text-align:right">{{ formatCurrency(previewData.grandTotal?.netCurrent) }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="empty">
+        <tr><td colspan="8" style="text-align:center; padding:1.5rem; color:#999;">No assets in this year.</td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+</p-dialog>
+
+<!-- Submit / Finalize / Reject -->
+<p-dialog [header]="actionTitle" [(visible)]="actionVisible" [modal]="true" [style]="{width: '500px'}" [draggable]="false">
+  <div class="dialog-body">
+    <p *ngIf="actionMode === 'submit'" class="consequence">
+      Submitting <strong>locks {{ actionYear?.fyLabel }}</strong> straight away: no asset or depreciation entry can be
+      dated into it while the CFO reviews. If the CFO rejects it, the year opens again.
+    </p>
+    <p *ngIf="actionMode === 'approve'" class="consequence danger">
+      <i class="pi pi-exclamation-triangle"></i>
+      Finalizing freezes {{ actionYear?.fyLabel }}'s Fixed Assets Schedule. You can <strong>undo it within 24 hours</strong>
+      if an amendment is needed; <strong>after that it is permanent</strong> and cannot be reopened.
+      Review the figures with <em>Preview</em> first.
+    </p>
+    <p *ngIf="actionMode === 'reject'" class="consequence">
+      The year opens again so Finance can correct it and resubmit. Your reason is sent to Finance.
+    </p>
+    <p *ngIf="actionMode === 'undo'" class="consequence">
+      {{ actionYear?.fyLabel }} goes back to Finance to amend and resubmit, and you approve it again. The frozen figures
+      are discarded and taken afresh on re-approval. This is recorded, and your reason is sent to Finance.
+      Undo is available until {{ actionYear?.undoUntil | date:'dd MMM yyyy, HH:mm' }}.
+    </p>
+
+    <label>{{ actionMode === 'reject' ? 'Reason for rejection' : actionMode === 'undo' ? 'What needs amending' : 'Notes (optional)' }}</label>
+    <textarea pTextarea [(ngModel)]="actionText" rows="3" class="w-full"
+      [placeholder]="actionMode === 'reject' ? 'What needs correcting before it can be finalized' : actionMode === 'undo' ? 'e.g. Two computer purchases were dated in the wrong year' : ''"></textarea>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="actionVisible = false" [disabled]="acting"></p-button>
+    <p-button *ngIf="actionMode === 'submit'" label="Submit & Lock" icon="pi pi-send" (onClick)="confirmAction()" [loading]="acting"></p-button>
+    <p-button *ngIf="actionMode === 'approve'" label="Finalize Year" icon="pi pi-lock" severity="success" (onClick)="confirmAction()" [loading]="acting"></p-button>
+    <p-button *ngIf="actionMode === 'reject'" label="Reject" icon="pi pi-times" severity="danger" (onClick)="confirmAction()" [loading]="acting"></p-button>
+    <p-button *ngIf="actionMode === 'undo'" label="Undo Finalization" icon="pi pi-history" severity="warn" (onClick)="confirmAction()" [loading]="acting"></p-button>
+  </ng-template>
+</p-dialog>

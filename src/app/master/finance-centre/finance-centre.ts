@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -28,6 +29,7 @@ import { FinanceService } from '../../services/finance/finance';
   providers: [MessageService]
 })
 export class FinanceCentre implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   userRole = localStorage.getItem('role') || '';
   isFinance = this.userRole === 'FINANCE';
   isCeo = this.userRole === 'CEO_COO';
@@ -336,7 +338,9 @@ export class FinanceCentre implements OnInit {
     });
   }
 
-  downloadBatch(batch: any) {
+  async downloadBatch(batch: any) {
+    const fmt = batch.exportTarget === 'TALLY_PRIME_XML' ? 'Tally XML' : batch.exportTarget === 'EXCEL_GENERIC' ? 'Excel' : 'CSV';
+    if (!(await this.downloadGate.verify(`Finance export batch ${batch.batchNo} (${fmt})`))) return;
     this.financeService.downloadExportBatch(batch.id).subscribe({
       next: (blob) => {
         const ext = batch.exportTarget === 'TALLY_PRIME_XML' ? 'xml' : batch.exportTarget === 'EXCEL_GENERIC' ? 'xlsx' : 'csv';

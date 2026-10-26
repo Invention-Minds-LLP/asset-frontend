@@ -366,3 +366,22 @@ html {
 .hd-list-dialog .dl-empty { text-align: center; padding: 24px; color: var(--text-color-secondary, #64748b); }
 .hd-list-dialog .dl-pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; }
 .hd-list-dialog .dl-page { font-size: .82rem; color: var(--text-color-secondary, #64748b); font-variant-numeric: tabular-nums; }
+
+/* ── DPDP screen protection (shared/screen-protection) ─────────────────────
+   No text selection outside form fields, blur when the window loses focus,
+   and a faint per-user watermark so any capture is traceable. */
+body.sa-protected { -webkit-user-select: none; user-select: none; }
+body.sa-protected input,
+body.sa-protected textarea,
+body.sa-protected select,
+body.sa-protected [contenteditable="true"] { -webkit-user-select: text; user-select: text; }
+body.sa-privacy-blur > *:not(.sa-watermark) { filter: blur(18px); }
+.sa-watermark {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  background-repeat: repeat;
+  opacity: 0.07;
+}
+@media print { .sa-watermark { opacity: 0.15; } }

@@ -41,9 +41,7 @@
         <td class="ellipsis-cell" appOverflowTooltip style="--ellipsis-max-width: 200px;">{{ d.uploadedBy?.name || '—' }}</td>
         <td>{{ d.uploadedAt | date:'mediumDate' }}</td>
         <td>
-          <a *ngIf="d.fileUrl" [href]="d.fileUrl" target="_blank">
-            <p-button icon="pi pi-download" [rounded]="true" [text]="true" size="small" pTooltip="Download" tooltipPosition="top"></p-button>
-          </a>
+          <p-button *ngIf="d.fileUrl" icon="pi pi-download" [rounded]="true" [text]="true" size="small" pTooltip="Download" tooltipPosition="top" (onClick)="openDocument(d)"></p-button>
         </td>
       </tr>
     </ng-template>

@@ -136,6 +136,8 @@ export class Sidebar implements OnInit {
         { label: 'Decision Engine', route: '/decision-engine', icon: 'pi pi-microchip' },
         { label: 'Batch Depreciation', route: '/batch-depreciation', icon: 'pi pi-chart-line' },
         { label: 'Depreciation Audit', route: '/depreciation-audit', icon: 'pi pi-verified' },
+        { label: 'Financial Year Close', route: '/fy-close', icon: 'pi pi-lock' },
+        { label: 'Asset Reclassification', route: '/reclassification', icon: 'pi pi-arrow-right-arrow-left' },
         { label: 'Fixed Assets Schedule', route: '/fixed-assets-schedule', icon: 'pi pi-table' },
         { label: 'Finance Centre', route: '/finance-centre', icon: 'pi pi-building-columns' },
         { label: 'Legacy Migration', route: '/legacy-migration', icon: 'pi pi-history' },

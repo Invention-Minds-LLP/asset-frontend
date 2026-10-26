@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { DialogModule } from 'primeng/dialog';
@@ -52,6 +53,7 @@ const BUCKETS: { key: string; label: string }[] = [
   styleUrls: ['./head-office-dashboard.css'],
 })
 export class HeadOfficeDashboard implements OnInit, OnDestroy {
+  private downloadGate = inject(DownloadGateService);
   authorized = true;
   loading = true;
   error = '';
@@ -292,7 +294,7 @@ export class HeadOfficeDashboard implements OnInit, OnDestroy {
   }
 
   /** Download the (branch-scoped) expiry list as CSV. */
-  exportExpiryCsv(): void {
+  async exportExpiryCsv(): Promise<void> {
     const rows = this.radarItems().map(i => ({
       Type: this.typeLabel(i.type),
       AssetID: i.assetId ?? '',
@@ -304,6 +306,7 @@ export class HeadOfficeDashboard implements OnInit, OnDestroy {
       Reference: i.reference ?? '',
     }));
     if (!rows.length) return;
+    if (!(await this.downloadGate.verify('Expiry radar (CSV)'))) return;
     const headers = Object.keys(rows[0]);
     const esc = (v: any) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
     const csv = [headers.join(','), ...rows.map(r => headers.map(h => esc((r as any)[h])).join(','))].join('\n');

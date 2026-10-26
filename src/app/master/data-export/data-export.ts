@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -36,6 +37,7 @@ interface ExportGroup {
   styleUrls: ['./data-export.css'],
 })
 export class DataExport implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   // ── Shared filters ────────────────────────────────────────────────────────
   startDate = '';
   endDate   = '';
@@ -204,6 +206,8 @@ export class DataExport implements OnInit {
         { label: 'Asset Master (multi-sheet)', report: 'asset-master',         filename: 'Asset_Master',        needsCategory: true, needsDepartment: true, needsBranch: true, multiSheet: true },
         { label: 'Asset Movement Log',         report: 'asset-movement-log',   filename: 'Asset_Movement_Log',  multiSheet: true },
         { label: 'Physical Audit Records',     report: 'physical-audit',       filename: 'Physical_Audit' },
+        { label: 'QR Not Stickered Assets (to-do list)', report: 'qr-not-stickered', filename: 'QR_Not_Stickered_Assets', needsCategory: true, needsDepartment: true, needsBranch: true, multiSheet: true },
+        { label: 'QR Stickered Assets',        report: 'qr-stickered',         filename: 'QR_Stickered_Assets',  needsCategory: true, needsDepartment: true, needsBranch: true, multiSheet: true },
         { label: 'Asset Utilisation',          report: 'asset-utilisation',    filename: 'Asset_Utilisation' },
         { label: 'Disposal & E-Waste',         report: 'disposal-ewaste',      filename: 'Disposal_EWaste',     multiSheet: true },
       ],
@@ -295,8 +299,9 @@ export class DataExport implements OnInit {
     return p;
   }
 
-  export(item: ExportItem): void {
+  async export(item: ExportItem): Promise<void> {
     if (this.loading[item.report]) return;
+    if (!(await this.downloadGate.verify(`${item.label} (Excel)`))) return;
     this.loading[item.report] = true;
     delete this.errorMsg[item.report];
 

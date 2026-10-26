@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
@@ -9,6 +10,7 @@ import { QRCodeComponent } from 'angularx-qrcode';
   styleUrl: './asset-qr.css'
 })
 export class AssetQr {
+  private downloadGate = inject(DownloadGateService);
   @Input() assetId = '';
   @Input() assetName = '';
 
@@ -21,9 +23,10 @@ ngOnChanges(changes: SimpleChanges): void {
   }
 }
 
-  downloadQr(): void {
+  async downloadQr(): Promise<void> {
     const qrCanvas = document.querySelector('canvas') as HTMLCanvasElement | null;
     if (!qrCanvas) return;
+    if (!(await this.downloadGate.verify(`QR code ${this.assetId || 'asset'} (PNG)`))) return;
 
     // QR only — no asset code/name text. The QR alone carries the asset
     // identity; we just pad it with a white quiet zone for reliable scanning.
@@ -50,9 +53,10 @@ ngOnChanges(changes: SimpleChanges): void {
    * an image so the host page's sidebar / form / CSS can't leak through. No text
    * label — the QR alone carries the asset identity.
    */
-  printQr(): void {
+  async printQr(): Promise<void> {
     const canvas = document.querySelector('canvas') as HTMLCanvasElement | null;
     if (!canvas) return;
+    if (!(await this.downloadGate.verify(`QR code ${this.assetId || 'asset'} (Print)`))) return;
 
     const dataUrl = canvas.toDataURL('image/png');
     const win = window.open('', '_blank', 'width=420,height=560');

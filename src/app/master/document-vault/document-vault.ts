@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -21,6 +22,7 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
   providers: [MessageService]
 })
 export class DocumentVault implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   documents: any[] = [];
   loading = false;
   totalRecords = 0;
@@ -85,11 +87,18 @@ export class DocumentVault implements OnInit {
     });
   }
 
-  exportCsv() {
+  async exportCsv() {
+    if (!(await this.downloadGate.verify('Document vault (CSV)'))) return;
     this.docsService.exportCsv().subscribe({
       next: (blob) => { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'documents.csv'; a.click(); URL.revokeObjectURL(url); },
       error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Export failed' })
     });
+  }
+
+  async openDocument(d: any) {
+    if (!d?.fileUrl) return;
+    if (!(await this.downloadGate.verify(`${d.title ? 'Document ' + d.title : 'Vault document'} (file)`))) return;
+    window.open(d.fileUrl, '_blank', 'noopener');
   }
 
   getTypeSeverity(type: string): "success" | "info" | "warn" | "secondary" {

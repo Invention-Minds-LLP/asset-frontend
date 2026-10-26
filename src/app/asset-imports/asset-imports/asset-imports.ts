@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { ImportExcel, ImportResponse, SubAssetRowResult, LocationRowResult, DepartmentRowResult } from '../../services/imports/import-excel';
 import { FormsModule } from '@angular/forms';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
@@ -44,6 +45,8 @@ assetsFile: File | null = null;
   departmentsResponse: ImportResponse | null = null;
   departmentsError = '';
   downloadingDepartmentTemplate = false;
+
+  private downloadGate = inject(DownloadGateService);
 
   constructor(private assetImportService: ImportExcel) {}
 
@@ -116,7 +119,8 @@ assetsFile: File | null = null;
   downloadingTemplate = false;
   downloadingChecklistTemplate = false;
 
-  downloadLegacyTemplate(): void {
+  async downloadLegacyTemplate(): Promise<void> {
+    if (!(await this.downloadGate.verify('Legacy asset import template (Excel)'))) return;
     this.downloadingTemplate = true;
     this.assetImportService.downloadLegacyTemplate().subscribe({
       next: (blob) => {
@@ -134,7 +138,8 @@ assetsFile: File | null = null;
     });
   }
 
-  downloadChecklistTemplate(): void {
+  async downloadChecklistTemplate(): Promise<void> {
+    if (!(await this.downloadGate.verify('Checklist workbook template (Excel)'))) return;
     this.downloadingChecklistTemplate = true;
     this.assetImportService.downloadChecklistTemplate().subscribe({
       next: (blob) => {
@@ -183,7 +188,8 @@ assetsFile: File | null = null;
     });
   }
 
-  downloadSubAssetTemplate(): void {
+  async downloadSubAssetTemplate(): Promise<void> {
+    if (!(await this.downloadGate.verify('Sub-asset import template (Excel)'))) return;
     this.downloadingSubAssetTemplate = true;
     this.assetImportService.downloadSubAssetTemplate().subscribe({
       next: (blob) => {
@@ -230,7 +236,8 @@ assetsFile: File | null = null;
     });
   }
 
-  downloadLocationTemplate(): void {
+  async downloadLocationTemplate(): Promise<void> {
+    if (!(await this.downloadGate.verify('Asset location import template (Excel)'))) return;
     this.downloadingLocationTemplate = true;
     this.assetImportService.downloadLocationTemplate().subscribe({
       next: (blob) => {
@@ -248,7 +255,8 @@ assetsFile: File | null = null;
 
   // Every asset pre-filled with its current location — the practical way to do a
   // bulk fill, since the blank template means typing thousands of rows by hand.
-  downloadCurrentLocations(): void {
+  async downloadCurrentLocations(): Promise<void> {
+    if (!(await this.downloadGate.verify('Current asset locations (Excel)'))) return;
     this.downloadingCurrentLocations = true;
     this.assetImportService.downloadCurrentLocations().subscribe({
       next: (blob) => {
@@ -295,7 +303,8 @@ assetsFile: File | null = null;
     });
   }
 
-  downloadDepartmentTemplate(): void {
+  async downloadDepartmentTemplate(): Promise<void> {
+    if (!(await this.downloadGate.verify('Asset department import template (Excel)'))) return;
     this.downloadingDepartmentTemplate = true;
     this.assetImportService.downloadDepartmentTemplate().subscribe({
       next: (blob) => {

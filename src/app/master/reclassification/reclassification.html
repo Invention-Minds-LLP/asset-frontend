@@ -1,0 +1,298 @@
+<p-toast></p-toast>
+
+<div class="page-container">
+  <div class="page-header">
+    <h2><i class="pi pi-arrow-right-arrow-left"></i> Asset Reclassification</h2>
+    <p-button label="Refresh" icon="pi pi-refresh" severity="secondary" size="small" (onClick)="loadRequests()"></p-button>
+  </div>
+
+  <p class="page-sub">
+    Move assets to the correct category from <strong>1 April of the current financial year</strong>. Earlier years are
+    never changed — the previous year must be finalized first, and this year starts from its frozen closing value.
+    Finance or the CFO raises a request; the <strong>CFO</strong> (not the person who raised it) approves it.
+  </p>
+
+  <p-tabView [(activeIndex)]="activeTab">
+
+    <!-- ══════════ NEW REQUEST ══════════ -->
+    <p-tabPanel header="New Request" *ngIf="canRaise">
+
+      <div class="create-card">
+        <h3>1 · Choose the assets</h3>
+        <div class="create-row">
+          <div class="create-field">
+            <label>Current category</label>
+            <p-select [options]="categories" optionLabel="name" optionValue="id" [(ngModel)]="fromCategoryId"
+              (onChange)="loadCandidates()" placeholder="Select category" [filter]="true" appendTo="body"
+              [style]="{ 'min-width': '220px' }"></p-select>
+          </div>
+          <div class="create-field grow">
+            <label>Search (code, name or serial)</label>
+            <input pInputText [(ngModel)]="search" (keyup.enter)="loadCandidates()" class="w-full"
+              placeholder="e.g. Dell, AST-…" [disabled]="!fromCategoryId" />
+          </div>
+          <div class="create-field">
+            <p-button label="Search" icon="pi pi-search" severity="secondary" [outlined]="true"
+              [disabled]="!fromCategoryId" (onClick)="loadCandidates()"></p-button>
+          </div>
+        </div>
+
+        <div *ngIf="candidatesLoading" class="section-loading">
+          <p-progressSpinner [style]="{width: '32px', height: '32px'}" strokeWidth="4"></p-progressSpinner>
+        </div>
+
+        <p-table *ngIf="!candidatesLoading && candidates.length" [value]="candidates" [(selection)]="selected"
+          (selectionChange)="onSelectionChange()" dataKey="id" styleClass="p-datatable-sm dep-detail-table pick-table"
+          [paginator]="candidates.length > 15" [rows]="15">
+          <ng-template pTemplate="caption">
+            <span class="sel-count">{{ selected.length }} of {{ candidates.length }} selected</span>
+            <span class="hint" *ngIf="blockedCount"> · {{ blockedCount }} can't be reclassified now (greyed out — hover for why)</span>
+          </ng-template>
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width:3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+              <th>Asset</th>
+              <th>Department</th>
+              <th>Acquired</th>
+              <th style="text-align:right">Cost</th>
+              <th>Depreciation</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-a>
+            <tr [class.row-blocked]="a.blockedReason" [title]="a.blockedReason || ''">
+              <td><p-tableCheckbox [value]="a" [disabled]="!!a.blockedReason"></p-tableCheckbox></td>
+              <td>
+                <div class="asset-cell">
+                  <span class="asset-code">{{ a.assetCode }}</span>
+                  <span class="asset-name">{{ a.assetName }}</span>
+                  <span class="blocked-note" *ngIf="a.blockedReason"><i class="pi pi-lock"></i> {{ a.blockedReason }}</span>
+                </div>
+              </td>
+              <td>{{ a.department || '—' }}</td>
+              <td>{{ a.acquisitionDate ? (a.acquisitionDate | date:'dd MMM yyyy') : '—' }}</td>
+              <td style="text-align:right">{{ formatCurrency(a.cost) }}</td>
+              <td>{{ settingsText(a.method, a.rate, a.lifeYears) }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+        <p *ngIf="!candidatesLoading && fromCategoryId && !candidates.length" class="preview-warn">
+          <i class="pi pi-info-circle"></i> No assets found in this category.
+        </p>
+      </div>
+
+      <div class="create-card">
+        <h3>2 · New category and depreciation</h3>
+        <div class="create-row">
+          <div class="create-field">
+            <label>Move to category</label>
+            <p-select [options]="toCategoryOptions" optionLabel="name" optionValue="id" [(ngModel)]="toCategoryId"
+              (onChange)="onToCategoryChange()" placeholder="Select category" [filter]="true" appendTo="body"
+              [style]="{ 'min-width': '220px' }"></p-select>
+          </div>
+          <div class="create-field apply-field">
+            <label class="check-label">
+              <p-checkbox [(ngModel)]="applyDepreciation" (ngModelChange)="preview = null" [binary]="true" inputId="applyDep"></p-checkbox>
+              <span>Apply new depreciation settings from 1 April</span>
+            </label>
+          </div>
+        </div>
+        <div class="create-row" *ngIf="applyDepreciation">
+          <div class="create-field">
+            <label>Method</label>
+            <p-select [options]="methodOptions" optionLabel="label" optionValue="value" [(ngModel)]="newMethod"
+              appendTo="body" [showClear]="true" placeholder="Keep each asset's" [style]="{ 'min-width': '220px' }"></p-select>
+          </div>
+          <div class="create-field">
+            <label>Rate %</label>
+            <p-inputnumber [(ngModel)]="newRate" [min]="0" [max]="100" [maxFractionDigits]="2" placeholder="Keep each asset's"></p-inputnumber>
+          </div>
+          <div class="create-field">
+            <label>Useful life (years)</label>
+            <p-inputnumber [(ngModel)]="newLifeYears" [min]="1" [useGrouping]="false" placeholder="Keep each asset's"></p-inputnumber>
+          </div>
+        </div>
+        <p class="hint" *ngIf="applyDepreciation">Pre-filled from the new category's defaults. Leave a field blank to keep each asset's own value.</p>
+      </div>
+
+      <div class="create-card">
+        <h3>3 · Reason and review</h3>
+        <div class="create-field">
+          <label>Reason (the CFO and the auditor will read this)</label>
+          <textarea pTextarea [(ngModel)]="reason" rows="2" class="w-full"
+            placeholder="e.g. Desktops entered under Building at onboarding; they are Computers"></textarea>
+        </div>
+        <div class="create-row review-actions">
+          <p-button label="Preview" icon="pi pi-eye" severity="secondary" [disabled]="!canPreview"
+            [loading]="previewLoading" (onClick)="runPreview()"></p-button>
+          <p-button label="Send to CFO" icon="pi pi-send" [disabled]="!canSubmit" [loading]="submitting"
+            (onClick)="submit()"></p-button>
+          <span class="hint" *ngIf="!preview && canPreview">Preview first — it checks every asset and shows the figures that will move.</span>
+          <span class="hint" *ngIf="preview && !reason.trim()">Add a reason to send it.</span>
+        </div>
+
+        <div *ngIf="preview" class="preview-box">
+          <div class="preview-summary">
+            <div class="preview-stat"><span class="ps-label">Effective from</span>
+              <span class="ps-value">{{ preview.effectiveFrom | date:'dd MMM yyyy' }}</span></div>
+            <div class="preview-stat"><span class="ps-label">Assets</span>
+              <span class="ps-value">{{ preview.totals.assets }}</span></div>
+            <div class="preview-stat"><span class="ps-label">Gross block moving</span>
+              <span class="ps-value">{{ formatCurrency(preview.totals.grossBlock) }}</span></div>
+            <div class="preview-stat"><span class="ps-label">Accumulated depreciation moving</span>
+              <span class="ps-value">{{ formatCurrency(preview.totals.accDep) }}</span></div>
+          </div>
+
+          <div *ngIf="preview.errors?.length" class="issues">
+            <div class="issues-title"><i class="pi pi-exclamation-triangle"></i>
+              {{ preview.errors.length }} asset(s) can't be reclassified — remove them or fix the issue</div>
+            <ul><li *ngFor="let e of preview.errors"><strong>{{ e.assetCode || ('#' + e.assetId) }}</strong> — {{ e.message }}</li></ul>
+          </div>
+
+          <p-table *ngIf="preview.lines?.length" [value]="preview.lines" styleClass="p-datatable-sm dep-detail-table"
+            [paginator]="preview.lines.length > 10" [rows]="10">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Asset</th>
+                <th>From</th>
+                <th>Depreciation now</th>
+                <th style="text-align:right">Gross</th>
+                <th style="text-align:right">Acc. Dep. at 1 Apr</th>
+                <th style="text-align:right">Opening WDV</th>
+                <th>Opening from</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-l>
+              <tr>
+                <td><div class="asset-cell"><span class="asset-code">{{ l.assetCode }}</span><span class="asset-name">{{ l.assetName }}</span></div></td>
+                <td>{{ l.fromCategoryName }}</td>
+                <td>{{ settingsText(l.oldMethod, l.oldRate, l.oldLifeYears) }}</td>
+                <td style="text-align:right">{{ formatCurrency(l.grossBlock) }}</td>
+                <td style="text-align:right">{{ formatCurrency(l.accDepAtEffective) }}</td>
+                <td style="text-align:right; font-weight:600">{{ formatCurrency(l.openingWdvAtEffective) }}</td>
+                <td>{{ sourceLabel(l.openingSource) }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- ══════════ REQUESTS ══════════ -->
+    <p-tabPanel header="Requests">
+      <div *ngIf="requestsLoading" class="section-loading">
+        <p-progressSpinner [style]="{width: '40px', height: '40px'}" strokeWidth="4"></p-progressSpinner>
+      </div>
+
+      <div *ngIf="!requestsLoading && requests.length === 0" class="empty-state">
+        <i class="pi pi-inbox"></i>
+        <p class="empty-title">No reclassification requests yet</p>
+        <p class="empty-hint" *ngIf="canRaise">Raise one from the <strong>New Request</strong> tab.</p>
+      </div>
+
+      <p-table *ngIf="!requestsLoading && requests.length" [value]="requests" styleClass="p-datatable-sm audit-table"
+        [paginator]="requests.length > 12" [rows]="12">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Request</th>
+            <th>Status</th>
+            <th>Move to</th>
+            <th style="text-align:right">Assets</th>
+            <th style="text-align:right">Gross block</th>
+            <th>Raised by</th>
+            <th>CFO</th>
+            <th>GL</th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-r>
+          <tr>
+            <td><strong>{{ r.requestNo }}</strong><div class="fy-range">from {{ r.effectiveFrom | date:'dd MMM yyyy' }}</div></td>
+            <td><p-tag [value]="statusLabel(r.status)" [severity]="statusSeverity(r.status)"></p-tag></td>
+            <td>{{ r.toCategory?.name }}
+              <div class="fy-range" *ngIf="r.newMethod || r.newRate != null || r.newLifeYears">{{ settingsText(r.newMethod, r.newRate, r.newLifeYears) }}</div>
+            </td>
+            <td style="text-align:right">{{ r.totalAssets }}</td>
+            <td style="text-align:right">{{ formatCurrency(r.totalGross) }}</td>
+            <td>{{ r.requestedBy?.name }}<div class="fy-range">{{ r.requestedAt | date:'dd MMM yyyy' }}</div></td>
+            <td>
+              <span class="appr ok" *ngIf="r.status === 'APPROVED'"><i class="pi pi-check-circle"></i> {{ r.approvedBy?.name || 'CFO' }}</span>
+              <span class="appr wait" *ngIf="r.status === 'PENDING_CFO'"><i class="pi pi-clock"></i> Pending</span>
+              <span class="reject-note" *ngIf="r.status === 'REJECTED'">Rejected: {{ r.rejectionReason }}</span>
+              <span class="muted-dash" *ngIf="r.status === 'CANCELLED'">Cancelled</span>
+            </td>
+            <td><span [title]="r.glNote || ''" [class.gl-warn]="(r.glStatus && r.glStatus !== 'POSTED') || (r.status === 'APPROVED' && !r.glStatus)">{{ glLabel(r.glStatus) }}</span></td>
+            <td class="actions">
+              <p-button label="View" icon="pi pi-eye" size="small" severity="secondary" [outlined]="true" (onClick)="view(r)"></p-button>
+              <ng-container *ngIf="canDecide(r)">
+                <p-button label="Approve" icon="pi pi-check" size="small" severity="success" (onClick)="openAction('approve', r)"></p-button>
+                <p-button label="Reject" icon="pi pi-times" size="small" severity="danger" [outlined]="true" (onClick)="openAction('reject', r)"></p-button>
+              </ng-container>
+              <p-button *ngIf="canRetryGl(r)" label="Post GL entry" icon="pi pi-book" size="small" severity="warn"
+                [outlined]="true" [loading]="retryingGl" (onClick)="retryGl(r)"></p-button>
+              <p-button *ngIf="canCancel(r)" label="Cancel" icon="pi pi-ban" size="small" severity="secondary" [text]="true" (onClick)="cancel(r)"></p-button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-tabPanel>
+  </p-tabView>
+</div>
+
+<!-- Request detail -->
+<p-dialog [header]="detail?.requestNo || 'Request'" [(visible)]="detailVisible" [modal]="true"
+  [style]="{width: '94vw', maxWidth: '1080px'}" [draggable]="false">
+  <div *ngIf="detailLoading" class="section-loading">
+    <p-progressSpinner [style]="{width: '36px', height: '36px'}" strokeWidth="4"></p-progressSpinner>
+  </div>
+  <div *ngIf="detail && !detailLoading">
+    <div class="detail-summary">
+      <span><span class="ds-label">Move to</span> <span class="ds-value">{{ detail.toCategory?.name }}</span></span>
+      <span><span class="ds-label">From</span> <span class="ds-value">{{ detail.effectiveFrom | date:'dd MMM yyyy' }}</span></span>
+      <span><span class="ds-label">New settings</span> <span class="ds-value">{{ settingsText(detail.newMethod, detail.newRate, detail.newLifeYears) }}</span></span>
+    </div>
+    <p class="reason-box"><strong>Reason:</strong> {{ detail.reason }}</p>
+    <p *ngIf="detail.glNote" class="hint">{{ detail.glNote }}</p>
+    <p-button *ngIf="canRetryGl(detail)" label="Post GL entry" icon="pi pi-book" size="small" severity="warn"
+      [outlined]="true" [loading]="retryingGl" (onClick)="retryGl(detail)" styleClass="gl-retry"></p-button>
+    <p-table [value]="detail.lines" styleClass="p-datatable-sm dep-detail-table" [paginator]="detail.lines.length > 10" [rows]="10">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Asset</th><th>From</th><th>Depreciation before</th>
+          <th style="text-align:right">Gross</th><th style="text-align:right">Acc. Dep. at 1 Apr</th>
+          <th style="text-align:right">Opening WDV</th><th>Opening from</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-l>
+        <tr>
+          <td><div class="asset-cell"><span class="asset-code">{{ l.asset?.assetId }}</span><span class="asset-name">{{ l.asset?.assetName }}</span></div></td>
+          <td>{{ l.fromCategoryName }}</td>
+          <td>{{ settingsText(l.oldMethod, l.oldRate, l.oldLifeYears) }}</td>
+          <td style="text-align:right">{{ formatCurrency(l.grossBlock) }}</td>
+          <td style="text-align:right">{{ formatCurrency(l.accDepAtEffective) }}</td>
+          <td style="text-align:right">{{ formatCurrency(l.openingWdvAtEffective) }}</td>
+          <td>{{ sourceLabel(l.openingSource) }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</p-dialog>
+
+<!-- Approve / reject -->
+<p-dialog [header]="(actionMode === 'approve' ? 'Approve ' : 'Reject ') + (actionTarget?.requestNo || '')"
+  [(visible)]="actionVisible" [modal]="true" [style]="{width: '500px'}" [draggable]="false">
+  <div class="dialog-body">
+    <p *ngIf="actionMode === 'approve'" class="consequence">
+      This moves <strong>{{ actionTarget?.totalAssets }} asset(s)</strong> to <strong>{{ actionTarget?.toCategory?.name }}</strong>
+      from {{ actionTarget?.effectiveFrom | date:'dd MMM yyyy' }}, applies the new depreciation settings, and posts the GL
+      reclass entry. Earlier years are not affected.
+    </p>
+    <p *ngIf="actionMode === 'reject'" class="consequence">Nothing changes. Your reason is sent to whoever raised it.</p>
+    <label>{{ actionMode === 'reject' ? 'Reason for rejection' : 'Notes (optional)' }}</label>
+    <textarea pTextarea [(ngModel)]="actionText" rows="3" class="w-full"></textarea>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="actionVisible = false" [disabled]="acting"></p-button>
+    <p-button *ngIf="actionMode === 'approve'" label="Approve & Apply" icon="pi pi-check" severity="success" (onClick)="confirmAction()" [loading]="acting"></p-button>
+    <p-button *ngIf="actionMode === 'reject'" label="Reject" icon="pi pi-times" severity="danger" (onClick)="confirmAction()" [loading]="acting"></p-button>
+  </ng-template>
+</p-dialog>

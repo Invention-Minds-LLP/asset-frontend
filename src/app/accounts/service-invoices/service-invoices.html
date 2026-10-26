@@ -247,7 +247,8 @@
     <div class="doc-section">
       <div class="doc-label">Invoice Document</div>
       <div class="doc-actions" *ngIf="selectedInvoice.fileUrl; else noDoc">
-        <a [href]="getFileUrl(selectedInvoice.fileUrl)" target="_blank" class="doc-link">
+        <a role="button" tabindex="0" class="doc-link" style="cursor: pointer"
+           (click)="openInvoiceDocument(selectedInvoice)" (keydown.enter)="openInvoiceDocument(selectedInvoice)">
           <i class="pi pi-file-pdf"></i> View Document
         </a>
         <label class="upload-replace-btn">

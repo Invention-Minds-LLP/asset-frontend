@@ -501,7 +501,48 @@
 
     <!-- Right: Login Form -->
     <div class="form-panel">
-      <div class="form-card">
+      <div class="form-card" [class.form-card--mfa]="!!challenge()">
+        @if (challenge(); as ch) {
+        <!-- DPDP: Google Authenticator step (password already verified) -->
+        <!-- Compact layout: no logo, QR beside the steps, so the setup step fits
+             a laptop screen without scrolling. -->
+        <div class="form-header form-header--mfa">
+          @if (ch.step === 'mfa_setup') {
+          <h2>Set up Google Authenticator</h2>
+          <p>Your account needs a code from your phone at every sign-in.</p>
+          } @else {
+          <div class="mfa-icon"><i class="pi pi-mobile"></i></div>
+          <h2>Two-step verification</h2>
+          <p>Enter the 6-digit code from Google Authenticator.</p>
+          }
+        </div>
+
+        @if (ch.step === 'mfa_setup' && ch.mfaSetup) {
+        <div class="mfa-setup">
+          <img class="mfa-qr" [src]="ch.mfaSetup.qrDataUrl" alt="Authenticator setup QR code" />
+          <ol class="mfa-steps">
+            <li>Install <b>Google Authenticator</b> on your phone.</li>
+            <li>Tap <b>+</b> → <b>Scan a QR code</b>.</li>
+            <li>Scan this code, then enter the 6 digits below.</li>
+          </ol>
+        </div>
+        <p class="mfa-manual">Can't scan? Enter this key: <code>{{ ch.mfaSetup.manualKey }}</code></p>
+        }
+
+        <form class="login-form" (ngSubmit)="submitMfa()">
+          <div class="input-group">
+            <div class="input-icon"><i class="pi pi-mobile"></i></div>
+            <input type="text" placeholder="6-digit code" [(ngModel)]="mfaCode" name="mfaCode" inputmode="numeric"
+              maxlength="6" autocomplete="one-time-code" autofocus />
+          </div>
+          <button type="submit" class="submit-btn" [disabled]="mfaCode.trim().length !== 6 || loading"
+            [class.loading]="loading">
+            <span *ngIf="!loading"><i class="pi pi-check"></i> Verify and continue</span>
+            <span *ngIf="loading" class="loading-content"><i class="pi pi-spin pi-spinner"></i> Verifying...</span>
+          </button>
+          <button type="button" class="mfa-back" (click)="cancelChallenge()">← Back to sign in</button>
+        </form>
+        } @else {
         <div class="form-header">
           <div class="brand-mark">
             <img src="./sa_logo_trim.png" alt="Smart Assets" class="brand-logo" />
@@ -536,6 +577,7 @@
             </span>
           </button>
         </form>
+        }
 
         <div class="form-footer">
           <a routerLink="/auditor/login" class="auditor-portal-link">

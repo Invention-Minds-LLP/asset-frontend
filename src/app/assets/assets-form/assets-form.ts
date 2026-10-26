@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef, inject } from "@angular/core";
+import { DownloadGateService } from "../../shared/download-gate/download-gate.service";
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 
@@ -70,6 +71,7 @@ type PendingRole = "HOD" | "SUPERVISOR" | "END_USER" | null;
   styleUrl: "./assets-form.css",
 })
 export class AssetsForm implements OnInit {
+  private downloadGate = inject(DownloadGateService);
 
   role: "store_user" | "department_user" | "superadmin" = "store_user";
   activeTab = 0;
@@ -2204,12 +2206,13 @@ export class AssetsForm implements OnInit {
   get activeInsurance() {
     return this.asset?.insurance;
   }
-  downloadClaimFile(c: any) {
+  async downloadClaimFile(c: any) {
     // Example: if c.documents is a URL
     if (!c?.documents) {
       this.toast('error', 'No file attached');
       return;
     }
+    if (!(await this.downloadGate.verify(`Insurance claim document${c.claimNumber ? ' ' + c.claimNumber : ''} (file)`))) return;
     window.open(c.documents, '_blank');
   }
   get canResend(): boolean {
@@ -2348,11 +2351,12 @@ export class AssetsForm implements OnInit {
     return `${window.location.origin}/assets/scan/${encodeURIComponent(assetId)}`;
   }
 
-  printAssetLabels() {
+  async printAssetLabels() {
     if (!this.asset?.id) {
       this.toastService.add({ severity: 'warn', summary: 'Save first', detail: 'Save the asset before printing labels.' });
       return;
     }
+    if (!(await this.downloadGate.verify(`QR labels ${this.asset.assetId || this.asset.id} (Print)`))) return;
     this.loadingLabels = true;
     this.quickActions.getQRBulkPrintData([this.asset.id]).subscribe({
       next: (rows: any[]) => {

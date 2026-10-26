@@ -43,6 +43,8 @@ import { ServiceContracts } from './master/service-contracts/service-contracts';
 import { DocumentVault } from './master/document-vault/document-vault';
 import { BatchDepreciation } from './master/batch-depreciation/batch-depreciation';
 import { DepreciationAudit } from './master/depreciation-audit/depreciation-audit';
+import { FyClose } from './master/fy-close/fy-close';
+import { Reclassification } from './master/reclassification/reclassification';
 import { UserActivity } from './master/user-activity/user-activity';
 import { PreventiveMaintenance } from './master/preventive-maintenance/preventive-maintenance';
 import { VendorPerformance } from './master/vendor-performance/vendor-performance';
@@ -159,6 +161,8 @@ export const routes: Routes = [
   { path: 'document-vault', component: DocumentVault, canActivate: [authGuard] },
   { path: 'batch-depreciation', component: BatchDepreciation, canActivate: [authGuard] },
   { path: 'depreciation-audit', component: DepreciationAudit, canActivate: [authGuard] },
+  { path: 'fy-close', component: FyClose, canActivate: [authGuard] },
+  { path: 'reclassification', component: Reclassification, canActivate: [authGuard] },
   { path: 'user-activity', component: UserActivity, canActivate: [authGuard] },
   { path: 'preventive-maintenance', component: PreventiveMaintenance, canActivate: [authGuard] },
   { path: 'vendor-performance', component: VendorPerformance, canActivate: [authGuard] },

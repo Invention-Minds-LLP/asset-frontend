@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -28,6 +29,7 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
   providers: [MessageService]
 })
 export class WarrantyManagement implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   warranties: any[] = [];
   loading = false;
   totalRecords = 0;
@@ -103,7 +105,8 @@ export class WarrantyManagement implements OnInit {
     });
   }
 
-  exportCsv() {
+  async exportCsv() {
+    if (!(await this.downloadGate.verify('Warranties (CSV)'))) return;
     this.warrantyService.exportWarrantiesCsv().subscribe({
       next: (blob) => { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'warranties.csv'; a.click(); URL.revokeObjectURL(url); },
       error: () => this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Export failed' })

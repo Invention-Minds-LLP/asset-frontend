@@ -28,6 +28,13 @@ interface LifecycleStage {
   line: string;
 }
 
+/** Returned by /users/login instead of a session when Google Authenticator is required. */
+interface LoginChallenge {
+  token: string;
+  step: 'mfa_setup' | 'mfa';
+  mfaSetup?: { qrDataUrl: string; manualKey: string };
+}
+
 /**
  * Scene order is the lifecycle order, and the CSS timing is derived from the
  * count: a scene owns 6s, so the loop is stages.length * 6s. Adding a stage
@@ -178,14 +185,16 @@ export class Login {
 
     this.authService.login(this.employeeId, this.password).subscribe({
       next: (response) => {
-        // Access token → memory (Auth service); refresh token is in an httpOnly
-        // cookie the server just set. Only non-secret display data is persisted.
-        this.authService.setSession(response.token, response.user);
-        this.employeeId = '';
-        this.password = '';
-        this.loading = false;
-        this.router.navigateByUrl(this.returnUrl);
-        this.messageService.add({ severity: 'success', summary: 'Login Successful', detail: 'Welcome back!' });
+        // DPDP: accounts that need Google Authenticator get a challenge, not a
+        // session — show the code (and first-time QR) step.
+        if (response?.challenge) {
+          this.loading = false;
+          this.mfaCode = '';
+          this.challenge.set(response.challenge);
+          this.cdr.markForCheck();
+          return;
+        }
+        this.finishLogin(response);
       },
       error: (error) => {
         console.error('Login failed:', error);
@@ -199,6 +208,50 @@ export class Login {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  /** Pending Google Authenticator step after a correct password. */
+  challenge = signal<LoginChallenge | null>(null);
+  mfaCode = '';
+
+  private finishLogin(response: any): void {
+    // Access token → memory (Auth service); refresh token is in an httpOnly
+    // cookie the server just set. Only non-secret display data is persisted.
+    this.authService.setSession(response.token, response.user);
+    this.employeeId = '';
+    this.password = '';
+    this.mfaCode = '';
+    this.challenge.set(null);
+    this.loading = false;
+    this.router.navigateByUrl(this.returnUrl);
+    this.messageService.add({ severity: 'success', summary: 'Login Successful', detail: 'Welcome back!' });
+  }
+
+  submitMfa(): void {
+    const ch = this.challenge();
+    const code = this.mfaCode.replace(/\s/g, '');
+    if (!ch || code.length !== 6) return;
+    this.loading = true;
+    this.authService.challengeMfa(ch.token, code).subscribe({
+      next: (response) => this.finishLogin(response),
+      error: (error) => {
+        this.loading = false;
+        this.mfaCode = '';
+        const detail = error?.error?.message || 'Verification failed. Please try again.';
+        // Challenge token expired (10 min) → start over from the password.
+        if (error?.status === 401 && /session/i.test(detail)) this.cancelChallenge();
+        this.messageService.add({ severity: 'error', summary: 'Verification Failed', detail });
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  cancelChallenge(): void {
+    this.challenge.set(null);
+    this.password = '';
+    this.mfaCode = '';
+    this.loading = false;
+    this.cdr.markForCheck();
   }
 
   isLoginFormValid(): boolean {

@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -32,6 +33,7 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
   providers: [MessageService]
 })
 export class AssetPoolPage implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   // ── List view
   pools: any[] = [];
   summary: any = null;
@@ -298,7 +300,8 @@ export class AssetPoolPage implements OnInit {
     if (files && files.length > 0) this.importFile = files[0];
   }
 
-  downloadTemplate() {
+  async downloadTemplate() {
+    if (!(await this.downloadGate.verify('FA register pool template (Excel)'))) return;
     this.poolService.downloadFaRegisterTemplate().subscribe({
       next: (blob: Blob) => {
         const url = URL.createObjectURL(blob);
@@ -550,7 +553,8 @@ export class AssetPoolPage implements OnInit {
     if (files && files.length > 0) this.individualImportFile = files[0];
   }
 
-  downloadIndividualTemplate() {
+  async downloadIndividualTemplate() {
+    if (!(await this.downloadGate.verify('Individual assets import template (Excel)'))) return;
     this.poolService.downloadIndividualAssetsTemplate().subscribe({
       next: (blob: Blob) => {
         const url = URL.createObjectURL(blob);

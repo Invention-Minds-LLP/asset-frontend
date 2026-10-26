@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -25,6 +26,7 @@ import { statusColor } from '../../shared/viz/viz-palette';
   styleUrl: './hod-dashboard.css',
 })
 export class HodDashboard implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   role = '';
   isAdmin = false;
   loading = false;
@@ -144,7 +146,8 @@ export class HodDashboard implements OnInit {
   }
 
   exportingCsv = false;
-  exportListCsv() {
+  async exportListCsv() {
+    if (!(await this.downloadGate.verify(`${this.listTitle || 'Asset list'} (CSV)`))) return;
     // Pull all matching rows (up to 5000), not just the current page.
     this.exportingCsv = true;
     const savedPage = this.listPage; this.listPage = 1;

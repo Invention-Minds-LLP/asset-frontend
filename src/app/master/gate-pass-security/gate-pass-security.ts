@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -37,6 +38,7 @@ interface ItemReturn {
   providers: [MessageService]
 })
 export class GatePassSecurity implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   approvedRows: any[] = [];   // approved, awaiting desk verification
   clearedRows: any[] = [];    // verified + transport recorded, awaiting label & exit
   issuedRows: any[] = [];     // physically out, awaiting return (gate-in)
@@ -279,7 +281,8 @@ export class GatePassSecurity implements OnInit {
   }
 
   // ── PDF ──────────────────────────────────────────────────────────────────
-  downloadPdf(row: any) {
+  async downloadPdf(row: any) {
+    if (!(await this.downloadGate.verify(`Gate pass ${row.gatePassNo} (PDF)`))) return;
     this.gatePassService.downloadPdf(row.id).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);

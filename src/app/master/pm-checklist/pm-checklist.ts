@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { DownloadGateService } from '../../shared/download-gate/download-gate.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -30,6 +31,7 @@ import { Assets } from '../../services/assets/assets';
   providers: [MessageService]
 })
 export class PmChecklist implements OnInit {
+  private downloadGate = inject(DownloadGateService);
   activeTab: 'templates' | 'runs' = 'templates';
 
   // Templates
@@ -336,7 +338,8 @@ export class PmChecklist implements OnInit {
     });
   }
 
-  downloadPdf(runId: number) {
+  async downloadPdf(runId: number) {
+    if (!(await this.downloadGate.verify(`PM checklist report run #${runId} (PDF)`))) return;
     this.pmService.getRunPdf(runId).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
