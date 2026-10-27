@@ -213,6 +213,7 @@ export class SubAssets implements OnInit {
     this.assetsAPI.getChildren(asset.assetId).subscribe({
       next: (res: any) => {
         const children = Array.isArray(res) ? res : (res?.children ?? res?.data ?? []);
+        console.log('Sub-assets loaded from API:', children);
         setTimeout(() => {
           this.subAssets = children;
           this.subAssetsLoading = false;
@@ -640,42 +641,56 @@ export class SubAssets implements OnInit {
     this.cdr.detectChanges();
   }
 
-  saveQrSticker() {
-    const asset = this.qrStickerAsset;
-    if (!asset) return;
 
-    this.qrStickerSaving = true;
-    this.assetService.markQrStickered(asset.id, {
-      stickeredAt: (this.qrStickeredAt || new Date()).toISOString(),
-      stickeredById: this.qrStickeredById ?? undefined,
-      remarks: this.qrStickerRemarks || undefined,
-    }).subscribe({
-      next: (res: any) => {
-        setTimeout(() => {
-          // Patch the row from the server response so the tooltip is accurate
-          // without refetching the whole page.
-          asset.qrStickered = true;
-          asset.qrStickeredAt = res?.asset?.qrStickeredAt ?? this.qrStickeredAt;
-          asset.qrStickeredBy = res?.asset?.qrStickeredBy ?? null;
-          asset.qrStickeredRemarks = res?.asset?.qrStickeredRemarks ?? null;
-          this.qrStickerSaving = false;
-          this.showQrStickerDialog = false;
-          this.qrStickerAsset = null;
-          this.messageService.add({ severity: 'success', summary: 'Saved', detail: 'QR sticker confirmed' });
-          this.cdr.detectChanges();
-        });
-      },
-      error: (e: any) => {
-        setTimeout(() => {
-          asset.qrStickered = false;   // roll the switch back
-          this.qrStickerSaving = false;
-          this.cdr.detectChanges();
-        });
-        this.messageService.add({
-          severity: 'error', summary: 'Error',
-          detail: e?.error?.message || 'Failed to confirm QR sticker',
-        });
-      },
-    });
-  }
+saveQrSticker() {
+  const sub = this.qrStickerAsset;
+  if (!sub) return;
+
+  this.qrStickerSaving = true;
+
+  this.assetService.markQrStickered(sub.id, {
+    stickeredAt: (this.qrStickeredAt || new Date()).toISOString(),
+    stickeredById: this.qrStickeredById ?? undefined,
+    remarks: this.qrStickerRemarks || undefined
+  }).subscribe({
+    next: (res: any) => {
+        console.log('Saved sub-asset:', sub);
+  console.log('Save response:', res);
+      this.subAssets = this.subAssets.map((item: any) =>
+        item.id === sub.id
+          ? {
+              ...item,
+              qrStickered: true,
+              qrStickeredAt: res?.asset?.qrStickeredAt ?? this.qrStickeredAt,
+              qrStickeredBy: res?.asset?.qrStickeredBy ?? null,
+              qrStickeredRemarks: res?.asset?.qrStickeredRemarks ?? null
+            }
+          : item
+      );
+
+        console.log('Sub-assets after update:', this.subAssets);
+      this.qrStickerSaving = false;
+      this.showQrStickerDialog = false;
+      this.qrStickerAsset = null;
+      this.cdr.detectChanges();
+
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Saved',
+        detail: 'QR sticker confirmed'
+      });
+    },
+    error: (e: any) => {
+      this.qrStickerSaving = false;
+      this.cdr.detectChanges();
+
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: e?.error?.message || 'Failed to confirm QR sticker'
+      });
+    }
+  });
+}
+
 }

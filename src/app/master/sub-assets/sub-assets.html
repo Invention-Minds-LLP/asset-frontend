@@ -626,3 +626,36 @@
     </div>
   </ng-template>
 </p-dialog>
+
+<!-- ── QR sticker unlock (management only) ────────────────────────────────── -->
+<p-dialog header="Unlock QR Sticker" [(visible)]="showQrUnlockDialog" [modal]="true"
+  [draggable]="false" [resizable]="false" [style]="{width:'460px'}" styleClass="qr-dialog">
+  @if (qrStickerAsset) {
+  <div class="qr-dialog-body">
+    <div class="qr-asset-card">
+      <span class="qr-asset-name">{{ qrStickerAsset.assetName }}</span>
+      <span class="qr-asset-id">{{ qrStickerAsset.assetId }}</span>
+    </div>
+
+    <p class="qr-note qr-note-warn">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>{{ qrStickerTooltip(qrStickerAsset) }}. Unlocking clears it so the sticker can be
+        confirmed again — the current details stay in the audit trail.</span>
+    </p>
+
+    <div class="qr-field">
+      <label for="qrUnlockReason">Reason <span class="qr-required">required</span></label>
+      <textarea id="qrUnlockReason" pInputTextarea [(ngModel)]="qrUnlockReason" rows="3"
+        placeholder="e.g. sticker damaged and re-printed"></textarea>
+    </div>
+  </div>
+  }
+  <ng-template pTemplate="footer">
+    <div class="qr-footer">
+      <button pButton type="button" label="Cancel" class="qr-btn qr-btn-ghost"
+        [disabled]="qrStickerSaving" (click)="showQrUnlockDialog=false"></button>
+      <button pButton type="button" label="Unlock" icon="pi pi-lock-open" class="qr-btn qr-btn-danger"
+        [loading]="qrStickerSaving" (click)="confirmQrUnlock()"></button>
+    </div>
+  </ng-template>
+</p-dialog>
