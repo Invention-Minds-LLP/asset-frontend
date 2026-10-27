@@ -16,6 +16,8 @@ import { InputIconModule } from 'primeng/inputicon';
 import { MessageService } from 'primeng/api';
 import { Assets } from '../../services/assets/assets';
 import { OverflowTooltipDirective } from '../../shared/directives/overflow-tooltip.directive';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { DatePickerModule } from 'primeng/datepicker';
 
 @Component({
   selector: 'app-sub-assets',
@@ -24,7 +26,8 @@ import { OverflowTooltipDirective } from '../../shared/directives/overflow-toolt
     CommonModule, FormsModule, ButtonModule, TableModule, TagModule,
     ToastModule, SelectModule, DialogModule, InputTextModule,
     InputNumberModule, TooltipModule, TextareaModule,
-    OverflowTooltipDirective, IconFieldModule, InputIconModule,
+    OverflowTooltipDirective, IconFieldModule, InputIconModule, 
+    ToggleSwitchModule, DatePickerModule
   ],
   templateUrl: './sub-assets.html',
   styleUrl: './sub-assets.css',
@@ -72,6 +75,20 @@ export class SubAssets implements OnInit {
   sparePartOptions: any[] = [];
   consumableOptions: any[] = [];
   spareSearchQuery = '';
+
+  // QR sticker
+  showQrStickerDialog = false;
+  showQrUnlockDialog = false;
+  qrStickerAsset: any = null;
+  qrStickeredAt: Date = new Date();
+  qrStickeredById: number | null = null;
+  qrStickerRemarks = '';
+  qrStickerSaving = false;
+  qrUnlockReason = '';
+   today = new Date();   // stickering can't be dated in the future
+  employees: { id: number; name: string; employeeID: string }[] = [];
+  private readonly myEmployeeDbId =
+    (typeof window !== 'undefined' && Number(localStorage.getItem('employeeDbId'))) || null;
 
   // Auto-fill cost from the selected inventory item (unit cost).
   onAddInventorySelect() {
@@ -133,7 +150,8 @@ export class SubAssets implements OnInit {
   constructor(
     private assetsAPI: Assets,
     private messageService: MessageService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private assetService: Assets,
   ) {}
 
   ngOnInit() {
@@ -153,7 +171,6 @@ export class SubAssets implements OnInit {
         const list = Array.isArray(data) ? data : (data?.data ?? []);
         // Only parent assets (no parentAssetId) or assets that may have sub-assets
         this.allAssets = list;
-        console.log('Loaded assets:', this.allAssets);
         this.applyFilter();
         this.loading = false;
         this.cdr.detectChanges();
@@ -538,4 +555,137 @@ export class SubAssets implements OnInit {
   toast(severity: 'success' | 'error' | 'warn', detail: string) {
     this.messageService.add({ severity, summary: severity.toUpperCase(), detail });
   }
+
+  private role = (typeof window !== 'undefined' && localStorage.getItem('role') || '').toUpperCase();
+
+    // Mirrors QR_STICKER_UNLOCK_ROLES in assets.controller.ts.
+  get canUnlockQrSticker(): boolean {
+    return ['ADMIN', 'CEO_COO', 'OPERATIONS'].includes(this.role);
+  }
+
+    qrStickerTooltip(asset: any): string {
+    if (!asset?.qrStickered) return 'Mark QR sticker as applied';
+    const by = asset.qrStickeredBy?.name;
+    const on = asset.qrStickeredAt ? new Date(asset.qrStickeredAt).toLocaleDateString() : null;
+    if (by && on) return `Stickered by ${by} on ${on}`;
+    if (on) return `Stickered on ${on}`;
+    return 'QR sticker confirmed';
+  }
+
+    onQrStickerToggle(asset: any, checked: boolean) {
+    if (!checked) { asset.qrStickered = false; return; }
+
+    this.qrStickerAsset = asset;
+    this.qrStickeredAt = new Date();
+    this.qrStickeredById = this.myEmployeeDbId;
+    this.qrStickerRemarks = '';
+    this.showQrStickerDialog = true;
+
+    if (!this.employees.length) {
+      this.assetService.getEmployees().subscribe({
+        next: (res: any) => {
+          setTimeout(() => { this.employees = res || []; this.cdr.detectChanges(); });
+        },
+        error: () => { /* dropdown stays empty — the caller is credited by default */ },
+      });
+    }
+  }
+
+  openQrUnlock(asset: any) {
+    this.qrStickerAsset = asset;
+    this.qrUnlockReason = '';
+    this.showQrUnlockDialog = true;
+  }
+
+    confirmQrUnlock() {
+    const asset = this.qrStickerAsset;
+    if (!asset) return;
+
+    const reason = (this.qrUnlockReason || '').trim();
+    if (!reason) {
+      this.messageService.add({ severity: 'warn', summary: 'Reason required', detail: 'Say why the confirmation is being unlocked' });
+      return;
+    }
+
+    this.qrStickerSaving = true;
+    this.assetService.unlockQrSticker(asset.id, reason).subscribe({
+      next: () => {
+        setTimeout(() => {
+          asset.qrStickered = false;
+          asset.qrStickeredAt = null;
+          asset.qrStickeredBy = null;
+          asset.qrStickeredRemarks = null;
+          this.qrStickerSaving = false;
+          this.showQrUnlockDialog = false;
+          this.qrStickerAsset = null;
+          this.messageService.add({ severity: 'success', summary: 'Unlocked', detail: 'QR sticker confirmation cleared' });
+          this.cdr.detectChanges();
+        });
+      },
+      error: (e: any) => {
+        setTimeout(() => { this.qrStickerSaving = false; this.cdr.detectChanges(); });
+        this.messageService.add({
+          severity: 'error', summary: 'Error',
+          detail: e?.error?.message || 'Failed to unlock QR sticker confirmation',
+        });
+      },
+    });
+  }
+
+  cancelQrSticker() {
+    if (this.qrStickerAsset) this.qrStickerAsset.qrStickered = false;
+    this.showQrStickerDialog = false;
+    this.qrStickerAsset = null;
+    this.cdr.detectChanges();
+  }
+
+
+saveQrSticker() {
+  const sub = this.qrStickerAsset;
+  if (!sub) return;
+
+  this.qrStickerSaving = true;
+
+  this.assetService.markQrStickered(sub.id, {
+    stickeredAt: (this.qrStickeredAt || new Date()).toISOString(),
+    stickeredById: this.qrStickeredById ?? undefined,
+    remarks: this.qrStickerRemarks || undefined
+  }).subscribe({
+    next: (res: any) => {
+      this.subAssets = this.subAssets.map((item: any) =>
+        item.id === sub.id
+          ? {
+              ...item,
+              qrStickered: true,
+              qrStickeredAt: res?.asset?.qrStickeredAt ?? this.qrStickeredAt,
+              qrStickeredBy: res?.asset?.qrStickeredBy ?? null,
+              qrStickeredRemarks: res?.asset?.qrStickeredRemarks ?? null
+            }
+          : item
+      );
+
+      this.qrStickerSaving = false;
+      this.showQrStickerDialog = false;
+      this.qrStickerAsset = null;
+      this.cdr.detectChanges();
+
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Saved',
+        detail: 'QR sticker confirmed'
+      });
+    },
+    error: (e: any) => {
+      this.qrStickerSaving = false;
+      this.cdr.detectChanges();
+
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: e?.error?.message || 'Failed to confirm QR sticker'
+      });
+    }
+  });
+}
+
 }
