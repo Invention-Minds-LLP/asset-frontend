@@ -171,7 +171,6 @@ export class SubAssets implements OnInit {
         const list = Array.isArray(data) ? data : (data?.data ?? []);
         // Only parent assets (no parentAssetId) or assets that may have sub-assets
         this.allAssets = list;
-        console.log('Loaded assets:', this.allAssets);
         this.applyFilter();
         this.loading = false;
         this.cdr.detectChanges();
@@ -213,7 +212,6 @@ export class SubAssets implements OnInit {
     this.assetsAPI.getChildren(asset.assetId).subscribe({
       next: (res: any) => {
         const children = Array.isArray(res) ? res : (res?.children ?? res?.data ?? []);
-        console.log('Sub-assets loaded from API:', children);
         setTimeout(() => {
           this.subAssets = children;
           this.subAssetsLoading = false;
@@ -654,8 +652,6 @@ saveQrSticker() {
     remarks: this.qrStickerRemarks || undefined
   }).subscribe({
     next: (res: any) => {
-        console.log('Saved sub-asset:', sub);
-  console.log('Save response:', res);
       this.subAssets = this.subAssets.map((item: any) =>
         item.id === sub.id
           ? {
@@ -668,7 +664,6 @@ saveQrSticker() {
           : item
       );
 
-        console.log('Sub-assets after update:', this.subAssets);
       this.qrStickerSaving = false;
       this.showQrStickerDialog = false;
       this.qrStickerAsset = null;
