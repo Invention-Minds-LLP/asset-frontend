@@ -19,6 +19,8 @@ export interface PictureCaptcha {
 
 export interface DownloadLogRow {
   id: string;
+  refCode: string | null;
+  downloadNo: number | null;
   employeeID: string;
   name: string | null;
   role: string;
@@ -99,13 +101,50 @@ export class DownloadGateService {
   async authorize(body: { captchaId: string; captchaAnswer: number[]; reason: string; label: string }): Promise<void> {
     const page = typeof window !== 'undefined' ? window.location.pathname : null;
     const res = await firstValueFrom(
-      this.http.post<{ logId: string; ticket: string }>(
+      this.http.post<{ logId: string; ticket: string; refCode: string; downloadNo: number; footer: string }>(
         `${this.apiUrl}/authorize`,
         { ...body, page },
         { headers: { 'X-Download-Grant': this.currentGrant() || '' } }
       )
     );
     setDownloadTicket(res.ticket);
+    this.lastFooter = res.footer || '';
+    this.setPrintStamp(this.lastFooter);
+  }
+
+  /**
+   * Footer line of the download just verified ("Downloaded by … | Download #7 |
+   * Ref SA-EMP006-…"). Server files are stamped by the API; files the browser
+   * builds itself (CSV, print windows) must add this line.
+   */
+  lastFooter = '';
+
+  /** CSV built in the browser → append the footer as a final line. */
+  csvWithFooter(csv: string): string {
+    if (!this.lastFooter) return csv;
+    const nl = csv.includes('\r\n') ? '\r\n' : '\n';
+    const sep = csv.endsWith('\n') ? '' : nl;
+    return `${csv}${sep}${nl}"${this.lastFooter.replace(/"/g, '""')}"${nl}`;
+  }
+
+  /** HTML fragment for print windows the app opens itself. */
+  footerHtml(): string {
+    if (!this.lastFooter) return '';
+    const esc = this.lastFooter.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+    return `<div style="position:fixed;left:0;right:0;bottom:0;padding:3px 10px;font:9px Arial,sans-serif;color:#64748b;background:#fff;border-top:1px solid #e2e8f0">${esc}</div>`;
+  }
+
+  /** window.print() of the app itself: a print-only footer bar (styles.css). */
+  private setPrintStamp(text: string): void {
+    if (typeof document === 'undefined') return;
+    let el = document.getElementById('sa-print-stamp');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'sa-print-stamp';
+      el.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(el);
+    }
+    el.textContent = text;
   }
 
   getLogs(params: { page: number; pageSize: number; search?: string; from?: string; to?: string }) {

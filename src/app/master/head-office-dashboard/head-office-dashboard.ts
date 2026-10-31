@@ -309,7 +309,9 @@ export class HeadOfficeDashboard implements OnInit, OnDestroy {
     if (!(await this.downloadGate.verify('Expiry radar (CSV)'))) return;
     const headers = Object.keys(rows[0]);
     const esc = (v: any) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-    const csv = [headers.join(','), ...rows.map(r => headers.map(h => esc((r as any)[h])).join(','))].join('\n');
+    const csv = this.downloadGate.csvWithFooter(
+      [headers.join(','), ...rows.map(r => headers.map(h => esc((r as any)[h])).join(','))].join('\n')
+    );
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);

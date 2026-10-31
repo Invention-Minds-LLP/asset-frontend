@@ -231,7 +231,7 @@ export class Dashboard implements OnInit {
       const val = row[c.field] ?? '';
       return `"${String(val).replace(/"/g, '""')}"`;
     }).join(',')).join('\n');
-    const csv = headers + '\n' + rows;
+    const csv = this.downloadGate.csvWithFooter(headers + '\n' + rows);
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

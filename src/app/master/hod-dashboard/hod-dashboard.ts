@@ -158,7 +158,9 @@ export class HodDashboard implements OnInit {
         const rows = res?.assets || [];
         const head = ['Asset ID', 'Name', 'Category', 'Status', 'Supervisor', 'End User', 'Target Dept'];
         const esc = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-        const csv = [head.join(','), ...rows.map((r: any) => [r.assetId, r.assetName, r.category, r.status, r.supervisor, r.endUser, r.targetDept].map(esc).join(','))].join('\n');
+        const csv = this.downloadGate.csvWithFooter(
+          [head.join(','), ...rows.map((r: any) => [r.assetId, r.assetName, r.category, r.status, r.supervisor, r.endUser, r.targetDept].map(esc).join(','))].join('\n')
+        );
         const link = document.createElement('a');
         link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
         link.download = `${this.listTitle.replace(/[^a-z0-9]+/gi, '_')}.csv`; link.click();

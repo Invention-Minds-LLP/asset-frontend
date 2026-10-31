@@ -770,3 +770,4 @@
 .dl-filters label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; }
 .dl-muted { opacity: 0.65; }
 .dl-reason { white-space: normal; max-width: 320px; }
+.dl-ref { font-family: ui-monospace, Consolas, monospace; font-size: 0.78rem; -webkit-user-select: all; user-select: all; }

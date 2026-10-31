@@ -440,7 +440,7 @@
           <p class="dl-intro">Every download, export and print, with who did it and why. Verified by email OTP and captcha.</p>
 
           <form class="dl-filters" (ngSubmit)="loadDownloadLogs(1)">
-            <input pInputText name="dlSearch" [(ngModel)]="downloadLogsSearch" placeholder="Search employee, file or reason" />
+            <input pInputText name="dlSearch" [(ngModel)]="downloadLogsSearch" placeholder="Search ref no., employee, file or reason" />
             <label>From <input pInputText type="date" name="dlFrom" [(ngModel)]="downloadLogsFrom" /></label>
             <label>To <input pInputText type="date" name="dlTo" [(ngModel)]="downloadLogsTo" /></label>
             <button pButton type="submit" icon="pi pi-search" label="Search"></button>
@@ -454,6 +454,7 @@
               <ng-template pTemplate="header">
                 <tr>
                   <th style="width: 170px;">When</th>
+                  <th style="width: 250px;">Ref No. / #</th>
                   <th style="width: 190px;">Employee</th>
                   <th style="width: 110px;">Role</th>
                   <th>What</th>
@@ -465,6 +466,7 @@
               <ng-template pTemplate="body" let-r>
                 <tr>
                   <td>{{ r.createdAt | date:'medium' }}</td>
+                  <td><span class="dl-ref">{{ r.refCode || '—' }}</span><br /><small class="dl-muted" *ngIf="r.downloadNo">Download #{{ r.downloadNo }}</small></td>
                   <td><span class="cell-id">{{ r.employeeID }}</span><br /><small>{{ r.name }}</small></td>
                   <td><span class="role-pill" [class]="'role-' + (r.role || '').toLowerCase()">{{ r.role }}</span></td>
                   <td>{{ r.label }}<br /><small class="dl-muted">{{ r.page }}</small></td>
@@ -477,7 +479,7 @@
                 </tr>
               </ng-template>
               <ng-template pTemplate="emptymessage">
-                <tr><td colspan="7" class="empty-msg">No downloads recorded</td></tr>
+                <tr><td colspan="8" class="empty-msg">No downloads recorded</td></tr>
               </ng-template>
             </p-table>
           </div>
